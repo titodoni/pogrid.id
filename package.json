@@ -1,0 +1,29 @@
+{
+  "name": "pogrid",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@inertiajs/react": "^2.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@astryxdesign/cli": "^0.1.1",
+    "@astryxdesign/core": "^0.1.1",
+    "@astryxdesign/theme-neutral": "^0.1.1",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^6.0.3",
+    "concurrently": "^9.0.1",
+    "laravel-vite-plugin": "^3.1.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.4.5",
+    "vite": "^8.0.0"
+  }
+}
