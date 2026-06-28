@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Models\ItemProgress;
 use App\Models\Alert;
+use App\Models\Po;
+use App\Models\User;
+use App\Models\Tenant;
 use App\Events\KendalaReported;
 use App\Services\TenantManager;
 use Illuminate\Http\Request;
@@ -14,7 +17,54 @@ class WorkerDashboardController extends Controller
 {
     public function index($slug)
     {
-        // Active items that are not completed or cancelled
+        // 1. Resolve tenant context by slug
+        TenantManager::bypass();
+        $tenant = Tenant::where('slug', $slug)->first();
+        if (!$tenant) {
+            abort(404, 'Tenant not found.');
+        }
+        TenantManager::enableScope();
+        TenantManager::setTenantId($tenant->id);
+
+        // 2. If guest, render the unified login gateway
+        if (!auth()->check()) {
+            $workers = User::where('tenant_id', $tenant->id)
+                ->whereNotNull('pin')
+                ->get(['id', 'name', 'role']);
+
+            return Inertia::render('Worker/Login', [
+                'tenant' => [
+                    'id' => $tenant->id,
+                    'company_name' => $tenant->company_name,
+                    'slug' => $tenant->slug,
+                ],
+                'workers' => $workers,
+            ]);
+        }
+
+        // 3. Authenticated: verify tenant scope matching
+        $user = auth()->user();
+        if ($user->tenant_id !== $tenant->id) {
+            abort(403, 'Unauthorized tenant access.');
+        }
+
+        // 4. Determine dashboard views by office vs floor roles division
+        $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'PURCHASING', 'FINANCE'];
+        if (in_array(strtoupper($user->role), $officeRoles)) {
+            $pos = Po::with('items.itemProgresses')->get();
+            $alerts = Alert::where('is_resolved', false)->get();
+            $users = User::get();
+
+            return Inertia::render('Owner/Dashboard', [
+                'pos' => $pos,
+                'alerts' => $alerts,
+                'users' => $users,
+                'tenant' => $tenant,
+                'auth_user' => $user,
+            ]);
+        }
+
+        // Otherwise, render floor operators dashboard
         $items = Item::with(['itemProgresses', 'po'])
             ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])
             ->get();

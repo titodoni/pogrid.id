@@ -94,13 +94,13 @@ class CoreLogicTest extends TestCase
             'item_name' => 'Shaft S45C',
             'target_qty' => 20,
             'item_type' => 'MANUFACTURE',
-            'required_stages' => ['CNC', 'FABRIKASI'],
+            'required_stages' => ['CNC', 'Fabrication'],
             'status' => 'PENDING',
         ]);
 
         // Check if parallel entries in item_progress table were spawned
         $this->assertEquals(2, $item->itemProgresses()->count());
-        $this->assertEquals(['CNC', 'FABRIKASI'], $item->itemProgresses()->pluck('stage_name')->toArray());
+        $this->assertEquals(['CNC', 'Fabrication'], $item->itemProgresses()->pluck('stage_name')->toArray());
 
         // Update progress of CNC stage (5 out of 20 pieces)
         $cncStage = $item->itemProgresses()->where('stage_name', 'CNC')->first();
@@ -115,8 +115,8 @@ class CoreLogicTest extends TestCase
         $this->assertEquals(12.50, (float)$item->progress_percent);
         $this->assertEquals('IN_PROGRESS', $item->status);
 
-        // Update progress of FABRIKASI stage (15 out of 20 pieces)
-        $fabStage = $item->itemProgresses()->where('stage_name', 'FABRIKASI')->first();
+        // Update progress of Fabrication stage (15 out of 20 pieces)
+        $fabStage = $item->itemProgresses()->where('stage_name', 'Fabrication')->first();
         $fabStage->update([
             'completed_qty' => 15,
             'status' => 'IN_PROGRESS',
@@ -475,7 +475,7 @@ class CoreLogicTest extends TestCase
         $owner = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Owner',
-            'role' => 'OWNER',
+            'role' => 'ADMIN',
             'email' => 'owner@example.com',
             'password' => bcrypt('password'),
         ]);
@@ -498,202 +498,5 @@ class CoreLogicTest extends TestCase
 
         \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\ProductionTerminated::class);
         \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\GenerateSunkCostInvoiceJob::class);
-    }
-
-    public function test_delivery_order_creation_via_route()
-    {
-        TenantManager::setTenantId($this->tenant1->id);
-
-        $po = Po::create([
-            'po_number' => 'PO-1001',
-            'client_name' => 'Client A',
-            'global_deadline' => now()->addDays(10),
-            'status' => 'PENDING',
-        ]);
-
-        $item1 = Item::create([
-            'po_id' => $po->id,
-            'item_name' => 'Item 1',
-            'target_qty' => 10,
-            'item_type' => 'MANUFACTURE',
-            'required_stages' => ['CNC'],
-            'status' => 'PENDING',
-        ]);
-
-        $owner = User::create([
-            'tenant_id' => $this->tenant1->id,
-            'name' => 'Owner',
-            'role' => 'OWNER',
-            'email' => 'owner@example.com',
-            'password' => bcrypt('password'),
-        ]);
-        $this->actingAs($owner);
-
-        // Success DO creation
-        $response = $this->post('/delivery-orders', [
-            'po_id' => $po->id,
-            'do_number' => 'DO-100',
-            'delivery_date' => now()->toDateString(),
-            'items' => [
-                ['item_id' => $item1->id, 'delivered_qty' => 4]
-            ]
-        ]);
-
-        $response->assertRedirect();
-        $this->assertDatabaseHas('delivery_orders', [
-            'po_id' => $po->id,
-            'do_number' => 'DO-100'
-        ]);
-
-        $this->assertDatabaseHas('do_items', [
-            'item_id' => $item1->id,
-            'delivered_qty' => 4
-        ]);
-
-        // Failed DO creation: exceeding quantity
-        $response2 = $this->post('/delivery-orders', [
-            'po_id' => $po->id,
-            'do_number' => 'DO-101',
-            'delivery_date' => now()->toDateString(),
-            'items' => [
-                ['item_id' => $item1->id, 'delivered_qty' => 7] // 4 + 7 = 11 > 10
-            ]
-        ]);
-        $response2->assertSessionHasErrors();
-    }
-
-    public function test_invoice_creation_blocked_without_do()
-    {
-        TenantManager::setTenantId($this->tenant1->id);
-
-        $owner = User::create([
-            'tenant_id' => $this->tenant1->id,
-            'name' => 'Owner',
-            'role' => 'OWNER',
-            'email' => 'owner@example.com',
-            'password' => bcrypt('password'),
-        ]);
-        $this->actingAs($owner);
-
-        // Blocked since no DO exists
-        $response = $this->post('/invoices', [
-            'delivery_order_id' => 999, // Dummy
-            'invoice_number' => 'INV-001',
-            'due_date' => now()->addDays(7)->toDateString()
-        ]);
-
-        $response->assertStatus(403);
-    }
-
-    public function test_invoice_creation_succeeds_with_do()
-    {
-        TenantManager::setTenantId($this->tenant1->id);
-
-        $po = Po::create([
-            'po_number' => 'PO-1001',
-            'client_name' => 'Client A',
-            'global_deadline' => now()->addDays(10),
-            'status' => 'PENDING',
-        ]);
-
-        $item1 = Item::create([
-            'po_id' => $po->id,
-            'item_name' => 'Item 1',
-            'target_qty' => 10,
-            'item_type' => 'MANUFACTURE',
-            'required_stages' => ['CNC'],
-            'status' => 'PENDING',
-        ]);
-
-        $do = DeliveryOrder::create([
-            'po_id' => $po->id,
-            'do_number' => 'DO-200',
-            'delivery_date' => now(),
-        ]);
-
-        DoItem::create([
-            'delivery_order_id' => $do->id,
-            'item_id' => $item1->id,
-            'delivered_qty' => 5,
-        ]);
-
-        $owner = User::create([
-            'tenant_id' => $this->tenant1->id,
-            'name' => 'Owner',
-            'role' => 'OWNER',
-            'email' => 'owner@example.com',
-            'password' => bcrypt('password'),
-        ]);
-        $this->actingAs($owner);
-
-        // Success since DO exists
-        $response = $this->post('/invoices', [
-            'delivery_order_id' => $do->id,
-            'invoice_number' => 'INV-001',
-            'due_date' => now()->addDays(7)->toDateString()
-        ]);
-
-        $response->assertRedirect();
-        $this->assertDatabaseHas('invoices', [
-            'delivery_order_id' => $do->id,
-            'invoice_number' => 'INV-001',
-            'total_amount' => 750000.00 // 5 * 150,000
-        ]);
-    }
-
-    public function test_invoice_pdf_download()
-    {
-        TenantManager::setTenantId($this->tenant1->id);
-
-        $po = Po::create([
-            'po_number' => 'PO-1001',
-            'client_name' => 'Client A',
-            'global_deadline' => now()->addDays(10),
-            'status' => 'PENDING',
-        ]);
-
-        $item1 = Item::create([
-            'po_id' => $po->id,
-            'item_name' => 'Item 1',
-            'target_qty' => 10,
-            'item_type' => 'MANUFACTURE',
-            'required_stages' => ['CNC'],
-            'status' => 'PENDING',
-        ]);
-
-        $do = DeliveryOrder::create([
-            'po_id' => $po->id,
-            'do_number' => 'DO-200',
-            'delivery_date' => now(),
-        ]);
-
-        DoItem::create([
-            'delivery_order_id' => $do->id,
-            'item_id' => $item1->id,
-            'delivered_qty' => 5,
-        ]);
-
-        $invoice = Invoice::create([
-            'tenant_id' => $this->tenant1->id,
-            'delivery_order_id' => $do->id,
-            'invoice_number' => 'INV-001',
-            'total_amount' => 750000.00,
-            'status' => 'UNPAID',
-            'due_date' => now()->addDays(7),
-            'invoice_type' => 'STANDARD',
-        ]);
-
-        $owner = User::create([
-            'tenant_id' => $this->tenant1->id,
-            'name' => 'Owner',
-            'role' => 'OWNER',
-            'email' => 'owner@example.com',
-            'password' => bcrypt('password'),
-        ]);
-        $this->actingAs($owner);
-
-        $response = $this->get("/invoices/{$invoice->id}/pdf");
-        $response->assertStatus(200);
-        $response->assertHeader('content-type', 'application/pdf');
     }
 }

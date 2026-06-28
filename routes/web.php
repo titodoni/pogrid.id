@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OwnerDashboardController;
+use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\WorkerAuthController;
 use App\Http\Controllers\WorkerDashboardController;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,10 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
+    
+    // Onboarding / Registration
+    Route::get('/register', [RegistrationController::class, 'showRegister'])->name('register');
+    Route::post('/register', [RegistrationController::class, 'register']);
 });
 
 Route::middleware('auth')->group(function () {
@@ -24,20 +29,25 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [OwnerDashboardController::class, 'index'])->name('dashboard');
     Route::post('/items/{itemId}/cancel', [OwnerDashboardController::class, 'cancelItem']);
     Route::post('/items/{itemId}/terminate', [OwnerDashboardController::class, 'terminateMidway']);
-    Route::post('/delivery-orders', [OwnerDashboardController::class, 'createDeliveryOrder']);
-    Route::post('/invoices', [OwnerDashboardController::class, 'createInvoice']);
-    Route::get('/invoices/{invoiceId}/pdf', [OwnerDashboardController::class, 'downloadInvoicePdf']);
+    
+    // PO Broadcasting
+    Route::post('/pos', [OwnerDashboardController::class, 'createPo']);
+    
+    // User Management
+    Route::post('/users', [OwnerDashboardController::class, 'createUser']);
+    Route::post('/users/{userId}/update', [OwnerDashboardController::class, 'updateUser']);
+    Route::post('/users/{userId}/delete', [OwnerDashboardController::class, 'deleteUser']);
+
+    // Company Settings Update
+    Route::post('/company/update', [OwnerDashboardController::class, 'updateCompany']);
 });
 
-// Guard B: Worker / QC Path-Based Auth
+// Guard B: Unified Tenant Gateway at c/{slug}
 Route::prefix('c/{slug}')->group(function () {
-    Route::middleware('guest')->group(function () {
-        Route::get('/', [WorkerAuthController::class, 'showLogin'])->name('worker.login');
-        Route::post('/login', [WorkerAuthController::class, 'login']);
-    });
+    Route::get('/', [WorkerDashboardController::class, 'index'])->name('worker.dashboard');
+    Route::post('/login', [WorkerAuthController::class, 'login']);
 
     Route::middleware('auth')->group(function () {
-        Route::get('/dashboard', [WorkerDashboardController::class, 'index'])->name('worker.dashboard');
         Route::post('/progress/{progressId}/update', [WorkerDashboardController::class, 'updateProgress']);
         Route::post('/progress/{progressId}/kendala', [WorkerDashboardController::class, 'reportKendala']);
         Route::post('/progress/{progressId}/rework', [WorkerDashboardController::class, 'logQcRework']);

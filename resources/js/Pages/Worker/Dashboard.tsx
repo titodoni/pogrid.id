@@ -18,19 +18,126 @@ interface Item {
     status: string;
     po?: {
         po_number: string;
+        external_po_number?: string | null;
+        client_name: string;
+        global_deadline: string;
+        is_urgent?: boolean | null;
     };
     item_progresses: Stage[];
 }
 
+const formatDeadline = (deadlineDateStr?: string) => {
+    if (!deadlineDateStr) return '';
+    const deadline = new Date(deadlineDateStr);
+    const deadlineClean = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
+    const today = new Date();
+    const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    const diffTime = deadlineClean.getTime() - todayClean.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    const dateFormatted = deadlineClean.toLocaleDateString();
+
+    if (diffDays === 0) {
+        return `${dateFormatted} (Today)`;
+    } else if (diffDays > 0) {
+        if (diffDays === 7) return `${dateFormatted} (1 week)`;
+        if (diffDays === 30) return `${dateFormatted} (1 month)`;
+        return `${dateFormatted} (${diffDays} days)`;
+    } else {
+        return `${dateFormatted} (delayed ${Math.abs(diffDays)} days)`;
+    }
+};
+
 interface Props {
     items: Item[];
 }
+
+const translations = {
+    en: {
+        floor_terminal: "Floor Operation Terminal",
+        subtitle_realtime: "Log production progress in real-time",
+        exit_terminal: "Exit Terminal",
+        active_items: "Active Production Items",
+        no_active_items: "No active items on the floor.",
+        client: "Client",
+        deadline: "Deadline",
+        qty: "Qty",
+        item_stages: "Item Stages",
+        select_stage: "Select an active stage on the left to start logging progress.",
+        completed: "Completed",
+        progress: "Progress",
+        log_rework: "Log QC Rework",
+        report_failure: "Report Failure / Kendala",
+        increase_progress: "Increase Progress",
+        decrease_progress: "Decrease Progress",
+        log_progress_percentage: "Log Progress Percentage",
+        cancel: "Cancel",
+        submit: "Submit",
+        rework_dialog_title: "Log QC Rework / Failure Reject",
+        rework_dialog_subtitle: "Enter the number of rejected pieces that require rework. This will reset their progress.",
+        reject_qty_label: "Rejected Quantity (requires rework)",
+        failure_dialog_title: "Report Failure / Kendala",
+        failure_dialog_subtitle: "Flag this stage with an alert block. Supervisors will be notified.",
+        failure_type_label: "Failure Cause / Type",
+        machine_broken: "Machine Broken / Error",
+        material_delay: "Material / Drawing Delay",
+        power_outage: "Power Outage / Technical",
+        human_error: "Operator / Human Error",
+    },
+    id: {
+        floor_terminal: "Terminal Operasi Pabrik",
+        subtitle_realtime: "Catat progres produksi secara real-time",
+        exit_terminal: "Keluar Terminal",
+        active_items: "Barang Produksi Aktif",
+        no_active_items: "Tidak ada barang aktif di pabrik saat ini.",
+        client: "Klien",
+        deadline: "Tenggat Waktu",
+        qty: "Jumlah",
+        item_stages: "Tahapan Barang",
+        select_stage: "Pilih tahapan aktif di sebelah kiri untuk mulai mencatat progres.",
+        completed: "Selesai",
+        progress: "Progres",
+        log_rework: "Catat Rework QC",
+        report_failure: "Laporkan Kendala / Kegagalan",
+        increase_progress: "Tambah Progres",
+        decrease_progress: "Kurangi Progres",
+        log_progress_percentage: "Catat Persentase Progres",
+        cancel: "Batal",
+        submit: "Kirim",
+        rework_dialog_title: "Catat Rework QC / Penolakan Gagal",
+        rework_dialog_subtitle: "Masukkan jumlah barang yang ditolak yang membutuhkan rework. Ini akan mengulang kembali progres mereka.",
+        reject_qty_label: "Jumlah Ditolak (membutuhkan rework)",
+        failure_dialog_title: "Laporkan Kendala / Kegagalan",
+        failure_dialog_subtitle: "Tandai tahapan ini dengan blokir peringatan. Pengawas akan segera diberitahu.",
+        failure_type_label: "Penyebab / Tipe Kendala",
+        machine_broken: "Mesin Rusak / Error",
+        material_delay: "Keterlambatan Bahan / Gambar",
+        power_outage: "Mati Lampu / Teknis",
+        human_error: "Kesalahan Operator / Manusia",
+    }
+};
 
 export default function WorkerDashboard({ items }: Props) {
     const { url } = usePage();
     // Resolve tenant slug from current path
     const pathParts = url.split('/');
     const slug = pathParts[2] || '';
+
+    // Language state
+    const [language, setLanguage] = useState<'en' | 'id'>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
+        }
+        return 'en';
+    });
+
+    const changeLanguage = (lang: 'en' | 'id') => {
+        setLanguage(lang);
+        localStorage.setItem('pogrid_lang', lang);
+    };
+
+    const t = translations[language];
 
     const [activeStage, setActiveStage] = useState<Stage | null>(null);
     const [activeItem, setActiveItem] = useState<Item | null>(null);
@@ -128,26 +235,58 @@ export default function WorkerDashboard({ items }: Props) {
                 marginBottom: '24px'
             }}>
                 <div>
-                    <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0 }}>Floor Operation Terminal</h1>
-                    <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>Log production progress in real-time</p>
+                    <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0 }}>{t.floor_terminal}</h1>
+                    <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>{t.subtitle_realtime}</p>
                 </div>
-                <button
-                    onClick={() => router.post('/logout')}
-                    style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#ef4444',
-                        color: '#fff',
-                        fontWeight: 600,
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: 'pointer'
-                    }}
-                >
-                    Exit Terminal
-                </button>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <div style={{ display: 'inline-flex', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                        <button
+                            onClick={() => changeLanguage('en')}
+                            style={{
+                                padding: '6px 12px',
+                                backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
+                                border: 'none',
+                                color: '#fff',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                fontSize: '12px'
+                            }}
+                        >
+                            EN
+                        </button>
+                        <button
+                            onClick={() => changeLanguage('id')}
+                            style={{
+                                padding: '6px 12px',
+                                backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
+                                border: 'none',
+                                color: '#fff',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                fontSize: '12px'
+                            }}
+                        >
+                            ID
+                        </button>
+                    </div>
+                    <button
+                        onClick={() => router.post('/logout')}
+                        style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#ef4444',
+                            color: '#fff',
+                            fontWeight: 600,
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        {t.exit_terminal}
+                    </button>
+                </div>
             </header>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
+            <div className="responsive-grid responsive-grid-split" style={{ gap: '24px' }}>
                 {/* Active Items & Stages List */}
                 <div style={{
                     backgroundColor: 'rgba(15, 23, 42, 0.6)',
@@ -155,9 +294,9 @@ export default function WorkerDashboard({ items }: Props) {
                     borderRadius: '16px',
                     padding: '20px'
                 }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>Active Production Items</h2>
+                    <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>{t.active_items}</h2>
                     {items.length === 0 ? (
-                        <p style={{ color: '#64748b', padding: '16px', textAlign: 'center' }}>No active items on the floor.</p>
+                        <p style={{ color: '#64748b', padding: '16px', textAlign: 'center' }}>{t.no_active_items}</p>
                     ) : (
                         items.map((item) => (
                             <div key={item.id} style={{
@@ -167,12 +306,37 @@ export default function WorkerDashboard({ items }: Props) {
                                 padding: '16px',
                                 marginBottom: '12px'
                             }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                    <div>
-                                        <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>{item.item_name}</h3>
-                                        <span style={{ fontSize: '12px', color: '#64748b' }}>
-                                            PO: {item.po?.po_number} | Qty: {item.target_qty} pcs
-                                        </span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        {/* 1st Headline: Item Name */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: '#f8fafc' }}>{item.item_name}</h3>
+                                            {item.po?.is_urgent && (
+                                                <span style={{
+                                                    fontSize: '10px',
+                                                    fontWeight: 700,
+                                                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                                                    color: '#ef4444',
+                                                    padding: '2px 6px',
+                                                    borderRadius: '4px',
+                                                    border: '1px solid rgba(239, 68, 68, 0.4)'
+                                                }}>
+                                                    URGENT
+                                                </span>
+                                            )}
+                                        </div>
+                                        {/* 2nd Headline: Client Name */}
+                                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#60a5fa' }}>
+                                            {t.client}: {item.po?.client_name || 'N/A'} {item.po?.po_number ? `(PO: ${item.po.po_number}${item.po.external_po_number ? ` / ${item.po.external_po_number}` : ''})` : ''}
+                                        </div>
+                                        {/* 3rd Headline: Deadline */}
+                                        <div style={{ fontSize: '13px', color: '#94a3b8' }}>
+                                            {t.deadline}: {formatDeadline(item.po?.global_deadline)}
+                                        </div>
+                                        {/* 4th Headline: Qty */}
+                                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#38bdf8' }}>
+                                            {t.qty}: {item.target_qty} pcs
+                                        </div>
                                     </div>
                                     <div style={{
                                         fontSize: '14px',
@@ -324,7 +488,7 @@ export default function WorkerDashboard({ items }: Props) {
                                         cursor: 'pointer'
                                     }}
                                 >
-                                    ⚠️ LAPOR KENDALA
+                                    ⚠️ {t.report_failure}
                                 </button>
                                 <button
                                     onClick={() => setShowQcModal(true)}
@@ -340,7 +504,7 @@ export default function WorkerDashboard({ items }: Props) {
                                         cursor: 'pointer'
                                     }}
                                 >
-                                    🔍 LOG QC REWORK
+                                    🔍 {t.log_rework}
                                 </button>
                             </div>
                         </div>
@@ -353,7 +517,7 @@ export default function WorkerDashboard({ items }: Props) {
                             textAlign: 'center',
                             color: '#64748b'
                         }}>
-                            Select a stage from the active items list to log progress.
+                            {t.select_stage}
                         </div>
                     )}
                 </div>
@@ -378,8 +542,8 @@ export default function WorkerDashboard({ items }: Props) {
                         width: '100%',
                         maxWidth: '400px'
                     }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0' }}>Report Production Stuck</h3>
-                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>Select Reason</label>
+                        <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0' }}>{t.failure_dialog_title}</h3>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>{t.failure_type_label}</label>
                         <select
                             value={kendalaType}
                             onChange={(e) => setKendalaType(e.target.value)}
@@ -394,10 +558,10 @@ export default function WorkerDashboard({ items }: Props) {
                                 outline: 'none'
                             }}
                         >
-                            <option value="Machine Broken">Machine Broken</option>
-                            <option value="Material Delay">Material Delay</option>
-                            <option value="Operator Sick">Operator Sick</option>
-                            <option value="Power Outage">Power Outage</option>
+                            <option value="Machine Broken">{t.machine_broken}</option>
+                            <option value="Material Delay">{t.material_delay}</option>
+                            <option value="Operator Sick">Operator Sick / Absen</option>
+                            <option value="Power Outage">{t.power_outage}</option>
                         </select>
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                             <button
@@ -411,7 +575,7 @@ export default function WorkerDashboard({ items }: Props) {
                                     cursor: 'pointer'
                                 }}
                             >
-                                Cancel
+                                {t.cancel}
                             </button>
                             <button
                                 type="submit"
@@ -425,7 +589,7 @@ export default function WorkerDashboard({ items }: Props) {
                                     cursor: 'pointer'
                                 }}
                             >
-                                Submit Laporan
+                                {t.submit}
                             </button>
                         </div>
                     </form>
@@ -451,8 +615,9 @@ export default function WorkerDashboard({ items }: Props) {
                         width: '100%',
                         maxWidth: '400px'
                     }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0' }}>Log QC Reject & Rework</h3>
-                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>Rejected Quantity (pcs)</label>
+                        <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0' }}>{t.rework_dialog_title}</h3>
+                        <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 16px 0' }}>{t.rework_dialog_subtitle}</p>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>{t.reject_qty_label}</label>
                         <input
                             type="number"
                             min="1"
@@ -481,7 +646,7 @@ export default function WorkerDashboard({ items }: Props) {
                                     cursor: 'pointer'
                                 }}
                             >
-                                Cancel
+                                {t.cancel}
                             </button>
                             <button
                                 type="submit"
@@ -495,7 +660,7 @@ export default function WorkerDashboard({ items }: Props) {
                                     cursor: 'pointer'
                                 }}
                             >
-                                Spawns Rework
+                                {t.submit}
                             </button>
                         </div>
                     </form>

@@ -21,6 +21,8 @@ class Item extends Model
         'required_stages',
         'progress_percent',
         'status',
+        'vendor_name',
+        'vendor_phone',
     ];
 
     protected $casts = [

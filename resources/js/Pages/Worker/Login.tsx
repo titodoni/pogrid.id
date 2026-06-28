@@ -100,7 +100,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                     </h1>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+                <div className="responsive-grid responsive-grid-half" style={{ gap: '32px' }}>
                     {/* Worker Selector Left Column */}
                     <div>
                         <h3 style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '12px', fontWeight: 600 }}>

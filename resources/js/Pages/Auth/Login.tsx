@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { useForm } from '@inertiajs/react';
+import React from 'react';
+import { useForm, Link } from '@inertiajs/react';
 
 export default function Login() {
     const { data, setData, post, processing, errors } = useForm({
-        email: '',
+        username: '',
         password: '',
     });
 
@@ -52,7 +52,7 @@ export default function Login() {
 
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '20px' }}>
-                        <label htmlFor="email" style={{
+                        <label htmlFor="username" style={{
                             display: 'block',
                             fontSize: '13px',
                             fontWeight: 600,
@@ -61,13 +61,13 @@ export default function Login() {
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em'
                         }}>
-                            Email Address
+                            Username
                         </label>
                         <input
-                            type="email"
-                            id="email"
-                            value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
+                            type="text"
+                            id="username"
+                            value={data.username}
+                            onChange={(e) => setData('username', e.target.value)}
                             style={{
                                 width: '100%',
                                 padding: '12px 16px',
@@ -79,12 +79,12 @@ export default function Login() {
                                 outline: 'none',
                                 transition: 'border-color 0.2s'
                             }}
-                            placeholder="owner@company.com"
+                            placeholder="Enter username"
                             required
                         />
-                        {errors.email && (
+                        {errors.username && (
                             <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
-                                {errors.email}
+                                {errors.username}
                             </span>
                         )}
                     </div>
@@ -141,7 +141,8 @@ export default function Login() {
                             fontSize: '16px',
                             cursor: 'pointer',
                             transition: 'background-color 0.2s, transform 0.1s',
-                            boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)'
+                            boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)',
+                            marginBottom: '20px'
                         }}
                         onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
                         onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
@@ -149,6 +150,13 @@ export default function Login() {
                         {processing ? 'Logging in...' : 'Sign In'}
                     </button>
                 </form>
+
+                <div style={{ textAlign: 'center', fontSize: '14px' }}>
+                    <span style={{ color: '#94a3b8' }}>New company? </span>
+                    <Link href="/register" style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
+                        Register POgrid
+                    </Link>
+                </div>
             </div>
         </div>
     );

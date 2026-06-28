@@ -28,35 +28,77 @@ class DatabaseSeeder extends Seeder
         // Set tenant context for model creation
         TenantManager::setTenantId($tenant->id);
 
-        // 2. Create Owner User (Guard A login)
+        // 2. Create Office Staff (Password Login: qwerty)
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Budi Santoso',
+            'name' => 'Budi Santoso (Admin)',
+            'username' => 'budi',
             'email' => 'budi@teknikmandiri.com',
-            'password' => Hash::make('password'),
-            'role' => 'OWNER',
-        ]);
-
-        // 3. Create Worker Users (Guard B login)
-        User::create([
-            'tenant_id' => $tenant->id,
-            'name' => 'Joko (CNC Operator)',
-            'pin' => Hash::make('1234'),
-            'role' => 'WORKER',
+            'password' => Hash::make('qwerty'),
+            'role' => 'ADMIN',
         ]);
 
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Agus (Welder/Fitter)',
-            'pin' => Hash::make('5678'),
-            'role' => 'WORKER',
+            'name' => 'Sales Staff',
+            'username' => 'sales',
+            'email' => 'sales@teknikmandiri.com',
+            'password' => Hash::make('qwerty'),
+            'role' => 'SALES',
         ]);
 
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Siti (QC Inspector)',
-            'pin' => Hash::make('9999'),
+            'name' => 'Purchasing Agent',
+            'username' => 'purchasing',
+            'email' => 'purchasing@teknikmandiri.com',
+            'password' => Hash::make('qwerty'),
+            'role' => 'PURCHASING',
+        ]);
+
+        User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Finance Controller',
+            'username' => 'finance',
+            'email' => 'finance@teknikmandiri.com',
+            'password' => Hash::make('qwerty'),
+            'role' => 'FINANCE',
+        ]);
+
+        // 3. Create Floor Staff (PIN Login: 0000)
+        User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Drafter Designer',
+            'pin' => Hash::make('0000'),
+            'role' => 'DRAFTER',
+        ]);
+
+        User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'CNC Specialist',
+            'pin' => Hash::make('0000'),
+            'role' => 'CNC',
+        ]);
+
+        User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Fabricator Welder',
+            'pin' => Hash::make('0000'),
+            'role' => 'FABRICATION',
+        ]);
+
+        User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'QC Inspector',
+            'pin' => Hash::make('0000'),
             'role' => 'QC',
+        ]);
+
+        User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Delivery Courier',
+            'pin' => Hash::make('0000'),
+            'role' => 'DELIVERY',
         ]);
 
         // 4. Create Purchase Orders (POs)
@@ -81,10 +123,10 @@ class DatabaseSeeder extends Seeder
         Item::create([
             'tenant_id' => $tenant->id,
             'po_id' => $po1->id,
-            'item_name' => 'Shaft S45C (CNC + FABRIKASI)',
+            'item_name' => 'Shaft S45C (CNC + Fabrication)',
             'target_qty' => 10,
             'item_type' => 'MANUFACTURE',
-            'required_stages' => ['CNC', 'FABRIKASI'],
+            'required_stages' => ['CNC', 'Fabrication'],
             'status' => 'PENDING',
         ]);
 
@@ -101,10 +143,10 @@ class DatabaseSeeder extends Seeder
         Item::create([
             'tenant_id' => $tenant->id,
             'po_id' => $po2->id,
-            'item_name' => 'Special Bracket (CNC + QC)',
+            'item_name' => 'Special Bracket (CNC + Fabrication)',
             'target_qty' => 1,
             'item_type' => 'MANUFACTURE',
-            'required_stages' => ['CNC', 'QC'],
+            'required_stages' => ['CNC', 'Fabrication'],
             'status' => 'PENDING',
         ]);
     }

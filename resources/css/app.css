@@ -7,3 +7,96 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Mobile-first Layout & Helper Classes */
+body {
+    background-color: #090d16;
+}
+
+/* Touch-friendly inputs, selectors, and buttons */
+input, select, textarea {
+    min-height: 44px;
+}
+
+.responsive-container {
+    padding: 16px;
+}
+@media (min-width: 768px) {
+    .responsive-container {
+        padding: 24px;
+    }
+}
+
+.responsive-header {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    align-items: stretch !important;
+}
+@media (min-width: 768px) {
+    .responsive-header {
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+}
+
+.responsive-split {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+@media (min-width: 640px) {
+    .responsive-split {
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+}
+
+.responsive-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+}
+@media (min-width: 768px) {
+    .responsive-grid-split {
+        grid-template-columns: 1.2fr 1fr !important;
+    }
+    .responsive-grid-half {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+
+/* Responsive Modal Sizing */
+.modal-content {
+    width: 95% !important;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+@media (min-width: 640px) {
+    .modal-content {
+        width: 100% !important;
+        max-width: 550px !important;
+    }
+}
+@media (min-width: 1024px) {
+    .modal-content-wide {
+        max-width: 850px !important;
+    }
+}
+
+/* Touch targets */
+.touch-target {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Responsive tables or scrollable lists on mobile */
+.responsive-table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}

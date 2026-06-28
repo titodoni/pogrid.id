@@ -17,9 +17,8 @@ class WorkerAuthController extends Controller
         TenantManager::bypass();
         $tenant = Tenant::where('slug', $slug)->firstOrFail();
         
-        // Scope to this tenant's workers
         $workers = User::where('tenant_id', $tenant->id)
-            ->whereIn('role', ['WORKER', 'QC'])
+            ->whereNotNull('pin')
             ->get(['id', 'name', 'role']);
 
         return Inertia::render('Worker/Login', [

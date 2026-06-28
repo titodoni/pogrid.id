@@ -8,6 +8,7 @@ use App\Models\Alert;
 use App\Models\DeliveryOrder;
 use App\Models\DoItem;
 use App\Models\Invoice;
+use App\Models\User;
 use App\Services\TenantManager;
 use App\Jobs\GenerateSunkCostInvoiceJob;
 use App\Events\ProductionTerminated;
@@ -21,19 +22,235 @@ class OwnerDashboardController extends Controller
 {
     public function index()
     {
-        $pos = Po::with('items.itemProgresses')->get();
-        $alerts = Alert::where('is_resolved', false)->get();
-        
-        // Load Delivery Orders and Invoices for the dashboard
-        $deliveryOrders = DeliveryOrder::with(['po', 'doItems.item'])->get();
-        $invoices = Invoice::with(['deliveryOrder.po'])->get();
-        
-        return Inertia::render('Owner/Dashboard', [
-            'pos' => $pos,
-            'alerts' => $alerts,
-            'deliveryOrders' => $deliveryOrders,
-            'invoices' => $invoices,
+        if (auth()->check()) {
+            $tenant = \App\Models\Tenant::find(TenantManager::getTenantId());
+            if ($tenant) {
+                return redirect("/c/{$tenant->slug}");
+            }
+        }
+        return redirect('/login');
+    }
+
+    public function updateCompany(Request $request)
+    {
+        $request->validate([
+            'company_name' => ['required', 'string', 'max:255'],
         ]);
+
+        $tenant = \App\Models\Tenant::find(TenantManager::getTenantId());
+        $tenant->update([
+            'company_name' => $request->company_name,
+        ]);
+
+        return back()->with('success', 'Company settings updated successfully.');
+    }
+
+    public function createPo(Request $request)
+    {
+        if (auth()->user()->role === 'OWNER') {
+            abort(403, 'Owners cannot create or broadcast POs. Please assign an Admin user.');
+        }
+        $request->validate([
+            'po_number' => [
+                'required',
+                'string',
+                Rule::unique('pos')->where('tenant_id', TenantManager::getTenantId()),
+            ],
+            'external_po_number' => ['nullable', 'string', 'max:255'],
+            'client_name' => ['required', 'string', 'max:255'],
+            'global_deadline_relative' => ['nullable', 'string', 'in:3 days,1 week,1 month'],
+            'global_deadline' => [
+                Rule::requiredIf(!$request->filled('global_deadline_relative')),
+                'nullable',
+                'date'
+            ],
+            'is_urgent' => ['nullable', 'boolean'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.item_name' => ['required', 'string', 'max:255'],
+            'items.*.item_type' => ['required', 'in:MANUFACTURE,BUY_OUT,SERVICE'],
+            'items.*.target_qty' => ['required', 'integer', 'min:1'],
+            'items.*.required_stages' => ['required', 'array', 'min:1'],
+            'items.*.required_stages.*' => ['required', 'string'],
+            'items.*.vendor_name' => ['nullable', 'string', 'max:255'],
+            'items.*.vendor_phone' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if ($request->filled('global_deadline')) {
+            $deadline = \Carbon\Carbon::parse($request->input('global_deadline'));
+        } else {
+            $relative = $request->input('global_deadline_relative');
+            if ($relative === '3 days') {
+                $deadline = now()->addDays(3);
+            } elseif ($relative === '1 week') {
+                $deadline = now()->addWeeks(1);
+            } elseif ($relative === '1 month') {
+                $deadline = now()->addMonths(1);
+            } else {
+                $deadline = now()->addDays(3);
+            }
+        }
+
+        DB::transaction(function () use ($request, $deadline) {
+            $po = Po::create([
+                'tenant_id' => TenantManager::getTenantId(),
+                'po_number' => $request->po_number,
+                'external_po_number' => $request->external_po_number,
+                'client_name' => $request->client_name,
+                'global_deadline' => $deadline->toDateString(),
+                'status' => 'PENDING',
+                'is_urgent' => (bool)$request->is_urgent,
+            ]);
+
+            foreach ($request->items as $itemData) {
+                Item::create([
+                    'tenant_id' => TenantManager::getTenantId(),
+                    'po_id' => $po->id,
+                    'item_name' => $itemData['item_name'],
+                    'item_type' => $itemData['item_type'],
+                    'target_qty' => $itemData['target_qty'],
+                    'required_stages' => $itemData['required_stages'],
+                    'status' => 'PENDING',
+                    'vendor_name' => $itemData['vendor_name'] ?? null,
+                    'vendor_phone' => $itemData['vendor_phone'] ?? null,
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Purchase Order broadcasted successfully.');
+    }
+
+    public function createUser(Request $request)
+    {
+        $loginMethod = $request->input('login_method');
+        if (!$loginMethod) {
+            if ($request->filled('pin') || in_array(strtoupper($request->role), ['WORKER', 'QC', 'DRAFTER', 'CNC', 'FABRICATION', 'DELIVERY'])) {
+                $loginMethod = 'PIN';
+            } else {
+                $loginMethod = 'PASSWORD';
+            }
+        }
+        $request->merge(['login_method' => $loginMethod]);
+
+        $request->validate([
+            'role' => ['required', 'string', 'max:255'],
+            'login_method' => ['required', 'in:PASSWORD,PIN'],
+            'name' => ['required', 'string', 'max:255'],
+            'username' => [
+                Rule::requiredIf($request->login_method === 'PASSWORD'),
+                'nullable',
+                'string',
+                'max:255',
+                'alpha_dash',
+                'unique:users,username',
+            ],
+            'password' => [
+                Rule::requiredIf($request->login_method === 'PASSWORD'),
+                'nullable',
+                'string',
+                'min:6',
+            ],
+            'pin' => [
+                Rule::requiredIf($request->login_method === 'PIN'),
+                'nullable',
+                'string',
+                'size:4',
+                'regex:/^[0-9]+$/',
+            ],
+        ]);
+
+        $userData = [
+            'tenant_id' => TenantManager::getTenantId(),
+            'name' => $request->name,
+            'role' => $request->role,
+        ];
+
+        if ($request->login_method === 'PASSWORD') {
+            $userData['username'] = $request->username;
+            $userData['password'] = bcrypt($request->password);
+            $userData['pin'] = null;
+        } else {
+            $userData['pin'] = bcrypt($request->pin);
+            $userData['username'] = null;
+            $userData['password'] = null;
+        }
+
+        User::create($userData);
+
+        return back()->with('success', 'User created successfully.');
+    }
+
+    public function updateUser(Request $request, $userId)
+    {
+        $user = User::findOrFail($userId);
+
+        $loginMethod = $request->input('login_method');
+        if (!$loginMethod) {
+            if ($request->filled('pin') || (!$request->filled('username') && $user->pin)) {
+                $loginMethod = 'PIN';
+            } else {
+                $loginMethod = 'PASSWORD';
+            }
+        }
+        $request->merge(['login_method' => $loginMethod]);
+
+        $request->validate([
+            'role' => ['required', 'string', 'max:255'],
+            'login_method' => ['required', 'in:PASSWORD,PIN'],
+            'name' => ['required', 'string', 'max:255'],
+            'username' => [
+                Rule::requiredIf($request->login_method === 'PASSWORD'),
+                'nullable',
+                'string',
+                'max:255',
+                'alpha_dash',
+                Rule::unique('users', 'username')->ignore($user->id),
+            ],
+            'password' => [
+                'nullable',
+                'string',
+                'min:6',
+            ],
+            'pin' => [
+                'nullable',
+                'string',
+                'size:4',
+                'regex:/^[0-9]+$/',
+            ],
+        ]);
+
+        $user->name = $request->name;
+        $user->role = $request->role;
+
+        if ($request->login_method === 'PASSWORD') {
+            $user->username = $request->username;
+            if ($request->filled('password')) {
+                $user->password = bcrypt($request->password);
+            }
+            $user->pin = null;
+        } else {
+            if ($request->filled('pin')) {
+                $user->pin = bcrypt($request->pin);
+            }
+            $user->username = null;
+            $user->password = null;
+        }
+
+        $user->save();
+
+        return back()->with('success', 'User updated successfully.');
+    }
+
+    public function deleteUser(Request $request, $userId)
+    {
+        $user = User::findOrFail($userId);
+
+        if ($user->id === auth()->id()) {
+            abort(403, 'You cannot delete yourself.');
+        }
+
+        $user->delete();
+
+        return back()->with('success', 'User deleted successfully.');
     }
 
     public function cancelItem(Request $request, $itemId)
@@ -68,104 +285,5 @@ class OwnerDashboardController extends Controller
         GenerateSunkCostInvoiceJob::dispatch($item->id, $completedPieces);
 
         return back()->with('success', 'Production halted. Sunk-cost recovery billing task dispatched.');
-    }
-
-    public function createDeliveryOrder(Request $request)
-    {
-        $request->validate([
-            'po_id' => ['required', 'exists:pos,id'],
-            'do_number' => [
-                'required',
-                'string',
-                Rule::unique('delivery_orders')->where('tenant_id', TenantManager::getTenantId()),
-            ],
-            'delivery_date' => ['required', 'date'],
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.item_id' => ['required', 'exists:items,id'],
-            'items.*.delivered_qty' => ['required', 'integer', 'min:1'],
-        ]);
-
-        $po = Po::findOrFail($request->po_id);
-        
-        $itemsData = $request->input('items', []);
-        foreach ($itemsData as $entry) {
-            $item = Item::findOrFail($entry['item_id']);
-            if ($item->po_id !== $po->id) {
-                return back()->withErrors(['items' => "Item '{$item->item_name}' does not belong to PO {$po->po_number}."]);
-            }
-            
-            $deliveredQty = (int)$entry['delivered_qty'];
-            $previouslyDelivered = (int)$item->doItems()->sum('delivered_qty');
-            $remainingQty = $item->target_qty - $previouslyDelivered;
-            
-            if ($deliveredQty > $remainingQty) {
-                return back()->withErrors(['items' => "Delivered quantity for '{$item->item_name}' ({$deliveredQty}) exceeds remaining quantity ({$remainingQty})."]);
-            }
-        }
-
-        DB::transaction(function () use ($request, $po, $itemsData) {
-            $do = DeliveryOrder::create([
-                'tenant_id' => TenantManager::getTenantId(),
-                'po_id' => $po->id,
-                'do_number' => $request->do_number,
-                'delivery_date' => $request->delivery_date,
-            ]);
-
-            foreach ($itemsData as $entry) {
-                DoItem::create([
-                    'delivery_order_id' => $do->id,
-                    'item_id' => $entry['item_id'],
-                    'delivered_qty' => $entry['delivered_qty'],
-                ]);
-            }
-        });
-
-        return back()->with('success', 'Delivery Order created successfully.');
-    }
-
-    public function createInvoice(Request $request)
-    {
-        // Business guard: Invoice generation is completely blocked unless at least one DO exists
-        if (DeliveryOrder::count() === 0) {
-            abort(403, 'Invoice generation is completely blocked unless at least one DO exists.');
-        }
-
-        $request->validate([
-            'delivery_order_id' => ['required', 'exists:delivery_orders,id'],
-            'invoice_number' => [
-                'required',
-                'string',
-                Rule::unique('invoices')->where('tenant_id', TenantManager::getTenantId()),
-            ],
-            'due_date' => ['required', 'date'],
-        ]);
-
-        $do = DeliveryOrder::findOrFail($request->delivery_order_id);
-
-        // Calculate total amount based on DO items: delivered_qty * 150000 IDR per unit
-        $totalAmount = 0.00;
-        foreach ($do->doItems as $doItem) {
-            $totalAmount += $doItem->delivered_qty * 150000.00;
-        }
-
-        Invoice::create([
-            'tenant_id' => TenantManager::getTenantId(),
-            'delivery_order_id' => $do->id,
-            'invoice_number' => $request->invoice_number,
-            'total_amount' => max(150000.00, $totalAmount), // Minimum 150k
-            'status' => 'UNPAID',
-            'due_date' => $request->due_date,
-            'invoice_type' => 'STANDARD',
-        ]);
-
-        return back()->with('success', 'Invoice generated successfully.');
-    }
-
-    public function downloadInvoicePdf($invoiceId)
-    {
-        $invoice = Invoice::with(['deliveryOrder.po', 'deliveryOrder.doItems.item'])->findOrFail($invoiceId);
-
-        $pdf = Pdf::loadView('pdf.invoice', compact('invoice'));
-        return $pdf->download('invoice-' . $invoice->invoice_number . '.pdf');
     }
 }

@@ -16,13 +16,16 @@ class Po extends Model
     protected $fillable = [
         'tenant_id',
         'po_number',
+        'external_po_number',
         'client_name',
         'global_deadline',
         'status',
+        'is_urgent',
     ];
 
     protected $casts = [
         'global_deadline' => 'date',
+        'is_urgent' => 'boolean',
     ];
 
     public function items(): HasMany
