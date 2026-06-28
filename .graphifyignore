@@ -1,0 +1,13 @@
+.claude/
+*.md
+*.txt
+vendor/
+node_modules/
+.git/
+bootstrap/cache/
+storage/
+public/
+artisan
+artisan_log.txt
+list.txt
+log_output.txt
