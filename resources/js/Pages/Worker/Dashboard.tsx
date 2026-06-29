@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
+import { AlertTriangle } from '../../Components/Icons';
 
 interface Stage {
     id: number;
@@ -55,82 +56,62 @@ interface Props {
 
 const translations = {
     en: {
-        floor_terminal: "Floor Operation Terminal",
+        floor_terminal: "Floor Terminal",
         subtitle_realtime: "Log production progress in real-time",
-        exit_terminal: "Exit Terminal",
+        exit_terminal: "Exit",
         active_items: "Active Production Items",
         no_active_items: "No active items on the floor.",
         client: "Client",
         deadline: "Deadline",
         qty: "Qty",
-        item_stages: "Item Stages",
-        select_stage: "Select an active stage on the left to start logging progress.",
         completed: "Completed",
         progress: "Progress",
-        log_rework: "Log QC Rework",
-        report_failure: "Report Failure / Kendala",
-        increase_progress: "Increase Progress",
-        decrease_progress: "Decrease Progress",
-        log_progress_percentage: "Log Progress Percentage",
+        log_rework: "Rework",
+        report_failure: "Kendala",
         cancel: "Cancel",
         submit: "Submit",
-        rework_dialog_title: "Log QC Rework / Failure Reject",
-        rework_dialog_subtitle: "Enter the number of rejected pieces that require rework. This will reset their progress.",
-        reject_qty_label: "Rejected Quantity (requires rework)",
-        failure_dialog_title: "Report Failure / Kendala",
-        failure_dialog_subtitle: "Flag this stage with an alert block. Supervisors will be notified.",
-        failure_type_label: "Failure Cause / Type",
-        machine_broken: "Machine Broken / Error",
-        material_delay: "Material / Drawing Delay",
-        power_outage: "Power Outage / Technical",
-        human_error: "Operator / Human Error",
-        log_progress_for: "Log Progress for",
-        of_completed: "of {target} completed",
-        operator_sick: "Operator Sick / Absent",
+        rework_dialog_title: "QC Rework",
+        reject_qty_label: "Rejected Qty",
+        failure_dialog_title: "Report Kendala",
+        failure_type_label: "Cause",
+        machine_broken: "Machine Broken",
+        material_delay: "Material Delay",
+        power_outage: "Power Outage",
+        human_error: "Human Error",
+        operator_sick: "Operator Sick",
     },
     id: {
-        floor_terminal: "Terminal Operasi Pabrik",
+        floor_terminal: "Terminal Pabrik",
         subtitle_realtime: "Catat progres produksi secara real-time",
-        exit_terminal: "Keluar Terminal",
+        exit_terminal: "Keluar",
         active_items: "Barang Produksi Aktif",
-        no_active_items: "Tidak ada barang aktif di pabrik saat ini.",
+        no_active_items: "Tidak ada barang aktif.",
         client: "Klien",
-        deadline: "Tenggat Waktu",
-        qty: "Jumlah",
-        item_stages: "Tahapan Barang",
-        select_stage: "Pilih tahapan aktif di sebelah kiri untuk mulai mencatat progres.",
+        deadline: "Tenggat",
+        qty: "Jml",
         completed: "Selesai",
         progress: "Progres",
-        log_rework: "Catat Rework QC",
-        report_failure: "Laporkan Kendala / Kegagalan",
-        increase_progress: "Tambah Progres",
-        decrease_progress: "Kurangi Progres",
-        log_progress_percentage: "Catat Persentase Progres",
+        log_rework: "Rework",
+        report_failure: "Kendala",
         cancel: "Batal",
         submit: "Kirim",
-        rework_dialog_title: "Catat Rework QC / Penolakan Gagal",
-        rework_dialog_subtitle: "Masukkan jumlah barang yang ditolak yang membutuhkan rework. Ini akan mengulang kembali progres mereka.",
-        reject_qty_label: "Jumlah Ditolak (membutuhkan rework)",
-        failure_dialog_title: "Laporkan Kendala / Kegagalan",
-        failure_dialog_subtitle: "Tandai tahapan ini dengan blokir peringatan. Pengawas akan segera diberitahu.",
-        failure_type_label: "Penyebab / Tipe Kendala",
-        machine_broken: "Mesin Rusak / Error",
-        material_delay: "Keterlambatan Bahan / Gambar",
-        power_outage: "Mati Lampu / Teknis",
-        human_error: "Kesalahan Operator / Manusia",
-        log_progress_for: "Catat Progres untuk",
-        of_completed: "dari {target} selesai",
-        operator_sick: "Operator Sakit / Absen",
+        rework_dialog_title: "Rework QC",
+        reject_qty_label: "Jml Ditolak",
+        failure_dialog_title: "Lapor Kendala",
+        failure_type_label: "Penyebab",
+        machine_broken: "Mesin Rusak",
+        material_delay: "Material Telat",
+        power_outage: "Mati Lampu",
+        human_error: "Kesalahan Operator",
+        operator_sick: "Operator Sakit",
     }
 };
 
 export default function WorkerDashboard({ items }: Props) {
     const { url } = usePage();
-    // Resolve tenant slug from current path
     const pathParts = url.split('/');
     const slug = pathParts[2] || '';
 
-    // Language state
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
         if (typeof window !== 'undefined') {
             return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
@@ -138,50 +119,40 @@ export default function WorkerDashboard({ items }: Props) {
         return 'en';
     });
 
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
     const t = translations[language];
 
-    const [activeStage, setActiveStage] = useState<Stage | null>(null);
-    const [activeItem, setActiveItem] = useState<Item | null>(null);
-    const [showKendalaModal, setShowKendalaModal] = useState(false);
-    const [showQcModal, setShowQcModal] = useState(false);
-    
-    // Form inputs
+    const [activeStage, setActiveStage] = useState<{ stage: Stage; item: Item } | null>(null);
+    const [showKendala, setShowKendala] = useState(false);
+    const [showQc, setShowQc] = useState(false);
     const [kendalaType, setKendalaType] = useState('Machine Broken');
     const [rejectQty, setRejectQty] = useState('1');
 
-    const controlPanelRef = React.useRef<HTMLDivElement>(null);
-
     const selectStage = (item: Item, stage: Stage) => {
-        setActiveItem(item);
-        setActiveStage(stage);
-        
-        // On mobile, scroll the control panel into view
-        setTimeout(() => {
-            if (window.innerWidth < 768 && controlPanelRef.current) {
-                controlPanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }, 100);
+        if (activeStage?.stage.id === stage.id && activeStage?.item.id === item.id) {
+            setActiveStage(null);
+            setShowKendala(false);
+            setShowQc(false);
+            return;
+        }
+        setActiveStage({ stage, item });
+        setShowKendala(false);
+        setShowQc(false);
     };
 
     const handleStep = (amount: number) => {
-        if (!activeStage || !activeItem) return;
-        const newQty = Math.max(0, Math.min(activeItem.target_qty, activeStage.completed_qty + amount));
-        
-        router.post(`/c/${slug}/progress/${activeStage.id}/update`, {
+        if (!activeStage) return;
+        const newQty = Math.max(0, Math.min(activeStage.item.target_qty, activeStage.stage.completed_qty + amount));
+
+        router.post(`/c/${slug}/progress/${activeStage.stage.id}/update`, {
             completed_qty: newQty
         }, {
+            preserveScroll: true,
             onSuccess: (page) => {
-                // Update local state from response
-                const updatedItem = (page.props.items as Item[]).find(i => i.id === activeItem.id);
+                const updatedItem = (page.props.items as Item[]).find(i => i.id === activeStage.item.id);
                 if (updatedItem) {
-                    const updatedStage = updatedItem.item_progresses.find(s => s.id === activeStage.id);
+                    const updatedStage = updatedItem.item_progresses.find(s => s.id === activeStage.stage.id);
                     if (updatedStage) {
-                        setActiveStage(updatedStage);
+                        setActiveStage({ stage: updatedStage, item: updatedItem });
                     }
                 }
             }
@@ -189,16 +160,17 @@ export default function WorkerDashboard({ items }: Props) {
     };
 
     const handlePercentSelect = (percent: number) => {
-        if (!activeStage || !activeItem) return;
-        router.post(`/c/${slug}/progress/${activeStage.id}/update`, {
+        if (!activeStage) return;
+        router.post(`/c/${slug}/progress/${activeStage.stage.id}/update`, {
             progress_percent: percent
         }, {
+            preserveScroll: true,
             onSuccess: (page) => {
-                const updatedItem = (page.props.items as Item[]).find(i => i.id === activeItem.id);
+                const updatedItem = (page.props.items as Item[]).find(i => i.id === activeStage.item.id);
                 if (updatedItem) {
-                    const updatedStage = updatedItem.item_progresses.find(s => s.id === activeStage.id);
+                    const updatedStage = updatedItem.item_progresses.find(s => s.id === activeStage.stage.id);
                     if (updatedStage) {
-                        setActiveStage(updatedStage);
+                        setActiveStage({ stage: updatedStage, item: updatedItem });
                     }
                 }
             }
@@ -208,13 +180,13 @@ export default function WorkerDashboard({ items }: Props) {
     const submitKendala = (e: React.FormEvent) => {
         e.preventDefault();
         if (!activeStage) return;
-        router.post(`/c/${slug}/progress/${activeStage.id}/kendala`, {
+        router.post(`/c/${slug}/progress/${activeStage.stage.id}/kendala`, {
             kendala_type: kendalaType
         }, {
+            preserveScroll: true,
             onSuccess: () => {
-                setShowKendalaModal(false);
+                setShowKendala(false);
                 setActiveStage(null);
-                setActiveItem(null);
             }
         });
     };
@@ -222,462 +194,467 @@ export default function WorkerDashboard({ items }: Props) {
     const submitQcRework = (e: React.FormEvent) => {
         e.preventDefault();
         if (!activeStage) return;
-        router.post(`/c/${slug}/progress/${activeStage.id}/rework`, {
+        router.post(`/c/${slug}/progress/${activeStage.stage.id}/rework`, {
             reject_qty: parseInt(rejectQty, 10)
         }, {
+            preserveScroll: true,
             onSuccess: () => {
-                setShowQcModal(false);
+                setShowQc(false);
                 setActiveStage(null);
-                setActiveItem(null);
             }
         });
     };
 
     return (
         <div style={{
-            minHeight: '100vh',
+            minHeight: '100dvh',
             backgroundColor: '#090d16',
             fontFamily: 'Inter, sans-serif',
             color: '#f8fafc',
-            padding: '24px'
+            display: 'flex',
+            flexDirection: 'column',
         }}>
-            <header className="responsive-header" style={{
+            {/* Header */}
+            <header style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                paddingBottom: '16px',
-                marginBottom: '24px'
+                flexShrink: 0,
             }}>
                 <div>
-                    <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0 }}>{t.floor_terminal}</h1>
-                    <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>{t.subtitle_realtime}</p>
+                    <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>{t.floor_terminal}</h1>
+                    <p style={{ fontSize: '11px', color: '#64748b', margin: '1px 0 0 0' }}>{t.subtitle_realtime}</p>
                 </div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <div style={{ display: 'inline-flex', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.02)' }}>
-                        <button
-                            onClick={() => changeLanguage('en')}
-                            style={{
-                                padding: '6px 12px',
-                                backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
-                                border: 'none',
-                                color: '#fff',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                fontSize: '12px'
-                            }}
-                        >
-                            EN
-                        </button>
-                        <button
-                            onClick={() => changeLanguage('id')}
-                            style={{
-                                padding: '6px 12px',
-                                backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
-                                border: 'none',
-                                color: '#fff',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                fontSize: '12px'
-                            }}
-                        >
-                            ID
-                        </button>
-                    </div>
-                    <button
-                        onClick={() => router.post('/logout')}
-                        style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#ef4444',
-                            color: '#fff',
-                            fontWeight: 600,
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        {t.exit_terminal}
-                    </button>
-                </div>
+                <button
+                    onClick={() => router.post('/logout')}
+                    style={{
+                        padding: '8px 14px',
+                        backgroundColor: '#ef4444',
+                        color: '#fff',
+                        fontWeight: 600,
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                    }}
+                >
+                    {t.exit_terminal}
+                </button>
             </header>
 
-            <div className="responsive-grid responsive-grid-split" style={{ gap: '24px' }}>
-                {/* Active Items & Stages List */}
-                <div style={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                    border: '1px solid rgba(255, 255, 255, 0.05)',
-                    borderRadius: '16px',
-                    padding: '20px'
-                }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>{t.active_items}</h2>
-                    {items.length === 0 ? (
-                        <p style={{ color: '#64748b', padding: '16px', textAlign: 'center' }}>{t.no_active_items}</p>
-                    ) : (
-                        items.map((item) => (
-                            <div key={item.id} style={{
-                                backgroundColor: '#0f172a',
-                                border: '1px solid rgba(255, 255, 255, 0.05)',
-                                borderRadius: '12px',
-                                padding: '16px',
-                                marginBottom: '12px'
-                            }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        {/* 1st Headline: Item Name */}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: '#f8fafc' }}>{item.item_name}</h3>
+            {/* Items List */}
+            <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '12px',
+                WebkitOverflowScrolling: 'touch',
+            }}>
+                {items.length === 0 ? (
+                    <p style={{ color: '#64748b', padding: '24px', textAlign: 'center', fontSize: '14px' }}>
+                        {t.no_active_items}
+                    </p>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {items.map((item) => {
+                            const isActive = activeStage?.item.id === item.id;
+                            const processedStages = item.item_progresses.filter(s => s.status === 'COMPLETED' || s.status === 'STUCK');
+                            const totalStages = item.item_progresses.length;
+                            const stageProgress = totalStages > 0 ? Math.round((processedStages.length / totalStages) * 100) : 0;
+
+                            return (
+                                <div key={item.id} style={{
+                                    backgroundColor: '#0f172a',
+                                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                                    borderRadius: '12px',
+                                    overflow: 'hidden',
+                                }}>
+                                    {/* Card Header */}
+                                    <div style={{ padding: '12px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                                            <h3 style={{
+                                                fontSize: '14px',
+                                                fontWeight: 800,
+                                                margin: 0,
+                                                color: '#f8fafc',
+                                                flex: 1,
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                            }}>
+                                                {item.item_name}
+                                            </h3>
                                             {item.po?.is_urgent && (
                                                 <span style={{
-                                                    fontSize: '10px',
+                                                    fontSize: '9px',
                                                     fontWeight: 700,
+                                                    padding: '1px 5px',
+                                                    borderRadius: '3px',
                                                     backgroundColor: 'rgba(239, 68, 68, 0.2)',
                                                     color: '#ef4444',
-                                                    padding: '2px 6px',
-                                                    borderRadius: '4px',
-                                                    border: '1px solid rgba(239, 68, 68, 0.4)'
+                                                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                                                    flexShrink: 0,
                                                 }}>
                                                     URGENT
                                                 </span>
                                             )}
-                                        </div>
-                                        {/* 2nd Headline: Client Name */}
-                                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#60a5fa' }}>
-                                            {t.client}: {item.po?.client_name || 'N/A'} {item.po?.po_number ? `(PO: ${item.po.po_number}${item.po.external_po_number ? ` / ${item.po.external_po_number}` : ''})` : ''}
-                                        </div>
-                                        {/* 3rd Headline: Deadline */}
-                                        <div style={{ fontSize: '13px', color: '#94a3b8' }}>
-                                            {t.deadline}: {formatDeadline(item.po?.global_deadline, language)}
-                                        </div>
-                                        {/* 4th Headline: Qty */}
-                                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#38bdf8' }}>
-                                            {t.qty}: {item.target_qty} pcs
-                                        </div>
-                                    </div>
-                                    <div style={{
-                                        fontSize: '14px',
-                                        fontWeight: 800,
-                                        color: '#3b82f6',
-                                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                                        padding: '4px 8px',
-                                        borderRadius: '6px'
-                                    }}>
-                                        {parseFloat(item.progress_percent).toFixed(1)}%
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                    {item.item_progresses.map((stage) => (
-                                        <button
-                                            key={stage.id}
-                                            onClick={() => selectStage(item, stage)}
-                                            style={{
-                                                padding: '10px 14px',
-                                                border: '1px solid',
-                                                borderColor: activeStage?.id === stage.id ? '#3b82f6' : 'rgba(255, 255, 255, 0.08)',
-                                                borderRadius: '8px',
-                                                backgroundColor: stage.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.1)'
-                                                    : stage.status === 'STUCK' ? 'rgba(239, 68, 68, 0.1)'
-                                                    : activeStage?.id === stage.id ? '#1e3a8a' : '#090d16',
-                                                color: stage.status === 'COMPLETED' ? '#10b981'
-                                                    : stage.status === 'STUCK' ? '#ef4444'
-                                                    : activeStage?.id === stage.id ? '#38bdf8' : '#e2e8f0',
-                                                fontSize: '13px',
-                                                fontWeight: 600,
-                                                cursor: 'pointer',
-                                                transition: 'all 0.15s'
-                                            }}
-                                        >
-                                            {stage.stage_name}
-                                            <span style={{ display: 'block', fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
-                                                {item.target_qty > 1 ? `${stage.completed_qty}/${item.target_qty} pcs` : `${parseFloat(stage.progress_percent).toFixed(0)}%`}
-                                            </span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-
-                {/* Progress Control Panel */}
-                <div ref={controlPanelRef}>
-                    {activeStage && activeItem ? (
-                        <div style={{
-                            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                            border: '1px solid rgba(255, 255, 255, 0.05)',
-                            borderRadius: '16px',
-                            padding: '24px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            position: 'sticky',
-                            top: '24px'
-                        }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '4px', textAlign: 'center' }}>
-                                {t.log_progress_for} {activeStage.stage_name}
-                            </h2>
-                            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '24px', textAlign: 'center' }}>
-                                Item: {activeItem.item_name}
-                            </p>
-
-                            {/* Stepper Buttons for Qty > 1 */}
-                            {activeItem.target_qty > 1 ? (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '28px' }}>
-                                    <button
-                                        onClick={() => handleStep(-1)}
-                                        style={{
-                                            width: '56px',
-                                            height: '56px',
-                                            borderRadius: '28px',
-                                            border: 'none',
-                                            backgroundColor: '#ef4444',
-                                            color: '#fff',
-                                            fontSize: '24px',
-                                            fontWeight: 700,
-                                            cursor: 'pointer',
-                                            boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.2)'
-                                        }}
-                                    >
-                                        -
-                                    </button>
-                                    <div style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '36px', fontWeight: 800 }}>{activeStage.completed_qty}</div>
-                                        <div style={{ fontSize: '12px', color: '#64748b' }}>{t.of_completed.replace('{target}', activeItem.target_qty.toString())}</div>
-                                    </div>
-                                    <button
-                                        onClick={() => handleStep(1)}
-                                        style={{
-                                            width: '56px',
-                                            height: '56px',
-                                            borderRadius: '28px',
-                                            border: 'none',
-                                            backgroundColor: '#10b981',
-                                            color: '#fff',
-                                            fontSize: '24px',
-                                            fontWeight: 700,
-                                            cursor: 'pointer',
-                                            boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2)'
-                                        }}
-                                    >
-                                        +
-                                    </button>
-                                </div>
-                            ) : (
-                                /* Percentage Blocks for Qty == 1 */
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px', width: '100%', marginBottom: '28px' }}>
-                                    {[0, 25, 50, 75, 100].map((pct) => (
-                                        <button
-                                            key={pct}
-                                            onClick={() => handlePercentSelect(pct)}
-                                            style={{
-                                                padding: '16px 8px',
-                                                borderRadius: '8px',
-                                                border: 'none',
-                                                backgroundColor: parseFloat(activeStage.progress_percent) === pct ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
-                                                color: '#fff',
-                                                fontSize: '14px',
+                                            <span style={{
+                                                fontSize: '9px',
                                                 fontWeight: 700,
-                                                cursor: 'pointer',
-                                                transition: 'background-color 0.15s'
-                                            }}
-                                        >
-                                            {pct}%
-                                        </button>
-                                    ))}
+                                                padding: '1px 5px',
+                                                borderRadius: '3px',
+                                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                                color: '#3b82f6',
+                                                flexShrink: 0,
+                                            }}>
+                                                {parseFloat(item.progress_percent).toFixed(1)}%
+                                            </span>
+                                        </div>
+
+                                        {/* Meta Grid */}
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: '1fr 1fr',
+                                            gap: '1px 12px',
+                                            fontSize: '11px',
+                                            marginBottom: '8px',
+                                        }}>
+                                            <span style={{ color: '#60a5fa', fontWeight: 600 }}>
+                                                {item.po?.client_name || 'N/A'}
+                                            </span>
+                                            <span style={{ color: '#94a3b8', textAlign: 'right' }}>
+                                                {item.po?.po_number || ''}
+                                            </span>
+                                            <span style={{ color: '#94a3b8' }}>
+                                                {formatDeadline(item.po?.global_deadline, language)}
+                                            </span>
+                                            <span style={{ color: '#38bdf8', fontWeight: 600, textAlign: 'right' }}>
+                                                {item.target_qty} pcs
+                                            </span>
+                                        </div>
+
+                                        {/* Stage Pills */}
+                                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                            {item.item_progresses.map((stage) => {
+                                                const isStageActive = isActive && activeStage?.stage.id === stage.id;
+                                                return (
+                                                    <button
+                                                        key={stage.id}
+                                                        onClick={() => selectStage(item, stage)}
+                                                        style={{
+                                                            padding: '5px 10px',
+                                                            border: '1px solid',
+                                                            borderColor: isStageActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.08)',
+                                                            borderRadius: '6px',
+                                                            backgroundColor: stage.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.1)'
+                                                                : stage.status === 'STUCK' ? 'rgba(239, 68, 68, 0.1)'
+                                                                : isStageActive ? '#1e3a8a' : '#090d16',
+                                                            color: stage.status === 'COMPLETED' ? '#10b981'
+                                                                : stage.status === 'STUCK' ? '#ef4444'
+                                                                : isStageActive ? '#38bdf8' : '#e2e8f0',
+                                                            fontSize: '11px',
+                                                            fontWeight: 600,
+                                                            cursor: 'pointer',
+                                                        }}
+                                                    >
+                                                        {stage.stage_name}
+                                                        <span style={{
+                                                            display: 'block',
+                                                            fontSize: '9px',
+                                                            color: '#64748b',
+                                                            marginTop: '1px',
+                                                        }}>
+                                                            {item.target_qty > 1
+                                                                ? `${stage.completed_qty}/${item.target_qty}`
+                                                                : `${parseFloat(stage.progress_percent).toFixed(0)}%`
+                                                            }
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Inline Progress Controls */}
+                                    {isActive && activeStage && (
+                                        <div style={{
+                                            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                                            padding: '10px 12px',
+                                            backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                                        }}>
+                                            {/* Stepper or Percentage */}
+                                            {activeStage.item.target_qty > 1 ? (
+                                                <div style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '16px',
+                                                    marginBottom: '8px',
+                                                }}>
+                                                    <button
+                                                        onClick={() => handleStep(-1)}
+                                                        style={{
+                                                            width: '40px',
+                                                            height: '40px',
+                                                            borderRadius: '20px',
+                                                            border: 'none',
+                                                            backgroundColor: '#ef4444',
+                                                            color: '#fff',
+                                                            fontSize: '18px',
+                                                            fontWeight: 700,
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                        }}
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <div style={{ textAlign: 'center' }}>
+                                                        <div style={{
+                                                            fontSize: '22px',
+                                                            fontWeight: 800,
+                                                            lineHeight: 1,
+                                                            marginBottom: '2px',
+                                                        }}>
+                                                            {activeStage.stage.completed_qty}
+                                                        </div>
+                                                        <div style={{ fontSize: '10px', color: '#64748b' }}>
+                                                            / {activeStage.item.target_qty}
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleStep(1)}
+                                                        style={{
+                                                            width: '40px',
+                                                            height: '40px',
+                                                            borderRadius: '20px',
+                                                            border: 'none',
+                                                            backgroundColor: '#10b981',
+                                                            color: '#fff',
+                                                            fontSize: '18px',
+                                                            fontWeight: 700,
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                        }}
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns: 'repeat(5, 1fr)',
+                                                    gap: '6px',
+                                                    marginBottom: '8px',
+                                                }}>
+                                                    {[0, 25, 50, 75, 100].map((pct) => (
+                                                        <button
+                                                            key={pct}
+                                                            onClick={() => handlePercentSelect(pct)}
+                                                            style={{
+                                                                padding: '10px 4px',
+                                                                borderRadius: '6px',
+                                                                border: 'none',
+                                                                backgroundColor: parseFloat(activeStage.stage.progress_percent) === pct
+                                                                    ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
+                                                                color: '#fff',
+                                                                fontSize: '12px',
+                                                                fontWeight: 700,
+                                                                cursor: 'pointer',
+                                                            }}
+                                                        >
+                                                            {pct}%
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Kendala / QC Action Buttons */}
+                                            <div style={{ display: 'flex', gap: '6px' }}>
+                                                <button
+                                                    onClick={() => setShowKendala(prev => !prev)}
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '8px',
+                                                        backgroundColor: showKendala ? 'rgba(239, 68, 68, 0.25)' : 'rgba(239, 68, 68, 0.1)',
+                                                        color: '#ef4444',
+                                                        border: '1px solid rgba(239, 68, 68, 0.25)',
+                                                        borderRadius: '6px',
+                                                        fontSize: '11px',
+                                                        fontWeight: 700,
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: '4px',
+                                                    }}
+                                                >
+                                                    <AlertTriangle size={12} /> {t.report_failure}
+                                                </button>
+                                                <button
+                                                    onClick={() => setShowQc(prev => !prev)}
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '8px',
+                                                        backgroundColor: showQc ? 'rgba(234, 179, 8, 0.25)' : 'rgba(234, 179, 8, 0.1)',
+                                                        color: '#eab308',
+                                                        border: '1px solid rgba(234, 179, 8, 0.25)',
+                                                        borderRadius: '6px',
+                                                        fontSize: '11px',
+                                                        fontWeight: 700,
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: '4px',
+                                                    }}
+                                                >
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <circle cx="11" cy="11" r="8" />
+                                                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                                        <line x1="8" y1="11" x2="14" y2="11" />
+                                                    </svg> {t.log_rework}
+                                                </button>
+                                            </div>
+
+                                            {/* Inline Kendala Form */}
+                                            {showKendala && (
+                                                <form onSubmit={submitKendala} style={{
+                                                    marginTop: '8px',
+                                                    padding: '10px',
+                                                    backgroundColor: 'rgba(0,0,0,0.2)',
+                                                    borderRadius: '8px',
+                                                }}>
+                                                    <label style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '4px', display: 'block' }}>
+                                                        {t.failure_type_label}
+                                                    </label>
+                                                    <select
+                                                        value={kendalaType}
+                                                        onChange={(e) => setKendalaType(e.target.value)}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '8px 10px',
+                                                            backgroundColor: '#090d16',
+                                                            color: '#fff',
+                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            borderRadius: '6px',
+                                                            fontSize: '12px',
+                                                            outline: 'none',
+                                                            marginBottom: '8px',
+                                                        }}
+                                                    >
+                                                        <option value="Machine Broken">{t.machine_broken}</option>
+                                                        <option value="Material Delay">{t.material_delay}</option>
+                                                        <option value="Operator Sick">{t.operator_sick}</option>
+                                                        <option value="Power Outage">{t.power_outage}</option>
+                                                    </select>
+                                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowKendala(false)}
+                                                            style={{
+                                                                padding: '6px 12px',
+                                                                backgroundColor: 'transparent',
+                                                                color: '#94a3b8',
+                                                                border: 'none',
+                                                                fontSize: '11px',
+                                                                cursor: 'pointer',
+                                                            }}
+                                                        >
+                                                            {t.cancel}
+                                                        </button>
+                                                        <button
+                                                            type="submit"
+                                                            style={{
+                                                                padding: '6px 14px',
+                                                                backgroundColor: '#ef4444',
+                                                                color: '#fff',
+                                                                borderRadius: '6px',
+                                                                border: 'none',
+                                                                fontWeight: 600,
+                                                                fontSize: '11px',
+                                                                cursor: 'pointer',
+                                                            }}
+                                                        >
+                                                            {t.submit}
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            )}
+
+                                            {/* Inline QC Rework Form */}
+                                            {showQc && (
+                                                <form onSubmit={submitQcRework} style={{
+                                                    marginTop: '8px',
+                                                    padding: '10px',
+                                                    backgroundColor: 'rgba(0,0,0,0.2)',
+                                                    borderRadius: '8px',
+                                                }}>
+                                                    <label style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '4px', display: 'block' }}>
+                                                        {t.reject_qty_label}
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        value={rejectQty}
+                                                        onChange={(e) => setRejectQty(e.target.value)}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '8px 10px',
+                                                            backgroundColor: '#090d16',
+                                                            color: '#fff',
+                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            borderRadius: '6px',
+                                                            fontSize: '12px',
+                                                            outline: 'none',
+                                                            marginBottom: '8px',
+                                                        }}
+                                                    />
+                                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowQc(false)}
+                                                            style={{
+                                                                padding: '6px 12px',
+                                                                backgroundColor: 'transparent',
+                                                                color: '#94a3b8',
+                                                                border: 'none',
+                                                                fontSize: '11px',
+                                                                cursor: 'pointer',
+                                                            }}
+                                                        >
+                                                            {t.cancel}
+                                                        </button>
+                                                        <button
+                                                            type="submit"
+                                                            style={{
+                                                                padding: '6px 14px',
+                                                                backgroundColor: '#eab308',
+                                                                color: '#000',
+                                                                borderRadius: '6px',
+                                                                border: 'none',
+                                                                fontWeight: 700,
+                                                                fontSize: '11px',
+                                                                cursor: 'pointer',
+                                                            }}
+                                                        >
+                                                            {t.submit}
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-
-                            {/* Danger and QC Action Center */}
-                            <div style={{ display: 'flex', gap: '12px', width: '100%', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '20px' }}>
-                                <button
-                                    onClick={() => setShowKendalaModal(true)}
-                                    style={{
-                                        flex: 1,
-                                        padding: '12px',
-                                        backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                                        color: '#ef4444',
-                                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                                        borderRadius: '10px',
-                                        fontSize: '13px',
-                                        fontWeight: 700,
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    ⚠️ {t.report_failure}
-                                </button>
-                                <button
-                                    onClick={() => setShowQcModal(true)}
-                                    style={{
-                                        flex: 1,
-                                        padding: '12px',
-                                        backgroundColor: 'rgba(234, 179, 8, 0.15)',
-                                        color: '#eab308',
-                                        border: '1px solid rgba(234, 179, 8, 0.3)',
-                                        borderRadius: '10px',
-                                        fontSize: '13px',
-                                        fontWeight: 700,
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    🔍 {t.log_rework}
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div style={{
-                            backgroundColor: 'rgba(15, 23, 42, 0.3)',
-                            border: '1px dashed rgba(255, 255, 255, 0.08)',
-                            borderRadius: '16px',
-                            padding: '48px 24px',
-                            textAlign: 'center',
-                            color: '#64748b'
-                        }}>
-                            {t.select_stage}
-                        </div>
-                    )}
-                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
-
-            {/* Kendala Modal */}
-            {showKendalaModal && activeStage && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 50
-                }}>
-                    <form onSubmit={submitKendala} style={{
-                        backgroundColor: '#0f172a',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '16px',
-                        padding: '24px',
-                        width: '100%',
-                        maxWidth: '400px'
-                    }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0' }}>{t.failure_dialog_title}</h3>
-                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>{t.failure_type_label}</label>
-                        <select
-                            value={kendalaType}
-                            onChange={(e) => setKendalaType(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                backgroundColor: '#090d16',
-                                color: '#fff',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '8px',
-                                marginBottom: '20px',
-                                outline: 'none'
-                            }}
-                        >
-                             <option value="Machine Broken">{t.machine_broken}</option>
-                             <option value="Material Delay">{t.material_delay}</option>
-                             <option value="Operator Sick">{t.operator_sick}</option>
-                             <option value="Power Outage">{t.power_outage}</option>
-                        </select>
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                            <button
-                                type="button"
-                                onClick={() => setShowKendalaModal(false)}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: 'transparent',
-                                    color: '#94a3b8',
-                                    border: 'none',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {t.cancel}
-                            </button>
-                            <button
-                                type="submit"
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#ef4444',
-                                    color: '#fff',
-                                    borderRadius: '8px',
-                                    border: 'none',
-                                    fontWeight: 600,
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {t.submit}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
-
-            {/* QC Modal */}
-            {showQcModal && activeStage && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 50
-                }}>
-                    <form onSubmit={submitQcRework} style={{
-                        backgroundColor: '#0f172a',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '16px',
-                        padding: '24px',
-                        width: '100%',
-                        maxWidth: '400px'
-                    }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0' }}>{t.rework_dialog_title}</h3>
-                        <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 16px 0' }}>{t.rework_dialog_subtitle}</p>
-                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>{t.reject_qty_label}</label>
-                        <input
-                            type="number"
-                            min="1"
-                            value={rejectQty}
-                            onChange={(e) => setRejectQty(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                backgroundColor: '#090d16',
-                                color: '#fff',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '8px',
-                                marginBottom: '20px',
-                                outline: 'none'
-                            }}
-                        />
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                            <button
-                                type="button"
-                                onClick={() => setShowQcModal(false)}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: 'transparent',
-                                    color: '#94a3b8',
-                                    border: 'none',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {t.cancel}
-                            </button>
-                            <button
-                                type="submit"
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#eab308',
-                                    color: '#000',
-                                    borderRadius: '8px',
-                                    border: 'none',
-                                    fontWeight: 700,
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {t.submit}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
         </div>
     );
 }

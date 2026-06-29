@@ -74,11 +74,6 @@ export default function WorkerLogin({ tenant, workers }: Props) {
         return 'en';
     });
 
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
     const t = translations[language];
 
     const handleNumberClick = (num: string) => {
@@ -125,7 +120,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
 
     return (
         <div style={{
-            minHeight: '100vh',
+            minHeight: '100dvh',
             backgroundColor: '#090d16',
             fontFamily: 'Inter, sans-serif',
             color: '#f8fafc',
@@ -134,285 +129,223 @@ export default function WorkerLogin({ tenant, workers }: Props) {
             alignItems: 'center',
             justifyContent: 'center',
             padding: '16px',
-            position: 'relative'
         }}>
-            {/* Language Switcher */}
-            <div style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                display: 'inline-flex',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                border: '1px solid rgba(255,255,255,0.08)',
-                backgroundColor: 'rgba(255,255,255,0.02)',
-                zIndex: 10
-            }}>
-                <button
-                    type="button"
-                    onClick={() => changeLanguage('en')}
-                    style={{
-                        padding: '6px 12px',
-                        backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
-                        border: 'none',
-                        color: '#fff',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontSize: '12px'
-                    }}
-                >
-                    EN
-                </button>
-                <button
-                    type="button"
-                    onClick={() => changeLanguage('id')}
-                    style={{
-                        padding: '6px 12px',
-                        backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
-                        border: 'none',
-                        color: '#fff',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontSize: '12px'
-                    }}
-                >
-                    ID
-                </button>
-            </div>
-
-            <div className="w-full max-w-[680px] bg-slate-900/80 backdrop-blur-xl border border-white/8 rounded-2xl p-6 sm:p-10 shadow-2xl">
-                <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-                    <h2 style={{ fontSize: '14px', textTransform: 'uppercase', color: '#3b82f6', fontWeight: 700, letterSpacing: '0.1em', margin: 0 }}>
+            <div className="login-card w-full max-w-[420px] bg-slate-900/80 backdrop-blur-xl border border-white/8 rounded-2xl p-6 shadow-2xl">
+                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                    <h2 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#3b82f6', fontWeight: 700, letterSpacing: '0.1em', margin: 0 }}>
                         {tenant.company_name}
                     </h2>
-                    <h1 style={{ fontSize: '28px', fontWeight: 800, margin: '8px 0 0 0', letterSpacing: '-0.02em' }}>
+                    <h1 style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0 0 0', letterSpacing: '-0.02em' }}>
                         {t.worker_entrance}
                     </h1>
                 </div>
 
-                <div className="responsive-grid responsive-grid-half" style={{ gap: '32px' }}>
-                    {/* Worker Selector Left Column */}
-                    <div>
-                        <h3 style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '12px', fontWeight: 600 }}>
-                            {t.select_name}
-                        </h3>
-                        <div style={{
-                            maxHeight: '300px',
-                            overflowY: 'auto',
-                            border: '1px solid rgba(255, 255, 255, 0.05)',
-                            borderRadius: '12px',
+                {/* Worker Selector Dropdown */}
+                <div style={{ marginBottom: '16px' }}>
+                    <label style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600, display: 'block' }}>
+                        {t.select_name}
+                    </label>
+                    <select
+                        value={selectedWorker?.id?.toString() || ''}
+                        onChange={(e) => {
+                            const worker = workers.find(w => w.id.toString() === e.target.value);
+                            if (worker) handleWorkerSelect(worker);
+                        }}
+                        style={{
+                            width: '100%',
+                            padding: '12px 14px',
                             backgroundColor: '#090d16',
-                            padding: '8px'
-                        }}>
-                            {workers.length === 0 ? (
-                                <p style={{ padding: '16px', color: '#64748b', textAlign: 'center', fontSize: '14px' }}>
-                                    {t.no_workers}
-                                </p>
-                            ) : (
-                                workers.map((worker) => (
-                                    <button
-                                        key={worker.id}
-                                        type="button"
-                                        onClick={() => handleWorkerSelect(worker)}
-                                        style={{
-                                            width: '100%',
-                                            textAlign: 'left',
-                                            padding: '12px 16px',
-                                            margin: '4px 0',
-                                            backgroundColor: selectedWorker?.id === worker.id ? '#1e3a8a' : 'transparent',
-                                            border: 'none',
-                                            borderRadius: '8px',
-                                            color: selectedWorker?.id === worker.id ? '#38bdf8' : '#e2e8f0',
-                                            cursor: 'pointer',
-                                            fontSize: '14px',
-                                            fontWeight: selectedWorker?.id === worker.id ? 700 : 500,
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            transition: 'background-color 0.15s'
-                                        }}
-                                    >
-                                        <span style={{ flexGrow: 1 }}>{worker.name}</span>
-                                        <span style={{
-                                            fontSize: '10px',
-                                            padding: '2px 6px',
-                                            borderRadius: '4px',
-                                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                                            color: '#94a3b8'
-                                        }}>
-                                            {worker.role}
-                                        </span>
-                                    </button>
-                                ))
-                            )}
-                        </div>
-                    </div>
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '10px',
+                            color: '#f8fafc',
+                            fontSize: '15px',
+                            fontWeight: 600,
+                            outline: 'none',
+                            appearance: 'none',
+                            WebkitAppearance: 'none',
+                            cursor: 'pointer',
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 12px center',
+                            backgroundSize: '16px',
+                        }}
+                    >
+                        <option value="">{t.select_name}...</option>
+                        {workers.map((worker) => (
+                            <option key={worker.id} value={worker.id}>
+                                {worker.name} — {worker.role}
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
-                    {/* PIN Pad Column */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div style={{ width: '100%', textAlign: 'center', marginBottom: '16px' }}>
-                            <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px', fontWeight: 600 }}>
-                                {selectedWorker ? t.entering_pin.replace('{name}', selectedWorker.name) : t.select_worker}
-                            </div>
-                            <div style={{
+                {/* PIN Input */}
+                <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                    <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: 600 }}>
+                        {selectedWorker ? t.entering_pin.replace('{name}', selectedWorker.name) : t.select_worker}
+                    </div>
+                    <div style={{
+                        height: '44px',
+                        maxWidth: '200px',
+                        margin: '0 auto',
+                        backgroundColor: '#090d16',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '22px',
+                        letterSpacing: '8px',
+                        color: '#38bdf8',
+                    }}>
+                        {'•'.repeat(pin.length)}
+                    </div>
+                    {errors.pin && (
+                        <div style={{ color: '#f87171', fontSize: '11px', marginTop: '4px' }}>
+                            {errors.pin}
+                        </div>
+                    )}
+                </div>
+
+                {/* Touch Numpad */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '10px',
+                    maxWidth: '220px',
+                    margin: '0 auto',
+                }}>
+                    {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
+                        <button
+                            key={num}
+                            type="button"
+                            onClick={() => handleNumberClick(num)}
+                            disabled={!selectedWorker}
+                            style={{
                                 height: '48px',
-                                backgroundColor: '#090d16',
+                                fontSize: '18px',
+                                fontWeight: 700,
                                 borderRadius: '10px',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                border: '1px solid rgba(255, 255, 255, 0.05)',
+                                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                                color: selectedWorker ? '#f8fafc' : '#475569',
+                                cursor: selectedWorker ? 'pointer' : 'not-allowed',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: '24px',
-                                letterSpacing: '8px',
-                                color: '#38bdf8'
-                            }}>
-                                {'•'.repeat(pin.length)}
-                            </div>
-                            {errors.pin && (
-                                <div style={{ color: '#f87171', fontSize: '12px', marginTop: '6px' }}>
-                                    {errors.pin}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Large Touch Numpad */}
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(3, 1fr)',
-                            gap: '12px',
-                            width: '100%',
-                            maxWidth: '240px'
-                        }}>
-                            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
-                                <button
-                                    key={num}
-                                    type="button"
-                                    onClick={() => handleNumberClick(num)}
-                                    disabled={!selectedWorker}
-                                    style={{
-                                        aspectRatio: '1',
-                                        fontSize: '20px',
-                                        fontWeight: 700,
-                                        borderRadius: '12px',
-                                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                                        color: selectedWorker ? '#f8fafc' : '#475569',
-                                        cursor: selectedWorker ? 'pointer' : 'not-allowed',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        outline: 'none',
-                                        transition: 'background-color 0.1s'
-                                    }}
-                                >
-                                    {num}
-                                </button>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={handleClear}
-                                disabled={!selectedWorker || pin.length === 0}
-                                style={{
-                                    fontSize: '12px',
-                                    fontWeight: 700,
-                                    borderRadius: '12px',
-                                    border: 'none',
-                                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                                    color: '#ef4444',
-                                    cursor: (selectedWorker && pin.length > 0) ? 'pointer' : 'not-allowed',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                {t.clear_btn}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handleNumberClick('0')}
-                                disabled={!selectedWorker}
-                                style={{
-                                    fontSize: '20px',
-                                    fontWeight: 700,
-                                    borderRadius: '12px',
-                                    border: '1px solid rgba(255, 255, 255, 0.05)',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                                    color: selectedWorker ? '#f8fafc' : '#475569',
-                                    cursor: selectedWorker ? 'pointer' : 'not-allowed',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                0
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleBackspace}
-                                disabled={!selectedWorker || pin.length === 0}
-                                style={{
-                                    fontSize: '14px',
-                                    fontWeight: 700,
-                                    borderRadius: '12px',
-                                    border: 'none',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                                    color: '#f8fafc',
-                                    cursor: (selectedWorker && pin.length > 0) ? 'pointer' : 'not-allowed',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                ⌫
-                            </button>
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={handleSubmit}
-                            disabled={processing || !selectedWorker || pin.length < 4}
-                            style={{
-                                width: '100%',
-                                maxWidth: '240px',
-                                marginTop: '20px',
-                                padding: '12px',
-                                backgroundColor: (selectedWorker && pin.length >= 4) ? '#10b981' : '#1e293b',
-                                color: (selectedWorker && pin.length >= 4) ? '#ffffff' : '#64748b',
-                                fontWeight: 700,
-                                borderRadius: '10px',
-                                border: 'none',
-                                cursor: (selectedWorker && pin.length >= 4) ? 'pointer' : 'not-allowed',
-                                transition: 'background-color 0.2s'
+                                outline: 'none',
                             }}
                         >
-                            {processing ? t.verifying : t.verify_btn}
+                            {num}
                         </button>
-
-                        {/* Forgot PIN */}
-                        {selectedWorker && (
-                            <button
-                                type="button"
-                                onClick={() => setShowPinResetModal(true)}
-                                style={{
-                                    width: '100%',
-                                    maxWidth: '240px',
-                                    marginTop: '12px',
-                                    padding: '10px',
-                                    backgroundColor: 'transparent',
-                                    color: '#64748b',
-                                    border: '1px solid rgba(255,255,255,0.08)',
-                                    borderRadius: '10px',
-                                    fontSize: '12px',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    transition: 'all 0.15s'
-                                }}
-                            >
-                                {t.forgot_pin}
-                            </button>
-                        )}
-                    </div>
+                    ))}
+                    <button
+                        type="button"
+                        onClick={handleClear}
+                        disabled={!selectedWorker || pin.length === 0}
+                        style={{
+                            height: '48px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            borderRadius: '10px',
+                            border: 'none',
+                            backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                            color: '#ef4444',
+                            cursor: (selectedWorker && pin.length > 0) ? 'pointer' : 'not-allowed',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        {t.clear_btn}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleNumberClick('0')}
+                        disabled={!selectedWorker}
+                        style={{
+                            height: '48px',
+                            fontSize: '18px',
+                            fontWeight: 700,
+                            borderRadius: '10px',
+                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                            color: selectedWorker ? '#f8fafc' : '#475569',
+                            cursor: selectedWorker ? 'pointer' : 'not-allowed',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        0
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleBackspace}
+                        disabled={!selectedWorker || pin.length === 0}
+                        style={{
+                            height: '48px',
+                            fontSize: '14px',
+                            fontWeight: 700,
+                            borderRadius: '10px',
+                            border: 'none',
+                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                            color: '#f8fafc',
+                            cursor: (selectedWorker && pin.length > 0) ? 'pointer' : 'not-allowed',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        ⌫
+                    </button>
                 </div>
+
+                <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={processing || !selectedWorker || pin.length < 4}
+                    style={{
+                        width: '100%',
+                        maxWidth: '220px',
+                        display: 'block',
+                        margin: '16px auto 0',
+                        padding: '12px',
+                        backgroundColor: (selectedWorker && pin.length >= 4) ? '#10b981' : '#1e293b',
+                        color: (selectedWorker && pin.length >= 4) ? '#ffffff' : '#64748b',
+                        fontWeight: 700,
+                        borderRadius: '10px',
+                        border: 'none',
+                        cursor: (selectedWorker && pin.length >= 4) ? 'pointer' : 'not-allowed',
+                        fontSize: '14px',
+                    }}
+                >
+                    {processing ? t.verifying : t.verify_btn}
+                </button>
+
+                {/* Forgot PIN */}
+                {selectedWorker && (
+                    <button
+                        type="button"
+                        onClick={() => setShowPinResetModal(true)}
+                        style={{
+                            width: '100%',
+                            maxWidth: '220px',
+                            display: 'block',
+                            margin: '8px auto 0',
+                            padding: '10px',
+                            backgroundColor: 'transparent',
+                            color: '#64748b',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: '10px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                        }}
+                    >
+                        {t.forgot_pin}
+                    </button>
+                )}
             </div>
 
             {/* Forgot PIN Confirmation Modal */}

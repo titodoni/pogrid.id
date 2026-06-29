@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
+import { ChevronDown, Settings, Lock, Plus, Palette, Stop, Broadcast, Globe, Copy, DotGreen } from '../../Components/Icons';
 
 interface Stage {
     id: number;
@@ -126,6 +127,9 @@ const translations = {
         add_admin: "Add Administrator",
         color_themes: "Color Themes",
         coming_soon: "Coming Soon",
+        language_label: "Language",
+        lang_en: "English",
+        lang_id: "Indonesia",
         current_password: "Current Password",
         new_password: "New Password",
         confirm_password: "Confirm New Password",
@@ -175,6 +179,9 @@ const translations = {
         add_admin: "Tambah Administrator",
         color_themes: "Tema Warna",
         coming_soon: "Segera Hadir",
+        language_label: "Bahasa",
+        lang_en: "English",
+        lang_id: "Indonesia",
         current_password: "Kata Sandi Saat Ini",
         new_password: "Kata Sandi Baru",
         confirm_password: "Konfirmasi Kata Sandi Baru",
@@ -227,6 +234,32 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
     };
 
     const t = translations[language];
+
+    const [activeTab, setActiveTab] = useState<'alerts' | 'active' | 'completed'>('alerts');
+    const [expandedPOs, setExpandedPOs] = useState<Set<number>>(new Set());
+    const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+
+    const togglePO = (id: number) => {
+        setExpandedPOs(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleItem = (id: number) => {
+        setExpandedItems(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+
+    const filteredPos = pos.filter(po => {
+        if (activeTab === 'active') return po.status !== 'COMPLETED';
+        if (activeTab === 'completed') return po.status === 'COMPLETED';
+        return true;
+    });
 
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
 
@@ -409,37 +442,6 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                     <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>{t.subtitle_realtime}</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'inline-flex', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.02)' }}>
-                        <button
-                            onClick={() => changeLanguage('en')}
-                            style={{
-                                padding: '6px 12px',
-                                backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
-                                border: 'none',
-                                color: '#fff',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                fontSize: '12px'
-                            }}
-                        >
-                            EN
-                        </button>
-                        <button
-                            onClick={() => changeLanguage('id')}
-                            style={{
-                                padding: '6px 12px',
-                                backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
-                                border: 'none',
-                                color: '#fff',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                fontSize: '12px'
-                            }}
-                        >
-                            ID
-                        </button>
-                    </div>
-
                     {isOwner && (
                         <div style={{ position: 'relative' }}>
                             <button
@@ -458,7 +460,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                     alignItems: 'center',
                                 }}
                             >
-                                &#9881;
+                                <Settings size={18} />
                             </button>
 
                             {showSettingsDropdown && (
@@ -471,7 +473,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                             zIndex: 40,
                                         }}
                                     />
-                                    <div style={{
+                                    <div className="settings-dropdown" style={{
                                         position: 'absolute',
                                         top: 'calc(100% + 6px)',
                                         right: 0,
@@ -501,7 +503,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                             onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)')}
                                             onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                                         >
-                                            &#128274; {t.change_password}
+                                            <Lock size={14} /> {t.change_password}
                                         </button>
                                         <button
                                             onClick={openAddAdmin}
@@ -521,7 +523,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                             onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)')}
                                             onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                                         >
-                                            &#10133; {t.add_admin}
+                                            <Plus size={14} /> {t.add_admin}
                                         </button>
                                         <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
                                         <button
@@ -541,8 +543,51 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                                 opacity: 0.5,
                                             }}
                                         >
-                                            &#127912; {t.color_themes} <span style={{ fontSize: '11px', color: '#475569', marginLeft: '6px' }}>({t.coming_soon})</span>
+                                            <Palette size={14} /> {t.color_themes} <span style={{ fontSize: '11px', color: '#475569', marginLeft: '6px' }}>({t.coming_soon})</span>
                                         </button>
+                                        <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+                                        <div style={{ padding: '8px 12px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, marginBottom: '6px' }}>
+                                                <Globe size={14} />
+                                                <span>{t.language_label}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '2px', borderRadius: '6px' }}>
+                                                <button
+                                                    onClick={() => changeLanguage('en')}
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '6px 8px',
+                                                        backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        color: '#fff',
+                                                        fontWeight: 600,
+                                                        fontSize: '11px',
+                                                        cursor: 'pointer',
+                                                        textAlign: 'center'
+                                                    }}
+                                                >
+                                                    {t.lang_en}
+                                                </button>
+                                                <button
+                                                    onClick={() => changeLanguage('id')}
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '6px 8px',
+                                                        backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        color: '#fff',
+                                                        fontWeight: 600,
+                                                        fontSize: '11px',
+                                                        cursor: 'pointer',
+                                                        textAlign: 'center'
+                                                    }}
+                                                >
+                                                    {t.lang_id}
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </>
                             )}
@@ -605,7 +650,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
 
             {/* Floor Terminal URL Information Box */}
             {tenant && (
-                <div style={{
+                <div className="floor-terminal-box" style={{
                     backgroundColor: 'rgba(37, 99, 235, 0.06)',
                     border: '1px dashed rgba(37, 99, 235, 0.3)',
                     borderRadius: '12px',
@@ -616,7 +661,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                     gap: '8px'
                 }}>
                     <div style={{ fontSize: '14px', fontWeight: 700, color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>&#127760; {t.floor_terminal_url} ({tenant.company_name})</span>
+                        <span><Globe size={16} /> {t.floor_terminal_url} ({tenant.company_name})</span>
                     </div>
                     <div style={{ fontSize: '13px', color: '#94a3b8' }}>
                         {t.floor_terminal_desc}
@@ -636,32 +681,57 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                         }}>
                             {typeof window !== 'undefined' ? `${window.location.origin}/c/${tenant.slug}` : `/c/${tenant.slug}`}
                         </code>
-                        <button
-                            onClick={() => {
-                                const url = typeof window !== 'undefined' ? `${window.location.origin}/c/${tenant.slug}` : `/c/${tenant.slug}`;
-                                navigator.clipboard.writeText(url);
-                                alert('Copied Floor Terminal URL to clipboard!');
-                            }}
-                            style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#2563eb',
-                                color: '#fff',
-                                fontWeight: 600,
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                            }}
-                        >
-                            Copy Link
-                        </button>
+                            <button
+                                className="copy-btn"
+                                onClick={() => {
+                                    const url = typeof window !== 'undefined' ? `${window.location.origin}/c/${tenant.slug}` : `/c/${tenant.slug}`;
+                                    navigator.clipboard.writeText(url);
+                                    alert('Copied Floor Terminal URL to clipboard!');
+                                }}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#2563eb',
+                                    color: '#fff',
+                                    fontWeight: 600,
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontSize: '13px',
+                                }}
+                            >
+                                Copy Link
+                            </button>
                     </div>
                 </div>
             )}
 
-            {/* Production Matrix */}
-            <div>
-                {/* Alert Matrix Panel */}
+            {/* Tab Navigation */}
+            <div className="tab-bar">
+                <button className={`tab ${activeTab === 'alerts' ? 'tab-active' : ''}`} onClick={() => setActiveTab('alerts')}>
+                    {t.unresolved_alerts}
+                    {alerts.length > 0 && (
+                        <span style={{
+                            marginLeft: '6px',
+                            fontSize: '10px',
+                            backgroundColor: '#ef4444',
+                            color: '#fff',
+                            padding: '1px 6px',
+                            borderRadius: '8px'
+                        }}>
+                            {alerts.length}
+                        </span>
+                    )}
+                </button>
+                <button className={`tab ${activeTab === 'active' ? 'tab-active' : ''}`} onClick={() => setActiveTab('active')}>
+                    Active POs
+                </button>
+                <button className={`tab ${activeTab === 'completed' ? 'tab-active' : ''}`} onClick={() => setActiveTab('completed')}>
+                    Completed
+                </button>
+            </div>
+
+            {/* Alert Matrix Panel */}
+            {activeTab === 'alerts' && (
                 <div style={{ marginBottom: '32px' }}>
                     <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span>{t.unresolved_alerts}</span>
@@ -686,7 +756,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                             fontSize: '14px',
                             fontWeight: 500
                         }}>
-                            &#128994; All manufacturing timelines are healthy and no operational failures are reported.
+                            <DotGreen size={10} /> All manufacturing timelines are healthy and no operational failures are reported.
                         </div>
                     ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
@@ -709,13 +779,9 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                             gap: '12px'
                                         }}
                                     >
-                                        <span style={{
-                                            fontSize: '11px',
-                                            fontWeight: 800,
+                                        <span className="badge" style={{
                                             color: '#fff',
                                             backgroundColor: badgeBg,
-                                            padding: '2px 6px',
-                                            borderRadius: '4px'
                                         }}>
                                             {alert.severity}
                                         </span>
@@ -745,8 +811,10 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                         </div>
                     )}
                 </div>
+            )}
 
-                {/* PO Grid Section */}
+            {/* PO Grid Section */}
+            {(activeTab === 'active' || activeTab === 'completed') && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                         <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{t.po_directory}</h2>
@@ -769,216 +837,225 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                 onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
                                 onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
                             >
-                                &#128226; {t.broadcast_new_po}
+                                <Broadcast size={16} /> {t.broadcast_new_po}
                             </button>
                         )}
                     </div>
-                    {pos.length === 0 ? (
-                        <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>{t.no_pos}</div>
-                    ) : (
-                        pos.map((po) => (
-            <div key={po.id} className="p-4 sm:p-6" style={{
-                backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-                borderRadius: '16px',
-                marginBottom: '20px'
-            }}>
-                {/* PO Header */}
-                <div className="responsive-split" style={{
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                    paddingBottom: '16px',
-                    marginBottom: '20px'
-                }}>
-                    <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <h3 style={{ fontSize: '20px', fontWeight: 800, margin: 0 }}>
-                                {po.po_number} {po.external_po_number ? `(${po.external_po_number})` : ''}
-                            </h3>
-                            <span style={{
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                padding: '3px 8px',
-                                borderRadius: '6px',
-                                backgroundColor: po.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(234, 179, 8, 0.15)',
-                                color: po.status === 'COMPLETED' ? '#10b981' : '#eab308'
-                            }}>
-                                {po.status}
-                            </span>
-                            {po.is_urgent && (
-                                <span style={{
-                                    fontSize: '11px',
-                                    fontWeight: 700,
-                                    padding: '3px 8px',
-                                    borderRadius: '6px',
-                                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                                    color: '#ef4444',
-                                    border: '1px solid rgba(239, 68, 68, 0.4)'
-                                }}>
-                                    URGENT
-                                </span>
-                            )}
+                    {filteredPos.length === 0 ? (
+                        <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                            {activeTab === 'completed' ? 'No completed POs yet.' : t.no_pos}
                         </div>
-                        <div style={{ fontSize: '14px', color: '#94a3b8', marginTop: '4px' }}>Client: {po.client_name}</div>
-                    </div>
-                    <div style={{ textAlign: 'left' }}>
-                        <div style={{ fontSize: '12px', color: '#64748b' }}>DEADLINE</div>
-                        <div style={{ fontSize: '15px', fontWeight: 600, color: '#f1f5f9' }}>{formatDeadline(po.global_deadline, language)}</div>
-                    </div>
-                </div>
+                    ) : (
+                        <div>
+                            {/* Compact summary strip for mobile */}
+                            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px', padding: '0 4px' }}>
+                                {filteredPos.length} PO{filteredPos.length > 1 ? 's' : ''} &middot; {filteredPos.reduce((sum, po) => sum + po.items.length, 0)} items
+                            </div>
+                            {filteredPos.map((po) => {
+                                const isExpanded = expandedPOs.has(po.id);
+                                const poProgress = po.items.length > 0
+                                    ? Math.round(po.items.reduce((sum, item) => sum + parseFloat(item.progress_percent), 0) / po.items.length)
+                                    : 0;
+                                return (
+                                    <div key={po.id} className="po-accordion">
+                                        <button className="po-accordion-header" onClick={() => togglePO(po.id)}>
+                                            <ChevronDown size={16} expanded={isExpanded} />
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                                    <span style={{ fontSize: '16px', fontWeight: 800 }}>{po.po_number}</span>
+                                                    <span className="badge" style={{
+                                                        backgroundColor: po.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(234, 179, 8, 0.15)',
+                                                        color: po.status === 'COMPLETED' ? '#10b981' : '#eab308'
+                                                    }}>
+                                                        {po.status}
+                                                    </span>
+                                                    {po.is_urgent && (
+                                                        <span className="badge" style={{
+                                                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                                                            color: '#ef4444',
+                                                            border: '1px solid rgba(239, 68, 68, 0.4)'
+                                                        }}>
+                                                            URGENT
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
+                                                    {po.client_name} &middot; {formatDeadline(po.global_deadline, language)}
+                                                    {!isExpanded && po.items.length > 0 && (
+                                                        <span style={{ marginLeft: '8px', color: '#3b82f6' }}>
+                                                            {po.items.length} item{po.items.length > 1 ? 's' : ''} &middot; {poProgress}%
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </button>
 
-                                {/* PO Items List */}
-                                <div>
-                                    <h4 style={{ fontSize: '13px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
-                                        Items In Production
-                                    </h4>
-                                    {po.items.length === 0 ? (
-                                        <div style={{ fontSize: '14px', color: '#64748b' }}>No items in this PO.</div>
-                                    ) : (
-                                        po.items.map((item) => {
-                                            const progress = parseFloat(item.progress_percent);
-                                            const hasProgress = progress > 0;
-                                            const isCancelled = item.status === 'CANCELLED';
-                                            const isTerminated = item.status === 'TERMINATED';
+                                        {isExpanded && (
+                                            <div className="po-accordion-body">
+                                                {po.items.length === 0 ? (
+                                                    <div style={{ fontSize: '14px', color: '#64748b', padding: '12px 0' }}>No items in this PO.</div>
+                                                ) : (
+                                                    po.items.map((item) => {
+                                                        const progress = parseFloat(item.progress_percent);
+                                                        const hasProgress = progress > 0;
+                                                        const isCancelled = item.status === 'CANCELLED';
+                                                        const isTerminated = item.status === 'TERMINATED';
+                                                        const itemExpanded = expandedItems.has(item.id);
 
-                                            return (
-                                                <div key={item.id} style={{
-                                                    backgroundColor: '#0f172a',
-                                                    border: '1px solid rgba(255, 255, 255, 0.05)',
-                                                    borderRadius: '12px',
-                                                    padding: '16px',
-                                                    marginBottom: '10px',
-                                                    opacity: (isCancelled || isTerminated) ? 0.6 : 1
-                                                }}>
-                                                    <div className="responsive-split" style={{ marginBottom: '12px', alignItems: 'flex-start' }}>
-                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                <span style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc' }}>{item.item_name}</span>
-                                                                <span style={{
-                                                                    fontSize: '10px',
-                                                                    backgroundColor: 'rgba(255,255,255,0.06)',
-                                                                    padding: '2px 6px',
-                                                                    borderRadius: '4px',
-                                                                    color: '#94a3b8'
-                                                                }}>
-                                                                    {item.item_type}
-                                                                </span>
-                                                                {po.is_urgent && (
-                                                                    <span style={{
-                                                                        fontSize: '10px',
-                                                                        fontWeight: 700,
-                                                                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                                                                        color: '#ef4444',
-                                                                        padding: '2px 6px',
-                                                                        borderRadius: '4px',
-                                                                        border: '1px solid rgba(239, 68, 68, 0.4)'
-                                                                    }}>
-                                                                        URGENT
+                                                        return (
+                                                            <div key={item.id} className="item-compact" style={{ opacity: (isCancelled || isTerminated) ? 0.6 : 1 }}>
+                                                                <button className="item-compact-summary" onClick={() => toggleItem(item.id)}>
+                                                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                                            <span style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc' }}>{item.item_name}</span>
+                                                                            <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.06)', color: '#94a3b8' }}>
+                                                                                {item.item_type}
+                                                                            </span>
+                                                                            <span className="badge" style={{
+                                                                                backgroundColor: isCancelled ? 'rgba(239, 68, 68, 0.15)'
+                                                                                    : isTerminated ? 'rgba(239, 68, 68, 0.15)'
+                                                                                    : progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                                                                color: isCancelled ? '#ef4444'
+                                                                                    : isTerminated ? '#ef4444'
+                                                                                    : progress >= 100 ? '#10b981' : '#3b82f6'
+                                                                            }}>
+                                                                                {item.status}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="progress-bar-mini" style={{ maxWidth: '100px' }}>
+                                                                        <div className="progress-bar-mini-fill" style={{
+                                                                            width: `${progress}%`,
+                                                                            backgroundColor: isCancelled ? '#ef4444' : '#2563eb'
+                                                                        }} />
+                                                                    </div>
+                                                                    <span style={{ fontSize: '12px', fontWeight: 700, width: '36px', textAlign: 'right', color: '#3b82f6' }}>
+                                                                        {progress.toFixed(0)}%
                                                                     </span>
+                                                                    <ChevronDown size={14} expanded={itemExpanded} />
+                                                                </button>
+
+                                                                {itemExpanded && (
+                                                                    <div className="item-compact-detail">
+                                                                        <div className="responsive-split" style={{ marginBottom: '12px', gap: '8px' }}>
+                                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                                                <div style={{ fontSize: '13px', fontWeight: 600, color: '#60a5fa' }}>
+                                                                                    Client: {po.client_name}
+                                                                                </div>
+                                                                                <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                                                                                    Deadline: {formatDeadline(po.global_deadline, language)}
+                                                                                </div>
+                                                                                <div style={{ fontSize: '12px', fontWeight: 600, color: '#38bdf8' }}>
+                                                                                    Qty: {item.target_qty} pcs {item.delivered_qty > 0 ? `| Delivered: ${item.delivered_qty} pcs` : ''}
+                                                                                </div>
+                                                                                {item.vendor_name && (
+                                                                                    <div style={{ fontSize: '11px', color: '#10b981' }}>
+                                                                                        Vendor: {item.vendor_name} ({item.vendor_phone})
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+
+                                                                            {(!isCancelled && !isTerminated) && (
+                                                                                <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                                                                                    <button
+                                                                                        onClick={(e) => { e.stopPropagation(); handleCancel(item.id); }}
+                                                                                        disabled={hasProgress}
+                                                                                        title={hasProgress ? "Cannot cancel. Progress has started. Use Terminate Midway instead." : ""}
+                                                                                        style={{
+                                                                                            padding: '5px 10px',
+                                                                                            backgroundColor: hasProgress ? '#1e293b' : 'rgba(239, 68, 68, 0.1)',
+                                                                                            color: hasProgress ? '#475569' : '#ef4444',
+                                                                                            border: 'none',
+                                                                                            borderRadius: '6px',
+                                                                                            cursor: hasProgress ? 'not-allowed' : 'pointer',
+                                                                                            fontSize: '11px',
+                                                                                            fontWeight: 600,
+                                                                                        }}
+                                                                                    >
+                                                                                        Cancel
+                                                                                    </button>
+                                                                                    <button
+                                                                                        onClick={(e) => { e.stopPropagation(); handleTerminate(item.id); }}
+                                                                                        style={{
+                                                                                            padding: '5px 10px',
+                                                                                            backgroundColor: '#ef4444',
+                                                                                            color: '#fff',
+                                                                                            border: 'none',
+                                                                                            borderRadius: '6px',
+                                                                                            cursor: 'pointer',
+                                                                                            fontSize: '11px',
+                                                                                            fontWeight: 600,
+                                                                                            display: 'flex',
+                                                                                            alignItems: 'center',
+                                                                                            gap: '4px'
+                                                                                        }}
+                                                                                    >
+                                                                                        <Stop size={10} /> HALT
+                                                                                    </button>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+
+                                                                        {/* Progress Bar */}
+                                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                            <div style={{
+                                                                                flexGrow: 1,
+                                                                                height: '6px',
+                                                                                backgroundColor: '#090d16',
+                                                                                borderRadius: '3px',
+                                                                                overflow: 'hidden'
+                                                                            }}>
+                                                                                <div style={{
+                                                                                    width: `${progress}%`,
+                                                                                    height: '100%',
+                                                                                    backgroundColor: isCancelled ? '#ef4444' : '#2563eb',
+                                                                                    borderRadius: '3px',
+                                                                                    transition: 'width 0.3s ease'
+                                                                                }} />
+                                                                            </div>
+                                                                            <span style={{ fontSize: '12px', fontWeight: 700, width: '36px', textAlign: 'right' }}>
+                                                                                {progress.toFixed(0)}%
+                                                                            </span>
+                                                                        </div>
+
+                                                                        {/* Stages display */}
+                                                                        {item.item_progresses && item.item_progresses.length > 0 && (
+                                                                            <div style={{ marginTop: '10px' }}>
+                                                                                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                                    Stages
+                                                                                </div>
+                                                                                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                                                                    {item.item_progresses.map((stage) => (
+                                                                                        <span key={stage.id} className="badge" style={{
+                                                                                            backgroundColor: stage.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.1)'
+                                                                                                : stage.status === 'STUCK' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255,255,255,0.05)',
+                                                                                            color: stage.status === 'COMPLETED' ? '#10b981'
+                                                                                                : stage.status === 'STUCK' ? '#ef4444' : '#94a3b8',
+                                                                                            border: '1px solid rgba(255,255,255,0.05)',
+                                                                                            fontSize: '11px',
+                                                                                            padding: '3px 8px'
+                                                                                        }}>
+                                                                                            {stage.stage_name}: {stage.completed_qty > 0 ? `${stage.completed_qty} pcs` : `${parseFloat(stage.progress_percent).toFixed(0)}%`}
+                                                                                        </span>
+                                                                                    ))}
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
                                                                 )}
                                                             </div>
-                                                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#60a5fa' }}>
-                                                                Client: {po.client_name}
-                                                            </div>
-                                                            <div style={{ fontSize: '13px', color: '#94a3b8' }}>
-                                                                Deadline: {formatDeadline(po.global_deadline, language)}
-                                                            </div>
-                                                            <div style={{ fontSize: '13px', fontWeight: 600, color: '#38bdf8' }}>
-                                                                Qty: {item.target_qty} pcs {item.delivered_qty > 0 ? `| Delivered: ${item.delivered_qty} pcs` : ''}
-                                                            </div>
-                                                            {item.vendor_name && (
-                                                                <div style={{ fontSize: '12px', color: '#10b981', marginTop: '2px' }}>
-                                                                    Vendor: {item.vendor_name} ({item.vendor_phone})
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                                            <span style={{
-                                                                fontSize: '11px',
-                                                                fontWeight: 700,
-                                                                padding: '2px 6px',
-                                                                borderRadius: '4px',
-                                                                backgroundColor: isCancelled ? 'rgba(239, 68, 68, 0.15)'
-                                                                    : isTerminated ? 'rgba(239, 68, 68, 0.15)'
-                                                                    : progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                                                                color: isCancelled ? '#ef4444'
-                                                                    : isTerminated ? '#ef4444'
-                                                                    : progress >= 100 ? '#10b981' : '#3b82f6'
-                                                            }}>
-                                                                {item.status}
-                                                            </span>
-
-                                                            {(!isCancelled && !isTerminated) && (
-                                                                <div style={{ display: 'flex', gap: '8px' }}>
-                                                                    <button
-                                                                        onClick={() => handleCancel(item.id)}
-                                                                        disabled={hasProgress}
-                                                                        title={hasProgress ? "Cannot cancel. Progress has started. Use Terminate Midway instead." : ""}
-                                                                        style={{
-                                                                            padding: '6px 12px',
-                                                                            backgroundColor: hasProgress ? '#1e293b' : 'rgba(239, 68, 68, 0.1)',
-                                                                            color: hasProgress ? '#475569' : '#ef4444',
-                                                                            border: 'none',
-                                                                            borderRadius: '6px',
-                                                                            cursor: hasProgress ? 'not-allowed' : 'pointer',
-                                                                            fontSize: '12px',
-                                                                            fontWeight: 600,
-                                                                        }}
-                                                                    >
-                                                                        Cancel
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleTerminate(item.id)}
-                                                                        style={{
-                                                                            padding: '6px 12px',
-                                                                            backgroundColor: '#ef4444',
-                                                                            color: '#fff',
-                                                                            border: 'none',
-                                                                            borderRadius: '6px',
-                                                                            cursor: 'pointer',
-                                                                            fontSize: '12px',
-                                                                            fontWeight: 600,
-                                                                            boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)'
-                                                                        }}
-                                                                    >
-                                                                        &#128683; HALT
-                                                                    </button>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Progress Bar */}
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                        <div style={{
-                                                            flexGrow: 1,
-                                                            height: '8px',
-                                                            backgroundColor: '#090d16',
-                                                            borderRadius: '4px',
-                                                            overflow: 'hidden'
-                                                        }}>
-                                                            <div style={{
-                                                                width: `${progress}%`,
-                                                                height: '100%',
-                                                                backgroundColor: isCancelled ? '#ef4444' : '#2563eb',
-                                                                borderRadius: '4px',
-                                                                transition: 'width 0.3s ease'
-                                                            }} />
-                                                        </div>
-                                                        <span style={{ fontSize: '13px', fontWeight: 700, width: '40px', textAlign: 'right' }}>
-                                                            {progress.toFixed(0)}%
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })
-                                    )}
-                                </div>
-                            </div>
-                        ))
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     )}
                 </div>
-            </div>
+            )}
 
             {/* Change Password Modal */}
             {showChangePasswordModal && (
@@ -1411,7 +1488,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                                         cursor: 'pointer'
                                                     }}
                                                 >
-                                                    &#10003; Save
+                                                    <Check size={12} /> Save
                                                 </button>
                                             </div>
                                         )}
@@ -1516,7 +1593,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                                     cursor: 'pointer'
                                                 }}
                                             >
-                                                &#10005; {t.remove_item}
+                                                <Close size={12} /> {t.remove_item}
                                             </button>
                                         )}
 

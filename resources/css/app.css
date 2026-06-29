@@ -100,3 +100,210 @@ input, select, textarea {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }
+
+/* Tab Navigation */
+.tab-bar {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 24px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab {
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+}
+.tab:hover { color: #94a3b8; }
+.tab-active {
+    color: #60a5fa;
+    border-bottom-color: #3b82f6;
+}
+
+/* Accordion PO Cards */
+.po-accordion {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+.po-accordion-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 16px 20px;
+    background: transparent;
+    border: none;
+    color: #f8fafc;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.15s;
+}
+.po-accordion-header:hover { background: rgba(255, 255, 255, 0.02); }
+.po-accordion-body { padding: 0 20px 20px; }
+
+/* Compact Item Rows */
+.item-compact {
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+.item-compact-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    color: #f8fafc;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.15s;
+}
+.item-compact-summary:hover { background: rgba(255, 255, 255, 0.02); }
+.item-compact-detail { padding: 0 16px 16px; }
+
+/* Progress bar mini for compact items */
+.progress-bar-mini {
+    flex: 1;
+    min-width: 60px;
+    height: 6px;
+    background: #090d16;
+    border-radius: 3px;
+    overflow: hidden;
+}
+.progress-bar-mini-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* Badge chips */
+.badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+/* Mobile-first compact overrides */
+@media (max-width: 640px) {
+    .responsive-container {
+        padding: 12px !important;
+    }
+
+    .responsive-header {
+        gap: 10px !important;
+        margin-bottom: 16px !important;
+        padding-bottom: 12px !important;
+    }
+
+    .responsive-header h1 {
+        font-size: 20px !important;
+    }
+
+    .responsive-header p {
+        font-size: 12px !important;
+    }
+
+    .po-accordion-header {
+        padding: 10px 12px !important;
+    }
+
+    .po-accordion-body {
+        padding: 0 12px 12px !important;
+    }
+
+    .item-compact-summary {
+        padding: 8px 10px !important;
+    }
+
+    .item-compact-detail {
+        padding: 0 10px 10px !important;
+    }
+
+    .tab {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+    }
+
+    .worker-item-card {
+        padding: 12px !important;
+    }
+
+    .worker-item-card .item-meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2px 12px;
+    }
+
+    .worker-stage-btn {
+        padding: 8px 10px !important;
+        font-size: 12px !important;
+    }
+}
+
+/* Login pages compact on mobile */
+@media (max-width: 640px) {
+    .login-card h1 {
+        font-size: 24px !important;
+    }
+
+    .login-card {
+        padding: 24px !important;
+    }
+
+    .login-card .responsive-grid-half {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+}
+
+/* Floor terminal info box compact on mobile */
+@media (max-width: 640px) {
+    .floor-terminal-box {
+        padding: 10px 14px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .floor-terminal-box code {
+        font-size: 12px !important;
+        padding: 6px 10px !important;
+    }
+
+    .floor-terminal-box .copy-btn {
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+    }
+}
+
+/* Settings dropdown becomes bottom sheet on mobile */
+@media (max-width: 640px) {
+    .settings-dropdown {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        border-radius: 16px 16px 0 0 !important;
+        min-width: unset !important;
+        box-shadow: 0 -8px 40px rgba(0,0,0,0.5) !important;
+    }
+}
