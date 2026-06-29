@@ -49,7 +49,7 @@ class WorkerDashboardController extends Controller
         }
 
         // 4. Determine dashboard views by office vs floor roles division
-        $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'PURCHASING', 'FINANCE'];
+        $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
         if (in_array(strtoupper($user->role), $officeRoles)) {
             $pos = Po::with('items.itemProgresses')->get();
             $alerts = Alert::where('is_resolved', false)->get();

@@ -47,7 +47,7 @@ class WorkerAuthController extends Controller
         TenantManager::enableScope();
 
         // Block office administrative roles from PIN-based login (privilege escalation protection)
-        $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'PURCHASING', 'FINANCE'];
+        $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
         if (in_array(strtoupper($user->role), $officeRoles)) {
             return back()->withErrors([
                 'pin' => 'Administrative users must log in via password at app.pogrid.id/login.',

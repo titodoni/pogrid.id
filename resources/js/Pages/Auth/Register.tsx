@@ -1,5 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, Link } from '@inertiajs/react';
+
+const translations = {
+    en: {
+        title: "Setup POgrid.id",
+        subtitle: "Register your factory & configure the Owner Administrator account",
+        company_details: "1. Company Details",
+        company_name_label: "Company / Factory Name",
+        company_name_placeholder: "e.g. CV. Teknik Mandiri",
+        slug_label: "Company URL Slug / Short Name",
+        slug_placeholder: "e.g. MTR",
+        slug_desc: "Used for your login URL. Alphanumeric only (letters & numbers), max 10 characters. No spaces/dashes.",
+        admin_account: "2. Administrator Account",
+        full_name_label: "Full Name",
+        full_name_placeholder: "e.g. Budi Santoso",
+        email_label: "Email Address",
+        email_placeholder: "e.g. owner@factory.com",
+        password_label: "Password",
+        confirm_password_label: "Confirm Password",
+        submit_btn: "Register & Setup Onboarding",
+        registering: "Registering...",
+        already_have_account: "Already have an account?",
+        sign_in: "Sign In"
+    },
+    id: {
+        title: "Siapkan POgrid.id",
+        subtitle: "Daftar pabrik Anda & konfigurasikan akun Administrator Pemilik",
+        company_details: "1. Detail Perusahaan",
+        company_name_label: "Nama Perusahaan / Pabrik",
+        company_name_placeholder: "misal: CV. Teknik Mandiri",
+        slug_label: "Slug URL Perusahaan / Nama Pendek",
+        slug_placeholder: "misal: MTR",
+        slug_desc: "Digunakan untuk URL login Anda. Hanya alfanumerik (huruf & angka), maks 10 karakter. Tanpa spasi/tanda hubung.",
+        admin_account: "2. Akun Administrator",
+        full_name_label: "Nama Lengkap",
+        full_name_placeholder: "misal: Budi Santoso",
+        email_label: "Alamat Email",
+        email_placeholder: "misal: owner@factory.com",
+        password_label: "Kata Sandi",
+        confirm_password_label: "Konfirmasi Kata Sandi",
+        submit_btn: "Daftar & Siapkan Onboarding",
+        registering: "Mendaftarkan...",
+        already_have_account: "Sudah punya akun?",
+        sign_in: "Masuk"
+    }
+};
 
 export default function Register() {
     const { data, setData, post, processing, errors } = useForm({
@@ -10,6 +55,20 @@ export default function Register() {
         password: '',
         password_confirmation: '',
     });
+
+    const [language, setLanguage] = useState<'en' | 'id'>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
+        }
+        return 'en';
+    });
+
+    const changeLanguage = (lang: 'en' | 'id') => {
+        setLanguage(lang);
+        localStorage.setItem('pogrid_lang', lang);
+    };
+
+    const t = translations[language];
 
     const generateSlug = (companyName: string) => {
         // Strip business prefixes: PT., PT, CV., CV, UD., UD
@@ -50,21 +109,57 @@ export default function Register() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#0f172a',
+            backgroundColor: '#090d16',
             fontFamily: 'Inter, sans-serif',
             color: '#f8fafc',
-            padding: '20px'
+            padding: '16px',
+            position: 'relative'
         }}>
+            {/* Language Switcher */}
             <div style={{
-                width: '100%',
-                maxWidth: '480px',
-                backgroundColor: 'rgba(30, 41, 59, 0.7)',
-                backdropFilter: 'blur(16px)',
-                borderRadius: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                padding: '40px',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)'
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                display: 'inline-flex',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                border: '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: 'rgba(255,255,255,0.02)',
+                zIndex: 10
             }}>
+                <button
+                    type="button"
+                    onClick={() => changeLanguage('en')}
+                    style={{
+                        padding: '6px 12px',
+                        backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
+                        border: 'none',
+                        color: '#fff',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                    }}
+                >
+                    EN
+                </button>
+                <button
+                    type="button"
+                    onClick={() => changeLanguage('id')}
+                    style={{
+                        padding: '6px 12px',
+                        backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
+                        border: 'none',
+                        color: '#fff',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                    }}
+                >
+                    ID
+                </button>
+            </div>
+
+            <div className="w-full max-w-[480px] bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/8 p-6 sm:p-10 shadow-2xl">
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <h1 style={{
                         fontSize: '32px',
@@ -75,10 +170,10 @@ export default function Register() {
                         WebkitTextFillColor: 'transparent',
                         marginBottom: '8px'
                     }}>
-                        Setup POgrid.id
+                        {t.title}
                     </h1>
                     <p style={{ color: '#94a3b8', fontSize: '14px' }}>
-                        Register your factory & configure the Owner Administrator account
+                        {t.subtitle}
                     </p>
                 </div>
 
@@ -86,7 +181,7 @@ export default function Register() {
                     {/* Section: Company Details */}
                     <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
                         <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#60a5fa', margin: '0 0 12px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            1. Company Details
+                            {t.company_details}
                         </h3>
                         <div>
                             <label htmlFor="company_name" style={{
@@ -98,9 +193,9 @@ export default function Register() {
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.05em'
                             }}>
-                                Company / Factory Name
+                                {t.company_name_label}
                             </label>
-                             <input
+                            <input
                                 type="text"
                                 id="company_name"
                                 value={data.company_name}
@@ -115,7 +210,7 @@ export default function Register() {
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px',
-                                    backgroundColor: '#0f172a',
+                                    backgroundColor: '#090d16',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
                                     borderRadius: '8px',
                                     color: '#f8fafc',
@@ -123,7 +218,7 @@ export default function Register() {
                                     outline: 'none',
                                     transition: 'border-color 0.2s'
                                 }}
-                                placeholder="e.g. CV. Teknik Mandiri"
+                                placeholder={t.company_name_placeholder}
                                 required
                             />
                             {errors.company_name && (
@@ -143,7 +238,7 @@ export default function Register() {
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.05em'
                             }}>
-                                Company URL Slug / Short Name
+                                {t.slug_label}
                             </label>
                             <input
                                 type="text"
@@ -157,7 +252,7 @@ export default function Register() {
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px',
-                                    backgroundColor: '#0f172a',
+                                    backgroundColor: '#090d16',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
                                     borderRadius: '8px',
                                     color: '#f8fafc',
@@ -165,11 +260,11 @@ export default function Register() {
                                     outline: 'none',
                                     transition: 'border-color 0.2s'
                                 }}
-                                placeholder="e.g. MTR"
+                                placeholder={t.slug_placeholder}
                                 required
                             />
                             <span style={{ fontSize: '11px', color: '#64748b', marginTop: '6px', display: 'block' }}>
-                                Used for your login URL. Alphanumeric only (letters & numbers), max 10 characters. No spaces/dashes.
+                                {t.slug_desc}
                             </span>
                             {errors.slug && (
                                 <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
@@ -182,7 +277,7 @@ export default function Register() {
                     {/* Section: Admin Administrator Details */}
                     <div style={{ marginBottom: '32px' }}>
                         <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#60a5fa', margin: '0 0 12px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            2. Administrator Account
+                            {t.admin_account}
                         </h3>
                         
                         <div style={{ marginBottom: '16px' }}>
@@ -195,7 +290,7 @@ export default function Register() {
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.05em'
                             }}>
-                                Full Name
+                                {t.full_name_label}
                             </label>
                             <input
                                 type="text"
@@ -205,7 +300,7 @@ export default function Register() {
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px',
-                                    backgroundColor: '#0f172a',
+                                    backgroundColor: '#090d16',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
                                     borderRadius: '8px',
                                     color: '#f8fafc',
@@ -213,7 +308,7 @@ export default function Register() {
                                     outline: 'none',
                                     transition: 'border-color 0.2s'
                                 }}
-                                placeholder="e.g. Budi Santoso"
+                                placeholder={t.full_name_placeholder}
                                 required
                             />
                             {errors.name && (
@@ -233,7 +328,7 @@ export default function Register() {
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.05em'
                             }}>
-                                Email Address
+                                {t.email_label}
                             </label>
                             <input
                                 type="email"
@@ -243,7 +338,7 @@ export default function Register() {
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px',
-                                    backgroundColor: '#0f172a',
+                                    backgroundColor: '#090d16',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
                                     borderRadius: '8px',
                                     color: '#f8fafc',
@@ -251,7 +346,7 @@ export default function Register() {
                                     outline: 'none',
                                     transition: 'border-color 0.2s'
                                 }}
-                                placeholder="e.g. owner@factory.com"
+                                placeholder={t.email_placeholder}
                                 required
                             />
                             {errors.email && (
@@ -271,7 +366,7 @@ export default function Register() {
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.05em'
                             }}>
-                                Password
+                                {t.password_label}
                             </label>
                             <input
                                 type="password"
@@ -281,7 +376,7 @@ export default function Register() {
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px',
-                                    backgroundColor: '#0f172a',
+                                    backgroundColor: '#090d16',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
                                     borderRadius: '8px',
                                     color: '#f8fafc',
@@ -309,7 +404,7 @@ export default function Register() {
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.05em'
                             }}>
-                                Confirm Password
+                                {t.confirm_password_label}
                             </label>
                             <input
                                 type="password"
@@ -319,7 +414,7 @@ export default function Register() {
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px',
-                                    backgroundColor: '#0f172a',
+                                    backgroundColor: '#090d16',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
                                     borderRadius: '8px',
                                     color: '#f8fafc',
@@ -353,14 +448,14 @@ export default function Register() {
                         onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
                         onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
                     >
-                        {processing ? 'Registering...' : 'Register & Setup Onboarding'}
+                        {processing ? t.registering : t.submit_btn}
                     </button>
                 </form>
 
-                <div style={{ textAlign: 'center', fontSize: '14px' }}>
-                    <span style={{ color: '#94a3b8' }}>Already have an account? </span>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between items-center text-sm">
+                    <span style={{ color: '#94a3b8' }}>{t.already_have_account} </span>
                     <Link href="/login" style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
-                        Sign In
+                        {t.sign_in}
                     </Link>
                 </div>
             </div>

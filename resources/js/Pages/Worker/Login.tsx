@@ -18,6 +18,45 @@ interface Props {
     workers: Worker[];
 }
 
+const translations = {
+    en: {
+        worker_entrance: "Worker Entrance",
+        select_name: "Select Your Name",
+        no_workers: "No workers registered.",
+        entering_pin: "Entering PIN for: {name}",
+        select_worker: "Select worker to enter PIN",
+        verify_btn: "VERIFY & ENTER",
+        verifying: "Verifying...",
+        forgot_pin: "Forgot PIN?",
+        forgot_pin_title: "Forgot PIN",
+        forgot_pin_desc: "Request a PIN reset for {name}? Admin will generate a new PIN.",
+        cancel: "Cancel",
+        request_reset: "Request Reset",
+        requesting: "Sending...",
+        clear_btn: "CLEAR",
+        select_worker_error: "Please select a worker first.",
+        pin_length_error: "PIN must be at least 4 digits."
+    },
+    id: {
+        worker_entrance: "Pintu Masuk Pekerja",
+        select_name: "Pilih Nama Anda",
+        no_workers: "Tidak ada pekerja yang terdaftar.",
+        entering_pin: "Memasukkan PIN untuk: {name}",
+        select_worker: "Pilih pekerja untuk memasukkan PIN",
+        verify_btn: "VERIFIKASI & MASUK",
+        verifying: "Memverifikasi...",
+        forgot_pin: "Lupa PIN?",
+        forgot_pin_title: "Lupa PIN",
+        forgot_pin_desc: "Minta atur ulang PIN untuk {name}? Admin akan membuatkan PIN baru.",
+        cancel: "Batal",
+        request_reset: "Minta Atur Ulang",
+        requesting: "Mengirim...",
+        clear_btn: "HAPUS",
+        select_worker_error: "Silakan pilih pekerja terlebih dahulu.",
+        pin_length_error: "PIN minimal harus 4 digit."
+    }
+};
+
 export default function WorkerLogin({ tenant, workers }: Props) {
     const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
     const [pin, setPin] = useState('');
@@ -27,6 +66,20 @@ export default function WorkerLogin({ tenant, workers }: Props) {
         user_id: '',
         pin: '',
     });
+
+    const [language, setLanguage] = useState<'en' | 'id'>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
+        }
+        return 'en';
+    });
+
+    const changeLanguage = (lang: 'en' | 'id') => {
+        setLanguage(lang);
+        localStorage.setItem('pogrid_lang', lang);
+    };
+
+    const t = translations[language];
 
     const handleNumberClick = (num: string) => {
         if (!selectedWorker) return;
@@ -60,11 +113,11 @@ export default function WorkerLogin({ tenant, workers }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedWorker) {
-            setError('pin', 'Please select a worker first.');
+            setError('pin', t.select_worker_error);
             return;
         }
         if (pin.length < 4) {
-            setError('pin', 'PIN must be at least 4 digits.');
+            setError('pin', t.pin_length_error);
             return;
         }
         post(`/c/${tenant.slug}/login`);
@@ -80,24 +133,60 @@ export default function WorkerLogin({ tenant, workers }: Props) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '24px'
+            padding: '16px',
+            position: 'relative'
         }}>
+            {/* Language Switcher */}
             <div style={{
-                width: '100%',
-                maxWidth: '680px',
-                backgroundColor: 'rgba(15, 23, 42, 0.8)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '24px',
-                padding: '32px',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)'
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                display: 'inline-flex',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                border: '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: 'rgba(255,255,255,0.02)',
+                zIndex: 10
             }}>
+                <button
+                    type="button"
+                    onClick={() => changeLanguage('en')}
+                    style={{
+                        padding: '6px 12px',
+                        backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
+                        border: 'none',
+                        color: '#fff',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                    }}
+                >
+                    EN
+                </button>
+                <button
+                    type="button"
+                    onClick={() => changeLanguage('id')}
+                    style={{
+                        padding: '6px 12px',
+                        backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
+                        border: 'none',
+                        color: '#fff',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                    }}
+                >
+                    ID
+                </button>
+            </div>
+
+            <div className="w-full max-w-[680px] bg-slate-900/80 backdrop-blur-xl border border-white/8 rounded-2xl p-6 sm:p-10 shadow-2xl">
                 <div style={{ textAlign: 'center', marginBottom: '28px' }}>
                     <h2 style={{ fontSize: '14px', textTransform: 'uppercase', color: '#3b82f6', fontWeight: 700, letterSpacing: '0.1em', margin: 0 }}>
                         {tenant.company_name}
                     </h2>
                     <h1 style={{ fontSize: '28px', fontWeight: 800, margin: '8px 0 0 0', letterSpacing: '-0.02em' }}>
-                        Worker Entrance
+                        {t.worker_entrance}
                     </h1>
                 </div>
 
@@ -105,10 +194,10 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                     {/* Worker Selector Left Column */}
                     <div>
                         <h3 style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '12px', fontWeight: 600 }}>
-                            Select Your Name
+                            {t.select_name}
                         </h3>
                         <div style={{
-                            maxHeight: '340px',
+                            maxHeight: '300px',
                             overflowY: 'auto',
                             border: '1px solid rgba(255, 255, 255, 0.05)',
                             borderRadius: '12px',
@@ -117,7 +206,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         }}>
                             {workers.length === 0 ? (
                                 <p style={{ padding: '16px', color: '#64748b', textAlign: 'center', fontSize: '14px' }}>
-                                    No workers registered.
+                                    {t.no_workers}
                                 </p>
                             ) : (
                                 workers.map((worker) => (
@@ -138,7 +227,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                                             fontSize: '14px',
                                             fontWeight: selectedWorker?.id === worker.id ? 700 : 500,
                                             display: 'flex',
-                                            justifyContent: 'between',
+                                            justifyContent: 'space-between',
                                             alignItems: 'center',
                                             transition: 'background-color 0.15s'
                                         }}
@@ -163,7 +252,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <div style={{ width: '100%', textAlign: 'center', marginBottom: '16px' }}>
                             <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px', fontWeight: 600 }}>
-                                {selectedWorker ? `Entering PIN for: ${selectedWorker.name}` : 'Select worker to enter PIN'}
+                                {selectedWorker ? t.entering_pin.replace('{name}', selectedWorker.name) : t.select_worker}
                             </div>
                             <div style={{
                                 height: '48px',
@@ -236,7 +325,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                                     justifyContent: 'center'
                                 }}
                             >
-                                CLEAR
+                                {t.clear_btn}
                             </button>
                             <button
                                 type="button"
@@ -296,7 +385,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                                 transition: 'background-color 0.2s'
                             }}
                         >
-                            {processing ? 'Verifying...' : 'VERIFY & ENTER'}
+                            {processing ? t.verifying : t.verify_btn}
                         </button>
 
                         {/* Forgot PIN */}
@@ -319,7 +408,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                                     transition: 'all 0.15s'
                                 }}
                             >
-                                Forgot PIN?
+                                {t.forgot_pin}
                             </button>
                         )}
                     </div>
@@ -353,12 +442,12 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         borderRadius: '16px',
                         padding: '24px',
                         width: '100%',
-                        maxWidth: '400px'
+                        maxWidth: '400px',
+                        margin: '16px'
                     }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 8px 0' }}>Forgot PIN</h3>
+                        <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 8px 0' }}>{t.forgot_pin_title}</h3>
                         <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 20px 0' }}>
-                            Request a PIN reset for <strong style={{ color: '#f8fafc' }}>{selectedWorker.name}</strong>?
-                            Admin will generate a new PIN.
+                            {t.forgot_pin_desc.replace('{name}', selectedWorker.name)}
                         </p>
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                             <button
@@ -372,7 +461,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                                     cursor: 'pointer'
                                 }}
                             >
-                                Cancel
+                                {t.cancel}
                             </button>
                             <button
                                 type="submit"
@@ -387,7 +476,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                                     cursor: 'pointer'
                                 }}
                             >
-                                {processing ? 'Sending...' : 'Request Reset'}
+                                {processing ? t.requesting : t.request_reset}
                             </button>
                         </div>
                     </form>

@@ -33,7 +33,7 @@ interface Po {
     is_urgent?: boolean | null;
 }
 
-const formatDeadline = (deadlineDateStr: string) => {
+const formatDeadline = (deadlineDateStr: string, lang: 'en' | 'id') => {
     if (!deadlineDateStr) return '';
     const deadline = new Date(deadlineDateStr);
     const deadlineClean = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
@@ -46,20 +46,20 @@ const formatDeadline = (deadlineDateStr: string) => {
     const dateFormatted = deadlineClean.toLocaleDateString();
 
     if (diffDays === 0) {
-        return `${dateFormatted} (Today)`;
+        return lang === 'id' ? `${dateFormatted} (Hari Ini)` : `${dateFormatted} (Today)`;
     } else if (diffDays > 0) {
-        if (diffDays === 7) return `${dateFormatted} (1 week)`;
-        if (diffDays === 30) return `${dateFormatted} (1 month)`;
-        return `${dateFormatted} (${diffDays} days)`;
+        if (diffDays === 7) return lang === 'id' ? `${dateFormatted} (1 minggu)` : `${dateFormatted} (1 week)`;
+        if (diffDays === 30) return lang === 'id' ? `${dateFormatted} (1 bulan)` : `${dateFormatted} (1 month)`;
+        return lang === 'id' ? `${dateFormatted} (${diffDays} hari)` : `${dateFormatted} (${diffDays} days)`;
     } else {
-        return `${dateFormatted} (delayed ${Math.abs(diffDays)} days)`;
+        return lang === 'id' ? `${dateFormatted} (terlambat ${Math.abs(diffDays)} hari)` : `${dateFormatted} (delayed ${Math.abs(diffDays)} days)`;
     }
 };
 
 interface Alert {
     id: number;
     item_id: number;
-    severity: string; // RED, YELLOW, BLUE
+    severity: string;
     message: string;
     is_resolved: boolean;
 }
@@ -86,9 +86,9 @@ interface Invoice {
     delivery_order_id: number | null;
     invoice_number: string;
     total_amount: string;
-    status: string; // UNPAID, PAID
+    status: string;
     due_date: string;
-    invoice_type: string; // STANDARD, SUNK_COST
+    invoice_type: string;
     delivery_order?: DeliveryOrder;
 }
 
@@ -115,44 +115,37 @@ const translations = {
         owner_command_center: "Owner Command Center",
         subtitle_realtime: "Real-time production monitoring & risk guardrail",
         po_directory: "Purchase Order (PO) Directory",
-        broadcast_new_po: "📢 Broadcast New PO",
+        broadcast_new_po: "Broadcast New PO",
         no_pos: "No Purchase Orders found.",
-        active_items: "Active Production Items",
-        no_active_items: "No active production items currently on the floor.",
         unresolved_alerts: "Unresolved Floor Alerts",
         validation_error: "Validation Error",
-        production_tab: "Production Progress & POs",
-        users_tab: "User Directory & Access",
-        name: "Full Name",
-        role: "Role",
-        auth_method: "Authentication Method",
-        actions: "Actions",
-        no_users: "No users found.",
-        edit: "Edit",
-        delete: "Delete",
-        create_new_user: "➕ Create New User",
-        edit_user_details: "Edit User Details",
-        create_user_title: "Create New User",
-        user_subtitle: "Configure system roles and authentication keys for operators.",
-        full_name_label: "Full Name",
-        user_role_label: "User Role",
-        login_method_label: "Login Method",
-        username_label: "Username",
-        password_label: "Password",
-        pin_label: "4-Digit Login PIN",
-        pin_note: "Operators log in via path-based worker auth using this numeric PIN.",
+        floor_terminal_url: "Floor Terminal URL",
+        floor_terminal_desc: "Share this URL with floor operators to let them log in with their PINs:",
+        settings: "Settings",
+        change_password: "Change Password",
+        add_admin: "Add Administrator",
+        color_themes: "Color Themes",
+        coming_soon: "Coming Soon",
+        current_password: "Current Password",
+        new_password: "New Password",
+        confirm_password: "Confirm New Password",
         cancel: "Cancel",
         submit: "Submit",
         save_changes: "Save Changes",
+        admin_name: "Full Name",
+        admin_username: "Username",
+        admin_password: "Password",
+        create_admin: "Create Administrator",
+        admin_subtitle: "Create a new administrator account with full access.",
         broadcast_po_title: "Broadcast New Purchase Order",
         broadcast_po_subtitle: "Input internal/external PO metadata and schedule parallel item stages.",
         po_number_label: "PO Number (Internal)",
         client_po_number_label: "Client PO Number (External)",
         client_name_label: "Client Name",
         delivery_date_label: "Delivery Date",
-        urgent_label: "🚨 Urgent PO (Mark this PO as highly urgent with red highlights)",
+        urgent_label: "Urgent PO (Mark this PO as highly urgent with red highlights)",
         items_po_title: "Items in this PO",
-        add_another_item: "➕ Add Another Item",
+        add_another_item: "Add Another Item",
         item_name_label: "Item Name",
         item_type_label: "Item Type",
         qty_label: "Qty",
@@ -164,53 +157,44 @@ const translations = {
         vendor_phone_label: "Vendor Phone Number",
         remove_item: "Remove Item",
         custom_client: "Custom / Other Client...",
-        add_client_btn: "➕ Add",
-        custom_role_label: "Custom Role Name",
-        floor_terminal_url: "Floor Terminal URL",
-        floor_terminal_desc: "Share this URL with floor operators to let them log in with their PINs:",
+        add_client_btn: "Add",
+        select_client: "Select Client...",
     },
     id: {
         owner_command_center: "Pusat Kendali Pemilik",
         subtitle_realtime: "Pemantauan produksi real-time & batasan risiko",
         po_directory: "Direktori Surat Perintah Kerja (PO)",
-        broadcast_new_po: "📢 Siarkan PO Baru",
+        broadcast_new_po: "Siarkan PO Baru",
         no_pos: "Tidak ada PO yang ditemukan.",
-        active_items: "Barang Produksi Aktif",
-        no_active_items: "Tidak ada barang produksi aktif di pabrik saat ini.",
         unresolved_alerts: "Peringatan Pabrik Belum Selesai",
         validation_error: "Kesalahan Validasi",
-        production_tab: "Progres Produksi & PO",
-        users_tab: "Direktori Pengguna & Akses",
-        name: "Nama Lengkap",
-        role: "Peran",
-        auth_method: "Metode Autentikasi",
-        actions: "Aksi",
-        no_users: "Pengguna tidak ditemukan.",
-        edit: "Ubah",
-        delete: "Hapus",
-        create_new_user: "➕ Tambah Pengguna Baru",
-        edit_user_details: "Ubah Detail Pengguna",
-        create_user_title: "Tambah Pengguna Baru",
-        user_subtitle: "Konfigurasikan peran sistem dan kunci autentikasi untuk operator.",
-        full_name_label: "Nama Lengkap",
-        user_role_label: "Peran Pengguna",
-        login_method_label: "Metode Masuk",
-        username_label: "Nama Pengguna",
-        password_label: "Kata Sandi",
-        pin_label: "PIN Masuk 4-Digit",
-        pin_note: "Operator masuk melalui autentikasi pekerja berbasis path menggunakan PIN numerik ini.",
+        floor_terminal_url: "URL Terminal Pabrik",
+        floor_terminal_desc: "Bagikan URL ini ke operator pabrik untuk login dengan PIN mereka:",
+        settings: "Pengaturan",
+        change_password: "Ubah Kata Sandi",
+        add_admin: "Tambah Administrator",
+        color_themes: "Tema Warna",
+        coming_soon: "Segera Hadir",
+        current_password: "Kata Sandi Saat Ini",
+        new_password: "Kata Sandi Baru",
+        confirm_password: "Konfirmasi Kata Sandi Baru",
         cancel: "Batal",
         submit: "Kirim",
         save_changes: "Simpan Perubahan",
+        admin_name: "Nama Lengkap",
+        admin_username: "Nama Pengguna",
+        admin_password: "Kata Sandi",
+        create_admin: "Buat Administrator",
+        admin_subtitle: "Buat akun administrator baru dengan akses penuh.",
         broadcast_po_title: "Siarkan PO Baru",
         broadcast_po_subtitle: "Masukkan data PO internal/external dan jadwalkan tahapan barang secara paralel.",
         po_number_label: "Nomor PO (Internal)",
         client_po_number_label: "Nomor PO Klien (Eksternal)",
         client_name_label: "Nama Klien",
         delivery_date_label: "Tanggal Pengiriman",
-        urgent_label: "🚨 PO Mendesak (Tandai PO ini sebagai sangat mendesak dengan sorotan merah)",
+        urgent_label: "PO Mendesak (Tandai PO ini sebagai sangat mendesak dengan sorotan merah)",
         items_po_title: "Barang dalam PO ini",
-        add_another_item: "➕ Tambah Barang Lain",
+        add_another_item: "Tambah Barang Lain",
         item_name_label: "Nama Barang",
         item_type_label: "Tipe Barang",
         qty_label: "Jumlah",
@@ -222,19 +206,14 @@ const translations = {
         vendor_phone_label: "Nomor Telepon Vendor",
         remove_item: "Hapus Barang",
         custom_client: "Klien Kustom / Lainnya...",
-        add_client_btn: "➕ Tambah",
-        custom_role_label: "Nama Peran Kustom",
-        floor_terminal_url: "URL Terminal Pabrik",
-        floor_terminal_desc: "Bagikan URL ini ke operator pabrik untuk login dengan PIN mereka:",
+        add_client_btn: "Tambah",
+        select_client: "Pilih Klien...",
     }
 };
 
 export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }: Props) {
     const { errors } = usePage().props;
 
-    const [activeTab, setActiveTab] = useState<'pos' | 'users'>('pos');
-
-    // Language state
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
         if (typeof window !== 'undefined') {
             return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
@@ -248,6 +227,60 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
     };
 
     const t = translations[language];
+
+    const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
+
+    // Change Password modal
+    const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+    const [cpCurrentPassword, setCpCurrentPassword] = useState('');
+    const [cpNewPassword, setCpNewPassword] = useState('');
+    const [cpConfirmPassword, setCpConfirmPassword] = useState('');
+
+    const openChangePassword = () => {
+        setCpCurrentPassword('');
+        setCpNewPassword('');
+        setCpConfirmPassword('');
+        setShowSettingsDropdown(false);
+        setShowChangePasswordModal(true);
+    };
+
+    const submitChangePassword = (e: React.FormEvent) => {
+        e.preventDefault();
+        router.post('/change-password', {
+            current_password: cpCurrentPassword,
+            new_password: cpNewPassword,
+            new_password_confirmation: cpConfirmPassword,
+        }, {
+            onSuccess: () => setShowChangePasswordModal(false),
+        });
+    };
+
+    // Add Admin modal
+    const [showAddAdminModal, setShowAddAdminModal] = useState(false);
+    const [adminName, setAdminName] = useState('');
+    const [adminUsername, setAdminUsername] = useState('');
+    const [adminPassword, setAdminPassword] = useState('');
+
+    const openAddAdmin = () => {
+        setAdminName('');
+        setAdminUsername('');
+        setAdminPassword('');
+        setShowSettingsDropdown(false);
+        setShowAddAdminModal(true);
+    };
+
+    const submitAddAdmin = (e: React.FormEvent) => {
+        e.preventDefault();
+        router.post('/users', {
+            name: adminName,
+            role: 'ADMIN',
+            login_method: 'PASSWORD',
+            username: adminUsername,
+            password: adminPassword,
+        }, {
+            onSuccess: () => setShowAddAdminModal(false),
+        });
+    };
 
     // Client Selector State
     const [clients, setClients] = useState<string[]>([
@@ -279,18 +312,6 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
         { item_name: '', item_type: 'MANUFACTURE', target_qty: 1, required_stages: [], vendor_name: '', vendor_phone: '' }
     ]);
 
-    // User Management state
-    const [showUserModal, setShowUserModal] = useState(false);
-    const [editingUser, setEditingUser] = useState<User | null>(null);
-    const [userName, setUserName] = useState('');
-    const [userRole, setUserRole] = useState<string>('CNC');
-    const [loginMethod, setLoginMethod] = useState<'PASSWORD' | 'PIN'>('PIN');
-    const [isCustomRole, setIsCustomRole] = useState(false);
-    const [customRoleName, setCustomRoleName] = useState('');
-    const [userUsername, setUserUsername] = useState('');
-    const [userPassword, setUserPassword] = useState('');
-    const [userPin, setUserPin] = useState('');
-
     const handleCancel = (itemId: number) => {
         if (confirm('Are you sure you want to cancel this item?')) {
             router.post(`/items/${itemId}/cancel`);
@@ -298,107 +319,8 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
     };
 
     const handleTerminate = (itemId: number) => {
-        if (confirm('⚠️ WARNING: This will immediately HALT all floor operator operations for this item. Proceed?')) {
+        if (confirm('WARNING: This will immediately HALT all floor operator operations for this item. Proceed?')) {
             router.post(`/items/${itemId}/terminate`);
-        }
-    };
-
-    // User Management actions
-    const openAddUser = () => {
-        setEditingUser(null);
-        setUserName('');
-        setUserRole('CNC');
-        setLoginMethod('PIN');
-        setIsCustomRole(false);
-        setCustomRoleName('');
-        setUserUsername('');
-        setUserPassword('');
-        setUserPin('');
-        setShowUserModal(true);
-    };
-
-    const openEditUser = (user: User) => {
-        setEditingUser(user);
-        setUserName(user.name);
-        
-        const standardRoles = ['ADMIN', 'SALES', 'DRAFTER', 'PURCHASING', 'CNC', 'FABRICATION', 'QC', 'DELIVERY', 'FINANCE', 'OWNER', 'WORKER'];
-        const upperRole = user.role.toUpperCase();
-        if (standardRoles.includes(upperRole)) {
-            setUserRole(upperRole);
-            setIsCustomRole(false);
-            setCustomRoleName('');
-        } else {
-            setUserRole('CUSTOM');
-            setIsCustomRole(true);
-            setCustomRoleName(user.role);
-        }
-
-        const method = user.username ? 'PASSWORD' : 'PIN';
-        setLoginMethod(method);
-
-        setUserUsername(user.username || '');
-        setUserPassword('');
-        setUserPin('');
-        setShowUserModal(true);
-    };
-
-    const submitUserForm = (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        const finalRole = isCustomRole ? customRoleName : userRole;
-
-        if (!userName.trim()) {
-            alert('Please enter a full name.');
-            return;
-        }
-        if (isCustomRole && !customRoleName.trim()) {
-            alert('Please enter custom role name.');
-            return;
-        }
-
-        if (loginMethod === 'PASSWORD') {
-            if (!userUsername.trim()) {
-                alert('Username is required for password login.');
-                return;
-            }
-            if (!editingUser && !userPassword) {
-                alert('Password is required for new accounts.');
-                return;
-            }
-        } else {
-            if (!editingUser && !userPin) {
-                alert('PIN is required.');
-                return;
-            }
-            if (userPin && !/^[0-9]{4}$/.test(userPin)) {
-                alert('PIN must be exactly 4 digits.');
-                return;
-            }
-        }
-
-        const dataPayload: any = {
-            name: userName,
-            role: finalRole,
-            login_method: loginMethod,
-            username: loginMethod === 'PASSWORD' ? userUsername : null,
-            password: loginMethod === 'PASSWORD' && userPassword ? userPassword : null,
-            pin: loginMethod === 'PIN' && userPin ? userPin : null,
-        };
-
-        if (editingUser) {
-            router.post(`/users/${editingUser.id}/update`, dataPayload, {
-                onSuccess: () => setShowUserModal(false)
-            });
-        } else {
-            router.post('/users', dataPayload, {
-                onSuccess: () => setShowUserModal(false)
-            });
-        }
-    };
-
-    const handleDeleteUser = (userId: number) => {
-        if (confirm('Are you sure you want to delete this user? This cannot be undone.')) {
-            router.post(`/users/${userId}/delete`);
         }
     };
 
@@ -423,7 +345,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
 
     const submitBroadcastPo = (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!poNumberInput.trim() || !clientNameInput.trim() || !deliveryDateInput) {
             alert('Please fill out all PO header fields.');
             return;
@@ -467,18 +389,17 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
         });
     };
 
+    const isOwner = auth_user?.role === 'OWNER';
+    const canBroadcastPo = auth_user?.role !== 'OWNER';
+
     return (
-        <div style={{
+        <div className="responsive-container" style={{
             minHeight: '100vh',
             backgroundColor: '#090d16',
             fontFamily: 'Inter, sans-serif',
-            color: '#f8fafc',
-            padding: '28px'
+            color: '#f8fafc'
         }}>
-            <header style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+            <header className="responsive-header" style={{
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
                 paddingBottom: '20px',
                 marginBottom: '28px'
@@ -518,6 +439,116 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                             ID
                         </button>
                     </div>
+
+                    {isOwner && (
+                        <div style={{ position: 'relative' }}>
+                            <button
+                                onClick={() => setShowSettingsDropdown(prev => !prev)}
+                                style={{
+                                    padding: '10px 14px',
+                                    backgroundColor: showSettingsDropdown ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)',
+                                    color: '#94a3b8',
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    borderRadius: '10px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    fontSize: '18px',
+                                    lineHeight: '1',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                &#9881;
+                            </button>
+
+                            {showSettingsDropdown && (
+                                <>
+                                    <div
+                                        onClick={() => setShowSettingsDropdown(false)}
+                                        style={{
+                                            position: 'fixed',
+                                            top: 0, left: 0, right: 0, bottom: 0,
+                                            zIndex: 40,
+                                        }}
+                                    />
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: 'calc(100% + 6px)',
+                                        right: 0,
+                                        backgroundColor: '#0f172a',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '12px',
+                                        padding: '6px',
+                                        minWidth: '220px',
+                                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+                                        zIndex: 50,
+                                    }}>
+                                        <button
+                                            onClick={openChangePassword}
+                                            style={{
+                                                display: 'block',
+                                                width: '100%',
+                                                padding: '10px 14px',
+                                                backgroundColor: 'transparent',
+                                                border: 'none',
+                                                color: '#e2e8f0',
+                                                fontSize: '14px',
+                                                fontWeight: 500,
+                                                cursor: 'pointer',
+                                                borderRadius: '8px',
+                                                textAlign: 'left'
+                                            }}
+                                            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)')}
+                                            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                                        >
+                                            &#128274; {t.change_password}
+                                        </button>
+                                        <button
+                                            onClick={openAddAdmin}
+                                            style={{
+                                                display: 'block',
+                                                width: '100%',
+                                                padding: '10px 14px',
+                                                backgroundColor: 'transparent',
+                                                border: 'none',
+                                                color: '#e2e8f0',
+                                                fontSize: '14px',
+                                                fontWeight: 500,
+                                                cursor: 'pointer',
+                                                borderRadius: '8px',
+                                                textAlign: 'left'
+                                            }}
+                                            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)')}
+                                            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                                        >
+                                            &#10133; {t.add_admin}
+                                        </button>
+                                        <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+                                        <button
+                                            disabled
+                                            style={{
+                                                display: 'block',
+                                                width: '100%',
+                                                padding: '10px 14px',
+                                                backgroundColor: 'transparent',
+                                                border: 'none',
+                                                color: '#64748b',
+                                                fontSize: '14px',
+                                                fontWeight: 500,
+                                                borderRadius: '8px',
+                                                textAlign: 'left',
+                                                cursor: 'not-allowed',
+                                                opacity: 0.5,
+                                            }}
+                                        >
+                                            &#127912; {t.color_themes} <span style={{ fontSize: '11px', color: '#475569', marginLeft: '6px' }}>({t.coming_soon})</span>
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+
                     <a
                         href="/superadmin"
                         style={{
@@ -563,10 +594,10 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                     marginBottom: '24px',
                     color: '#ef4444'
                 }}>
-                    <h4 style={{ margin: '0 0 8px 0', fontWeight: 700 }}>ValidationError</h4>
+                    <h4 style={{ margin: '0 0 8px 0', fontWeight: 700 }}>Validation Error</h4>
                     <ul style={{ margin: 0, paddingLeft: '20px' }}>
                         {Object.entries(errors).map(([key, val]) => (
-                            <li key={key}>{val}</li>
+                            <li key={key}>{val as string}</li>
                         ))}
                     </ul>
                 </div>
@@ -585,7 +616,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                     gap: '8px'
                 }}>
                     <div style={{ fontSize: '14px', fontWeight: 700, color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>🌐 {t.floor_terminal_url} ({tenant.company_name})</span>
+                        <span>&#127760; {t.floor_terminal_url} ({tenant.company_name})</span>
                     </div>
                     <div style={{ fontSize: '13px', color: '#94a3b8' }}>
                         {t.floor_terminal_desc}
@@ -620,7 +651,6 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                 borderRadius: '8px',
                                 cursor: 'pointer',
                                 fontSize: '13px',
-                                transition: 'background-color 0.15s'
                             }}
                         >
                             Copy Link
@@ -629,599 +659,332 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                 </div>
             )}
 
-            {/* Tab Navigation */}
-            <div style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '12px',
-                borderBottom: '1px solid rgba(255,255,255,0.08)',
-                paddingBottom: '2px',
-                marginBottom: '32px'
-            }}>
-                <button
-                    onClick={() => setActiveTab('pos')}
-                    style={{
-                        padding: '12px 20px',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        borderBottom: activeTab === 'pos' ? '2px solid #2563eb' : 'none',
-                        color: activeTab === 'pos' ? '#3b82f6' : '#64748b',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontSize: '15px',
-                        transition: 'all 0.15s'
-                    }}
-                >
-                    {t.production_tab}
-                </button>
-                <button
-                    onClick={() => setActiveTab('users')}
-                    style={{
-                        padding: '12px 20px',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        borderBottom: activeTab === 'users' ? '2px solid #2563eb' : 'none',
-                        color: activeTab === 'users' ? '#3b82f6' : '#64748b',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontSize: '15px',
-                        transition: 'all 0.15s'
-                    }}
-                >
-                    {t.users_tab}
-                </button>
-                {auth_user?.role === 'OWNER' && (
-                    <button
-                        onClick={() => setActiveTab('settings' as any)}
-                        style={{
-                            padding: '12px 20px',
-                            backgroundColor: 'transparent',
-                            border: 'none',
-                            borderBottom: activeTab === 'settings' ? '2px solid #2563eb' : 'none',
-                            color: activeTab === 'settings' ? '#3b82f6' : '#64748b',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            fontSize: '15px',
-                            transition: 'all 0.15s'
-                        }}
-                    >
-                        ⚙️ {language === 'en' ? 'Company Settings' : 'Pengaturan Perusahaan'}
-                    </button>
-                )}
-            </div>
+            {/* Production Matrix */}
+            <div>
+                {/* Alert Matrix Panel */}
+                <div style={{ marginBottom: '32px' }}>
+                    <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>{t.unresolved_alerts}</span>
+                        <span style={{
+                            fontSize: '12px',
+                            backgroundColor: alerts.length > 0 ? '#ef4444' : '#10b981',
+                            color: '#fff',
+                            padding: '2px 8px',
+                            borderRadius: '12px'
+                        }}>
+                            {alerts.length} Triggered
+                        </span>
+                    </h2>
 
-            {/* Content Tabs */}
-            {activeTab === 'pos' && (
-                <div>
-                    {/* Alert Matrix Panel */}
-                    <div style={{ marginBottom: '32px' }}>
-                        <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span>Active Alerts</span>
-                            <span style={{
-                                fontSize: '12px',
-                                backgroundColor: alerts.length > 0 ? '#ef4444' : '#10b981',
-                                color: '#fff',
-                                padding: '2px 8px',
-                                borderRadius: '12px'
-                            }}>
-                                {alerts.length} Triggered
-                            </span>
-                        </h2>
-
-                        {alerts.length === 0 ? (
-                            <div style={{
-                                backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                                border: '1px solid rgba(16, 185, 129, 0.15)',
-                                borderRadius: '12px',
-                                padding: '16px',
-                                color: '#10b981',
-                                fontSize: '14px',
-                                fontWeight: 500
-                            }}>
-                                🟢 All manufacturing timelines are healthy and no operational failures are reported.
-                            </div>
-                        ) : (
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
-                                {alerts.map((alert) => {
-                                    const isPinReset = alert.message.startsWith('PIN Reset Requested');
-                                    const bgColor = alert.severity === 'RED' ? 'rgba(239, 68, 68, 0.08)' : alert.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.08)' : 'rgba(234, 179, 8, 0.08)';
-                                    const bdColor = alert.severity === 'RED' ? 'rgba(239, 68, 68, 0.2)' : alert.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(234, 179, 8, 0.2)';
-                                    const badgeBg = alert.severity === 'RED' ? '#ef4444' : alert.severity === 'BLUE' ? '#3b82f6' : '#eab308';
-                                    return (
-                                        <div
-                                            key={alert.id}
-                                            style={{
-                                                backgroundColor: bgColor,
-                                                border: '1px solid',
-                                                borderColor: bdColor,
-                                                borderRadius: '10px',
-                                                padding: '14px 18px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '12px'
-                                            }}
-                                        >
-                                            <span style={{
-                                                fontSize: '11px',
-                                                fontWeight: 800,
-                                                color: '#fff',
-                                                backgroundColor: badgeBg,
-                                                padding: '2px 6px',
-                                                borderRadius: '4px'
-                                            }}>
-                                                {alert.severity}
-                                            </span>
-                                            <div style={{ fontSize: '14px', color: '#e2e8f0', flexGrow: 1 }}>{alert.message}</div>
-                                            {isPinReset && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => router.post(`/pin-reset/${alert.id}/approve`)}
-                                                    style={{
-                                                        padding: '6px 14px',
-                                                        backgroundColor: '#3b82f6',
-                                                        color: '#fff',
-                                                        border: 'none',
-                                                        borderRadius: '6px',
-                                                        fontWeight: 600,
-                                                        fontSize: '12px',
-                                                        cursor: 'pointer',
-                                                        whiteSpace: 'nowrap'
-                                                    }}
-                                                >
-                                                    Approve & Generate PIN
-                                                </button>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* PO Grid Section */}
-                    <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Purchase Order (PO) Directory</h2>
-                            {auth_user?.role !== 'OWNER' && (
-                                <button
-                                    onClick={() => setShowBroadcastPoModal(true)}
-                                    style={{
-                                        padding: '10px 18px',
-                                        backgroundColor: '#2563eb',
-                                        color: '#fff',
-                                        fontWeight: 600,
-                                        border: 'none',
-                                        borderRadius: '10px',
-                                        cursor: 'pointer',
-                                        fontSize: '14px',
-                                        transition: 'background-color 0.2s',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px'
-                                    }}
-                                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
-                                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
-                                >
-                                    📢 Broadcast New PO
-                                </button>
-                            )}
+                    {alerts.length === 0 ? (
+                        <div style={{
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            border: '1px solid rgba(16, 185, 129, 0.15)',
+                            borderRadius: '12px',
+                            padding: '16px',
+                            color: '#10b981',
+                            fontSize: '14px',
+                            fontWeight: 500
+                        }}>
+                            &#128994; All manufacturing timelines are healthy and no operational failures are reported.
                         </div>
-                        {pos.length === 0 ? (
-                            <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>No Purchase Orders found.</div>
-                        ) : (
-                            pos.map((po) => (
-                                <div key={po.id} style={{
-                                    backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                                    border: '1px solid rgba(255, 255, 255, 0.05)',
-                                    borderRadius: '16px',
-                                    padding: '24px',
-                                    marginBottom: '20px'
-                                }}>
-                                    {/* PO Header */}
-                                    <div className="responsive-split" style={{
-                                        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                                        paddingBottom: '16px',
-                                        marginBottom: '20px'
-                                    }}>
-                                        <div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                <h3 style={{ fontSize: '20px', fontWeight: 800, margin: 0 }}>
-                                                    {po.po_number} {po.external_po_number ? `(${po.external_po_number})` : ''}
-                                                </h3>
-                                                <span style={{
-                                                    fontSize: '11px',
-                                                    fontWeight: 700,
-                                                    padding: '3px 8px',
+                    ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                            {alerts.map((alert) => {
+                                const isPinReset = alert.message.startsWith('PIN Reset Requested');
+                                const bgColor = alert.severity === 'RED' ? 'rgba(239, 68, 68, 0.08)' : alert.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.08)' : 'rgba(234, 179, 8, 0.08)';
+                                const bdColor = alert.severity === 'RED' ? 'rgba(239, 68, 68, 0.2)' : alert.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(234, 179, 8, 0.2)';
+                                const badgeBg = alert.severity === 'RED' ? '#ef4444' : alert.severity === 'BLUE' ? '#3b82f6' : '#eab308';
+                                return (
+                                    <div
+                                        key={alert.id}
+                                        style={{
+                                            backgroundColor: bgColor,
+                                            border: '1px solid',
+                                            borderColor: bdColor,
+                                            borderRadius: '10px',
+                                            padding: '14px 18px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '12px'
+                                        }}
+                                    >
+                                        <span style={{
+                                            fontSize: '11px',
+                                            fontWeight: 800,
+                                            color: '#fff',
+                                            backgroundColor: badgeBg,
+                                            padding: '2px 6px',
+                                            borderRadius: '4px'
+                                        }}>
+                                            {alert.severity}
+                                        </span>
+                                        <div style={{ fontSize: '14px', color: '#e2e8f0', flexGrow: 1 }}>{alert.message}</div>
+                                        {isPinReset && (
+                                            <button
+                                                type="button"
+                                                onClick={() => router.post(`/pin-reset/${alert.id}/approve`)}
+                                                style={{
+                                                    padding: '6px 14px',
+                                                    backgroundColor: '#3b82f6',
+                                                    color: '#fff',
+                                                    border: 'none',
                                                     borderRadius: '6px',
-                                                    backgroundColor: po.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(234, 179, 8, 0.15)',
-                                                    color: po.status === 'COMPLETED' ? '#10b981' : '#eab308'
-                                                }}>
-                                                    {po.status}
-                                                </span>
-                                                {po.is_urgent && (
-                                                    <span style={{
-                                                        fontSize: '11px',
-                                                        fontWeight: 700,
-                                                        padding: '3px 8px',
-                                                        borderRadius: '6px',
-                                                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                                                        color: '#ef4444',
-                                                        border: '1px solid rgba(239, 68, 68, 0.4)'
-                                                    }}>
-                                                        URGENT
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div style={{ fontSize: '14px', color: '#94a3b8', marginTop: '4px' }}>Client: {po.client_name}</div>
-                                        </div>
-                                        <div style={{ textAlign: 'left' }}>
-                                            <div style={{ fontSize: '12px', color: '#64748b' }}>DEADLINE</div>
-                                            <div style={{ fontSize: '15px', fontWeight: 600, color: '#f1f5f9' }}>{formatDeadline(po.global_deadline)}</div>
-                                        </div>
-                                    </div>
-
-                                    {/* PO Items List */}
-                                    <div>
-                                        <h4 style={{ fontSize: '13px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
-                                            Items In Production
-                                        </h4>
-                                        {po.items.length === 0 ? (
-                                            <div style={{ fontSize: '14px', color: '#64748b' }}>No items in this PO.</div>
-                                        ) : (
-                                            po.items.map((item) => {
-                                                const progress = parseFloat(item.progress_percent);
-                                                const hasProgress = progress > 0;
-                                                const isCancelled = item.status === 'CANCELLED';
-                                                const isTerminated = item.status === 'TERMINATED';
-
-                                                return (
-                                                    <div key={item.id} style={{
-                                                        backgroundColor: '#0f172a',
-                                                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                                                        borderRadius: '12px',
-                                                        padding: '16px',
-                                                        marginBottom: '10px',
-                                                        opacity: (isCancelled || isTerminated) ? 0.6 : 1
-                                                    }}>
-                                                        <div className="responsive-split" style={{ marginBottom: '12px', alignItems: 'flex-start' }}>
-                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                                {/* 1st Headline: Item Name */}
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                    <span style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc' }}>{item.item_name}</span>
-                                                                    <span style={{
-                                                                        fontSize: '10px',
-                                                                        backgroundColor: 'rgba(255,255,255,0.06)',
-                                                                        padding: '2px 6px',
-                                                                        borderRadius: '4px',
-                                                                        color: '#94a3b8'
-                                                                    }}>
-                                                                        {item.item_type}
-                                                                    </span>
-                                                                    {po.is_urgent && (
-                                                                        <span style={{
-                                                                            fontSize: '10px',
-                                                                            fontWeight: 700,
-                                                                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                                                                            color: '#ef4444',
-                                                                            padding: '2px 6px',
-                                                                            borderRadius: '4px',
-                                                                            border: '1px solid rgba(239, 68, 68, 0.4)'
-                                                                        }}>
-                                                                            URGENT
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                {/* 2nd Headline: Client Name */}
-                                                                <div style={{ fontSize: '14px', fontWeight: 600, color: '#60a5fa' }}>
-                                                                    Client: {po.client_name}
-                                                                </div>
-                                                                {/* 3rd Headline: Deadline */}
-                                                                <div style={{ fontSize: '13px', color: '#94a3b8' }}>
-                                                                    Deadline: {formatDeadline(po.global_deadline)}
-                                                                </div>
-                                                                {/* 4th Headline: Qty */}
-                                                                <div style={{ fontSize: '13px', fontWeight: 600, color: '#38bdf8' }}>
-                                                                    Qty: {item.target_qty} pcs {item.delivered_qty > 0 && `| Delivered: ${item.delivered_qty} pcs`}
-                                                                </div>
-                                                                {item.vendor_name && (
-                                                                    <div style={{ fontSize: '12px', color: '#10b981', marginTop: '2px' }}>
-                                                                        Vendor: {item.vendor_name} ({item.vendor_phone})
-                                                                    </div>
-                                                                )}
-                                                            </div>
-
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                                                {/* Status Label */}
-                                                                <span style={{
-                                                                    fontSize: '11px',
-                                                                    fontWeight: 700,
-                                                                    padding: '2px 6px',
-                                                                    borderRadius: '4px',
-                                                                    backgroundColor: isCancelled ? 'rgba(239, 68, 68, 0.15)'
-                                                                        : isTerminated ? 'rgba(239, 68, 68, 0.15)'
-                                                                        : progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                                                                    color: isCancelled ? '#ef4444'
-                                                                        : isTerminated ? '#ef4444'
-                                                                        : progress >= 100 ? '#10b981' : '#3b82f6'
-                                                                }}>
-                                                                    {item.status}
-                                                                </span>
-
-                                                                {/* Action Buttons */}
-                                                                {(!isCancelled && !isTerminated) && (
-                                                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                                                        <button
-                                                                            onClick={() => handleCancel(item.id)}
-                                                                            disabled={hasProgress}
-                                                                            title={hasProgress ? "Cannot cancel. Progress has started. Use Terminate Midway instead." : ""}
-                                                                            style={{
-                                                                                padding: '6px 12px',
-                                                                                backgroundColor: hasProgress ? '#1e293b' : 'rgba(239, 68, 68, 0.1)',
-                                                                                color: hasProgress ? '#475569' : '#ef4444',
-                                                                                border: 'none',
-                                                                                borderRadius: '6px',
-                                                                                cursor: hasProgress ? 'not-allowed' : 'pointer',
-                                                                                fontSize: '12px',
-                                                                                fontWeight: 600,
-                                                                                transition: 'all 0.15s'
-                                                                            }}
-                                                                        >
-                                                                            Cancel
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => handleTerminate(item.id)}
-                                                                            style={{
-                                                                                padding: '6px 12px',
-                                                                                backgroundColor: '#ef4444',
-                                                                                color: '#fff',
-                                                                                border: 'none',
-                                                                                borderRadius: '6px',
-                                                                                cursor: 'pointer',
-                                                                                fontSize: '12px',
-                                                                                fontWeight: 600,
-                                                                                boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)'
-                                                                            }}
-                                                                        >
-                                                                            🛑 HALT
-                                                                        </button>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Progress Bar */}
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                            <div style={{
-                                                                flexGrow: 1,
-                                                                height: '8px',
-                                                                backgroundColor: '#090d16',
-                                                                borderRadius: '4px',
-                                                                overflow: 'hidden'
-                                                            }}>
-                                                                <div style={{
-                                                                    width: `${progress}%`,
-                                                                    height: '100%',
-                                                                    backgroundColor: isCancelled ? '#ef4444' : '#2563eb',
-                                                                    borderRadius: '4px',
-                                                                    transition: 'width 0.3s ease'
-                                                                }} />
-                                                            </div>
-                                                            <span style={{ fontSize: '13px', fontWeight: 700, width: '40px', textAlign: 'right' }}>
-                                                                {progress.toFixed(0)}%
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })
+                                                    fontWeight: 600,
+                                                    fontSize: '12px',
+                                                    cursor: 'pointer',
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
+                                                Approve & Generate PIN
+                                            </button>
                                         )}
                                     </div>
-                                </div>
-                            ))
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                {/* PO Grid Section */}
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{t.po_directory}</h2>
+                        {canBroadcastPo && (
+                            <button
+                                onClick={() => setShowBroadcastPoModal(true)}
+                                style={{
+                                    padding: '10px 18px',
+                                    backgroundColor: '#2563eb',
+                                    color: '#fff',
+                                    fontWeight: 600,
+                                    border: 'none',
+                                    borderRadius: '10px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px'
+                                }}
+                                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
+                                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+                            >
+                                &#128226; {t.broadcast_new_po}
+                            </button>
                         )}
                     </div>
-                </div>
-            )}
-            {/* User Directory Tab */}
-            {activeTab === 'users' && (
-                <div>
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '24px'
-                    }}>
-                        <div>
-                            <h2 style={{ fontSize: '20px', fontWeight: 800, margin: 0 }}>User & Operator Directory</h2>
-                            <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>
-                                Manage standard web logins (Owners) and worker path-based logins (Operators & QC)
-                            </p>
-                        </div>
-                        <button
-                            onClick={openAddUser}
-                            style={{
-                                padding: '10px 18px',
-                                backgroundColor: '#2563eb',
-                                color: '#fff',
-                                fontWeight: 600,
-                                border: 'none',
-                                borderRadius: '10px',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                transition: 'background-color 0.2s',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px'
-                            }}
-                            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
-                            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
-                        >
-                            ➕ Add New User
-                        </button>
-                    </div>
-
-                    <div style={{
-                        backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                        borderRadius: '16px',
-                        padding: '24px',
-                        overflowX: 'auto'
-                    }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                            <thead>
-                                <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                                    <th style={{ padding: '12px 16px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase' }}>Name</th>
-                                    <th style={{ padding: '12px 16px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase' }}>Role</th>
-                                    <th style={{ padding: '12px 16px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase' }}>Authentication Method</th>
-                                    <th style={{ padding: '12px 16px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={4} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>No users found.</td>
-                                    </tr>
-                                ) : (
-                                    users.map(user => (
-                                        <tr key={user.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)', transition: 'background 0.15s' }}>
-                                            <td style={{ padding: '16px', fontSize: '15px', fontWeight: 600, color: '#f8fafc' }}>{user.name}</td>
-                                            <td style={{ padding: '16px' }}>
-                                                <span style={{
-                                                    fontSize: '11px',
-                                                    fontWeight: 800,
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    backgroundColor: user.role === 'OWNER' ? 'rgba(59, 130, 246, 0.1)' : user.role === 'QC' ? 'rgba(234, 179, 8, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                                                    color: user.role === 'OWNER' ? '#3b82f6' : user.role === 'QC' ? '#eab308' : '#10b981'
-                                                }}>
-                                                    {user.role}
-                                                </span>
-                                            </td>
-                                            <td style={{ padding: '16px', fontSize: '14px', color: '#94a3b8' }}>
-                                                {user.role === 'OWNER' ? (
-                                                    <span>Username: <strong style={{ color: '#f8fafc' }}>{user.username}</strong></span>
-                                                ) : (
-                                                    <span>4-digit PIN Authentication</span>
-                                                )}
-                                            </td>
-                                            <td style={{ padding: '16px', textAlign: 'right' }}>
-                                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                                    <button
-                                                        onClick={() => openEditUser(user)}
-                                                        style={{
-                                                            padding: '6px 12px',
-                                                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                                                            color: '#e2e8f0',
-                                                            borderRadius: '6px',
-                                                            fontSize: '13px',
-                                                            cursor: 'pointer',
-                                                            fontWeight: 600
-                                                        }}
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteUser(user.id)}
-                                                        style={{
-                                                            padding: '6px 12px',
-                                                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                                            border: '1px solid rgba(239, 68, 68, 0.2)',
-                                                            color: '#ef4444',
-                                                            borderRadius: '6px',
-                                                            fontSize: '13px',
-                                                            cursor: 'pointer',
-                                                            fontWeight: 600
-                                                        }}
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-
-            {/* Company Settings Tab */}
-            {activeTab === 'settings' && tenant && (
-                <div style={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                    border: '1px solid rgba(255, 255, 255, 0.05)',
-                    borderRadius: '16px',
-                    padding: '32px',
-                    maxWidth: '600px'
+                    {pos.length === 0 ? (
+                        <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>{t.no_pos}</div>
+                    ) : (
+                        pos.map((po) => (
+            <div key={po.id} className="p-4 sm:p-6" style={{
+                backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                borderRadius: '16px',
+                marginBottom: '20px'
+            }}>
+                {/* PO Header */}
+                <div className="responsive-split" style={{
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                    paddingBottom: '16px',
+                    marginBottom: '20px'
                 }}>
-                    <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px', color: '#60a5fa' }}>
-                        ⚙️ {language === 'en' ? 'Company Settings / Setup' : 'Pengaturan / Setup Perusahaan'}
-                    </h2>
-                    <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px' }}>
-                        {language === 'en' 
-                            ? 'Configure the POgrid settings for your company.' 
-                            : 'Konfigurasikan pengaturan POgrid untuk perusahaan Anda.'}
-                    </p>
-
-                    <form onSubmit={(e) => {
-                        e.preventDefault();
-                        const formData = new FormData(e.currentTarget);
-                        router.post('/company/update', {
-                            company_name: formData.get('company_name') as string
-                        }, {
-                            onSuccess: () => alert(language === 'en' ? 'Company settings saved successfully!' : 'Pengaturan perusahaan berhasil disimpan!')
-                        });
-                    }}>
-                        <div style={{ marginBottom: '24px' }}>
-                            <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '8px', fontWeight: 600 }}>
-                                {language === 'en' ? 'COMPANY / FACTORY NAME' : 'NAMA PERUSAHAAN / PABRIK'}
-                            </label>
-                            <input
-                                type="text"
-                                name="company_name"
-                                defaultValue={tenant.company_name}
-                                required
-                                style={{
-                                    width: '100%',
-                                    padding: '12px 16px',
-                                    backgroundColor: '#090d16',
-                                    border: '1px solid rgba(255,255,255,0.08)',
-                                    borderRadius: '8px',
-                                    color: '#fff',
-                                    fontSize: '15px',
-                                    outline: 'none'
-                                }}
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            style={{
-                                padding: '12px 24px',
-                                backgroundColor: '#2563eb',
-                                color: '#fff',
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <h3 style={{ fontSize: '20px', fontWeight: 800, margin: 0 }}>
+                                {po.po_number} {po.external_po_number ? `(${po.external_po_number})` : ''}
+                            </h3>
+                            <span style={{
+                                fontSize: '11px',
                                 fontWeight: 700,
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '14px'
-                            }}
-                        >
-                            {language === 'en' ? 'Save Settings' : 'Simpan Pengaturan'}
-                        </button>
-                    </form>
+                                padding: '3px 8px',
+                                borderRadius: '6px',
+                                backgroundColor: po.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(234, 179, 8, 0.15)',
+                                color: po.status === 'COMPLETED' ? '#10b981' : '#eab308'
+                            }}>
+                                {po.status}
+                            </span>
+                            {po.is_urgent && (
+                                <span style={{
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    padding: '3px 8px',
+                                    borderRadius: '6px',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                                    color: '#ef4444',
+                                    border: '1px solid rgba(239, 68, 68, 0.4)'
+                                }}>
+                                    URGENT
+                                </span>
+                            )}
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#94a3b8', marginTop: '4px' }}>Client: {po.client_name}</div>
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                        <div style={{ fontSize: '12px', color: '#64748b' }}>DEADLINE</div>
+                        <div style={{ fontSize: '15px', fontWeight: 600, color: '#f1f5f9' }}>{formatDeadline(po.global_deadline, language)}</div>
+                    </div>
                 </div>
-            )}
 
-            {/* User Form Modal */}
-            {showUserModal && (
+                                {/* PO Items List */}
+                                <div>
+                                    <h4 style={{ fontSize: '13px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
+                                        Items In Production
+                                    </h4>
+                                    {po.items.length === 0 ? (
+                                        <div style={{ fontSize: '14px', color: '#64748b' }}>No items in this PO.</div>
+                                    ) : (
+                                        po.items.map((item) => {
+                                            const progress = parseFloat(item.progress_percent);
+                                            const hasProgress = progress > 0;
+                                            const isCancelled = item.status === 'CANCELLED';
+                                            const isTerminated = item.status === 'TERMINATED';
+
+                                            return (
+                                                <div key={item.id} style={{
+                                                    backgroundColor: '#0f172a',
+                                                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                                                    borderRadius: '12px',
+                                                    padding: '16px',
+                                                    marginBottom: '10px',
+                                                    opacity: (isCancelled || isTerminated) ? 0.6 : 1
+                                                }}>
+                                                    <div className="responsive-split" style={{ marginBottom: '12px', alignItems: 'flex-start' }}>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <span style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc' }}>{item.item_name}</span>
+                                                                <span style={{
+                                                                    fontSize: '10px',
+                                                                    backgroundColor: 'rgba(255,255,255,0.06)',
+                                                                    padding: '2px 6px',
+                                                                    borderRadius: '4px',
+                                                                    color: '#94a3b8'
+                                                                }}>
+                                                                    {item.item_type}
+                                                                </span>
+                                                                {po.is_urgent && (
+                                                                    <span style={{
+                                                                        fontSize: '10px',
+                                                                        fontWeight: 700,
+                                                                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                                                                        color: '#ef4444',
+                                                                        padding: '2px 6px',
+                                                                        borderRadius: '4px',
+                                                                        border: '1px solid rgba(239, 68, 68, 0.4)'
+                                                                    }}>
+                                                                        URGENT
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#60a5fa' }}>
+                                                                Client: {po.client_name}
+                                                            </div>
+                                                            <div style={{ fontSize: '13px', color: '#94a3b8' }}>
+                                                                Deadline: {formatDeadline(po.global_deadline, language)}
+                                                            </div>
+                                                            <div style={{ fontSize: '13px', fontWeight: 600, color: '#38bdf8' }}>
+                                                                Qty: {item.target_qty} pcs {item.delivered_qty > 0 ? `| Delivered: ${item.delivered_qty} pcs` : ''}
+                                                            </div>
+                                                            {item.vendor_name && (
+                                                                <div style={{ fontSize: '12px', color: '#10b981', marginTop: '2px' }}>
+                                                                    Vendor: {item.vendor_name} ({item.vendor_phone})
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                                            <span style={{
+                                                                fontSize: '11px',
+                                                                fontWeight: 700,
+                                                                padding: '2px 6px',
+                                                                borderRadius: '4px',
+                                                                backgroundColor: isCancelled ? 'rgba(239, 68, 68, 0.15)'
+                                                                    : isTerminated ? 'rgba(239, 68, 68, 0.15)'
+                                                                    : progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                                                color: isCancelled ? '#ef4444'
+                                                                    : isTerminated ? '#ef4444'
+                                                                    : progress >= 100 ? '#10b981' : '#3b82f6'
+                                                            }}>
+                                                                {item.status}
+                                                            </span>
+
+                                                            {(!isCancelled && !isTerminated) && (
+                                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                                    <button
+                                                                        onClick={() => handleCancel(item.id)}
+                                                                        disabled={hasProgress}
+                                                                        title={hasProgress ? "Cannot cancel. Progress has started. Use Terminate Midway instead." : ""}
+                                                                        style={{
+                                                                            padding: '6px 12px',
+                                                                            backgroundColor: hasProgress ? '#1e293b' : 'rgba(239, 68, 68, 0.1)',
+                                                                            color: hasProgress ? '#475569' : '#ef4444',
+                                                                            border: 'none',
+                                                                            borderRadius: '6px',
+                                                                            cursor: hasProgress ? 'not-allowed' : 'pointer',
+                                                                            fontSize: '12px',
+                                                                            fontWeight: 600,
+                                                                        }}
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleTerminate(item.id)}
+                                                                        style={{
+                                                                            padding: '6px 12px',
+                                                                            backgroundColor: '#ef4444',
+                                                                            color: '#fff',
+                                                                            border: 'none',
+                                                                            borderRadius: '6px',
+                                                                            cursor: 'pointer',
+                                                                            fontSize: '12px',
+                                                                            fontWeight: 600,
+                                                                            boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)'
+                                                                        }}
+                                                                    >
+                                                                        &#128683; HALT
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Progress Bar */}
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                        <div style={{
+                                                            flexGrow: 1,
+                                                            height: '8px',
+                                                            backgroundColor: '#090d16',
+                                                            borderRadius: '4px',
+                                                            overflow: 'hidden'
+                                                        }}>
+                                                            <div style={{
+                                                                width: `${progress}%`,
+                                                                height: '100%',
+                                                                backgroundColor: isCancelled ? '#ef4444' : '#2563eb',
+                                                                borderRadius: '4px',
+                                                                transition: 'width 0.3s ease'
+                                                            }} />
+                                                        </div>
+                                                        <span style={{ fontSize: '13px', fontWeight: 700, width: '40px', textAlign: 'right' }}>
+                                                            {progress.toFixed(0)}%
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            {/* Change Password Modal */}
+            {showChangePasswordModal && (
                 <div style={{
                     position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
+                    top: 0, left: 0, right: 0, bottom: 0,
                     backgroundColor: 'rgba(0, 0, 0, 0.75)',
                     backdropFilter: 'blur(8px)',
                     display: 'flex',
@@ -1230,27 +993,161 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                     zIndex: 50,
                     padding: '20px'
                 }}>
-                    <div className="modal-content" style={{
+                    <div style={{
                         backgroundColor: '#0f172a',
                         border: '1px solid rgba(255, 255, 255, 0.08)',
                         borderRadius: '16px',
                         padding: '24px',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                        width: '100%',
+                        maxWidth: '420px'
                     }}>
                         <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 8px 0' }}>
-                            {editingUser ? 'Edit User Details' : 'Create New User'}
+                            {t.change_password}
+                        </h2>
+
+                        <form onSubmit={submitChangePassword}>
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                    {t.current_password}
+                                </label>
+                                <input
+                                    type="password"
+                                    value={cpCurrentPassword}
+                                    onChange={(e) => setCpCurrentPassword(e.target.value)}
+                                    required
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 14px',
+                                        backgroundColor: '#090d16',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '8px',
+                                        color: '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none'
+                                    }}
+                                />
+                            </div>
+
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                    {t.new_password}
+                                </label>
+                                <input
+                                    type="password"
+                                    value={cpNewPassword}
+                                    onChange={(e) => setCpNewPassword(e.target.value)}
+                                    required
+                                    minLength={6}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 14px',
+                                        backgroundColor: '#090d16',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '8px',
+                                        color: '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none'
+                                    }}
+                                />
+                            </div>
+
+                            <div style={{ marginBottom: '24px' }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                    {t.confirm_password}
+                                </label>
+                                <input
+                                    type="password"
+                                    value={cpConfirmPassword}
+                                    onChange={(e) => setCpConfirmPassword(e.target.value)}
+                                    required
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 14px',
+                                        backgroundColor: '#090d16',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '8px',
+                                        color: '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none'
+                                    }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowChangePasswordModal(false)}
+                                    style={{
+                                        padding: '10px 16px',
+                                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                                        color: '#e2e8f0',
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {t.cancel}
+                                </button>
+                                <button
+                                    type="submit"
+                                    style={{
+                                        padding: '10px 20px',
+                                        backgroundColor: '#2563eb',
+                                        border: 'none',
+                                        color: '#fff',
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {t.save_changes}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Admin Modal */}
+            {showAddAdminModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    backdropFilter: 'blur(8px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 50,
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        backgroundColor: '#0f172a',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '16px',
+                        padding: '24px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                        width: '100%',
+                        maxWidth: '420px'
+                    }}>
+                        <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 8px 0' }}>
+                            {t.create_admin}
                         </h2>
                         <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 24px 0' }}>
-                            Configure system roles and authentication keys for operators.
+                            {t.admin_subtitle}
                         </p>
 
-                        <form onSubmit={submitUserForm}>
+                        <form onSubmit={submitAddAdmin}>
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>Full Name</label>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                    {t.admin_name}
+                                </label>
                                 <input
                                     type="text"
-                                    value={userName}
-                                    onChange={(e) => setUserName(e.target.value)}
+                                    value={adminName}
+                                    onChange={(e) => setAdminName(e.target.value)}
                                     required
                                     placeholder="e.g. Joko Widodo"
                                     style={{
@@ -1267,25 +1164,15 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                             </div>
 
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>{t.user_role_label}</label>
-                                <select
-                                    value={isCustomRole ? 'CUSTOM' : userRole}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        if (val === 'CUSTOM') {
-                                            setIsCustomRole(true);
-                                            setLoginMethod('PIN');
-                                        } else {
-                                            setIsCustomRole(false);
-                                            setUserRole(val);
-                                            const officeRoles = ['ADMIN', 'SALES', 'PURCHASING', 'FINANCE', 'OWNER'];
-                                            if (officeRoles.includes(val)) {
-                                                setLoginMethod('PASSWORD');
-                                            } else {
-                                                setLoginMethod('PIN');
-                                            }
-                                        }
-                                    }}
+                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                    {t.admin_username}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={adminUsername}
+                                    onChange={(e) => setAdminUsername(e.target.value)}
+                                    required
+                                    placeholder="e.g. joko.admin"
                                     style={{
                                         width: '100%',
                                         padding: '10px 14px',
@@ -1296,152 +1183,37 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                         fontSize: '14px',
                                         outline: 'none'
                                     }}
-                                >
-                                    <optgroup label="Office Staff (Password Login)">
-                                        <option value="ADMIN">ADMIN</option>
-                                        <option value="SALES">SALES</option>
-                                        <option value="PURCHASING">PURCHASING</option>
-                                        <option value="FINANCE">FINANCE</option>
-                                    </optgroup>
-                                    <optgroup label="Floor Staff (4-Digit PIN)">
-                                        <option value="DRAFTER">Drafter</option>
-                                        <option value="CNC">CNC</option>
-                                        <option value="FABRICATION">Fabrication</option>
-                                        <option value="QC">QC</option>
-                                        <option value="DELIVERY">Delivery</option>
-                                    </optgroup>
-                                    <option value="CUSTOM">Custom / Other Role...</option>
-                                </select>
+                                />
                             </div>
 
-                            {isCustomRole && (
-                                <div style={{ marginBottom: '16px' }}>
-                                    <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>{t.custom_role_label}</label>
-                                    <input
-                                        type="text"
-                                        value={customRoleName}
-                                        onChange={(e) => setCustomRoleName(e.target.value)}
-                                        required
-                                        placeholder="e.g. Supervisor"
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px 14px',
-                                            backgroundColor: '#090d16',
-                                            border: '1px solid rgba(255,255,255,0.08)',
-                                            borderRadius: '8px',
-                                            color: '#fff',
-                                            fontSize: '14px',
-                                            outline: 'none'
-                                        }}
-                                    />
-                                </div>
-                            )}
-
-                            {isCustomRole && (
-                                <div style={{ marginBottom: '16px' }}>
-                                    <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>{t.login_method_label}</label>
-                                    <div style={{ display: 'flex', gap: '16px', marginTop: '4px' }}>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '14px' }}>
-                                            <input
-                                                type="radio"
-                                                name="login_method"
-                                                checked={loginMethod === 'PASSWORD'}
-                                                onChange={() => setLoginMethod('PASSWORD')}
-                                            />
-                                            Password (Office)
-                                        </label>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '14px' }}>
-                                            <input
-                                                type="radio"
-                                                name="login_method"
-                                                checked={loginMethod === 'PIN'}
-                                                onChange={() => setLoginMethod('PIN')}
-                                            />
-                                            4-Digit PIN (Floor)
-                                        </label>
-                                    </div>
-                                </div>
-                            )}
-
-                            {loginMethod === 'PASSWORD' ? (
-                                <>
-                                    <div style={{ marginBottom: '16px' }}>
-                                        <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>{t.username_label}</label>
-                                        <input
-                                            type="text"
-                                            value={userUsername}
-                                            onChange={(e) => setUserUsername(e.target.value)}
-                                            required
-                                            placeholder="e.g. joko.widodo"
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: '#090d16',
-                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                borderRadius: '8px',
-                                                color: '#fff',
-                                                fontSize: '14px',
-                                                outline: 'none'
-                                            }}
-                                        />
-                                    </div>
-                                    <div style={{ marginBottom: '24px' }}>
-                                        <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
-                                            {t.password_label} {editingUser && '(Leave blank to keep current)'}
-                                        </label>
-                                        <input
-                                            type="password"
-                                            value={userPassword}
-                                            onChange={(e) => setUserPassword(e.target.value)}
-                                            required={!editingUser}
-                                            placeholder="••••••••"
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: '#090d16',
-                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                borderRadius: '8px',
-                                                color: '#fff',
-                                                fontSize: '14px',
-                                                outline: 'none'
-                                            }}
-                                        />
-                                    </div>
-                                </>
-                            ) : (
-                                <div style={{ marginBottom: '24px' }}>
-                                    <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
-                                        {t.pin_label} {editingUser && '(Leave blank to keep current)'}
-                                    </label>
-                                    <input
-                                        type="text"
-                                        maxLength={4}
-                                        value={userPin}
-                                        onChange={(e) => setUserPin(e.target.value.replace(/[^0-9]/g, ''))}
-                                        required={!editingUser}
-                                        placeholder="e.g. 1234"
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px 14px',
-                                            backgroundColor: '#090d16',
-                                            border: '1px solid rgba(255,255,255,0.08)',
-                                            borderRadius: '8px',
-                                            color: '#fff',
-                                            fontSize: '14px',
-                                            letterSpacing: '0.25em',
-                                            outline: 'none'
-                                        }}
-                                    />
-                                    <span style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', display: 'block' }}>
-                                        {t.pin_note}
-                                    </span>
-                                </div>
-                            )}
+                            <div style={{ marginBottom: '24px' }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                    {t.admin_password}
+                                </label>
+                                <input
+                                    type="password"
+                                    value={adminPassword}
+                                    onChange={(e) => setAdminPassword(e.target.value)}
+                                    required
+                                    minLength={6}
+                                    placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 14px',
+                                        backgroundColor: '#090d16',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '8px',
+                                        color: '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none'
+                                    }}
+                                />
+                            </div>
 
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                                 <button
                                     type="button"
-                                    onClick={() => setShowUserModal(false)}
+                                    onClick={() => setShowAddAdminModal(false)}
                                     style={{
                                         padding: '10px 16px',
                                         backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -1452,7 +1224,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                         cursor: 'pointer'
                                     }}
                                 >
-                                    Cancel
+                                    {t.cancel}
                                 </button>
                                 <button
                                     type="submit"
@@ -1466,7 +1238,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                         cursor: 'pointer'
                                     }}
                                 >
-                                    {editingUser ? 'Save Changes' : 'Create User'}
+                                    {t.create_admin}
                                 </button>
                             </div>
                         </form>
@@ -1478,10 +1250,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
             {showBroadcastPoModal && (
                 <div style={{
                     position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
+                    top: 0, left: 0, right: 0, bottom: 0,
                     backgroundColor: 'rgba(0, 0, 0, 0.75)',
                     backdropFilter: 'blur(8px)',
                     display: 'flex',
@@ -1642,7 +1411,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                                         cursor: 'pointer'
                                                     }}
                                                 >
-                                                    ✓ Save
+                                                    &#10003; Save
                                                 </button>
                                             </div>
                                         )}
@@ -1693,21 +1462,18 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                             checked={isUrgentInput}
                                             onChange={(e) => setIsUrgentInput(e.target.checked)}
                                             style={{
-                                                width: '18px',
-                                                height: '18px',
-                                                accentColor: '#ef4444',
-                                                cursor: 'pointer'
+                                                width: '18px', height: '18px',
+                                                accentColor: '#ef4444', cursor: 'pointer'
                                             }}
                                         />
                                         <label htmlFor="is_urgent" style={{ fontSize: '13px', color: '#f8fafc', fontWeight: 600, cursor: 'pointer' }}>
-                                            🚨 Urgent PO (Mark this PO as highly urgent with red highlights)
+                                            {t.urgent_label}
                                         </label>
                                     </div>
                                 </div>
 
-                                {/* PO Items Header */}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                    <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#60a5fa', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Items in this PO</h3>
+                                    <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#60a5fa', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.items_po_title}</h3>
                                     <button
                                         type="button"
                                         onClick={addPoItemField}
@@ -1722,11 +1488,10 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                             cursor: 'pointer'
                                         }}
                                     >
-                                        ➕ Add Another Item
+                                        {t.add_another_item}
                                     </button>
                                 </div>
 
-                                {/* Item List */}
                                 {poItems.map((item, itemIndex) => (
                                     <div key={itemIndex} style={{
                                         backgroundColor: 'rgba(255, 255, 255, 0.02)',
@@ -1742,8 +1507,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                                 onClick={() => removePoItemField(itemIndex)}
                                                 style={{
                                                     position: 'absolute',
-                                                    top: '12px',
-                                                    right: '12px',
+                                                    top: '12px', right: '12px',
                                                     backgroundColor: 'transparent',
                                                     border: 'none',
                                                     color: '#ef4444',
@@ -1752,19 +1516,19 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                                     cursor: 'pointer'
                                                 }}
                                             >
-                                                ✕ Remove Item
+                                                &#10005; {t.remove_item}
                                             </button>
                                         )}
 
                                         <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                                             <div>
-                                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Item Name</label>
+                                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.item_name_label}</label>
                                                 <input
                                                     type="text"
                                                     value={item.item_name}
                                                     onChange={(e) => updatePoItemField(itemIndex, 'item_name', e.target.value)}
                                                     required
-                                                    placeholder="e.g. Shaft Steel Ø45mm"
+                                                    placeholder="e.g. Shaft Steel"
                                                     style={{
                                                         width: '100%',
                                                         padding: '8px 12px',
@@ -1778,7 +1542,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                                 />
                                             </div>
                                             <div>
-                                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Item Type</label>
+                                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.item_type_label}</label>
                                                 <select
                                                     value={item.item_type}
                                                     onChange={(e) => updatePoItemField(itemIndex, 'item_type', e.target.value)}
@@ -1799,13 +1563,12 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                                 </select>
                                             </div>
                                             <div>
-                                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Qty</label>
+                                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.qty_label}</label>
                                                 <input
                                                     type="number"
                                                     min={1}
                                                     value={item.target_qty}
-                                                    onChange={(e) => updatePoItemField(itemIndex, 'target_qty', parseInt(e.target.value, 10) || 1)}
-                                                    required
+                                                    onChange={(e) => updatePoItemField(itemIndex, 'target_qty', parseInt(e.target.value) || 1)}
                                                     style={{
                                                         width: '100%',
                                                         padding: '8px 12px',
@@ -1818,106 +1581,57 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                                     }}
                                                 />
                                             </div>
-                                        </div>
-
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '12px', color: '#f87171', marginBottom: '8px', fontWeight: 600 }}>
-                                                ⚠️ Required Production Stages (Check CNC, Fabrication, or both; or Vendor):
-                                            </label>
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
-                                                {['CNC', 'Fabrication', 'Vendor'].map(stage => {
-                                                    const isChecked = item.required_stages.includes(stage);
-                                                    return (
-                                                        <button
-                                                            key={stage}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                let nextStages = [...item.required_stages];
-                                                                if (stage === 'Vendor') {
-                                                                    if (isChecked) {
-                                                                        nextStages = nextStages.filter(s => s !== 'Vendor');
-                                                                    } else {
-                                                                        nextStages = ['Vendor'];
-                                                                    }
-                                                                } else {
-                                                                    nextStages = nextStages.filter(s => s !== 'Vendor');
-                                                                    if (isChecked) {
-                                                                        nextStages = nextStages.filter(s => s !== stage);
-                                                                    } else {
-                                                                        nextStages.push(stage);
-                                                                    }
-                                                                }
-                                                                updatePoItemField(itemIndex, 'required_stages', nextStages);
-                                                            }}
-                                                            style={{
-                                                                padding: '8px 16px',
-                                                                borderRadius: '20px',
-                                                                border: isChecked ? '1px solid #3b82f6' : '1px solid rgba(255, 255, 255, 0.08)',
-                                                                backgroundColor: isChecked ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
-                                                                color: isChecked ? '#60a5fa' : '#64748b',
-                                                                fontSize: '12px',
-                                                                fontWeight: 600,
-                                                                cursor: 'pointer',
-                                                                transition: 'all 0.15s'
-                                                            }}
-                                                        >
-                                                            {isChecked ? '✓ ' : ''}{stage}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-
-                                            {/* Vendor Details Form Fields */}
-                                            {item.required_stages.includes('Vendor') && (
-                                                <div className="responsive-grid responsive-grid-half" style={{ gap: '12px', padding: '12px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                                    <div>
-                                                        <label style={{ display: 'block', fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>Vendor Name</label>
-                                                        <input
-                                                            type="text"
-                                                            value={item.vendor_name || ''}
-                                                            onChange={(e) => updatePoItemField(itemIndex, 'vendor_name', e.target.value)}
-                                                            required
-                                                            placeholder="e.g. CV. Makmur Jaya"
-                                                            style={{
-                                                                width: '100%',
-                                                                padding: '8px 12px',
-                                                                backgroundColor: '#090d16',
-                                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                                borderRadius: '6px',
-                                                                color: '#fff',
-                                                                fontSize: '13px',
-                                                                outline: 'none'
-                                                            }}
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label style={{ display: 'block', fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>Vendor Phone Number</label>
-                                                        <input
-                                                            type="text"
-                                                            value={item.vendor_phone || ''}
-                                                            onChange={(e) => updatePoItemField(itemIndex, 'vendor_phone', e.target.value)}
-                                                            required
-                                                            placeholder="e.g. 08123456789"
-                                                            style={{
-                                                                width: '100%',
-                                                                padding: '8px 12px',
-                                                                backgroundColor: '#090d16',
-                                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                                borderRadius: '6px',
-                                                                color: '#fff',
-                                                                fontSize: '13px',
-                                                                outline: 'none'
-                                                            }}
-                                                        />
-                                                    </div>
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.stages_label}</label>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#e2e8f0', cursor: 'pointer' }}>
+                                                        <input type="checkbox" checked={item.required_stages.includes('CNC')} onChange={() => {
+                                                            const stages = item.required_stages.includes('CNC')
+                                                                ? item.required_stages.filter(s => s !== 'CNC')
+                                                                : [...item.required_stages, 'CNC'];
+                                                            updatePoItemField(itemIndex, 'required_stages', stages);
+                                                        }} />
+                                                        {t.cnc_label}
+                                                    </label>
+                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#e2e8f0', cursor: 'pointer' }}>
+                                                        <input type="checkbox" checked={item.required_stages.includes('Fabrication')} onChange={() => {
+                                                            const stages = item.required_stages.includes('Fabrication')
+                                                                ? item.required_stages.filter(s => s !== 'Fabrication')
+                                                                : [...item.required_stages, 'Fabrication'];
+                                                            updatePoItemField(itemIndex, 'required_stages', stages);
+                                                        }} />
+                                                        {t.fab_label}
+                                                    </label>
+                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#e2e8f0', cursor: 'pointer' }}>
+                                                        <input type="checkbox" checked={item.required_stages.includes('Vendor')} onChange={() => {
+                                                            const stages = item.required_stages.includes('Vendor')
+                                                                ? item.required_stages.filter(s => s !== 'Vendor')
+                                                                : [...item.required_stages, 'Vendor'];
+                                                            updatePoItemField(itemIndex, 'required_stages', stages);
+                                                        }} />
+                                                        {t.vendor_label}
+                                                    </label>
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
+
+                                        {item.required_stages.includes('Vendor') && (
+                                            <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.vendor_name_label}</label>
+                                                    <input type="text" value={item.vendor_name || ''} onChange={(e) => updatePoItemField(itemIndex, 'vendor_name', e.target.value)} placeholder="Vendor Name" style={{ width: '100%', padding: '8px 12px', backgroundColor: '#090d16', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                                                </div>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.vendor_phone_label}</label>
+                                                    <input type="text" value={item.vendor_phone || ''} onChange={(e) => updatePoItemField(itemIndex, 'vendor_phone', e.target.value)} placeholder="Phone" style={{ width: '100%', padding: '8px 12px', backgroundColor: '#090d16', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
 
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
                                 <button
                                     type="button"
                                     onClick={() => setShowBroadcastPoModal(false)}
@@ -1931,7 +1645,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                         cursor: 'pointer'
                                     }}
                                 >
-                                    Cancel
+                                    {t.cancel}
                                 </button>
                                 <button
                                     type="submit"
@@ -1945,7 +1659,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                                         cursor: 'pointer'
                                     }}
                                 >
-                                    📢 Broadcast & Save PO
+                                    {t.submit}
                                 </button>
                             </div>
                         </form>

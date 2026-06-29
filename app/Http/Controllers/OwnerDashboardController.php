@@ -15,6 +15,7 @@ use App\Events\ProductionTerminated;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -121,6 +122,11 @@ class OwnerDashboardController extends Controller
 
     public function createUser(Request $request)
     {
+        // OWNER can only create ADMIN users
+        if (auth()->user()->role === 'OWNER') {
+            $request->merge(['role' => 'ADMIN', 'login_method' => 'PASSWORD']);
+        }
+
         $loginMethod = $request->input('login_method');
         if (!$loginMethod) {
             if ($request->filled('pin') || in_array(strtoupper($request->role), ['WORKER', 'QC', 'DRAFTER', 'CNC', 'FABRICATION', 'DELIVERY'])) {
@@ -131,8 +137,13 @@ class OwnerDashboardController extends Controller
         }
         $request->merge(['login_method' => $loginMethod]);
 
+        $roleRules = ['required', 'string', 'max:255'];
+        if (auth()->user()->role === 'OWNER') {
+            $roleRules[] = Rule::in(['ADMIN']);
+        }
+
         $request->validate([
-            'role' => ['required', 'string', 'max:255'],
+            'role' => $roleRules,
             'login_method' => ['required', 'in:PASSWORD,PIN'],
             'name' => ['required', 'string', 'max:255'],
             'username' => [
@@ -193,8 +204,13 @@ class OwnerDashboardController extends Controller
         }
         $request->merge(['login_method' => $loginMethod]);
 
+        $roleRules = ['required', 'string', 'max:255'];
+        if (auth()->user()->role === 'OWNER') {
+            $roleRules[] = Rule::in(['ADMIN']);
+        }
+
         $request->validate([
-            'role' => ['required', 'string', 'max:255'],
+            'role' => $roleRules,
             'login_method' => ['required', 'in:PASSWORD,PIN'],
             'name' => ['required', 'string', 'max:255'],
             'username' => [
@@ -285,5 +301,26 @@ class OwnerDashboardController extends Controller
         GenerateSunkCostInvoiceJob::dispatch($item->id, $completedPieces);
 
         return back()->with('success', 'Production halted. Sunk-cost recovery billing task dispatched.');
+    }
+
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => ['required', 'string'],
+            'new_password' => ['required', 'string', 'min:6', 'confirmed'],
+        ]);
+
+        $user = auth()->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors([
+                'current_password' => 'Current password is incorrect.',
+            ]);
+        }
+
+        $user->password = bcrypt($request->new_password);
+        $user->save();
+
+        return back()->with('success', 'Password changed successfully.');
     }
 }

@@ -26,7 +26,7 @@ interface Item {
     item_progresses: Stage[];
 }
 
-const formatDeadline = (deadlineDateStr?: string) => {
+const formatDeadline = (deadlineDateStr: string | undefined, lang: 'en' | 'id') => {
     if (!deadlineDateStr) return '';
     const deadline = new Date(deadlineDateStr);
     const deadlineClean = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
@@ -39,13 +39,13 @@ const formatDeadline = (deadlineDateStr?: string) => {
     const dateFormatted = deadlineClean.toLocaleDateString();
 
     if (diffDays === 0) {
-        return `${dateFormatted} (Today)`;
+        return lang === 'id' ? `${dateFormatted} (Hari Ini)` : `${dateFormatted} (Today)`;
     } else if (diffDays > 0) {
-        if (diffDays === 7) return `${dateFormatted} (1 week)`;
-        if (diffDays === 30) return `${dateFormatted} (1 month)`;
-        return `${dateFormatted} (${diffDays} days)`;
+        if (diffDays === 7) return lang === 'id' ? `${dateFormatted} (1 minggu)` : `${dateFormatted} (1 week)`;
+        if (diffDays === 30) return lang === 'id' ? `${dateFormatted} (1 bulan)` : `${dateFormatted} (1 month)`;
+        return lang === 'id' ? `${dateFormatted} (${diffDays} hari)` : `${dateFormatted} (${diffDays} days)`;
     } else {
-        return `${dateFormatted} (delayed ${Math.abs(diffDays)} days)`;
+        return lang === 'id' ? `${dateFormatted} (terlambat ${Math.abs(diffDays)} hari)` : `${dateFormatted} (delayed ${Math.abs(diffDays)} days)`;
     }
 };
 
@@ -84,6 +84,9 @@ const translations = {
         material_delay: "Material / Drawing Delay",
         power_outage: "Power Outage / Technical",
         human_error: "Operator / Human Error",
+        log_progress_for: "Log Progress for",
+        of_completed: "of {target} completed",
+        operator_sick: "Operator Sick / Absent",
     },
     id: {
         floor_terminal: "Terminal Operasi Pabrik",
@@ -115,6 +118,9 @@ const translations = {
         material_delay: "Keterlambatan Bahan / Gambar",
         power_outage: "Mati Lampu / Teknis",
         human_error: "Kesalahan Operator / Manusia",
+        log_progress_for: "Catat Progres untuk",
+        of_completed: "dari {target} selesai",
+        operator_sick: "Operator Sakit / Absen",
     }
 };
 
@@ -148,9 +154,18 @@ export default function WorkerDashboard({ items }: Props) {
     const [kendalaType, setKendalaType] = useState('Machine Broken');
     const [rejectQty, setRejectQty] = useState('1');
 
+    const controlPanelRef = React.useRef<HTMLDivElement>(null);
+
     const selectStage = (item: Item, stage: Stage) => {
         setActiveItem(item);
         setActiveStage(stage);
+        
+        // On mobile, scroll the control panel into view
+        setTimeout(() => {
+            if (window.innerWidth < 768 && controlPanelRef.current) {
+                controlPanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 100);
     };
 
     const handleStep = (amount: number) => {
@@ -226,10 +241,7 @@ export default function WorkerDashboard({ items }: Props) {
             color: '#f8fafc',
             padding: '24px'
         }}>
-            <header style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+            <header className="responsive-header" style={{
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
                 paddingBottom: '16px',
                 marginBottom: '24px'
@@ -331,7 +343,7 @@ export default function WorkerDashboard({ items }: Props) {
                                         </div>
                                         {/* 3rd Headline: Deadline */}
                                         <div style={{ fontSize: '13px', color: '#94a3b8' }}>
-                                            {t.deadline}: {formatDeadline(item.po?.global_deadline)}
+                                            {t.deadline}: {formatDeadline(item.po?.global_deadline, language)}
                                         </div>
                                         {/* 4th Headline: Qty */}
                                         <div style={{ fontSize: '13px', fontWeight: 600, color: '#38bdf8' }}>
@@ -385,7 +397,7 @@ export default function WorkerDashboard({ items }: Props) {
                 </div>
 
                 {/* Progress Control Panel */}
-                <div>
+                <div ref={controlPanelRef}>
                     {activeStage && activeItem ? (
                         <div style={{
                             backgroundColor: 'rgba(15, 23, 42, 0.6)',
@@ -399,7 +411,7 @@ export default function WorkerDashboard({ items }: Props) {
                             top: '24px'
                         }}>
                             <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '4px', textAlign: 'center' }}>
-                                Log Progress for {activeStage.stage_name}
+                                {t.log_progress_for} {activeStage.stage_name}
                             </h2>
                             <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '24px', textAlign: 'center' }}>
                                 Item: {activeItem.item_name}
@@ -427,7 +439,7 @@ export default function WorkerDashboard({ items }: Props) {
                                     </button>
                                     <div style={{ textAlign: 'center' }}>
                                         <div style={{ fontSize: '36px', fontWeight: 800 }}>{activeStage.completed_qty}</div>
-                                        <div style={{ fontSize: '12px', color: '#64748b' }}>of {activeItem.target_qty} completed</div>
+                                        <div style={{ fontSize: '12px', color: '#64748b' }}>{t.of_completed.replace('{target}', activeItem.target_qty.toString())}</div>
                                     </div>
                                     <button
                                         onClick={() => handleStep(1)}
@@ -558,10 +570,10 @@ export default function WorkerDashboard({ items }: Props) {
                                 outline: 'none'
                             }}
                         >
-                            <option value="Machine Broken">{t.machine_broken}</option>
-                            <option value="Material Delay">{t.material_delay}</option>
-                            <option value="Operator Sick">Operator Sick / Absen</option>
-                            <option value="Power Outage">{t.power_outage}</option>
+                             <option value="Machine Broken">{t.machine_broken}</option>
+                             <option value="Material Delay">{t.material_delay}</option>
+                             <option value="Operator Sick">{t.operator_sick}</option>
+                             <option value="Power Outage">{t.power_outage}</option>
                         </select>
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                             <button

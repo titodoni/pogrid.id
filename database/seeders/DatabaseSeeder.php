@@ -28,13 +28,22 @@ class DatabaseSeeder extends Seeder
         // Set tenant context for model creation
         TenantManager::setTenantId($tenant->id);
 
-        // 2. Create Office Staff (Password Login: qwerty)
+        // 2. Create Office Staff (Password Login: poiuy)
+        User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Sari Dewi (Owner)',
+            'username' => 'owner',
+            'email' => 'owner@teknikmandiri.com',
+            'password' => Hash::make('poiuy'),
+            'role' => 'OWNER',
+        ]);
+
         User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Budi Santoso (Admin)',
-            'username' => 'budi',
-            'email' => 'budi@teknikmandiri.com',
-            'password' => Hash::make('qwerty'),
+            'username' => 'admin',
+            'email' => 'admin@teknikmandiri.com',
+            'password' => Hash::make('poiuy'),
             'role' => 'ADMIN',
         ]);
 
@@ -43,29 +52,34 @@ class DatabaseSeeder extends Seeder
             'name' => 'Sales Staff',
             'username' => 'sales',
             'email' => 'sales@teknikmandiri.com',
-            'password' => Hash::make('qwerty'),
+            'password' => Hash::make('poiuy'),
             'role' => 'SALES',
         ]);
 
         User::create([
             'tenant_id' => $tenant->id,
+            'name' => 'Manager Operasional',
+            'username' => 'manager',
+            'email' => 'manager@teknikmandiri.com',
+            'password' => Hash::make('poiuy'),
+            'role' => 'MANAGER',
+        ]);
+
+        // 3. Create Floor Staff (PIN Login: 0000)
+        User::create([
+            'tenant_id' => $tenant->id,
             'name' => 'Purchasing Agent',
-            'username' => 'purchasing',
-            'email' => 'purchasing@teknikmandiri.com',
-            'password' => Hash::make('qwerty'),
+            'pin' => Hash::make('0000'),
             'role' => 'PURCHASING',
         ]);
 
         User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Finance Controller',
-            'username' => 'finance',
-            'email' => 'finance@teknikmandiri.com',
-            'password' => Hash::make('qwerty'),
+            'pin' => Hash::make('0000'),
             'role' => 'FINANCE',
         ]);
 
-        // 3. Create Floor Staff (PIN Login: 0000)
         User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Drafter Designer',
@@ -99,6 +113,13 @@ class DatabaseSeeder extends Seeder
             'name' => 'Delivery Courier',
             'pin' => Hash::make('0000'),
             'role' => 'DELIVERY',
+        ]);
+
+        User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Worker Umum',
+            'pin' => Hash::make('0000'),
+            'role' => 'WORKER',
         ]);
 
         // 4. Create Purchase Orders (POs)

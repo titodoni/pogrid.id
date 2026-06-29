@@ -14,7 +14,7 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
-// Guard A: Standard Web Auth (Owner, Drafter, Purchasing, Finance)
+// Guard A: Standard Web Auth
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
@@ -48,6 +48,9 @@ Route::middleware('auth')->group(function () {
 
     // Company Settings Update
     Route::post('/company/update', [OwnerDashboardController::class, 'updateCompany']);
+
+    // Change Password
+    Route::post('/change-password', [OwnerDashboardController::class, 'changePassword']);
 
     // PIN Reset Approval (admin only)
     Route::post('/pin-reset/{alertId}/approve', [PinResetController::class, 'approvePinReset']);

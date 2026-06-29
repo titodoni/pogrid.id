@@ -13,11 +13,21 @@ Laravel 11 + Inertia.js v2 + React 18 + TypeScript + Tailwind v4 + Vite 8.
 
 No lint/typecheck npm scripts exist. `laravel/pint` is available via `vendor/bin/pint`.
 
+## Role-Specific Dashboards
+
+- **OWNER**: Production matrix + ⚙️ settings dropdown (Change Password, Add Admin, Color Themes). Cannot create POs (403).
+- **ADMIN/SALES/MANAGER**: Production-only view + Broadcast PO button. No user management.
+- **PURCHASING/FINANCE**: PIN login, Worker Dashboard (treated as floor workers).
+- All floor roles (WORKER/QC/CNC/FABRICATION/DRAFTER/DELIVERY): PIN login, Worker Dashboard.
+
 ## Architecture
 
 - **Inertia SPA** (no API routes). Controllers return Inertia responses, pages in `resources/js/Pages/`.
 - **Multi-tenancy**: row-level `TenantScope` + `TenantManager` singleton. All operational models use `BelongsToTenant` trait. TenantManager has `bypass()`/`enableScope()` for tests and admin contexts.
-- **Dual auth**: Guard A — email/username + password at `/login` (office roles: OWNER, ADMIN, SALES, PURCHASING, FINANCE). Guard B — PIN login at `/c/{slug}` (floor workers). Privilege escalation guard blocks office roles from PIN login.
+- **Dual auth**: Guard A — email/username + password at `/login` (office roles: OWNER, ADMIN, SALES, MANAGER). Guard B — PIN login at `/c/{slug}` (floor workers). Privilege escalation guard blocks office roles from PIN login.
+- **Forgot Password** (Guard A): `ForgotPasswordController` uses Laravel `Password::reset()` with custom `ResetPasswordNotification`. Routes: `GET /forgot-password`, `POST /forgot-password`, `GET /reset-password/{token}`, `POST /reset-password`. Mail defaults to `log` driver — reset links appear in `storage/logs/laravel.log` in dev.
+- **Forgot PIN** (Guard B): `PinResetController`. Workers request PIN reset via `POST /c/{slug}/pin-reset/request` (guest), which creates a BLUE Alert. Admins approve via `POST /pin-reset/{alertId}/approve` (auth) which generates a new random 4-digit PIN and displays it once.
+- **FlashMessages**: Global `FlashMessages.tsx` component auto-dismisses success/error/validation toasts on every page. Flash data shared via `Inertia::share('flash', ...)` in `AppServiceProvider`. Each page is auto-wrapped in `app.tsx` `resolve` function.
 - **OWNER cannot create POs** (403 on `POST /pos`). Must assign an Admin.
 - **Observer chain**: `Item::created` auto-spawns `ItemProgress` rows per `required_stages` JSON array. `ItemProgress::saved` recalculates weighted progress and cascades PO status. `DoItem::saved` marks PO COMPLETED when all items fully delivered.
 - **Session, cache, queue** all use database driver (SQLite dev, PostgreSQL prod). No Redis.
@@ -40,6 +50,11 @@ No lint/typecheck npm scripts exist. `laravel/pint` is available via `vendor/bin
 - Tailwind v4 uses `@tailwindcss/vite` plugin (not PostCSS). No `tailwind.config.js` — config is in `app.css` via `@import "tailwindcss"`.
 - `tsconfig.json` absent — Vite handles TS compilation.
 
+## Guidelines
+
+- **Dual Language**: Always implement dual language (English & Indonesian) support for any UI-facing elements, forms, and pages. Persistent selection must be stored in `localStorage` as `pogrid_lang`.
+
 ## Graphify
 
 See CLAUDE.md — knowledge graph at `graphify-out/`. Run `graphify update .` after code changes.
+

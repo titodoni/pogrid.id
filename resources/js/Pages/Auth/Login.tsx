@@ -1,11 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, Link } from '@inertiajs/react';
+
+const translations = {
+    en: {
+        title: "POgrid.id",
+        subtitle: "Live Progress & Delivery Punctuality Tracker",
+        username_label: "Username",
+        username_placeholder: "Enter username",
+        password_label: "Password",
+        submit_btn: "Sign In",
+        logging_in: "Logging in...",
+        new_company: "New company?",
+        register: "Register POgrid",
+        forgot_password: "Forgot Password?"
+    },
+    id: {
+        title: "POgrid.id",
+        subtitle: "Pelacak Progres Produksi & Ketepatan Pengiriman",
+        username_label: "Nama Pengguna",
+        username_placeholder: "Masukkan nama pengguna",
+        password_label: "Kata Sandi",
+        submit_btn: "Masuk",
+        logging_in: "Sedang masuk...",
+        new_company: "Perusahaan baru?",
+        register: "Daftar POgrid",
+        forgot_password: "Lupa Kata Sandi?"
+    }
+};
 
 export default function Login() {
     const { data, setData, post, processing, errors } = useForm({
         username: '',
         password: '',
     });
+
+    const [language, setLanguage] = useState<'en' | 'id'>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
+        }
+        return 'en';
+    });
+
+    const changeLanguage = (lang: 'en' | 'id') => {
+        setLanguage(lang);
+        localStorage.setItem('pogrid_lang', lang);
+    };
+
+    const t = translations[language];
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -18,21 +59,57 @@ export default function Login() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#0f172a',
+            backgroundColor: '#090d16',
             fontFamily: 'Inter, sans-serif',
             color: '#f8fafc',
-            padding: '20px'
+            padding: '16px',
+            position: 'relative'
         }}>
+            {/* Language Switcher */}
             <div style={{
-                width: '100%',
-                maxWidth: '420px',
-                backgroundColor: 'rgba(30, 41, 59, 0.7)',
-                backdropFilter: 'blur(16px)',
-                borderRadius: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                padding: '40px',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)'
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                display: 'inline-flex',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                border: '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: 'rgba(255,255,255,0.02)',
+                zIndex: 10
             }}>
+                <button
+                    type="button"
+                    onClick={() => changeLanguage('en')}
+                    style={{
+                        padding: '6px 12px',
+                        backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
+                        border: 'none',
+                        color: '#fff',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                    }}
+                >
+                    EN
+                </button>
+                <button
+                    type="button"
+                    onClick={() => changeLanguage('id')}
+                    style={{
+                        padding: '6px 12px',
+                        backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
+                        border: 'none',
+                        color: '#fff',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                    }}
+                >
+                    ID
+                </button>
+            </div>
+
+            <div className="w-full max-w-[420px] bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/8 p-6 sm:p-10 shadow-2xl">
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <h1 style={{
                         fontSize: '32px',
@@ -43,10 +120,10 @@ export default function Login() {
                         WebkitTextFillColor: 'transparent',
                         marginBottom: '8px'
                     }}>
-                        POgrid.id
+                        {t.title}
                     </h1>
                     <p style={{ color: '#94a3b8', fontSize: '14px' }}>
-                        Live Progress & Delivery Punctuality Tracker
+                        {t.subtitle}
                     </p>
                 </div>
 
@@ -61,7 +138,7 @@ export default function Login() {
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em'
                         }}>
-                            Username
+                            {t.username_label}
                         </label>
                         <input
                             type="text"
@@ -71,7 +148,7 @@ export default function Login() {
                             style={{
                                 width: '100%',
                                 padding: '12px 16px',
-                                backgroundColor: '#0f172a',
+                                backgroundColor: '#090d16',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
                                 borderRadius: '8px',
                                 color: '#f8fafc',
@@ -79,7 +156,7 @@ export default function Login() {
                                 outline: 'none',
                                 transition: 'border-color 0.2s'
                             }}
-                            placeholder="Enter username"
+                            placeholder={t.username_placeholder}
                             required
                         />
                         {errors.username && (
@@ -99,7 +176,7 @@ export default function Login() {
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em'
                         }}>
-                            Password
+                            {t.password_label}
                         </label>
                         <input
                             type="password"
@@ -109,7 +186,7 @@ export default function Login() {
                             style={{
                                 width: '100%',
                                 padding: '12px 16px',
-                                backgroundColor: '#0f172a',
+                                backgroundColor: '#090d16',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
                                 borderRadius: '8px',
                                 color: '#f8fafc',
@@ -147,19 +224,19 @@ export default function Login() {
                         onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
                         onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
                     >
-                        {processing ? 'Logging in...' : 'Sign In'}
+                        {processing ? t.logging_in : t.submit_btn}
                     </button>
                 </form>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between items-center text-sm">
                     <div>
-                        <span style={{ color: '#94a3b8' }}>New company? </span>
+                        <span style={{ color: '#94a3b8' }}>{t.new_company} </span>
                         <Link href="/register" style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
-                            Register POgrid
+                            {t.register}
                         </Link>
                     </div>
                     <Link href="/forgot-password" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '13px' }}>
-                        Forgot Password?
+                        {t.forgot_password}
                     </Link>
                 </div>
             </div>

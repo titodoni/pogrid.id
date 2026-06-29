@@ -1,10 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, Link } from '@inertiajs/react';
+
+const translations = {
+    en: {
+        title: "POgrid.id",
+        subtitle: "Reset your password",
+        dev_mode_msg: "In development mode, password reset links are logged. Check storage/logs/laravel.log for the reset URL.",
+        email_label: "Email Address",
+        email_placeholder: "Enter your email address",
+        submit_btn: "Send Reset Link",
+        sending: "Sending...",
+        remember_password: "Remember your password?",
+        sign_in: "Sign In"
+    },
+    id: {
+        title: "POgrid.id",
+        subtitle: "Atur ulang kata sandi Anda",
+        dev_mode_msg: "Dalam mode pengembangan, tautan atur ulang kata sandi dicatat. Periksa storage/logs/laravel.log untuk URL atur ulang.",
+        email_label: "Alamat Email",
+        email_placeholder: "Masukkan alamat email Anda",
+        submit_btn: "Kirim Tautan Atur Ulang",
+        sending: "Mengirim...",
+        remember_password: "Ingat kata sandi Anda?",
+        sign_in: "Masuk"
+    }
+};
 
 export default function ForgotPassword() {
     const { data, setData, post, processing, errors } = useForm({
         email: '',
     });
+
+    const [language, setLanguage] = useState<'en' | 'id'>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
+        }
+        return 'en';
+    });
+
+    const changeLanguage = (lang: 'en' | 'id') => {
+        setLanguage(lang);
+        localStorage.setItem('pogrid_lang', lang);
+    };
+
+    const t = translations[language];
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -17,21 +56,57 @@ export default function ForgotPassword() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#0f172a',
+            backgroundColor: '#090d16',
             fontFamily: 'Inter, sans-serif',
             color: '#f8fafc',
-            padding: '20px'
+            padding: '16px',
+            position: 'relative'
         }}>
+            {/* Language Switcher */}
             <div style={{
-                width: '100%',
-                maxWidth: '420px',
-                backgroundColor: 'rgba(30, 41, 59, 0.7)',
-                backdropFilter: 'blur(16px)',
-                borderRadius: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                padding: '40px',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)'
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                display: 'inline-flex',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                border: '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: 'rgba(255,255,255,0.02)',
+                zIndex: 10
             }}>
+                <button
+                    type="button"
+                    onClick={() => changeLanguage('en')}
+                    style={{
+                        padding: '6px 12px',
+                        backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
+                        border: 'none',
+                        color: '#fff',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                    }}
+                >
+                    EN
+                </button>
+                <button
+                    type="button"
+                    onClick={() => changeLanguage('id')}
+                    style={{
+                        padding: '6px 12px',
+                        backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
+                        border: 'none',
+                        color: '#fff',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                    }}
+                >
+                    ID
+                </button>
+            </div>
+
+            <div className="w-full max-w-[420px] bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/8 p-6 sm:p-10 shadow-2xl">
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <h1 style={{
                         fontSize: '32px',
@@ -42,10 +117,10 @@ export default function ForgotPassword() {
                         WebkitTextFillColor: 'transparent',
                         marginBottom: '8px'
                     }}>
-                        POgrid.id
+                        {t.title}
                     </h1>
                     <p style={{ color: '#94a3b8', fontSize: '14px' }}>
-                        Reset your password
+                        {t.subtitle}
                     </p>
                 </div>
 
@@ -59,7 +134,12 @@ export default function ForgotPassword() {
                     color: '#60a5fa',
                     lineHeight: '1.5'
                 }}>
-                    In development mode, password reset links are logged. Check <code style={{ color: '#38bdf8' }}>storage/logs/laravel.log</code> for the reset URL.
+                    {t.dev_mode_msg.split('storage/logs/laravel.log').map((part, index, arr) => (
+                        <React.Fragment key={index}>
+                            {part}
+                            {index < arr.length - 1 && <code style={{ color: '#38bdf8' }}>storage/logs/laravel.log</code>}
+                        </React.Fragment>
+                    ))}
                 </div>
 
                 <form onSubmit={handleSubmit}>
@@ -73,7 +153,7 @@ export default function ForgotPassword() {
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em'
                         }}>
-                            Email Address
+                            {t.email_label}
                         </label>
                         <input
                             type="email"
@@ -83,7 +163,7 @@ export default function ForgotPassword() {
                             style={{
                                 width: '100%',
                                 padding: '12px 16px',
-                                backgroundColor: '#0f172a',
+                                backgroundColor: '#090d16',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
                                 borderRadius: '8px',
                                 color: '#f8fafc',
@@ -91,7 +171,7 @@ export default function ForgotPassword() {
                                 outline: 'none',
                                 transition: 'border-color 0.2s'
                             }}
-                            placeholder="Enter your email address"
+                            placeholder={t.email_placeholder}
                             required
                         />
                         {errors.email && (
@@ -121,14 +201,14 @@ export default function ForgotPassword() {
                         onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
                         onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
                     >
-                        {processing ? 'Sending...' : 'Send Reset Link'}
+                        {processing ? t.sending : t.submit_btn}
                     </button>
                 </form>
 
-                <div style={{ textAlign: 'center', fontSize: '14px' }}>
-                    <span style={{ color: '#94a3b8' }}>Remember your password? </span>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between items-center text-sm">
+                    <span style={{ color: '#94a3b8' }}>{t.remember_password} </span>
                     <Link href="/login" style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
-                        Sign In
+                        {t.sign_in}
                     </Link>
                 </div>
             </div>
