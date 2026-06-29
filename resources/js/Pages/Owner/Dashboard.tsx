@@ -722,33 +722,58 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                             </div>
                         ) : (
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
-                                {alerts.map((alert) => (
-                                    <div
-                                        key={alert.id}
-                                        style={{
-                                            backgroundColor: alert.severity === 'RED' ? 'rgba(239, 68, 68, 0.08)' : 'rgba(234, 179, 8, 0.08)',
-                                            border: '1px solid',
-                                            borderColor: alert.severity === 'RED' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(234, 179, 8, 0.2)',
-                                            borderRadius: '10px',
-                                            padding: '14px 18px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '12px'
-                                        }}
-                                    >
-                                        <span style={{
-                                            fontSize: '11px',
-                                            fontWeight: 800,
-                                            color: '#fff',
-                                            backgroundColor: alert.severity === 'RED' ? '#ef4444' : '#eab308',
-                                            padding: '2px 6px',
-                                            borderRadius: '4px'
-                                        }}>
-                                            {alert.severity}
-                                        </span>
-                                        <div style={{ fontSize: '14px', color: '#e2e8f0', flexGrow: 1 }}>{alert.message}</div>
-                                    </div>
-                                ))}
+                                {alerts.map((alert) => {
+                                    const isPinReset = alert.message.startsWith('PIN Reset Requested');
+                                    const bgColor = alert.severity === 'RED' ? 'rgba(239, 68, 68, 0.08)' : alert.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.08)' : 'rgba(234, 179, 8, 0.08)';
+                                    const bdColor = alert.severity === 'RED' ? 'rgba(239, 68, 68, 0.2)' : alert.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(234, 179, 8, 0.2)';
+                                    const badgeBg = alert.severity === 'RED' ? '#ef4444' : alert.severity === 'BLUE' ? '#3b82f6' : '#eab308';
+                                    return (
+                                        <div
+                                            key={alert.id}
+                                            style={{
+                                                backgroundColor: bgColor,
+                                                border: '1px solid',
+                                                borderColor: bdColor,
+                                                borderRadius: '10px',
+                                                padding: '14px 18px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '12px'
+                                            }}
+                                        >
+                                            <span style={{
+                                                fontSize: '11px',
+                                                fontWeight: 800,
+                                                color: '#fff',
+                                                backgroundColor: badgeBg,
+                                                padding: '2px 6px',
+                                                borderRadius: '4px'
+                                            }}>
+                                                {alert.severity}
+                                            </span>
+                                            <div style={{ fontSize: '14px', color: '#e2e8f0', flexGrow: 1 }}>{alert.message}</div>
+                                            {isPinReset && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => router.post(`/pin-reset/${alert.id}/approve`)}
+                                                    style={{
+                                                        padding: '6px 14px',
+                                                        backgroundColor: '#3b82f6',
+                                                        color: '#fff',
+                                                        border: 'none',
+                                                        borderRadius: '6px',
+                                                        fontWeight: 600,
+                                                        fontSize: '12px',
+                                                        cursor: 'pointer',
+                                                        whiteSpace: 'nowrap'
+                                                    }}
+                                                >
+                                                    Approve & Generate PIN
+                                                </button>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

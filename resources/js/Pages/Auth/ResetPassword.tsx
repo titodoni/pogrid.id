@@ -1,15 +1,21 @@
 import React from 'react';
-import { useForm, Link } from '@inertiajs/react';
+import { useForm, Link, usePage } from '@inertiajs/react';
 
-export default function Login() {
+interface Props {
+    token: string;
+}
+
+export default function ResetPassword({ token }: Props) {
     const { data, setData, post, processing, errors } = useForm({
-        username: '',
+        token: token,
+        email: '',
         password: '',
+        password_confirmation: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/login');
+        post('/reset-password');
     };
 
     return (
@@ -46,13 +52,15 @@ export default function Login() {
                         POgrid.id
                     </h1>
                     <p style={{ color: '#94a3b8', fontSize: '14px' }}>
-                        Live Progress & Delivery Punctuality Tracker
+                        Set a new password
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit}>
+                    <input type="hidden" name="token" value={data.token} />
+
                     <div style={{ marginBottom: '20px' }}>
-                        <label htmlFor="username" style={{
+                        <label htmlFor="email" style={{
                             display: 'block',
                             fontSize: '13px',
                             fontWeight: 600,
@@ -61,13 +69,13 @@ export default function Login() {
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em'
                         }}>
-                            Username
+                            Email Address
                         </label>
                         <input
-                            type="text"
-                            id="username"
-                            value={data.username}
-                            onChange={(e) => setData('username', e.target.value)}
+                            type="email"
+                            id="email"
+                            value={data.email}
+                            onChange={(e) => setData('email', e.target.value)}
                             style={{
                                 width: '100%',
                                 padding: '12px 16px',
@@ -79,17 +87,17 @@ export default function Login() {
                                 outline: 'none',
                                 transition: 'border-color 0.2s'
                             }}
-                            placeholder="Enter username"
+                            placeholder="Enter your email"
                             required
                         />
-                        {errors.username && (
+                        {errors.email && (
                             <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
-                                {errors.username}
+                                {errors.email}
                             </span>
                         )}
                     </div>
 
-                    <div style={{ marginBottom: '32px' }}>
+                    <div style={{ marginBottom: '20px' }}>
                         <label htmlFor="password" style={{
                             display: 'block',
                             fontSize: '13px',
@@ -99,7 +107,7 @@ export default function Login() {
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em'
                         }}>
-                            Password
+                            New Password
                         </label>
                         <input
                             type="password"
@@ -127,6 +135,39 @@ export default function Login() {
                         )}
                     </div>
 
+                    <div style={{ marginBottom: '32px' }}>
+                        <label htmlFor="password_confirmation" style={{
+                            display: 'block',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            color: '#94a3b8',
+                            marginBottom: '6px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em'
+                        }}>
+                            Confirm New Password
+                        </label>
+                        <input
+                            type="password"
+                            id="password_confirmation"
+                            value={data.password_confirmation}
+                            onChange={(e) => setData('password_confirmation', e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '12px 16px',
+                                backgroundColor: '#0f172a',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                borderRadius: '8px',
+                                color: '#f8fafc',
+                                fontSize: '15px',
+                                outline: 'none',
+                                transition: 'border-color 0.2s'
+                            }}
+                            placeholder="••••••••"
+                            required
+                        />
+                    </div>
+
                     <button
                         type="submit"
                         disabled={processing}
@@ -147,19 +188,14 @@ export default function Login() {
                         onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
                         onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
                     >
-                        {processing ? 'Logging in...' : 'Sign In'}
+                        {processing ? 'Resetting...' : 'Reset Password'}
                     </button>
                 </form>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                    <div>
-                        <span style={{ color: '#94a3b8' }}>New company? </span>
-                        <Link href="/register" style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
-                            Register POgrid
-                        </Link>
-                    </div>
-                    <Link href="/forgot-password" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '13px' }}>
-                        Forgot Password?
+                <div style={{ textAlign: 'center', fontSize: '14px' }}>
+                    <span style={{ color: '#94a3b8' }}>Remember your password? </span>
+                    <Link href="/login" style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
+                        Sign In
                     </Link>
                 </div>
             </div>

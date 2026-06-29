@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\OwnerDashboardController;
+use App\Http\Controllers\PinResetController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\WorkerAuthController;
 use App\Http\Controllers\WorkerDashboardController;
@@ -16,6 +18,12 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
+    
+    // Forgot Password
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
     
     // Onboarding / Registration
     Route::get('/register', [RegistrationController::class, 'showRegister'])->name('register');
@@ -40,12 +48,16 @@ Route::middleware('auth')->group(function () {
 
     // Company Settings Update
     Route::post('/company/update', [OwnerDashboardController::class, 'updateCompany']);
+
+    // PIN Reset Approval (admin only)
+    Route::post('/pin-reset/{alertId}/approve', [PinResetController::class, 'approvePinReset']);
 });
 
 // Guard B: Unified Tenant Gateway at c/{slug}
 Route::prefix('c/{slug}')->group(function () {
     Route::get('/', [WorkerDashboardController::class, 'index'])->name('worker.dashboard');
     Route::post('/login', [WorkerAuthController::class, 'login'])->middleware('throttle:5,1');
+    Route::post('/pin-reset/request', [PinResetController::class, 'requestPinReset']);
 
     Route::middleware('auth')->group(function () {
         Route::post('/progress/{progressId}/update', [WorkerDashboardController::class, 'updateProgress']);

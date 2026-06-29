@@ -1,15 +1,14 @@
 import React from 'react';
 import { useForm, Link } from '@inertiajs/react';
 
-export default function Login() {
+export default function ForgotPassword() {
     const { data, setData, post, processing, errors } = useForm({
-        username: '',
-        password: '',
+        email: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/login');
+        post('/forgot-password');
     };
 
     return (
@@ -46,51 +45,26 @@ export default function Login() {
                         POgrid.id
                     </h1>
                     <p style={{ color: '#94a3b8', fontSize: '14px' }}>
-                        Live Progress & Delivery Punctuality Tracker
+                        Reset your password
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: '20px' }}>
-                        <label htmlFor="username" style={{
-                            display: 'block',
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            color: '#94a3b8',
-                            marginBottom: '6px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em'
-                        }}>
-                            Username
-                        </label>
-                        <input
-                            type="text"
-                            id="username"
-                            value={data.username}
-                            onChange={(e) => setData('username', e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '12px 16px',
-                                backgroundColor: '#0f172a',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                borderRadius: '8px',
-                                color: '#f8fafc',
-                                fontSize: '15px',
-                                outline: 'none',
-                                transition: 'border-color 0.2s'
-                            }}
-                            placeholder="Enter username"
-                            required
-                        />
-                        {errors.username && (
-                            <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
-                                {errors.username}
-                            </span>
-                        )}
-                    </div>
+                <div style={{
+                    backgroundColor: 'rgba(37, 99, 235, 0.06)',
+                    border: '1px dashed rgba(37, 99, 235, 0.3)',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    marginBottom: '24px',
+                    fontSize: '12px',
+                    color: '#60a5fa',
+                    lineHeight: '1.5'
+                }}>
+                    In development mode, password reset links are logged. Check <code style={{ color: '#38bdf8' }}>storage/logs/laravel.log</code> for the reset URL.
+                </div>
 
+                <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '32px' }}>
-                        <label htmlFor="password" style={{
+                        <label htmlFor="email" style={{
                             display: 'block',
                             fontSize: '13px',
                             fontWeight: 600,
@@ -99,13 +73,13 @@ export default function Login() {
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em'
                         }}>
-                            Password
+                            Email Address
                         </label>
                         <input
-                            type="password"
-                            id="password"
-                            value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
+                            type="email"
+                            id="email"
+                            value={data.email}
+                            onChange={(e) => setData('email', e.target.value)}
                             style={{
                                 width: '100%',
                                 padding: '12px 16px',
@@ -117,12 +91,12 @@ export default function Login() {
                                 outline: 'none',
                                 transition: 'border-color 0.2s'
                             }}
-                            placeholder="••••••••"
+                            placeholder="Enter your email address"
                             required
                         />
-                        {errors.password && (
+                        {errors.email && (
                             <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
-                                {errors.password}
+                                {errors.email}
                             </span>
                         )}
                     </div>
@@ -147,19 +121,14 @@ export default function Login() {
                         onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
                         onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
                     >
-                        {processing ? 'Logging in...' : 'Sign In'}
+                        {processing ? 'Sending...' : 'Send Reset Link'}
                     </button>
                 </form>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                    <div>
-                        <span style={{ color: '#94a3b8' }}>New company? </span>
-                        <Link href="/register" style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
-                            Register POgrid
-                        </Link>
-                    </div>
-                    <Link href="/forgot-password" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '13px' }}>
-                        Forgot Password?
+                <div style={{ textAlign: 'center', fontSize: '14px' }}>
+                    <span style={{ color: '#94a3b8' }}>Remember your password? </span>
+                    <Link href="/login" style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
+                        Sign In
                     </Link>
                 </div>
             </div>

@@ -21,6 +21,7 @@ interface Props {
 export default function WorkerLogin({ tenant, workers }: Props) {
     const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
     const [pin, setPin] = useState('');
+    const [showPinResetModal, setShowPinResetModal] = useState(false);
 
     const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
         user_id: '',
@@ -297,9 +298,101 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         >
                             {processing ? 'Verifying...' : 'VERIFY & ENTER'}
                         </button>
+
+                        {/* Forgot PIN */}
+                        {selectedWorker && (
+                            <button
+                                type="button"
+                                onClick={() => setShowPinResetModal(true)}
+                                style={{
+                                    width: '100%',
+                                    maxWidth: '240px',
+                                    marginTop: '12px',
+                                    padding: '10px',
+                                    backgroundColor: 'transparent',
+                                    color: '#64748b',
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    borderRadius: '10px',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s'
+                                }}
+                            >
+                                Forgot PIN?
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
+
+            {/* Forgot PIN Confirmation Modal */}
+            {showPinResetModal && selectedWorker && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 50
+                }}>
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        post(`/c/${tenant.slug}/pin-reset/request`, {
+                            onSuccess: () => {
+                                setShowPinResetModal(false);
+                                setPin('');
+                                setData('pin', '');
+                                setSelectedWorker(null);
+                            }
+                        });
+                    }} style={{
+                        backgroundColor: '#0f172a',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '16px',
+                        padding: '24px',
+                        width: '100%',
+                        maxWidth: '400px'
+                    }}>
+                        <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 8px 0' }}>Forgot PIN</h3>
+                        <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 20px 0' }}>
+                            Request a PIN reset for <strong style={{ color: '#f8fafc' }}>{selectedWorker.name}</strong>?
+                            Admin will generate a new PIN.
+                        </p>
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                            <button
+                                type="button"
+                                onClick={() => setShowPinResetModal(false)}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: 'transparent',
+                                    color: '#94a3b8',
+                                    border: 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#2563eb',
+                                    color: '#fff',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {processing ? 'Sending...' : 'Request Reset'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
         </div>
     );
 }
