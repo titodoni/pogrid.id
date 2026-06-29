@@ -159,6 +159,18 @@ class WorkerDashboardController extends Controller
             'status' => 'PENDING',
         ]);
 
+        // Deduct rejected quantity/progress from original stage
+        if ($item->target_qty > 1) {
+            $progress->completed_qty = max(0, $progress->completed_qty - $request->reject_qty);
+            $progress->progress_percent = ($progress->completed_qty / $item->target_qty) * 100;
+            $progress->status = $progress->completed_qty >= $item->target_qty ? 'COMPLETED' : 'IN_PROGRESS';
+            $progress->save();
+        } else {
+            $progress->progress_percent = 0.00;
+            $progress->status = 'IN_PROGRESS';
+            $progress->save();
+        }
+
         // Update item status if it was completed or pending, back to in progress
         if ($item->status === 'COMPLETED') {
             $item->update(['status' => 'IN_PROGRESS']);

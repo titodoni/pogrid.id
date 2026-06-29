@@ -175,4 +175,28 @@ class AdminManagementTest extends TestCase
         $this->assertCount(1, $gearShaft->itemProgresses);
         $this->assertContains('CNC', $gearShaft->itemProgresses->pluck('stage_name')->toArray());
     }
+
+    public function test_administrative_users_cannot_log_in_via_pin()
+    {
+        $tenant = Tenant::create([
+            'company_name' => 'Delta Machining',
+            'slug' => 'delta',
+        ]);
+
+        $admin = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Admin Pin',
+            'role' => 'ADMIN',
+            'pin' => bcrypt('1234'),
+        ]);
+
+        // Attempt login via Guard B PIN endpoint
+        $response = $this->post("/c/{$tenant->slug}/login", [
+            'user_id' => $admin->id,
+            'pin' => '1234',
+        ]);
+
+        $response->assertSessionHasErrors('pin');
+        $this->assertGuest();
+    }
 }

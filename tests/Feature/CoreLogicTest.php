@@ -499,4 +499,127 @@ class CoreLogicTest extends TestCase
         \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\ProductionTerminated::class);
         \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\GenerateSunkCostInvoiceJob::class);
     }
+
+    public function test_qc_rework_progress_calculation_reaches_100_percent()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-1001',
+            'client_name' => 'Client A',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Shaft S45C',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['CNC', 'Fabrication'],
+            'status' => 'PENDING',
+        ]);
+
+        $cncStage = $item->itemProgresses()->where('stage_name', 'CNC')->first();
+        $fabStage = $item->itemProgresses()->where('stage_name', 'Fabrication')->first();
+
+        // Both stages fully completed
+        $cncStage->update(['completed_qty' => 10, 'status' => 'COMPLETED']);
+        $fabStage->update(['completed_qty' => 10, 'status' => 'COMPLETED']);
+
+        $item->refresh();
+        $this->assertEquals(100.00, (float)$item->progress_percent);
+        $this->assertEquals('COMPLETED', $item->status);
+
+        // QC logs reject_qty = 2 on CNC
+        $worker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Worker 1',
+            'role' => 'WORKER',
+            'pin' => bcrypt('1234'),
+        ]);
+        $this->actingAs($worker);
+
+        $response = $this->post("/c/{$this->tenant1->slug}/progress/{$cncStage->id}/rework", [
+            'reject_qty' => 2,
+        ]);
+        $response->assertRedirect();
+
+        // Original CNC completed qty should be reduced to 8
+        $cncStage->refresh();
+        $this->assertEquals(8, $cncStage->completed_qty);
+
+        // Item progress should drop to 90% (8 CNC + 10 Fabrication) / 20 * 100 = 90%
+        $item->refresh();
+        $this->assertEquals(90.00, (float)$item->progress_percent);
+        $this->assertEquals('IN_PROGRESS', $item->status);
+
+        // Worker completes 2 reworked items
+        $reworkStage = $item->itemProgresses()->where('stage_name', 'CNC - REWORK')->first();
+        $this->assertNotNull($reworkStage);
+
+        $response2 = $this->post("/c/{$this->tenant1->slug}/progress/{$reworkStage->id}/update", [
+            'completed_qty' => 2,
+        ]);
+        $response2->assertRedirect();
+
+        // Item progress should be 100% (8 CNC + 10 Fabrication + 2 Rework) / 20 * 100 = 100%
+        $item->refresh();
+        $this->assertEquals(100.00, (float)$item->progress_percent);
+        $this->assertEquals('COMPLETED', $item->status);
+    }
+
+    public function test_evaluate_timelines_command_does_not_leak_cross_tenant_alerts()
+    {
+        // Setup Tenant 1
+        TenantManager::setTenantId($this->tenant1->id);
+        $po1 = Po::create([
+            'po_number' => 'PO-T1',
+            'client_name' => 'Client A',
+            'global_deadline' => now()->addDays(10), // Healthy
+            'status' => 'PENDING',
+        ]);
+        $item1 = Item::create([
+            'po_id' => $po1->id,
+            'item_name' => 'Tenant 1 Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['CNC'],
+            'status' => 'PENDING',
+        ]);
+
+        // Setup Tenant 2
+        TenantManager::setTenantId($this->tenant2->id);
+        $po2 = Po::create([
+            'po_number' => 'PO-T2',
+            'client_name' => 'Client B',
+            'global_deadline' => now()->subDays(1), // Overdue!
+            'status' => 'PENDING',
+        ]);
+        $item2 = Item::create([
+            'po_id' => $po2->id,
+            'item_name' => 'Tenant 2 Overdue Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['CNC'],
+            'status' => 'PENDING',
+        ]);
+
+        // Run command
+        $this->artisan('pogrid:evaluate-timelines')->assertSuccessful();
+
+        // Check alerts
+        // Tenant 1 should have NO alerts, because their item is healthy
+        TenantManager::setTenantId($this->tenant1->id);
+        $this->assertEquals(0, \App\Models\Alert::where('tenant_id', $this->tenant1->id)->count());
+
+        // Tenant 2 should have 1 RED alert, because their item is overdue
+        TenantManager::setTenantId($this->tenant2->id);
+        $this->assertEquals(1, \App\Models\Alert::where('tenant_id', $this->tenant2->id)->count());
+        $this->assertDatabaseHas('alerts', [
+            'tenant_id' => $this->tenant2->id,
+            'item_id' => $item2->id,
+            'severity' => 'RED',
+        ]);
+    }
 }

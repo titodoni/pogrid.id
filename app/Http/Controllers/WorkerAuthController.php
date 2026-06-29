@@ -16,6 +16,7 @@ class WorkerAuthController extends Controller
     {
         TenantManager::bypass();
         $tenant = Tenant::where('slug', $slug)->firstOrFail();
+        TenantManager::enableScope();
         
         $workers = User::where('tenant_id', $tenant->id)
             ->whereNotNull('pin')
@@ -43,6 +44,15 @@ class WorkerAuthController extends Controller
         $user = User::where('id', $request->user_id)
             ->where('tenant_id', $tenant->id)
             ->firstOrFail();
+        TenantManager::enableScope();
+
+        // Block office administrative roles from PIN-based login (privilege escalation protection)
+        $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'PURCHASING', 'FINANCE'];
+        if (in_array(strtoupper($user->role), $officeRoles)) {
+            return back()->withErrors([
+                'pin' => 'Administrative users must log in via password at app.pogrid.id/login.',
+            ]);
+        }
 
         if (Hash::check($request->pin, $user->pin)) {
             Auth::login($user);

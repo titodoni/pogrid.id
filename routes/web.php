@@ -45,7 +45,7 @@ Route::middleware('auth')->group(function () {
 // Guard B: Unified Tenant Gateway at c/{slug}
 Route::prefix('c/{slug}')->group(function () {
     Route::get('/', [WorkerDashboardController::class, 'index'])->name('worker.dashboard');
-    Route::post('/login', [WorkerAuthController::class, 'login']);
+    Route::post('/login', [WorkerAuthController::class, 'login'])->middleware('throttle:5,1');
 
     Route::middleware('auth')->group(function () {
         Route::post('/progress/{progressId}/update', [WorkerDashboardController::class, 'updateProgress']);

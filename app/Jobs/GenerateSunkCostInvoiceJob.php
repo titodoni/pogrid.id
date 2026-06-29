@@ -27,27 +27,31 @@ class GenerateSunkCostInvoiceJob implements ShouldQueue
 
     public function handle(): void
     {
-        // Temporarily bypass to find item
-        TenantManager::bypass();
-        $item = Item::find($this->itemId);
-        if (!$item) {
-            return;
+        try {
+            // Temporarily bypass to find item
+            TenantManager::bypass();
+            $item = Item::find($this->itemId);
+            if (!$item) {
+                return;
+            }
+
+            TenantManager::setTenantId($item->tenant_id);
+
+            $invoiceNumber = 'SC-' . strtoupper(uniqid());
+            // Simple heuristic: completed quantity * 150,000 IDR base cost
+            $totalAmount = max(150000.00, $this->completedQty * 150000.00);
+
+            Invoice::create([
+                'tenant_id' => $item->tenant_id,
+                'delivery_order_id' => null,
+                'invoice_number' => $invoiceNumber,
+                'total_amount' => $totalAmount,
+                'status' => 'UNPAID',
+                'due_date' => Carbon::today()->addDays(7),
+                'invoice_type' => 'SUNK_COST',
+            ]);
+        } finally {
+            TenantManager::enableScope();
         }
-
-        TenantManager::setTenantId($item->tenant_id);
-
-        $invoiceNumber = 'SC-' . strtoupper(uniqid());
-        // Simple heuristic: completed quantity * 150,000 IDR base cost
-        $totalAmount = max(150000.00, $this->completedQty * 150000.00);
-
-        Invoice::create([
-            'tenant_id' => $item->tenant_id,
-            'delivery_order_id' => null,
-            'invoice_number' => $invoiceNumber,
-            'total_amount' => $totalAmount,
-            'status' => 'UNPAID',
-            'due_date' => Carbon::today()->addDays(7),
-            'invoice_type' => 'SUNK_COST',
-        ]);
     }
 }

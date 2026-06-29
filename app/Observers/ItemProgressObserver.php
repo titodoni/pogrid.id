@@ -14,7 +14,7 @@ class ItemProgressObserver
         }
 
         $stages = $item->itemProgresses()->get();
-        $totalStagesCount = $stages->count();
+        $totalStagesCount = is_array($item->required_stages) ? count($item->required_stages) : 1;
 
         if ($totalStagesCount === 0) {
             return;

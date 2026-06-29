@@ -25,7 +25,9 @@ class EvaluateTimelines extends Command
             // Set context for saving alerts with correct tenant_id
             TenantManager::setTenantId($tenant->id);
 
-            $activeItems = Item::whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])->get();
+            $activeItems = Item::where('tenant_id', $tenant->id)
+                ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])
+                ->get();
             $now = Carbon::today();
 
             foreach ($activeItems as $item) {
