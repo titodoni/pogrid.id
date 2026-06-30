@@ -96,7 +96,7 @@ class PerformanceMatrixTest extends TestCase
             'item_name' => 'Other Part',
             'item_type' => 'MANUFACTURE',
             'target_qty' => 10,
-            'required_stages' => ['CNC'],
+            'required_stages' => ['Machining'],
         ]);
 
         $progress = ItemProgress::where('item_id', $item->id)->first();
@@ -185,10 +185,9 @@ class PerformanceMatrixTest extends TestCase
             'item_name' => 'Shaft A',
             'item_type' => 'MANUFACTURE',
             'target_qty' => 10,
-            'required_stages' => ['CNC'],
+            'required_stages' => ['Machining'],
         ]);
-        $progress1 = ItemProgress::where('item_id', $item1->id)->where('stage_name', 'CNC')->first();
-        if ($progress1) {
+        foreach ($item1->itemProgresses as $progress1) {
             $progress1->update([
                 'completed_qty' => 6,
                 'progress_percent' => 60.00,
@@ -203,10 +202,9 @@ class PerformanceMatrixTest extends TestCase
             'item_name' => 'Bracket B',
             'item_type' => 'MANUFACTURE',
             'target_qty' => 5,
-            'required_stages' => ['CNC'],
+            'required_stages' => ['Machining'],
         ]);
-        $progress2 = ItemProgress::where('item_id', $item2->id)->where('stage_name', 'CNC')->first();
-        if ($progress2) {
+        foreach ($item2->itemProgresses as $progress2) {
             $progress2->update([
                 'completed_qty' => 5,
                 'progress_percent' => 100.00,
@@ -243,32 +241,32 @@ class PerformanceMatrixTest extends TestCase
             'item_name' => 'Gear',
             'item_type' => 'MANUFACTURE',
             'target_qty' => 10,
-            'required_stages' => ['CNC'],
+            'required_stages' => ['Machining'],
         ]);
 
-        // Add 1 stuck progress on CNC
-        $progress = ItemProgress::where('item_id', $item->id)->where('stage_name', 'CNC')->first();
+        // Add 1 stuck progress on Machining
+        $progress = ItemProgress::where('item_id', $item->id)->where('stage_name', 'Machining')->first();
         if ($progress) {
             $progress->update([
                 'status' => 'STUCK',
             ]);
         }
 
-        // Add 1 RED alert on CNC
+        // Add 1 RED alert on Machining
         Alert::create([
             'tenant_id' => $this->tenant->id,
             'item_id' => $item->id,
             'severity' => 'RED',
-            'message' => "Stuck: Machine Broken on stage 'CNC' for item 'Gear' (PO: PO-4).",
+            'message' => "Stuck: Machine Broken on stage 'Machining' for item 'Gear' (PO: PO-4).",
             'is_resolved' => false,
         ]);
 
-        // Add 1 YELLOW alert on CNC (QC Rework)
+        // Add 1 YELLOW alert on Machining (QC Rework)
         Alert::create([
             'tenant_id' => $this->tenant->id,
             'item_id' => $item->id,
             'severity' => 'YELLOW',
-            'message' => "QC Rework: 2 items rejected on stage 'CNC' for item 'Gear' (PO: PO-4).",
+            'message' => "QC Rework: 2 items rejected on stage 'Machining' for item 'Gear' (PO: PO-4).",
             'is_resolved' => false,
         ]);
 
@@ -280,12 +278,12 @@ class PerformanceMatrixTest extends TestCase
 
         $response->assertInertia(function ($page) {
             $metrics = collect($page->toArray()['props']['telemetry']['stage_metrics']);
-            $cncMetric = $metrics->firstWhere('stage', 'CNC');
+            $machiningMetric = $metrics->firstWhere('stage', 'Machining');
 
-            $this->assertNotNull($cncMetric);
-            $this->assertEquals(1, $cncMetric['active_items']);
-            $this->assertEquals(1, $cncMetric['stuck_count']);
-            $this->assertEquals(1, $cncMetric['rework_count']);
+            $this->assertNotNull($machiningMetric);
+            $this->assertEquals(1, $machiningMetric['active_items']);
+            $this->assertEquals(1, $machiningMetric['stuck_count']);
+            $this->assertEquals(1, $machiningMetric['rework_count']);
 
             $delayed = collect($page->toArray()['props']['telemetry']['delayed_items']);
             $this->assertCount(1, $delayed);

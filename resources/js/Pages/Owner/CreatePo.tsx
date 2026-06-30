@@ -36,7 +36,7 @@ const translations = {
         item_type: 'Item Type',
         quantity: 'Quantity',
         stages: 'Production Stages',
-        cnc: 'CNC',
+        cnc: 'Machining',
         fabrication: 'Fabrication',
         vendor: 'Vendor',
         vendor_name: 'Vendor Name',
@@ -65,7 +65,7 @@ const translations = {
         item_type: 'Tipe Item',
         quantity: 'Jumlah',
         stages: 'Tahapan Produksi',
-        cnc: 'CNC',
+        cnc: 'Machining',
         fabrication: 'Fabrikasi',
         vendor: 'Vendor',
         vendor_name: 'Nama Vendor',
@@ -498,7 +498,7 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                                 <div>
                                     <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.stages}</label>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
-                                        {['CNC', 'Fabrication', 'Vendor'].map(stage => {
+                                        {['Machining', 'Fabrication', 'Vendor'].map(stage => {
                                             const stageKey = stage.toLowerCase();
                                             return (
                                                 <label key={stage} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#e2e8f0', cursor: 'pointer' }}>
@@ -508,7 +508,7 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                                                             : [...item.required_stages, stage];
                                                         updateItem(index, 'required_stages', stages);
                                                     }} />
-                                                    {stage === 'CNC' ? t.cnc : stage === 'Fabrication' ? t.fabrication : t.vendor}
+                                                    {stage === 'Machining' ? t.cnc : stage === 'Fabrication' ? t.fabrication : t.vendor}
                                                 </label>
                                             );
                                         })}

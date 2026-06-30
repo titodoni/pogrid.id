@@ -98,6 +98,7 @@ class WorkerDashboardController extends Controller
 
         return Inertia::render('Worker/Dashboard', [
             'items' => $items,
+            'auth_user' => $user,
         ]);
     }
 
@@ -347,7 +348,7 @@ class WorkerDashboardController extends Controller
             ->toArray();
 
         // Ensure default/core stages are included if they aren't in the database yet
-        $coreStages = ['Purchasing', 'CNC', 'Fabrication', 'QC', 'Delivery'];
+        $coreStages = ['Purchasing', 'Machining', 'Fabrication', 'QC', 'Delivery'];
         foreach ($coreStages as $cs) {
             if (! in_array($cs, $stages) && ! in_array(strtolower($cs), array_map('strtolower', $stages))) {
                 $stages[] = $cs;

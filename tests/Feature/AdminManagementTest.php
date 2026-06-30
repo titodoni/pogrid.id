@@ -144,7 +144,7 @@ class AdminManagementTest extends TestCase
                     'item_name' => 'Gear Shaft',
                     'item_type' => 'MANUFACTURE',
                     'target_qty' => 5,
-                    'required_stages' => ['CNC'],
+                    'required_stages' => ['Machining'],
                 ],
                 [
                     'item_name' => 'Cover Plate',
@@ -169,11 +169,11 @@ class AdminManagementTest extends TestCase
         $gearShaft = $items->where('item_name', 'Gear Shaft')->first();
         $this->assertNotNull($gearShaft);
         $this->assertEquals(5, $gearShaft->target_qty);
-        $this->assertEquals(['CNC'], $gearShaft->required_stages);
+        $this->assertEquals(['Machining', 'QC', 'Delivery'], $gearShaft->required_stages);
 
-        // Assert observers auto-created stages
-        $this->assertCount(1, $gearShaft->itemProgresses);
-        $this->assertContains('CNC', $gearShaft->itemProgresses->pluck('stage_name')->toArray());
+        // Assert observers auto-created stages (Machining, QC, and Delivery)
+        $this->assertCount(3, $gearShaft->itemProgresses);
+        $this->assertContains('Machining', $gearShaft->itemProgresses->pluck('stage_name')->toArray());
     }
 
     public function test_administrative_users_cannot_log_in_via_pin()
