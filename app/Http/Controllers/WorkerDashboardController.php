@@ -54,7 +54,7 @@ class WorkerDashboardController extends Controller
         $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
         if (in_array(strtoupper($user->role), $officeRoles)) {
             $pos = Po::with('items.itemProgresses')->get();
-            $alerts = Alert::where('is_resolved', false)->get();
+            $alerts = Alert::with('item')->where('is_resolved', false)->get();
             $users = User::get();
 
             $range = $request->input('range', 'month');

@@ -167,6 +167,10 @@ interface Alert {
     severity: string;
     message: string;
     is_resolved: boolean;
+    item?: {
+        id: number;
+        po_id: number;
+    };
 }
 
 interface DoItem {
@@ -380,6 +384,116 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
 
     const handleRangeChange = (newRange: string) => {
         router.get(window.location.pathname, { range: newRange }, { preserveState: true });
+    };
+
+    const getUnifiedIssuesList = () => {
+        const issues: {
+            id: string;
+            po_id?: number;
+            severity: 'RED' | 'YELLOW' | 'BLUE' | 'ORANGE';
+            type: 'DELAYED' | 'URGENT' | 'REWORK' | 'TROUBLE' | 'STUCK' | 'PIN_RESET' | 'OTHER';
+            title: string;
+            message: string;
+            action?: () => void;
+        }[] = [];
+
+        const today = new Date();
+        const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+        // 1. Process active POs and items for delayed, close deadline, stuck, reworks, trouble
+        pos.forEach(po => {
+            if (po.status === 'COMPLETED') return;
+
+            const deadline = new Date(po.global_deadline);
+            const deadlineClean = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
+            const diffTime = deadlineClean.getTime() - todayClean.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            po.items.forEach(item => {
+                if (item.status === 'COMPLETED' || item.status === 'CANCELLED' || item.status === 'TERMINATED') return;
+
+                // A. Check Delayed (deadline passed)
+                if (diffDays < 0) {
+                    issues.push({
+                        id: `delayed-${item.id}`,
+                        po_id: po.id,
+                        severity: 'RED',
+                        type: 'DELAYED',
+                        title: language === 'en' ? 'DELAYED' : 'TERLAMBAT',
+                        message: language === 'en' 
+                            ? `Item "${item.item_name}" for client "${po.client_name}" is delayed by ${Math.abs(diffDays)} day(s).`
+                            : `Item "${item.item_name}" untuk klien "${po.client_name}" terlambat ${Math.abs(diffDays)} hari.`,
+                    });
+                }
+                // B. Check Close Deadline (within 3 days)
+                else if (diffDays <= 3) {
+                    const daysText = diffDays === 0 
+                        ? (language === 'en' ? 'Today' : 'Hari Ini') 
+                        : (language === 'en' ? `${diffDays} more day(s)` : `${diffDays} hari lagi`);
+                    issues.push({
+                        id: `close-${item.id}`,
+                        po_id: po.id,
+                        severity: 'YELLOW',
+                        type: 'URGENT',
+                        title: language === 'en' ? 'DEADLINE CLOSE' : 'TENGGAT DEKAT',
+                        message: language === 'en'
+                            ? `Item "${item.item_name}" for client "${po.client_name}" is approaching deadline (${daysText}).`
+                            : `Item "${item.item_name}" untuk klien "${po.client_name}" mendekati tenggat waktu (${daysText}).`,
+                    });
+                }
+
+                // C. Check Stuck stages
+                if (item.item_progresses) {
+                    item.item_progresses.forEach(progress => {
+                        if (progress.status === 'STUCK') {
+                            issues.push({
+                                id: `stuck-stage-${progress.id}`,
+                                po_id: po.id,
+                                severity: 'RED',
+                                type: 'STUCK',
+                                title: language === 'en' ? 'STAGE STUCK' : 'TAHAP STUCK',
+                                message: language === 'en'
+                                    ? `Production stage "${progress.stage_name}" for item "${item.item_name}" is stuck.`
+                                    : `Tahap produksi "${progress.stage_name}" untuk item "${item.item_name}" dalam kondisi stuck.`,
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        // 2. Process database alerts
+        alerts.forEach(alert => {
+            const isPinReset = alert.message.startsWith('PIN Reset Requested');
+            
+            if (isPinReset) {
+                issues.push({
+                    id: `alert-pin-${alert.id}`,
+                    severity: 'BLUE',
+                    type: 'PIN_RESET',
+                    title: language === 'en' ? 'PIN RESET REQUEST' : 'PERMINTAAN RESET PIN',
+                    message: alert.message,
+                    action: () => router.post(`/pin-reset/${alert.id}/approve`)
+                });
+            } else {
+                const severity: 'RED' | 'YELLOW' | 'ORANGE' = alert.severity === 'RED' ? 'RED' : 'ORANGE';
+                const type = alert.severity === 'RED' ? 'TROUBLE' : 'REWORK';
+                const title = type === 'TROUBLE' 
+                    ? (language === 'en' ? 'PRODUCTION TROUBLE' : 'KENDALA PRODUKSI')
+                    : (language === 'en' ? 'QC REWORK ALERT' : 'PERINGATAN REWORK QC');
+
+                issues.push({
+                    id: `alert-db-${alert.id}`,
+                    po_id: alert.item?.po_id,
+                    severity: severity,
+                    type: type,
+                    title: title,
+                    message: alert.message,
+                });
+            }
+        });
+
+        return issues;
     };
     const [expandedPOs, setExpandedPOs] = useState<Set<number>>(new Set());
     const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
@@ -786,87 +900,119 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
             </div>
 
             {/* Alert Matrix Panel */}
-            {activeTab === 'alerts' && (
-                <div style={{ marginBottom: '32px' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>{t.unresolved_alerts}</span>
-                        <span style={{
-                            fontSize: '12px',
-                            backgroundColor: alerts.length > 0 ? '#ef4444' : '#10b981',
-                            color: '#fff',
-                            padding: '2px 8px',
-                            borderRadius: '12px'
-                        }}>
-                            {alerts.length} Triggered
-                        </span>
-                    </h2>
+            {activeTab === 'alerts' && (() => {
+                const unifiedIssues = getUnifiedIssuesList();
+                return (
+                    <div style={{ marginBottom: '32px' }}>
+                        <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span>{t.unresolved_alerts}</span>
+                            <span style={{
+                                fontSize: '12px',
+                                backgroundColor: unifiedIssues.length > 0 ? '#ef4444' : '#10b981',
+                                color: '#fff',
+                                padding: '2px 8px',
+                                borderRadius: '12px'
+                            }}>
+                                {unifiedIssues.length} Triggered
+                            </span>
+                        </h2>
 
-                    {alerts.length === 0 ? (
-                        <div style={{
-                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                            border: '1px solid rgba(16, 185, 129, 0.15)',
-                            borderRadius: '12px',
-                            padding: '16px',
-                            color: '#10b981',
-                            fontSize: '14px',
-                            fontWeight: 500
-                        }}>
-                            <DotGreen size={10} /> All manufacturing timelines are healthy and no operational failures are reported.
-                        </div>
-                    ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
-                            {alerts.map((alert) => {
-                                const isPinReset = alert.message.startsWith('PIN Reset Requested');
-                                const bgColor = alert.severity === 'RED' ? 'rgba(239, 68, 68, 0.08)' : alert.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.08)' : 'rgba(234, 179, 8, 0.08)';
-                                const bdColor = alert.severity === 'RED' ? 'rgba(239, 68, 68, 0.2)' : alert.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(234, 179, 8, 0.2)';
-                                const badgeBg = alert.severity === 'RED' ? '#ef4444' : alert.severity === 'BLUE' ? '#3b82f6' : '#eab308';
-                                return (
-                                    <div
-                                        key={alert.id}
-                                        style={{
-                                            backgroundColor: bgColor,
-                                            border: '1px solid',
-                                            borderColor: bdColor,
-                                            borderRadius: '10px',
-                                            padding: '14px 18px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '12px'
-                                        }}
-                                    >
-                                        <span className="badge" style={{
-                                            color: '#fff',
-                                            backgroundColor: badgeBg,
-                                        }}>
-                                            {alert.severity}
-                                        </span>
-                                        <div style={{ fontSize: '14px', color: '#e2e8f0', flexGrow: 1 }}>{alert.message}</div>
-                                        {isPinReset && (
-                                            <button
-                                                type="button"
-                                                onClick={() => router.post(`/pin-reset/${alert.id}/approve`)}
-                                                style={{
-                                                    padding: '6px 14px',
-                                                    backgroundColor: '#3b82f6',
-                                                    color: '#fff',
-                                                    border: 'none',
-                                                    borderRadius: '6px',
-                                                    fontWeight: 600,
-                                                    fontSize: '12px',
-                                                    cursor: 'pointer',
-                                                    whiteSpace: 'nowrap'
-                                                }}
-                                            >
-                                                Approve & Generate PIN
-                                            </button>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
-            )}
+                        {unifiedIssues.length === 0 ? (
+                            <div style={{
+                                backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                                border: '1px solid rgba(16, 185, 129, 0.15)',
+                                borderRadius: '12px',
+                                padding: '16px',
+                                color: '#10b981',
+                                fontSize: '14px',
+                                fontWeight: 500
+                            }}>
+                                <DotGreen size={10} /> All manufacturing timelines are healthy and no operational failures are reported.
+                            </div>
+                        ) : (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                                {unifiedIssues.map((issue) => {
+                                    const bgColor = issue.severity === 'RED' ? 'rgba(239, 68, 68, 0.08)' 
+                                        : issue.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.08)' 
+                                        : issue.severity === 'ORANGE' ? 'rgba(249, 115, 22, 0.08)'
+                                        : 'rgba(234, 179, 8, 0.08)';
+                                    const bdColor = issue.severity === 'RED' ? 'rgba(239, 68, 68, 0.2)' 
+                                        : issue.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.2)' 
+                                        : issue.severity === 'ORANGE' ? 'rgba(249, 115, 22, 0.2)'
+                                        : 'rgba(234, 179, 8, 0.2)';
+                                    const badgeBg = issue.severity === 'RED' ? '#ef4444' 
+                                        : issue.severity === 'BLUE' ? '#3b82f6' 
+                                        : issue.severity === 'ORANGE' ? '#f97316'
+                                        : '#eab308';
+                                    const badgeText = issue.title;
+
+                                    return (
+                                        <div
+                                            key={issue.id}
+                                            onClick={() => {
+                                                if (issue.po_id) {
+                                                    setActiveTab('active');
+                                                    togglePO(issue.po_id);
+                                                }
+                                            }}
+                                            style={{
+                                                backgroundColor: bgColor,
+                                                border: '1px solid',
+                                                borderColor: bdColor,
+                                                borderRadius: '10px',
+                                                padding: '14px 18px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '12px',
+                                                cursor: issue.po_id ? 'pointer' : 'default',
+                                                transition: 'all 0.2s',
+                                            }}
+                                            className={issue.po_id ? 'hover-grow' : ''}
+                                        >
+                                            <span className="badge" style={{
+                                                color: '#fff',
+                                                backgroundColor: badgeBg,
+                                                fontSize: '10px',
+                                                fontWeight: 800,
+                                                padding: '3px 8px',
+                                                borderRadius: '4px',
+                                                whiteSpace: 'nowrap'
+                                            }}>
+                                                {badgeText}
+                                            </span>
+                                            <div style={{ fontSize: '14px', color: '#e2e8f0', flexGrow: 1 }}>
+                                                {issue.message}
+                                            </div>
+                                            {issue.action && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        issue.action?.();
+                                                    }}
+                                                    style={{
+                                                        padding: '6px 14px',
+                                                        backgroundColor: '#3b82f6',
+                                                        color: '#fff',
+                                                        border: 'none',
+                                                        borderRadius: '6px',
+                                                        fontWeight: 600,
+                                                        fontSize: '12px',
+                                                        cursor: 'pointer',
+                                                        whiteSpace: 'nowrap'
+                                                    }}
+                                                >
+                                                    {language === 'en' ? 'Approve & Generate PIN' : 'Setujui & Buat PIN'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
 
             {/* PO Grid Section */}
             {(activeTab === 'active' || activeTab === 'completed') && (
