@@ -57,6 +57,110 @@ const formatDeadline = (deadlineDateStr: string, lang: 'en' | 'id') => {
     }
 };
 
+const renderWarningPill = (deadlineDateStr: string | undefined, hasRework: boolean, lang: 'en' | 'id') => {
+    if (!deadlineDateStr) return null;
+    
+    // Check Rework first (takes precedence or is a high priority status)
+    if (hasRework) {
+        return (
+            <span className="badge" style={{
+                backgroundColor: 'rgba(249, 115, 22, 0.15)', // Orange background
+                color: '#f97316', // Orange text
+                border: '1px solid rgba(249, 115, 22, 0.2)',
+                fontSize: '11px',
+                padding: '3px 8px',
+                fontWeight: 700,
+                borderRadius: '6px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+            }}>
+                <span style={{ width: '6px', height: '6px', backgroundColor: '#f97316', borderRadius: '50%' }} />
+                {lang === 'id' ? 'Rework' : 'Rework'}
+            </span>
+        );
+    }
+
+    const deadline = new Date(deadlineDateStr);
+    const deadlineClean = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
+    const today = new Date();
+    const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    const diffTime = deadlineClean.getTime() - todayClean.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+        // Red warning (delayed)
+        const days = Math.abs(diffDays);
+        const text = lang === 'id' 
+            ? `Terlambat ${days} hari` 
+            : `Delayed ${days} day${days > 1 ? 's' : ''}`;
+        return (
+            <span className="badge" style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.15)', // Red background
+                color: '#ef4444', // Red text
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                fontSize: '11px',
+                padding: '3px 8px',
+                fontWeight: 700,
+                borderRadius: '6px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+            }}>
+                <span style={{ width: '6px', height: '6px', backgroundColor: '#ef4444', borderRadius: '50%' }} />
+                {text}
+            </span>
+        );
+    } else if (diffDays <= 3) {
+        // Yellow warning (deadline close)
+        let text = '';
+        if (diffDays === 0) {
+            text = lang === 'id' ? 'Hari Ini' : 'Today';
+        } else {
+            text = lang === 'id' 
+                ? `${diffDays} hari lagi` 
+                : `${diffDays} more day${diffDays > 1 ? 's' : ''}`;
+        }
+        return (
+            <span className="badge" style={{
+                backgroundColor: 'rgba(234, 179, 8, 0.15)', // Yellow background
+                color: '#eab308', // Yellow text
+                border: '1px solid rgba(234, 179, 8, 0.2)',
+                fontSize: '11px',
+                padding: '3px 8px',
+                fontWeight: 700,
+                borderRadius: '6px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+            }}>
+                <span style={{ width: '6px', height: '6px', backgroundColor: '#eab308', borderRadius: '50%' }} />
+                {text}
+            </span>
+        );
+    } else {
+        // Green warning (normal/on track)
+        return (
+            <span className="badge" style={{
+                backgroundColor: 'rgba(16, 185, 129, 0.15)', // Green background
+                color: '#10b981', // Green text
+                border: '1px solid rgba(16, 185, 129, 0.2)',
+                fontSize: '11px',
+                padding: '3px 8px',
+                fontWeight: 700,
+                borderRadius: '6px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+            }}>
+                <span style={{ width: '6px', height: '6px', backgroundColor: '#10b981', borderRadius: '50%' }} />
+                {lang === 'id' ? 'Normal' : 'Normal'}
+            </span>
+        );
+    }
+};
+
 interface Alert {
     id: number;
     item_id: number;
@@ -829,6 +933,12 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                                             URGENT
                                                         </span>
                                                     )}
+                                                    {(() => {
+                                                        const poItemIds = po.items.map(i => i.id);
+                                                        const poAlerts = alerts.filter(a => poItemIds.includes(a.item_id) && !a.is_resolved);
+                                                        const hasRework = poAlerts.some(a => a.severity === 'YELLOW');
+                                                        return renderWarningPill(po.global_deadline, hasRework, language);
+                                                    })()}
                                                 </div>
                                                 <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
                                                     {po.client_name} &middot; {formatDeadline(po.global_deadline, language)}
@@ -872,6 +982,11 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                                                             }}>
                                                                                 {item.status}
                                                                             </span>
+                                                                            {(() => {
+                                                                                const itemAlerts = alerts.filter(a => a.item_id === item.id && !a.is_resolved);
+                                                                                const hasRework = itemAlerts.some(a => a.severity === 'YELLOW');
+                                                                                return renderWarningPill(po.global_deadline, hasRework, language);
+                                                                            })()}
                                                                         </div>
                                                                     </div>
                                                                     <div className="progress-bar-mini" style={{ maxWidth: '100px' }}>

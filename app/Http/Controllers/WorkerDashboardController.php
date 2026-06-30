@@ -75,7 +75,9 @@ class WorkerDashboardController extends Controller
         }
 
         // Otherwise, render floor operators dashboard
-        $items = Item::with(['itemProgresses', 'po'])
+        $items = Item::with(['itemProgresses', 'po', 'alerts' => function ($q) {
+            $q->where('is_resolved', false);
+        }])
             ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])
             ->get();
 
