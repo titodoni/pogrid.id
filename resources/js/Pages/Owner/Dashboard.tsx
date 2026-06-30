@@ -109,6 +109,8 @@ interface Props {
         slug: string;
     };
     auth_user?: User;
+    telemetry?: any;
+    selected_range?: string;
 }
 
 const translations = {
@@ -141,6 +143,28 @@ const translations = {
         admin_password: "Password",
         create_admin: "Create Admin",
         admin_subtitle: "Create an administrator account with full system access.",
+        performance_matrix: "Performance Matrix",
+        on_time_delivery: "On-Time Deliv. %",
+        parts_manufactured: "Parts Manufactured",
+        active_risks: "Active Risks",
+        avg_delay: "Avg Delay",
+        this_week: "This Week",
+        this_month: "This Month",
+        this_year: "This Year",
+        bottleneck_analyzer: "Bottleneck Stage Analyzer",
+        stage: "Stage",
+        active_items: "Active Items",
+        stuck_incidents: "Stuck Incidents",
+        rework_count: "Rework Count",
+        avg_cycle_time: "Avg. Cycle Time (Days)",
+        production_overdue_trends: "Production Output & Overdue Trends",
+        why_delayed_reasons: "\"Why Delayed\" Reasons",
+        export_pdf: "Export PDF",
+        presentation_mode: "Presentation Mode",
+        exit_presentation: "Exit Presentation Mode",
+        no_incidents: "No operational failures logged.",
+        legend_completed: "Completed Qty",
+        legend_overdue: "Overdue Count",
     },
     id: {
         owner_command_center: "Pusat Kendali",
@@ -171,10 +195,32 @@ const translations = {
         admin_password: "Kata Sandi",
         create_admin: "Buat Admin",
         admin_subtitle: "Buat akun administrator dengan akses penuh ke sistem.",
+        performance_matrix: "Matriks Kinerja",
+        on_time_delivery: "% Pengiriman Tepat Waktu",
+        parts_manufactured: "Bagian Diproduksi",
+        active_risks: "Risiko Aktif",
+        avg_delay: "Rata-rata Keterlambatan",
+        this_week: "Minggu Ini",
+        this_month: "Bulan Ini",
+        this_year: "Tahun Ini",
+        bottleneck_analyzer: "Analisis Tahap Hambatan (Bottleneck)",
+        stage: "Tahap",
+        active_items: "Item Aktif",
+        stuck_incidents: "Insiden Stuck",
+        rework_count: "Jumlah Rework",
+        avg_cycle_time: "Rata-rata Waktu Siklus (Hari)",
+        production_overdue_trends: "Tren Output Produksi & Keterlambatan",
+        why_delayed_reasons: "Alasan Keterlambatan",
+        export_pdf: "Ekspor PDF",
+        presentation_mode: "Mode Presentasi",
+        exit_presentation: "Keluar Mode Presentasi",
+        no_incidents: "Tidak ada kegagalan operasional yang tercatat.",
+        legend_completed: "Selesai",
+        legend_overdue: "Terlambat",
     }
 };
 
-export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }: Props) {
+export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, telemetry, selected_range }: Props) {
     const { errors } = usePage().props;
 
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
@@ -191,7 +237,26 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
 
     const t = translations[language];
 
-    const [activeTab, setActiveTab] = useState<'alerts' | 'active' | 'completed'>('alerts');
+    const [activeTab, setActiveTab] = useState<'alerts' | 'active' | 'completed' | 'matrix'>('alerts');
+    const [isPresentationMode, setIsPresentationMode] = useState(false);
+
+    const togglePresentationMode = () => {
+        setIsPresentationMode(prev => {
+            const next = !prev;
+            if (typeof window !== 'undefined') {
+                if (next) {
+                    document.body.classList.add('presentation-mode');
+                } else {
+                    document.body.classList.remove('presentation-mode');
+                }
+            }
+            return next;
+        });
+    };
+
+    const handleRangeChange = (newRange: string) => {
+        router.get(window.location.pathname, { range: newRange }, { preserveState: true });
+    };
     const [expandedPOs, setExpandedPOs] = useState<Set<number>>(new Set());
     const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
 
@@ -591,6 +656,9 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                 <button className={`tab ${activeTab === 'completed' ? 'tab-active' : ''}`} onClick={() => setActiveTab('completed')}>
                     Completed
                 </button>
+                <button className={`tab ${activeTab === 'matrix' ? 'tab-active' : ''}`} onClick={() => setActiveTab('matrix')}>
+                    {t.performance_matrix}
+                </button>
             </div>
 
             {/* Alert Matrix Panel */}
@@ -917,6 +985,367 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                             })}
                         </div>
                     )}
+                </div>
+            )}
+
+            {activeTab === 'matrix' && telemetry && (
+                <div className="performance-matrix-container" style={{ marginBottom: '40px' }}>
+                    {/* Timeframe Filter Bar */}
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '24px',
+                        flexWrap: 'wrap',
+                        gap: '12px'
+                    }}>
+                        <div style={{ display: 'flex', gap: '8px', backgroundColor: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            {['week', 'month', 'year'].map(r => (
+                                <button
+                                    key={r}
+                                    onClick={() => handleRangeChange(r)}
+                                    style={{
+                                        padding: '6px 12px',
+                                        backgroundColor: selected_range === r ? '#2563eb' : 'transparent',
+                                        color: selected_range === r ? '#fff' : '#94a3b8',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        fontWeight: 600,
+                                        fontSize: '12px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {r === 'week' ? t.this_week : r === 'month' ? t.this_month : t.this_year}
+                                </button>
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                                onClick={togglePresentationMode}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: 'rgba(255,255,255,0.05)',
+                                    color: '#e2e8f0',
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    borderRadius: '8px',
+                                    fontWeight: 600,
+                                    fontSize: '12px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {isPresentationMode ? t.exit_presentation : t.presentation_mode}
+                            </button>
+                            <a
+                                href={`/c/${tenant?.slug}/export-pdf?range=${selected_range || 'month'}`}
+                                target="_blank"
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#2563eb',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontWeight: 600,
+                                    fontSize: '12px',
+                                    textDecoration: 'none',
+                                    display: 'inline-flex',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                {t.export_pdf}
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* KPI Summary Cards */}
+                    <div className="kpi-grid" style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                        gap: '16px',
+                        marginBottom: '24px'
+                    }}>
+                        <div className="kpi-card" style={{
+                            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                            borderRadius: '12px',
+                            padding: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px'
+                        }}>
+                            <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>{t.on_time_delivery}</span>
+                            <span style={{ fontSize: '24px', fontWeight: 800, color: '#10b981' }}>{telemetry.otdr}%</span>
+                        </div>
+                        <div className="kpi-card" style={{
+                            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                            borderRadius: '12px',
+                            padding: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px'
+                        }}>
+                            <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>{t.parts_manufactured}</span>
+                            <span style={{ fontSize: '24px', fontWeight: 800, color: '#3b82f6' }}>{telemetry.manufacture.completed} / {telemetry.manufacture.target} Pcs</span>
+                        </div>
+                        <div className="kpi-card" style={{
+                            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                            borderRadius: '12px',
+                            padding: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px'
+                        }}>
+                            <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>{t.active_risks}</span>
+                            <span style={{ fontSize: '24px', fontWeight: 800, color: '#ef4444' }}>
+                                {telemetry.risks.red} Red / {telemetry.risks.yellow} Yel
+                            </span>
+                        </div>
+                        <div className="kpi-card" style={{
+                            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                            borderRadius: '12px',
+                            padding: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px'
+                        }}>
+                            <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>{t.avg_delay}</span>
+                            <span style={{ fontSize: '24px', fontWeight: 800, color: '#f59e0b' }}>{telemetry.avg_delay_days} {language === 'en' ? 'Days' : 'Hari'}</span>
+                        </div>
+                    </div>
+
+                    {/* Chart Row */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                        gap: '20px',
+                        marginBottom: '24px'
+                    }}>
+                        {/* Output and Overdue Trends Chart */}
+                        <div style={{
+                            backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                            border: '1px solid rgba(255,255,255,0.05)',
+                            borderRadius: '16px',
+                            padding: '20px'
+                        }}>
+                            <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', marginBottom: '16px' }}>{t.production_overdue_trends}</h3>
+                            <div style={{ width: '100%', overflowX: 'auto' }}>
+                                <svg width="100%" height="200" viewBox="0 0 500 200" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+                                    {/* Grid Lines */}
+                                    <line x1="40" y1="20" x2="480" y2="20" stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
+                                    <line x1="40" y1="70" x2="480" y2="70" stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
+                                    <line x1="40" y1="120" x2="480" y2="120" stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
+                                    <line x1="40" y1="170" x2="480" y2="170" stroke="rgba(255,255,255,0.1)" />
+
+                                    {/* Data Rendering */}
+                                    {(() => {
+                                        const trend = telemetry.trend_data || [];
+                                        const maxY = Math.max(...trend.map((d: any) => Math.max(d.output, d.overdue)), 5);
+                                        const count = trend.length;
+                                        const width = 440;
+                                        const chartHeight = 150;
+                                        const topOffset = 20;
+                                        const leftOffset = 40;
+
+                                        // Render Bars (Output)
+                                        const bars = trend.map((d: any, idx: number) => {
+                                            const step = width / count;
+                                            const barWidth = Math.max(step * 0.4, 10);
+                                            const x = leftOffset + idx * step + (step - barWidth) / 2;
+                                            const barHeight = (d.output / maxY) * chartHeight;
+                                            const y = topOffset + chartHeight - barHeight;
+
+                                            return (
+                                                <g key={`bar-${idx}`}>
+                                                    <rect x={x} y={y} width={barWidth} height={barHeight} fill="#3b82f6" rx="2" style={{ transition: 'all 0.3s' }} />
+                                                    <text x={x + barWidth/2} y={y - 4} textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="600">{d.output}</text>
+                                                </g>
+                                            );
+                                        });
+
+                                        // Render Line (Overdue)
+                                        const linePoints = trend.map((d: any, idx: number) => {
+                                            const step = width / count;
+                                            const x = leftOffset + idx * step + step / 2;
+                                            const y = topOffset + chartHeight - (d.overdue / maxY) * chartHeight;
+                                            return { x, y, val: d.overdue };
+                                        });
+
+                                        let pathD = '';
+                                        if (linePoints.length > 0) {
+                                            pathD = `M ${linePoints[0].x} ${linePoints[0].y} ` + linePoints.slice(1).map((p: any) => `L ${p.x} ${p.y}`).join(' ');
+                                        }
+
+                                        const lineAndPoints = (
+                                            <g>
+                                                {pathD && <path d={pathD} fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />}
+                                                {linePoints.map((p: any, idx: number) => (
+                                                    <g key={`pt-${idx}`}>
+                                                        <circle cx={p.x} cy={p.y} r="4" fill="#ef4444" stroke="#090d16" strokeWidth="1" />
+                                                        <text x={p.x} y={p.y - 6} textAnchor="middle" fill="#ef4444" fontSize="8" fontWeight="600">{p.val}</text>
+                                                    </g>
+                                                ))}
+                                            </g>
+                                        );
+
+                                        // Labels
+                                        const labels = trend.map((d: any, idx: number) => {
+                                            const step = width / count;
+                                            const x = leftOffset + idx * step + step / 2;
+                                            return (
+                                                <text key={`lbl-${idx}`} x={x} y={topOffset + chartHeight + 15} textAnchor="middle" fill="#64748b" fontSize="9" fontWeight="600">
+                                                    {d.label}
+                                                </text>
+                                            );
+                                        });
+
+                                        return (
+                                            <>
+                                                {bars}
+                                                {lineAndPoints}
+                                                {labels}
+                                            </>
+                                        );
+                                    })()}
+                                </svg>
+                            </div>
+                            <div style={{ display: 'flex', gap: '16px', marginTop: '16px', justifyContent: 'center', fontSize: '11px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <span style={{ display: 'inline-block', width: '12px', height: '12px', backgroundColor: '#3b82f6', borderRadius: '3px' }} />
+                                    <span style={{ color: '#94a3b8' }}>{t.legend_completed}</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <span style={{ display: 'inline-block', width: '12px', height: '2px', backgroundColor: '#ef4444' }} />
+                                    <span style={{ color: '#94a3b8' }}>{t.legend_overdue}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Why Delayed Pie Chart */}
+                        <div style={{
+                            backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                            border: '1px solid rgba(255,255,255,0.05)',
+                            borderRadius: '16px',
+                            padding: '20px'
+                        }}>
+                            <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', marginBottom: '16px' }}>{t.why_delayed_reasons}</h3>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px', flexWrap: 'wrap' }}>
+                                {(() => {
+                                    const reasons = telemetry.delay_reasons || {};
+                                    const total = Object.values(reasons).reduce((a: any, b: any) => a + b, 0) as number;
+                                    const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#a855f7', '#64748b'];
+
+                                    if (total === 0) {
+                                        return (
+                                            <div style={{ color: '#64748b', fontSize: '13px', padding: '40px 0' }}>
+                                                {t.no_incidents}
+                                            </div>
+                                        );
+                                    }
+
+                                    // Let's render circles using strokeDasharray
+                                    const C = 314.159;
+                                    let accumulatedPercentage = 0;
+
+                                    const circles = Object.entries(reasons).map(([key, val]: any, idx: number) => {
+                                        if (val === 0) return null;
+                                        const pct = (val / total) * 100;
+                                        const strokeLength = C * (pct / 100);
+                                        const offset = C - (accumulatedPercentage / 100) * C;
+                                        accumulatedPercentage += pct;
+
+                                        return (
+                                            <circle
+                                                key={`slice-${idx}`}
+                                                cx="60" cy="60" r="50"
+                                                fill="transparent"
+                                                stroke={colors[idx % colors.length]}
+                                                strokeWidth="14"
+                                                strokeDasharray={`${strokeLength} ${C - strokeLength}`}
+                                                strokeDashoffset={offset}
+                                                transform="rotate(-90 60 60)"
+                                                style={{ transition: 'all 0.3s' }}
+                                            />
+                                        );
+                                    });
+
+                                    return (
+                                        <>
+                                            <svg width="120" height="120" viewBox="0 0 120 120" style={{ overflow: 'visible' }}>
+                                                {circles}
+                                            </svg>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                {Object.entries(reasons).map(([key, val]: any, idx: number) => {
+                                                    if (val === 0) return null;
+                                                    return (
+                                                        <div key={`legend-${idx}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
+                                                            <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: colors[idx % colors.length], borderRadius: '50%' }} />
+                                                            <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{key}: {val}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </>
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottleneck Analyzer Table */}
+                    <div style={{
+                        backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                        borderRadius: '16px',
+                        padding: '20px'
+                    }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#f8fafc', marginBottom: '16px' }}>{t.bottleneck_analyzer}</h3>
+                        <div style={{ width: '100%', overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                                        <th style={{ textAlign: 'left', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.stage}</th>
+                                        <th style={{ textAlign: 'center', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.active_items}</th>
+                                        <th style={{ textAlign: 'center', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.stuck_incidents}</th>
+                                        <th style={{ textAlign: 'center', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.rework_count}</th>
+                                        <th style={{ textAlign: 'right', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.avg_cycle_time}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {telemetry.stage_metrics && telemetry.stage_metrics.map((metric: any, idx: number) => {
+                                        return (
+                                            <tr key={`stage-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#e2e8f0' }}>
+                                                <td style={{ padding: '12px 16px', fontWeight: 700 }}>{metric.stage.toUpperCase()}</td>
+                                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>{metric.active_items}</td>
+                                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                                    {metric.stuck_count > 0 ? (
+                                                        <span className="badge" style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                                                            {metric.stuck_count} stuck
+                                                        </span>
+                                                    ) : (
+                                                        '0'
+                                                    )}
+                                                </td>
+                                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                                    {metric.rework_count > 0 ? (
+                                                        <span className="badge" style={{ backgroundColor: 'rgba(234, 179, 8, 0.15)', color: '#eab308' }}>
+                                                            {metric.rework_count} rework
+                                                        </span>
+                                                    ) : (
+                                                        '0'
+                                                    )}
+                                                </td>
+                                                <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 700, color: '#3b82f6' }}>
+                                                    {metric.avg_cycle_time.toFixed(2)}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             )}
 

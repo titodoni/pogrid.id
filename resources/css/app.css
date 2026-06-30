@@ -326,3 +326,80 @@ input, select, textarea {
         box-shadow: 0 -8px 40px rgba(0,0,0,0.5) !important;
     }
 }
+
+/* Presentation Mode Styles */
+.presentation-mode {
+    padding: 0 !important;
+    max-width: 100% !important;
+}
+.presentation-mode header,
+.presentation-mode .floor-terminal-box,
+.presentation-mode .tab-bar,
+.presentation-mode .settings-dropdown,
+.presentation-mode .alert-box {
+    display: none !important;
+}
+
+/* Print CSS Layout Rules */
+@media print {
+    body, html {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 11px !important;
+    }
+    header, 
+    .tab-bar, 
+    .floor-terminal-box, 
+    button, 
+    a, 
+    input, 
+    select, 
+    textarea,
+    .mobile-actions,
+    .desktop-actions,
+    .settings-dropdown {
+        display: none !important;
+    }
+    .po-accordion {
+        background: transparent !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+    }
+    .po-accordion-header {
+        color: #0f172a !important;
+        border-bottom: 1px solid #cbd5e1 !important;
+    }
+    .item-compact {
+        background: transparent !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #0f172a !important;
+        box-shadow: none !important;
+    }
+    .item-compact-summary {
+        color: #0f172a !important;
+    }
+    .badge {
+        border: 1px solid #cbd5e1 !important;
+        background: #f8fafc !important;
+        color: #0f172a !important;
+    }
+    .performance-matrix-container {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+    }
+    .kpi-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 10px !important;
+    }
+    .kpi-card {
+        background-color: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+    }
+}

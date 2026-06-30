@@ -18,13 +18,13 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
-    
+
     // Forgot Password
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
     Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
     Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
-    
+
     // Onboarding / Registration
     Route::get('/register', [RegistrationController::class, 'showRegister'])->name('register');
     Route::post('/register', [RegistrationController::class, 'register']);
@@ -32,16 +32,16 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    
+
     // Owner Dashboard & Control routes
     Route::get('/dashboard', [OwnerDashboardController::class, 'index'])->name('dashboard');
     Route::post('/items/{itemId}/cancel', [OwnerDashboardController::class, 'cancelItem']);
     Route::post('/items/{itemId}/terminate', [OwnerDashboardController::class, 'terminateMidway']);
-    
+
     // PO Broadcasting
     Route::get('/pos/create', [OwnerDashboardController::class, 'create'])->name('pos.create');
     Route::post('/pos', [OwnerDashboardController::class, 'createPo']);
-    
+
     // User Management
     Route::post('/users', [OwnerDashboardController::class, 'createUser']);
     Route::post('/users/{userId}/update', [OwnerDashboardController::class, 'updateUser']);
@@ -64,6 +64,7 @@ Route::prefix('c/{slug}')->group(function () {
     Route::post('/pin-reset/request', [PinResetController::class, 'requestPinReset']);
 
     Route::middleware('auth')->group(function () {
+        Route::get('/export-pdf', [WorkerDashboardController::class, 'exportPdf']);
         Route::post('/progress/{progressId}/update', [WorkerDashboardController::class, 'updateProgress']);
         Route::post('/progress/{progressId}/kendala', [WorkerDashboardController::class, 'reportKendala']);
         Route::post('/progress/{progressId}/rework', [WorkerDashboardController::class, 'logQcRework']);
