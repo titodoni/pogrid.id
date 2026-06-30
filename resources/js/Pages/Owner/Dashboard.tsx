@@ -113,108 +113,64 @@ interface Props {
 
 const translations = {
     en: {
-        owner_command_center: "Owner Command Center",
-        subtitle_realtime: "Real-time production monitoring & risk guardrail",
-        po_directory: "Purchase Order (PO) Directory",
-        broadcast_new_po: "Broadcast New PO",
-        no_pos: "No Purchase Orders found.",
-        unresolved_alerts: "Unresolved Floor Alerts",
+        owner_command_center: "Command Center",
+        subtitle_realtime: "Real-time production monitoring & risk control",
+        po_directory: "PO Directory",
+        broadcast_new_po: "New PO",
+        no_pos: "No POs found.",
+        unresolved_alerts: "Open Alerts",
         validation_error: "Validation Error",
-        floor_terminal_url: "Floor Terminal URL",
-        floor_terminal_desc: "Share this URL with floor operators to let them log in with their PINs:",
+        floor_terminal_url: "Worker Terminal URL",
+        floor_terminal_desc: "Share this link with workers to log in using their PIN:",
         settings: "Settings",
         change_password: "Change Password",
-        add_admin: "Add Administrator",
-        color_themes: "Color Themes",
+        add_admin: "Add Admin",
+        color_themes: "Themes",
         coming_soon: "Coming Soon",
         language_label: "Language",
         lang_en: "English",
-        lang_id: "Indonesia",
+        lang_id: "Bahasa Indonesia",
         current_password: "Current Password",
         new_password: "New Password",
-        confirm_password: "Confirm New Password",
+        confirm_password: "Confirm Password",
         cancel: "Cancel",
         submit: "Submit",
         save_changes: "Save Changes",
         admin_name: "Full Name",
         admin_username: "Username",
         admin_password: "Password",
-        create_admin: "Create Administrator",
-        admin_subtitle: "Create a new administrator account with full access.",
-        broadcast_po_title: "Broadcast New Purchase Order",
-        broadcast_po_subtitle: "Input internal/external PO metadata and schedule parallel item stages.",
-        po_number_label: "PO Number (Internal)",
-        client_po_number_label: "Client PO Number (External)",
-        client_name_label: "Client Name",
-        delivery_date_label: "Delivery Date",
-        urgent_label: "Urgent PO (Mark this PO as highly urgent with red highlights)",
-        items_po_title: "Items in this PO",
-        add_another_item: "Add Another Item",
-        item_name_label: "Item Name",
-        item_type_label: "Item Type",
-        qty_label: "Qty",
-        stages_label: "Required Production Stages",
-        cnc_label: "CNC Production Stage",
-        fab_label: "Fabrication Production Stage",
-        vendor_label: "Vendor Production Stage",
-        vendor_name_label: "Vendor Name",
-        vendor_phone_label: "Vendor Phone Number",
-        remove_item: "Remove Item",
-        custom_client: "Custom / Other Client...",
-        add_client_btn: "Add",
-        select_client: "Select Client...",
+        create_admin: "Create Admin",
+        admin_subtitle: "Create an administrator account with full system access.",
     },
     id: {
-        owner_command_center: "Pusat Kendali Pemilik",
-        subtitle_realtime: "Pemantauan produksi real-time & batasan risiko",
-        po_directory: "Direktori Surat Perintah Kerja (PO)",
-        broadcast_new_po: "Siarkan PO Baru",
-        no_pos: "Tidak ada PO yang ditemukan.",
-        unresolved_alerts: "Peringatan Pabrik Belum Selesai",
+        owner_command_center: "Pusat Kendali",
+        subtitle_realtime: "Pemantauan produksi real-time & kendali risiko",
+        po_directory: "Direktori PO",
+        broadcast_new_po: "PO Baru",
+        no_pos: "Tidak ada PO.",
+        unresolved_alerts: "Peringatan Aktif",
         validation_error: "Kesalahan Validasi",
-        floor_terminal_url: "URL Terminal Pabrik",
-        floor_terminal_desc: "Bagikan URL ini ke operator pabrik untuk login dengan PIN mereka:",
+        floor_terminal_url: "URL Terminal Pekerja",
+        floor_terminal_desc: "Bagikan tautan ini ke pekerja untuk masuk menggunakan PIN mereka:",
         settings: "Pengaturan",
         change_password: "Ubah Kata Sandi",
-        add_admin: "Tambah Administrator",
-        color_themes: "Tema Warna",
+        add_admin: "Tambah Admin",
+        color_themes: "Tema",
         coming_soon: "Segera Hadir",
         language_label: "Bahasa",
         lang_en: "English",
-        lang_id: "Indonesia",
+        lang_id: "Bahasa Indonesia",
         current_password: "Kata Sandi Saat Ini",
         new_password: "Kata Sandi Baru",
-        confirm_password: "Konfirmasi Kata Sandi Baru",
+        confirm_password: "Konfirmasi Kata Sandi",
         cancel: "Batal",
         submit: "Kirim",
         save_changes: "Simpan Perubahan",
         admin_name: "Nama Lengkap",
         admin_username: "Nama Pengguna",
         admin_password: "Kata Sandi",
-        create_admin: "Buat Administrator",
-        admin_subtitle: "Buat akun administrator baru dengan akses penuh.",
-        broadcast_po_title: "Siarkan PO Baru",
-        broadcast_po_subtitle: "Masukkan data PO internal/external dan jadwalkan tahapan barang secara paralel.",
-        po_number_label: "Nomor PO (Internal)",
-        client_po_number_label: "Nomor PO Klien (Eksternal)",
-        client_name_label: "Nama Klien",
-        delivery_date_label: "Tanggal Pengiriman",
-        urgent_label: "PO Mendesak (Tandai PO ini sebagai sangat mendesak dengan sorotan merah)",
-        items_po_title: "Barang dalam PO ini",
-        add_another_item: "Tambah Barang Lain",
-        item_name_label: "Nama Barang",
-        item_type_label: "Tipe Barang",
-        qty_label: "Jumlah",
-        stages_label: "Tahapan Produksi yang Dibutuhkan",
-        cnc_label: "Tahap Produksi CNC",
-        fab_label: "Tahap Produksi Fabrikasi",
-        vendor_label: "Tahap Produksi Vendor",
-        vendor_name_label: "Nama Vendor",
-        vendor_phone_label: "Nomor Telepon Vendor",
-        remove_item: "Hapus Barang",
-        custom_client: "Klien Kustom / Lainnya...",
-        add_client_btn: "Tambah",
-        select_client: "Pilih Klien...",
+        create_admin: "Buat Admin",
+        admin_subtitle: "Buat akun administrator dengan akses penuh ke sistem.",
     }
 };
 
@@ -315,35 +271,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
         });
     };
 
-    // Client Selector State
-    const [clients, setClients] = useState<string[]>([
-        'PT Astra Otoparts',
-        'PT Epson Indonesia',
-        'PT Toyota Motor Manufacturing',
-        'PT Honda Prospect Motor',
-        'PT Panasonic Manufacturing'
-    ]);
-    const [showAddClientInput, setShowAddClientInput] = useState(false);
-    const [newClientName, setNewClientName] = useState('');
-
-    // Broadcast PO state
-    const [showBroadcastPoModal, setShowBroadcastPoModal] = useState(false);
-    const [poNumberInput, setPoNumberInput] = useState('');
-    const [externalPoNumberInput, setExternalPoNumberInput] = useState('');
-    const [clientNameInput, setClientNameInput] = useState('');
-    const [isCustomClient, setIsCustomClient] = useState(false);
-    const [deliveryDateInput, setDeliveryDateInput] = useState('');
-    const [isUrgentInput, setIsUrgentInput] = useState(false);
-    const [poItems, setPoItems] = useState<Array<{
-        item_name: string;
-        item_type: 'MANUFACTURE' | 'BUY_OUT' | 'SERVICE';
-        target_qty: number;
-        required_stages: string[];
-        vendor_name?: string;
-        vendor_phone?: string;
-    }>>([
-        { item_name: '', item_type: 'MANUFACTURE', target_qty: 1, required_stages: [], vendor_name: '', vendor_phone: '' }
-    ]);
+    // No client/PO creation state — moved to dedicated page at /pos/create
 
     const handleCancel = (itemId: number) => {
         if (confirm('Are you sure you want to cancel this item?')) {
@@ -355,71 +283,6 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
         if (confirm('WARNING: This will immediately HALT all floor operator operations for this item. Proceed?')) {
             router.post(`/items/${itemId}/terminate`);
         }
-    };
-
-    // PO Broadcasting actions
-    const addPoItemField = () => {
-        setPoItems(prev => [...prev, { item_name: '', item_type: 'MANUFACTURE', target_qty: 1, required_stages: [], vendor_name: '', vendor_phone: '' }]);
-    };
-
-    const removePoItemField = (index: number) => {
-        if (poItems.length === 1) return;
-        setPoItems(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const updatePoItemField = (index: number, field: string, value: any) => {
-        setPoItems(prev => prev.map((item, i) => {
-            if (i === index) {
-                return { ...item, [field]: value };
-            }
-            return item;
-        }));
-    };
-
-    const submitBroadcastPo = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!poNumberInput.trim() || !clientNameInput.trim() || !deliveryDateInput) {
-            alert('Please fill out all PO header fields.');
-            return;
-        }
-
-        for (let i = 0; i < poItems.length; i++) {
-            const item = poItems[i];
-            if (!item.item_name.trim()) {
-                alert(`Please enter a name for Item #${i + 1}.`);
-                return;
-            }
-            if (item.required_stages.length === 0) {
-                alert(`Please check at least one stage for Item "${item.item_name}" (Item #${i + 1}).`);
-                return;
-            }
-            if (item.required_stages.includes('Vendor')) {
-                if (!item.vendor_name?.trim() || !item.vendor_phone?.trim()) {
-                    alert(`Item "${item.item_name}" has a Vendor stage selected. Please specify the Vendor Name and Phone Number.`);
-                    return;
-                }
-            }
-        }
-
-        router.post('/pos', {
-            po_number: poNumberInput,
-            external_po_number: externalPoNumberInput,
-            client_name: clientNameInput,
-            global_deadline: deliveryDateInput,
-            is_urgent: isUrgentInput,
-            items: poItems
-        }, {
-            onSuccess: () => {
-                setShowBroadcastPoModal(false);
-                setPoNumberInput('');
-                setExternalPoNumberInput('');
-                setClientNameInput('');
-                setDeliveryDateInput('');
-                setIsUrgentInput(false);
-                setPoItems([{ item_name: '', item_type: 'MANUFACTURE', target_qty: 1, required_stages: [], vendor_name: '', vendor_phone: '' }]);
-            }
-        });
     };
 
     const isOwner = auth_user?.role === 'OWNER';
@@ -820,7 +683,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                         <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{t.po_directory}</h2>
                         {canBroadcastPo && (
                             <button
-                                onClick={() => setShowBroadcastPoModal(true)}
+                                onClick={() => router.get('/pos/create')}
                                 style={{
                                     padding: '10px 18px',
                                     backgroundColor: '#2563eb',
@@ -1323,426 +1186,6 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user }
                 </div>
             )}
 
-            {/* Broadcast PO Modal */}
-            {showBroadcastPoModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 50,
-                    padding: '20px'
-                }}>
-                    <div className="modal-content modal-content-wide" style={{
-                        maxHeight: '90vh',
-                        backgroundColor: '#0f172a',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        borderRadius: '16px',
-                        padding: '24px',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        overflow: 'hidden'
-                    }}>
-                        <div style={{ marginBottom: '20px' }}>
-                            <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 4px 0' }}>{t.broadcast_po_title}</h2>
-                            <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-                                {t.broadcast_po_subtitle}
-                            </p>
-                        </div>
-
-                        <form onSubmit={submitBroadcastPo} style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, overflow: 'hidden' }}>
-                            <div style={{ overflowY: 'auto', paddingRight: '6px', flexGrow: 1, marginBottom: '24px' }}>
-                                <div className="responsive-grid responsive-grid-half" style={{ gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>{t.po_number_label}</label>
-                                        <input
-                                            type="text"
-                                            value={poNumberInput}
-                                            onChange={(e) => setPoNumberInput(e.target.value)}
-                                            required
-                                            placeholder="e.g. PO-INT-042"
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: '#090d16',
-                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                borderRadius: '8px',
-                                                color: '#fff',
-                                                fontSize: '14px',
-                                                outline: 'none'
-                                            }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>{t.client_po_number_label}</label>
-                                        <input
-                                            type="text"
-                                            value={externalPoNumberInput}
-                                            onChange={(e) => setExternalPoNumberInput(e.target.value)}
-                                            placeholder="e.g. PO-EXT-CLIENT-99"
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: '#090d16',
-                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                borderRadius: '8px',
-                                                color: '#fff',
-                                                fontSize: '14px',
-                                                outline: 'none'
-                                            }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>{t.client_name_label}</label>
-                                        <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                                            <select
-                                                value={isCustomClient ? 'Custom Client' : clientNameInput}
-                                                onChange={(e) => {
-                                                    const val = e.target.value;
-                                                    if (val === 'Custom Client') {
-                                                        setIsCustomClient(true);
-                                                        setClientNameInput('');
-                                                    } else {
-                                                        setIsCustomClient(false);
-                                                        setClientNameInput(val);
-                                                    }
-                                                }}
-                                                required
-                                                style={{
-                                                    flexGrow: 1,
-                                                    padding: '10px 14px',
-                                                    backgroundColor: '#090d16',
-                                                    border: '1px solid rgba(255,255,255,0.08)',
-                                                    borderRadius: '8px',
-                                                    color: '#fff',
-                                                    fontSize: '14px',
-                                                    outline: 'none'
-                                                }}
-                                            >
-                                                <option value="">{t.select_client}</option>
-                                                {clients.map(client => (
-                                                    <option key={client} value={client}>{client}</option>
-                                                ))}
-                                                <option value="Custom Client">{t.custom_client}</option>
-                                            </select>
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowAddClientInput(prev => !prev)}
-                                                style={{
-                                                    padding: '10px 14px',
-                                                    backgroundColor: 'rgba(96, 165, 250, 0.1)',
-                                                    border: '1px solid rgba(96, 165, 250, 0.2)',
-                                                    color: '#60a5fa',
-                                                    borderRadius: '8px',
-                                                    fontSize: '13px',
-                                                    fontWeight: 600,
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                {t.add_client_btn}
-                                            </button>
-                                        </div>
-                                        {showAddClientInput && (
-                                            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                                                <input
-                                                    type="text"
-                                                    value={newClientName}
-                                                    onChange={(e) => setNewClientName(e.target.value)}
-                                                    placeholder="Enter New Client Name"
-                                                    style={{
-                                                        flexGrow: 1,
-                                                        padding: '8px 12px',
-                                                        backgroundColor: '#090d16',
-                                                        border: '1px solid rgba(255,255,255,0.08)',
-                                                        borderRadius: '8px',
-                                                        color: '#fff',
-                                                        fontSize: '13px',
-                                                        outline: 'none'
-                                                    }}
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (newClientName.trim()) {
-                                                            if (!clients.includes(newClientName.trim())) {
-                                                                setClients(prev => [...prev, newClientName.trim()]);
-                                                            }
-                                                            setClientNameInput(newClientName.trim());
-                                                            setIsCustomClient(false);
-                                                            setNewClientName('');
-                                                            setShowAddClientInput(false);
-                                                        }
-                                                    }}
-                                                    style={{
-                                                        padding: '8px 12px',
-                                                        backgroundColor: '#10b981',
-                                                        border: 'none',
-                                                        color: '#fff',
-                                                        borderRadius: '8px',
-                                                        fontSize: '13px',
-                                                        fontWeight: 600,
-                                                        cursor: 'pointer'
-                                                    }}
-                                                >
-                                                    <Check size={12} /> Save
-                                                </button>
-                                            </div>
-                                        )}
-                                        {isCustomClient && !showAddClientInput && (
-                                            <input
-                                                type="text"
-                                                value={clientNameInput}
-                                                onChange={(e) => setClientNameInput(e.target.value)}
-                                                required
-                                                placeholder="Enter Custom Client Name"
-                                                style={{
-                                                    width: '100%',
-                                                    padding: '10px 14px',
-                                                    backgroundColor: '#090d16',
-                                                    border: '1px solid rgba(255,255,255,0.08)',
-                                                    borderRadius: '8px',
-                                                    color: '#fff',
-                                                    fontSize: '14px',
-                                                    outline: 'none',
-                                                    marginTop: '8px'
-                                                }}
-                                            />
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>{t.delivery_date_label}</label>
-                                        <input
-                                            type="date"
-                                            value={deliveryDateInput}
-                                            onChange={(e) => setDeliveryDateInput(e.target.value)}
-                                            required
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: '#090d16',
-                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                borderRadius: '8px',
-                                                color: '#fff',
-                                                fontSize: '14px',
-                                                outline: 'none'
-                                            }}
-                                        />
-                                    </div>
-                                    <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                                        <input
-                                            type="checkbox"
-                                            id="is_urgent"
-                                            checked={isUrgentInput}
-                                            onChange={(e) => setIsUrgentInput(e.target.checked)}
-                                            style={{
-                                                width: '18px', height: '18px',
-                                                accentColor: '#ef4444', cursor: 'pointer'
-                                            }}
-                                        />
-                                        <label htmlFor="is_urgent" style={{ fontSize: '13px', color: '#f8fafc', fontWeight: 600, cursor: 'pointer' }}>
-                                            {t.urgent_label}
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                    <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#60a5fa', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.items_po_title}</h3>
-                                    <button
-                                        type="button"
-                                        onClick={addPoItemField}
-                                        style={{
-                                            padding: '6px 12px',
-                                            backgroundColor: 'rgba(96, 165, 250, 0.1)',
-                                            border: '1px solid rgba(96, 165, 250, 0.2)',
-                                            color: '#60a5fa',
-                                            borderRadius: '6px',
-                                            fontSize: '13px',
-                                            fontWeight: 600,
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        {t.add_another_item}
-                                    </button>
-                                </div>
-
-                                {poItems.map((item, itemIndex) => (
-                                    <div key={itemIndex} style={{
-                                        backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                                        borderRadius: '12px',
-                                        padding: '20px',
-                                        marginBottom: '16px',
-                                        position: 'relative'
-                                    }}>
-                                        {poItems.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => removePoItemField(itemIndex)}
-                                                style={{
-                                                    position: 'absolute',
-                                                    top: '12px', right: '12px',
-                                                    backgroundColor: 'transparent',
-                                                    border: 'none',
-                                                    color: '#ef4444',
-                                                    fontSize: '12px',
-                                                    fontWeight: 600,
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                <Close size={12} /> {t.remove_item}
-                                            </button>
-                                        )}
-
-                                        <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-                                            <div>
-                                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.item_name_label}</label>
-                                                <input
-                                                    type="text"
-                                                    value={item.item_name}
-                                                    onChange={(e) => updatePoItemField(itemIndex, 'item_name', e.target.value)}
-                                                    required
-                                                    placeholder="e.g. Shaft Steel"
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '8px 12px',
-                                                        backgroundColor: '#090d16',
-                                                        border: '1px solid rgba(255,255,255,0.08)',
-                                                        borderRadius: '6px',
-                                                        color: '#fff',
-                                                        fontSize: '13px',
-                                                        outline: 'none'
-                                                    }}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.item_type_label}</label>
-                                                <select
-                                                    value={item.item_type}
-                                                    onChange={(e) => updatePoItemField(itemIndex, 'item_type', e.target.value)}
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '8px 12px',
-                                                        backgroundColor: '#090d16',
-                                                        border: '1px solid rgba(255,255,255,0.08)',
-                                                        borderRadius: '6px',
-                                                        color: '#fff',
-                                                        fontSize: '13px',
-                                                        outline: 'none'
-                                                    }}
-                                                >
-                                                    <option value="MANUFACTURE">MANUFACTURE</option>
-                                                    <option value="BUY_OUT">BUY OUT</option>
-                                                    <option value="SERVICE">SERVICE</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.qty_label}</label>
-                                                <input
-                                                    type="number"
-                                                    min={1}
-                                                    value={item.target_qty}
-                                                    onChange={(e) => updatePoItemField(itemIndex, 'target_qty', parseInt(e.target.value) || 1)}
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '8px 12px',
-                                                        backgroundColor: '#090d16',
-                                                        border: '1px solid rgba(255,255,255,0.08)',
-                                                        borderRadius: '6px',
-                                                        color: '#fff',
-                                                        fontSize: '13px',
-                                                        outline: 'none'
-                                                    }}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.stages_label}</label>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
-                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#e2e8f0', cursor: 'pointer' }}>
-                                                        <input type="checkbox" checked={item.required_stages.includes('CNC')} onChange={() => {
-                                                            const stages = item.required_stages.includes('CNC')
-                                                                ? item.required_stages.filter(s => s !== 'CNC')
-                                                                : [...item.required_stages, 'CNC'];
-                                                            updatePoItemField(itemIndex, 'required_stages', stages);
-                                                        }} />
-                                                        {t.cnc_label}
-                                                    </label>
-                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#e2e8f0', cursor: 'pointer' }}>
-                                                        <input type="checkbox" checked={item.required_stages.includes('Fabrication')} onChange={() => {
-                                                            const stages = item.required_stages.includes('Fabrication')
-                                                                ? item.required_stages.filter(s => s !== 'Fabrication')
-                                                                : [...item.required_stages, 'Fabrication'];
-                                                            updatePoItemField(itemIndex, 'required_stages', stages);
-                                                        }} />
-                                                        {t.fab_label}
-                                                    </label>
-                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#e2e8f0', cursor: 'pointer' }}>
-                                                        <input type="checkbox" checked={item.required_stages.includes('Vendor')} onChange={() => {
-                                                            const stages = item.required_stages.includes('Vendor')
-                                                                ? item.required_stages.filter(s => s !== 'Vendor')
-                                                                : [...item.required_stages, 'Vendor'];
-                                                            updatePoItemField(itemIndex, 'required_stages', stages);
-                                                        }} />
-                                                        {t.vendor_label}
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {item.required_stages.includes('Vendor') && (
-                                            <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
-                                                <div>
-                                                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.vendor_name_label}</label>
-                                                    <input type="text" value={item.vendor_name || ''} onChange={(e) => updatePoItemField(itemIndex, 'vendor_name', e.target.value)} placeholder="Vendor Name" style={{ width: '100%', padding: '8px 12px', backgroundColor: '#090d16', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', color: '#fff', fontSize: '13px', outline: 'none' }} />
-                                                </div>
-                                                <div>
-                                                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.vendor_phone_label}</label>
-                                                    <input type="text" value={item.vendor_phone || ''} onChange={(e) => updatePoItemField(itemIndex, 'vendor_phone', e.target.value)} placeholder="Phone" style={{ width: '100%', padding: '8px 12px', backgroundColor: '#090d16', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', color: '#fff', fontSize: '13px', outline: 'none' }} />
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowBroadcastPoModal(false)}
-                                    style={{
-                                        padding: '10px 16px',
-                                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                                        color: '#e2e8f0',
-                                        borderRadius: '8px',
-                                        fontWeight: 600,
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    {t.cancel}
-                                </button>
-                                <button
-                                    type="submit"
-                                    style={{
-                                        padding: '10px 20px',
-                                        backgroundColor: '#2563eb',
-                                        border: 'none',
-                                        color: '#fff',
-                                        borderRadius: '8px',
-                                        fontWeight: 600,
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    {t.submit}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

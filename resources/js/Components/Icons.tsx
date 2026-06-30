@@ -92,6 +92,12 @@ export const AlertTriangle: React.FC<IconProps> = ({ size = 16, className }) => 
     </svg>
 );
 
+export const ChevronLeft: React.FC<IconProps> = ({ size = 18, className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polyline points="15 18 9 12 15 6" />
+    </svg>
+);
+
 export const Close: React.FC<IconProps> = ({ size = 14, className }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <line x1="18" y1="6" x2="6" y2="18" />

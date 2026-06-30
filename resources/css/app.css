@@ -294,6 +294,25 @@ input, select, textarea {
     }
 }
 
+/* Create PO Page -- desktop actions visible on md+, hidden on mobile */
+@media (max-width: 767px) {
+    .desktop-actions {
+        display: none !important;
+    }
+}
+@media (min-width: 768px) {
+    .mobile-actions {
+        display: none !important;
+    }
+}
+
+/* Create PO Page -- responsive grid for header fields */
+@media (min-width: 768px) {
+    .po-header-grid {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+
 /* Settings dropdown becomes bottom sheet on mobile */
 @media (max-width: 640px) {
     .settings-dropdown {

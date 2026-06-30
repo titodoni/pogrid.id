@@ -46,16 +46,39 @@ class OwnerDashboardController extends Controller
         return back()->with('success', 'Company settings updated successfully.');
     }
 
-    public function createPo(Request $request)
+    public function create()
     {
-        if (auth()->user()->role === 'OWNER') {
+        $user = auth()->user();
+
+        if ($user->role === 'OWNER') {
             abort(403, 'Owners cannot create or broadcast POs. Please assign an Admin user.');
         }
+
+        // Ensure tenant context is set for this request
+        TenantManager::setTenantId($user->tenant_id);
+
+        return Inertia::render('Owner/CreatePo', [
+            'tenant' => $user->tenant,
+            'auth_user' => $user,
+        ]);
+    }
+
+    public function createPo(Request $request)
+    {
+        $user = auth()->user();
+
+        if ($user->role === 'OWNER') {
+            abort(403, 'Owners cannot create or broadcast POs. Please assign an Admin user.');
+        }
+
+        // Ensure tenant context for this request
+        TenantManager::setTenantId($user->tenant_id);
+
         $request->validate([
             'po_number' => [
                 'required',
                 'string',
-                Rule::unique('pos')->where('tenant_id', TenantManager::getTenantId()),
+                Rule::unique('pos')->where('tenant_id', $user->tenant_id),
             ],
             'external_po_number' => ['nullable', 'string', 'max:255'],
             'client_name' => ['required', 'string', 'max:255'],
@@ -117,7 +140,9 @@ class OwnerDashboardController extends Controller
             }
         });
 
-        return back()->with('success', 'Purchase Order broadcasted successfully.');
+        $tenantSlug = $user->tenant->slug;
+
+        return redirect("/c/{$tenantSlug}")->with('success', 'Purchase Order broadcasted successfully.');
     }
 
     public function createUser(Request $request)

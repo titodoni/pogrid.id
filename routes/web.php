@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/items/{itemId}/terminate', [OwnerDashboardController::class, 'terminateMidway']);
     
     // PO Broadcasting
+    Route::get('/pos/create', [OwnerDashboardController::class, 'create'])->name('pos.create');
     Route::post('/pos', [OwnerDashboardController::class, 'createPo']);
     
     // User Management
