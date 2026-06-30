@@ -383,6 +383,53 @@ class WorkerDashboardController extends Controller
             ];
         }
 
+        // 8. Active Delayed & Stuck Items Directory
+        $delayedItemsData = [];
+        $activeItems = Item::whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])
+            ->with(['po', 'itemProgresses'])
+            ->get();
+
+        foreach ($activeItems as $item) {
+            $po = $item->po;
+            if (! $po) {
+                continue;
+            }
+
+            $deadline = Carbon::parse($po->global_deadline)->startOfDay();
+            $isOverdue = now()->startOfDay()->gt($deadline);
+
+            // Check if there is an active stuck stage or active alert
+            $stuckProgress = $item->itemProgresses->firstWhere('status', 'STUCK');
+            $stuckAlert = Alert::where('item_id', $item->id)->where('is_resolved', false)->where('severity', 'RED')->first();
+            $reworkAlert = Alert::where('item_id', $item->id)->where('is_resolved', false)->where('severity', 'YELLOW')->first();
+
+            if ($isOverdue || $stuckProgress || $stuckAlert || $reworkAlert) {
+                $reason = 'Overdue';
+                if ($stuckAlert) {
+                    $reason = $stuckAlert->message;
+                } elseif ($reworkAlert) {
+                    $reason = $reworkAlert->message;
+                } elseif ($stuckProgress) {
+                    $reason = "Stuck on stage '{$stuckProgress->stage_name}'";
+                }
+
+                $daysOverdue = now()->startOfDay()->gt($deadline) ? now()->startOfDay()->diffInDays($deadline) : 0;
+
+                $delayedItemsData[] = [
+                    'id' => $item->id,
+                    'po_id' => $po->id,
+                    'po_number' => $po->po_number,
+                    'client_name' => $po->client_name,
+                    'item_name' => $item->item_name,
+                    'progress_percent' => (float) $item->progress_percent,
+                    'global_deadline' => $po->global_deadline->toDateString(),
+                    'days_overdue' => $daysOverdue,
+                    'reason' => $reason,
+                    'status' => $item->status,
+                ];
+            }
+        }
+
         return [
             'otdr' => $otdr,
             'manufacture' => [
@@ -405,6 +452,7 @@ class WorkerDashboardController extends Controller
             'delay_reasons' => $delayReasons,
             'trend_data' => $trendData,
             'stage_metrics' => $stageMetrics,
+            'delayed_items' => $delayedItemsData,
         ];
     }
 

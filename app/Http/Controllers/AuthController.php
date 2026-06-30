@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -25,7 +26,8 @@ class AuthController extends Controller
         if (Auth::attempt([$field => $request->username, 'password' => $request->password])) {
             $request->session()->regenerate();
             $user = Auth::user();
-            $slug = \App\Models\Tenant::find($user->tenant_id)?->slug;
+            $slug = Tenant::find($user->tenant_id)?->slug;
+
             return redirect()->intended($slug ? "/c/{$slug}" : '/dashboard');
         }
 
@@ -39,6 +41,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/login');
     }
 }

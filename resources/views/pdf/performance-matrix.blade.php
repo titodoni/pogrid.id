@@ -224,6 +224,46 @@
         </tbody>
     </table>
 
+    <div class="section-title">Active Delay & Risk Directory</div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 100px;">PO Number</th>
+                <th>Client</th>
+                <th>Item</th>
+                <th style="text-align: center; width: 60px;">Progress</th>
+                <th style="text-align: center; width: 90px;">Deadline</th>
+                <th style="text-align: center; width: 70px;">Overdue</th>
+                <th>Stuck / Delay Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if(empty($telemetry['delayed_items']))
+                <tr>
+                    <td colspan="7" style="text-align: center; color: #64748b;">No active delays or overdue items.</td>
+                </tr>
+            @else
+                @foreach($telemetry['delayed_items'] as $item)
+                    <tr>
+                        <td style="font-weight: bold;">{{ $item['po_number'] }}</td>
+                        <td>{{ $item['client_name'] }}</td>
+                        <td>{{ $item['item_name'] }}</td>
+                        <td style="text-align: center;"><span class="badge" style="background-color: #e0f2fe; color: #0369a1;">{{ number_format($item['progress_percent'], 0) }}%</span></td>
+                        <td style="text-align: center;">{{ $item['global_deadline'] }}</td>
+                        <td style="text-align: center;">
+                            @if($item['days_overdue'] > 0)
+                                <span class="badge badge-red">{{ $item['days_overdue'] }} days</span>
+                            @else
+                                -
+                            @endif
+                        </td>
+                        <td style="color: #ef4444; font-style: italic;">{{ $item['reason'] }}</td>
+                    </tr>
+                @endforeach
+            @endif
+        </tbody>
+    </table>
+
     <div class="sig-block">
         <div class="sig-line"></div>
         <span style="font-size: 10px; color: #64748b;">Factory Operations Manager</span>

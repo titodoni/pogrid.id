@@ -23,7 +23,7 @@ class ProductionTerminated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('tenant.' . $this->item->tenant_id . '.workers'),
+            new Channel('tenant.'.$this->item->tenant_id.'.workers'),
         ];
     }
 

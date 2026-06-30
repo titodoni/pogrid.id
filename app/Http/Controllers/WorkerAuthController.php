@@ -17,7 +17,7 @@ class WorkerAuthController extends Controller
         TenantManager::bypass();
         $tenant = Tenant::where('slug', $slug)->firstOrFail();
         TenantManager::enableScope();
-        
+
         $workers = User::where('tenant_id', $tenant->id)
             ->whereNotNull('pin')
             ->get(['id', 'name', 'role']);
@@ -57,6 +57,7 @@ class WorkerAuthController extends Controller
         if (Hash::check($request->pin, $user->pin)) {
             Auth::login($user);
             $request->session()->regenerate();
+
             return redirect("/c/{$slug}/dashboard");
         }
 

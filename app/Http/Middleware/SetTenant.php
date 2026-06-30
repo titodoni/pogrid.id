@@ -2,10 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Tenant;
+use App\Services\TenantManager;
 use Closure;
 use Illuminate\Http\Request;
-use App\Services\TenantManager;
-use App\Models\Tenant;
 use Symfony\Component\HttpFoundation\Response;
 
 class SetTenant
@@ -24,7 +24,7 @@ class SetTenant
                 session([
                     'active_tenant_id' => $tenant->id,
                     'active_tenant_slug' => $tenant->slug,
-                    'active_company_name' => $tenant->company_name
+                    'active_company_name' => $tenant->company_name,
                 ]);
                 TenantManager::setTenantId($tenant->id);
             }

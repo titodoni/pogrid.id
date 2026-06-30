@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Item;
 use App\Models\Alert;
+use App\Models\Item;
 use App\Models\Tenant;
 use App\Services\TenantManager;
 use Carbon\Carbon;
@@ -12,6 +12,7 @@ use Illuminate\Console\Command;
 class EvaluateTimelines extends Command
 {
     protected $signature = 'pogrid:evaluate-timelines';
+
     protected $description = 'Evaluate active items timeline and spawn alerts';
 
     public function handle(): void
@@ -32,7 +33,7 @@ class EvaluateTimelines extends Command
 
             foreach ($activeItems as $item) {
                 $po = $item->po;
-                if (!$po) {
+                if (! $po) {
                     continue;
                 }
 
@@ -52,7 +53,7 @@ class EvaluateTimelines extends Command
                     );
                 }
                 // Check YELLOW alert (Approaching Risk): Days Remaining <= 3 AND Item Progress < 70%
-                elseif ($daysRemaining <= 3 && (float)$item->progress_percent < 70.00) {
+                elseif ($daysRemaining <= 3 && (float) $item->progress_percent < 70.00) {
                     Alert::updateOrCreate(
                         [
                             'tenant_id' => $tenant->id,
@@ -66,9 +67,9 @@ class EvaluateTimelines extends Command
                     // Resolve timeline alerts for this item if timeline is healthy
                     Alert::where('item_id', $item->id)
                         ->where('is_resolved', false)
-                        ->where(function($query) {
+                        ->where(function ($query) {
                             $query->where('message', 'like', 'Overdue:%')
-                                  ->orWhere('message', 'like', 'Approaching Risk:%');
+                                ->orWhere('message', 'like', 'Approaching Risk:%');
                         })
                         ->update(['is_resolved' => true]);
                 }

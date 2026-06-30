@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Services\TenantManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class PinResetController extends Controller
 {
@@ -63,7 +62,7 @@ class PinResetController extends Controller
 
         // Parse user ID from the alert message
         preg_match('/ID:(\d+)/', $alert->message, $matches);
-        if (!$matches) {
+        if (! $matches) {
             return back()->with('error', 'Could not identify the user from this alert.');
         }
 

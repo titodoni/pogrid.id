@@ -9,7 +9,7 @@ class ItemProgressObserver
     public function saved(ItemProgress $itemProgress): void
     {
         $item = $itemProgress->item;
-        if (!$item) {
+        if (! $item) {
             return;
         }
 
@@ -45,7 +45,7 @@ class ItemProgressObserver
             }
         }
 
-        if ((float)$item->progress_percent !== (float)$progressPercent || $item->status !== $status) {
+        if ((float) $item->progress_percent !== (float) $progressPercent || $item->status !== $status) {
             $item->timestamps = false;
             $item->update([
                 'progress_percent' => $progressPercent,

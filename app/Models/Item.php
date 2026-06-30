@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Item extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -34,7 +34,7 @@ class Item extends Model
 
     public function getDeliveredQtyAttribute(): int
     {
-        return (int)$this->doItems()->sum('delivered_qty');
+        return (int) $this->doItems()->sum('delivered_qty');
     }
 
     public function po(): BelongsTo

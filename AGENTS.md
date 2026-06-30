@@ -2,6 +2,10 @@
 
 Laravel 11 + Inertia.js v2 + React 18 + TypeScript + Tailwind v4 + Vite 8.
 
+## Startup
+
+Before any codebase work, load the graphify skill and read graphify-out/GRAPH_REPORT.md for architecture context. Use `graphify query "<question>"` / `graphify path "<A>" "<B>"` for targeted codebase questions during the session. Run `graphify update .` after making changes.
+
 ## Commands
 
 - `composer setup` — full project setup (install deps, .env, key:generate, migrate, npm build)
@@ -54,7 +58,4 @@ No lint/typecheck npm scripts exist. `laravel/pint` is available via `vendor/bin
 
 - **Dual Language**: Always implement dual language (English & Indonesian) support for any UI-facing elements, forms, and pages. Persistent selection must be stored in `localStorage` as `pogrid_lang`.
 
-## Graphify
-
-See CLAUDE.md — knowledge graph at `graphify-out/`. Run `graphify update .` after code changes.
 

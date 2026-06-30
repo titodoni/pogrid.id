@@ -23,7 +23,7 @@ class KendalaReported implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('tenant.' . $this->alert->tenant_id . '.dashboard'),
+            new Channel('tenant.'.$this->alert->tenant_id.'.dashboard'),
         ];
     }
 

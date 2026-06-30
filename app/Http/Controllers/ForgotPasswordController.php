@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -25,7 +26,7 @@ class ForgotPasswordController extends Controller
         $status = Password::sendResetLink(
             $request->only('email'),
             function ($user, $token) {
-                $user->notify(new \App\Notifications\ResetPasswordNotification($token));
+                $user->notify(new ResetPasswordNotification($token));
             }
         );
 

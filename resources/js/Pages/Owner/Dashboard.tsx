@@ -165,6 +165,16 @@ const translations = {
         no_incidents: "No operational failures logged.",
         legend_completed: "Completed Qty",
         legend_overdue: "Overdue Count",
+        active_delays_directory: "Active Delay & Risk Directory",
+        po_number_label: "PO Number",
+        client_label: "Client",
+        item_name_label: "Item",
+        progress_label: "Progress",
+        deadline_label: "Deadline",
+        delay_reason_label: "Stuck / Delay Reason",
+        days_overdue_label: "Overdue",
+        days_suffix: "days",
+        no_delays: "No active delays or overdue items.",
     },
     id: {
         owner_command_center: "Pusat Kendali",
@@ -217,6 +227,16 @@ const translations = {
         no_incidents: "Tidak ada kegagalan operasional yang tercatat.",
         legend_completed: "Selesai",
         legend_overdue: "Terlambat",
+        active_delays_directory: "Direktori Keterlambatan & Risiko Aktif",
+        po_number_label: "Nomor PO",
+        client_label: "Klien",
+        item_name_label: "Item",
+        progress_label: "Progres",
+        deadline_label: "Tenggat Waktu",
+        delay_reason_label: "Alasan Stuck / Terlambat",
+        days_overdue_label: "Terlambat",
+        days_suffix: "hari",
+        no_delays: "Tidak ada keterlambatan atau item yang stuck.",
     }
 };
 
@@ -1344,6 +1364,90 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                     })}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    {/* Active Delay & Risk Directory */}
+                    <div style={{
+                        backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                        borderRadius: '16px',
+                        padding: '20px',
+                        marginTop: '24px'
+                    }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#f8fafc', marginBottom: '16px' }}>{t.active_delays_directory}</h3>
+                        <div style={{ width: '100%', overflowX: 'auto' }}>
+                            {telemetry.delayed_items && telemetry.delayed_items.length === 0 ? (
+                                <div style={{ color: '#64748b', fontSize: '13px', padding: '24px 0', textAlign: 'center' }}>
+                                    {t.no_delays}
+                                </div>
+                            ) : (
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                    <thead>
+                                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.po_number_label}</th>
+                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.client_label}</th>
+                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.item_name_label}</th>
+                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.progress_label}</th>
+                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.deadline_label}</th>
+                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.days_overdue_label}</th>
+                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.delay_reason_label}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {telemetry.delayed_items && telemetry.delayed_items.map((item: any, idx: number) => {
+                                            const progress = parseFloat(item.progress_percent);
+                                            return (
+                                                <tr key={`delay-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#e2e8f0' }}>
+                                                    <td style={{ padding: '12px 16px', fontWeight: 700 }}>
+                                                        <button 
+                                                            onClick={() => {
+                                                                setActiveTab('active');
+                                                                togglePO(item.po_id);
+                                                            }}
+                                                            style={{
+                                                                background: 'none',
+                                                                border: 'none',
+                                                                color: '#3b82f6',
+                                                                fontWeight: 700,
+                                                                cursor: 'pointer',
+                                                                padding: 0,
+                                                                textAlign: 'left',
+                                                                textDecoration: 'underline'
+                                                            }}
+                                                        >
+                                                            {item.po_number}
+                                                        </button>
+                                                    </td>
+                                                    <td style={{ padding: '12px 16px' }}>{item.client_name}</td>
+                                                    <td style={{ padding: '12px 16px', fontWeight: 600 }}>{item.item_name}</td>
+                                                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                                        <span className="badge" style={{
+                                                            backgroundColor: progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                                            color: progress >= 100 ? '#10b981' : '#3b82f6'
+                                                        }}>
+                                                            {progress.toFixed(0)}%
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ padding: '12px 16px', textAlign: 'center', color: '#94a3b8' }}>{item.global_deadline}</td>
+                                                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                                        {item.days_overdue > 0 ? (
+                                                            <span className="badge" style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                                                                {item.days_overdue} {t.days_suffix}
+                                                            </span>
+                                                        ) : (
+                                                            <span style={{ color: '#64748b' }}>-</span>
+                                                        )}
+                                                    </td>
+                                                    <td style={{ padding: '12px 16px', color: '#ef4444', fontStyle: 'italic' }}>
+                                                        {item.reason}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Item;
+use App\Models\Po;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Models\Po;
-use App\Models\Item;
 use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -151,8 +151,8 @@ class AdminManagementTest extends TestCase
                     'item_type' => 'MANUFACTURE',
                     'target_qty' => 10,
                     'required_stages' => ['Fabrication'],
-                ]
-            ]
+                ],
+            ],
         ]);
 
         $response->assertRedirect();

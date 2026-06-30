@@ -46,14 +46,14 @@ class RegistrationController extends Controller
             'tenant_id' => $tenant->id,
             'name' => $request->name,
             'email' => $request->email,
-            'username' => 'owner_' . Str::random(6),
+            'username' => 'owner_'.Str::random(6),
             'password' => Hash::make($request->password),
             'role' => 'OWNER',
         ]);
 
         // Log the user in
         Auth::login($user);
-        
+
         $request->session()->regenerate();
 
         return redirect("/c/{$slug}");

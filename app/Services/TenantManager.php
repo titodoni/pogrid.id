@@ -5,6 +5,7 @@ namespace App\Services;
 class TenantManager
 {
     protected static ?int $tenantId = null;
+
     protected static bool $bypass = false;
 
     public static function setTenantId(?int $tenantId): void

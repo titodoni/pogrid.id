@@ -2,33 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ProductionTerminated;
+use App\Jobs\GenerateSunkCostInvoiceJob;
 use App\Models\Item;
 use App\Models\Po;
-use App\Models\Alert;
-use App\Models\DeliveryOrder;
-use App\Models\DoItem;
-use App\Models\Invoice;
+use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantManager;
-use App\Jobs\GenerateSunkCostInvoiceJob;
-use App\Events\ProductionTerminated;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Inertia\Inertia;
 
 class OwnerDashboardController extends Controller
 {
     public function index()
     {
         if (auth()->check()) {
-            $tenant = \App\Models\Tenant::find(TenantManager::getTenantId());
+            $tenant = Tenant::find(TenantManager::getTenantId());
             if ($tenant) {
                 return redirect("/c/{$tenant->slug}");
             }
         }
+
         return redirect('/login');
     }
 
@@ -38,7 +36,7 @@ class OwnerDashboardController extends Controller
             'company_name' => ['required', 'string', 'max:255'],
         ]);
 
-        $tenant = \App\Models\Tenant::find(TenantManager::getTenantId());
+        $tenant = Tenant::find(TenantManager::getTenantId());
         $tenant->update([
             'company_name' => $request->company_name,
         ]);
@@ -84,9 +82,9 @@ class OwnerDashboardController extends Controller
             'client_name' => ['required', 'string', 'max:255'],
             'global_deadline_relative' => ['nullable', 'string', 'in:3 days,1 week,1 month'],
             'global_deadline' => [
-                Rule::requiredIf(!$request->filled('global_deadline_relative')),
+                Rule::requiredIf(! $request->filled('global_deadline_relative')),
                 'nullable',
-                'date'
+                'date',
             ],
             'is_urgent' => ['nullable', 'boolean'],
             'items' => ['required', 'array', 'min:1'],
@@ -100,7 +98,7 @@ class OwnerDashboardController extends Controller
         ]);
 
         if ($request->filled('global_deadline')) {
-            $deadline = \Carbon\Carbon::parse($request->input('global_deadline'));
+            $deadline = Carbon::parse($request->input('global_deadline'));
         } else {
             $relative = $request->input('global_deadline_relative');
             if ($relative === '3 days') {
@@ -122,7 +120,7 @@ class OwnerDashboardController extends Controller
                 'client_name' => $request->client_name,
                 'global_deadline' => $deadline->toDateString(),
                 'status' => 'PENDING',
-                'is_urgent' => (bool)$request->is_urgent,
+                'is_urgent' => (bool) $request->is_urgent,
             ]);
 
             foreach ($request->items as $itemData) {
@@ -153,7 +151,7 @@ class OwnerDashboardController extends Controller
         }
 
         $loginMethod = $request->input('login_method');
-        if (!$loginMethod) {
+        if (! $loginMethod) {
             if ($request->filled('pin') || in_array(strtoupper($request->role), ['WORKER', 'QC', 'DRAFTER', 'CNC', 'FABRICATION', 'DELIVERY'])) {
                 $loginMethod = 'PIN';
             } else {
@@ -220,8 +218,8 @@ class OwnerDashboardController extends Controller
         $user = User::findOrFail($userId);
 
         $loginMethod = $request->input('login_method');
-        if (!$loginMethod) {
-            if ($request->filled('pin') || (!$request->filled('username') && $user->pin)) {
+        if (! $loginMethod) {
+            if ($request->filled('pin') || (! $request->filled('username') && $user->pin)) {
                 $loginMethod = 'PIN';
             } else {
                 $loginMethod = 'PASSWORD';
@@ -299,7 +297,7 @@ class OwnerDashboardController extends Controller
         $item = Item::findOrFail($itemId);
 
         // Business guard: IF Item Progress > 0% -> Returns HTTP 403 Forbidden
-        if ((float)$item->progress_percent > 0.00) {
+        if ((float) $item->progress_percent > 0.00) {
             abort(403, 'Sunk-Cost Cancel Protection: Items with progress > 0% cannot be cancelled. You must terminate midway instead.');
         }
 
@@ -320,7 +318,7 @@ class OwnerDashboardController extends Controller
         $stages = $item->itemProgresses()->get();
         $totalCompleted = $stages->sum('completed_qty');
         $stagesCount = $stages->count();
-        $completedPieces = $stagesCount > 0 ? (int)round($totalCompleted / $stagesCount) : 0;
+        $completedPieces = $stagesCount > 0 ? (int) round($totalCompleted / $stagesCount) : 0;
 
         // Dispatch mandatory billing job to Finance
         GenerateSunkCostInvoiceJob::dispatch($item->id, $completedPieces);
@@ -337,7 +335,7 @@ class OwnerDashboardController extends Controller
 
         $user = auth()->user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return back()->withErrors([
                 'current_password' => 'Current password is incorrect.',
             ]);

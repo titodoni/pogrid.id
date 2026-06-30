@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Models\Item;
 use App\Models\Invoice;
+use App\Models\Item;
 use App\Services\TenantManager;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -17,6 +17,7 @@ class GenerateSunkCostInvoiceJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected int $itemId;
+
     protected int $completedQty;
 
     public function __construct(int $itemId, int $completedQty)
@@ -31,13 +32,13 @@ class GenerateSunkCostInvoiceJob implements ShouldQueue
             // Temporarily bypass to find item
             TenantManager::bypass();
             $item = Item::find($this->itemId);
-            if (!$item) {
+            if (! $item) {
                 return;
             }
 
             TenantManager::setTenantId($item->tenant_id);
 
-            $invoiceNumber = 'SC-' . strtoupper(uniqid());
+            $invoiceNumber = 'SC-'.strtoupper(uniqid());
             // Simple heuristic: completed quantity * 150,000 IDR base cost
             $totalAmount = max(150000.00, $this->completedQty * 150000.00);
 

@@ -286,6 +286,13 @@ class PerformanceMatrixTest extends TestCase
             $this->assertEquals(1, $cncMetric['active_items']);
             $this->assertEquals(1, $cncMetric['stuck_count']);
             $this->assertEquals(1, $cncMetric['rework_count']);
+
+            $delayed = collect($page->toArray()['props']['telemetry']['delayed_items']);
+            $this->assertCount(1, $delayed);
+            $this->assertEquals('PO-4', $delayed[0]['po_number']);
+            $this->assertEquals('Client D', $delayed[0]['client_name']);
+            $this->assertEquals('Gear', $delayed[0]['item_name']);
+            $this->assertStringContainsString('Machine Broken', $delayed[0]['reason']);
         });
     }
 

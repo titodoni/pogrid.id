@@ -2,16 +2,20 @@
 
 namespace Tests\Feature;
 
-use App\Models\Tenant;
-use App\Models\User;
-use App\Models\Po;
-use App\Models\Item;
-use App\Models\ItemProgress;
+use App\Events\KendalaReported;
+use App\Events\ProductionTerminated;
+use App\Jobs\GenerateSunkCostInvoiceJob;
+use App\Models\Alert;
 use App\Models\DeliveryOrder;
 use App\Models\DoItem;
-use App\Models\Invoice;
+use App\Models\Item;
+use App\Models\Po;
+use App\Models\Tenant;
+use App\Models\User;
 use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class CoreLogicTest extends TestCase
@@ -19,6 +23,7 @@ class CoreLogicTest extends TestCase
     use RefreshDatabase;
 
     protected Tenant $tenant1;
+
     protected Tenant $tenant2;
 
     protected function setUp(): void
@@ -112,7 +117,7 @@ class CoreLogicTest extends TestCase
         // Recalculate should trigger via observer.
         // Formula (Qty > 1): Completed Qty Sum (5) / (Target (20) * Total Stages (2)) * 100 = 5 / 40 * 100 = 12.5%
         $item->refresh();
-        $this->assertEquals(12.50, (float)$item->progress_percent);
+        $this->assertEquals(12.50, (float) $item->progress_percent);
         $this->assertEquals('IN_PROGRESS', $item->status);
 
         // Update progress of Fabrication stage (15 out of 20 pieces)
@@ -124,14 +129,14 @@ class CoreLogicTest extends TestCase
 
         // Formula: Completed Qty Sum (5 + 15 = 20) / (20 * 2 = 40) * 100 = 50%
         $item->refresh();
-        $this->assertEquals(50.00, (float)$item->progress_percent);
+        $this->assertEquals(50.00, (float) $item->progress_percent);
 
         // Finish all
         $cncStage->update(['completed_qty' => 20, 'status' => 'COMPLETED']);
         $fabStage->update(['completed_qty' => 20, 'status' => 'COMPLETED']);
 
         $item->refresh();
-        $this->assertEquals(100.00, (float)$item->progress_percent);
+        $this->assertEquals(100.00, (float) $item->progress_percent);
         $this->assertEquals('COMPLETED', $item->status);
     }
 
@@ -165,7 +170,7 @@ class CoreLogicTest extends TestCase
 
         // Formula: (100 + 0 + 0) / 3 = 33.33%
         $item->refresh();
-        $this->assertEquals(33.33, round((float)$item->progress_percent, 2));
+        $this->assertEquals(33.33, round((float) $item->progress_percent, 2));
 
         $cncStage = $item->itemProgresses()->where('stage_name', 'CNC')->first();
         $cncStage->update([
@@ -175,7 +180,7 @@ class CoreLogicTest extends TestCase
 
         // Formula: (100 + 50 + 0) / 3 = 50.00%
         $item->refresh();
-        $this->assertEquals(50.00, (float)$item->progress_percent);
+        $this->assertEquals(50.00, (float) $item->progress_percent);
 
         $qcStage = $item->itemProgresses()->where('stage_name', 'QC')->first();
         $qcStage->update([
@@ -189,7 +194,7 @@ class CoreLogicTest extends TestCase
 
         // Formula: (100 + 100 + 100) / 3 = 100%
         $item->refresh();
-        $this->assertEquals(100.00, (float)$item->progress_percent);
+        $this->assertEquals(100.00, (float) $item->progress_percent);
         $this->assertEquals('COMPLETED', $item->status);
     }
 
@@ -304,7 +309,7 @@ class CoreLogicTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        
+
         // Assert the sub-stage CNC - REWORK was spawned
         $this->assertDatabaseHas('item_progress', [
             'item_id' => $item->id,
@@ -323,9 +328,9 @@ class CoreLogicTest extends TestCase
 
     public function test_lapor_kendala_spawns_red_alert_and_broadcasts()
     {
-        \Illuminate\Support\Facades\Event::fake([
-            \App\Events\KendalaReported::class,
-            \App\Events\ProductionTerminated::class,
+        Event::fake([
+            KendalaReported::class,
+            ProductionTerminated::class,
         ]);
 
         TenantManager::setTenantId($this->tenant1->id);
@@ -374,7 +379,7 @@ class CoreLogicTest extends TestCase
         ]);
 
         // Assert event was broadcasted
-        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\KendalaReported::class);
+        Event::assertDispatched(KendalaReported::class);
     }
 
     public function test_evaluate_timelines_command_spawns_appropriate_alerts()
@@ -432,11 +437,11 @@ class CoreLogicTest extends TestCase
 
     public function test_sunk_cost_cancel_protection_and_midway_termination()
     {
-        \Illuminate\Support\Facades\Event::fake([
-            \App\Events\KendalaReported::class,
-            \App\Events\ProductionTerminated::class,
+        Event::fake([
+            KendalaReported::class,
+            ProductionTerminated::class,
         ]);
-        \Illuminate\Support\Facades\Queue::fake();
+        Queue::fake();
 
         TenantManager::setTenantId($this->tenant1->id);
 
@@ -469,7 +474,7 @@ class CoreLogicTest extends TestCase
         $cncStage = $item50Percent->itemProgresses()->first();
         $cncStage->update(['completed_qty' => 5]);
         $item50Percent->refresh();
-        $this->assertEquals(50.00, (float)$item50Percent->progress_percent);
+        $this->assertEquals(50.00, (float) $item50Percent->progress_percent);
 
         // Login as Owner
         $owner = User::create([
@@ -496,8 +501,8 @@ class CoreLogicTest extends TestCase
         $response3->assertRedirect();
         $this->assertEquals('TERMINATED', $item50Percent->refresh()->status);
 
-        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\ProductionTerminated::class);
-        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\GenerateSunkCostInvoiceJob::class);
+        Event::assertDispatched(ProductionTerminated::class);
+        Queue::assertPushed(GenerateSunkCostInvoiceJob::class);
     }
 
     public function test_qc_rework_progress_calculation_reaches_100_percent()
@@ -528,7 +533,7 @@ class CoreLogicTest extends TestCase
         $fabStage->update(['completed_qty' => 10, 'status' => 'COMPLETED']);
 
         $item->refresh();
-        $this->assertEquals(100.00, (float)$item->progress_percent);
+        $this->assertEquals(100.00, (float) $item->progress_percent);
         $this->assertEquals('COMPLETED', $item->status);
 
         // QC logs reject_qty = 2 on CNC
@@ -551,7 +556,7 @@ class CoreLogicTest extends TestCase
 
         // Item progress should drop to 90% (8 CNC + 10 Fabrication) / 20 * 100 = 90%
         $item->refresh();
-        $this->assertEquals(90.00, (float)$item->progress_percent);
+        $this->assertEquals(90.00, (float) $item->progress_percent);
         $this->assertEquals('IN_PROGRESS', $item->status);
 
         // Worker completes 2 reworked items
@@ -565,7 +570,7 @@ class CoreLogicTest extends TestCase
 
         // Item progress should be 100% (8 CNC + 10 Fabrication + 2 Rework) / 20 * 100 = 100%
         $item->refresh();
-        $this->assertEquals(100.00, (float)$item->progress_percent);
+        $this->assertEquals(100.00, (float) $item->progress_percent);
         $this->assertEquals('COMPLETED', $item->status);
     }
 
@@ -611,11 +616,11 @@ class CoreLogicTest extends TestCase
         // Check alerts
         // Tenant 1 should have NO alerts, because their item is healthy
         TenantManager::setTenantId($this->tenant1->id);
-        $this->assertEquals(0, \App\Models\Alert::where('tenant_id', $this->tenant1->id)->count());
+        $this->assertEquals(0, Alert::where('tenant_id', $this->tenant1->id)->count());
 
         // Tenant 2 should have 1 RED alert, because their item is overdue
         TenantManager::setTenantId($this->tenant2->id);
-        $this->assertEquals(1, \App\Models\Alert::where('tenant_id', $this->tenant2->id)->count());
+        $this->assertEquals(1, Alert::where('tenant_id', $this->tenant2->id)->count());
         $this->assertDatabaseHas('alerts', [
             'tenant_id' => $this->tenant2->id,
             'item_id' => $item2->id,

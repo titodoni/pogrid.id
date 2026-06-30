@@ -9,11 +9,11 @@ class DoItemObserver
     public function saved(DoItem $doItem): void
     {
         $item = $doItem->item;
-        if (!$item) {
+        if (! $item) {
             return;
         }
         $po = $item->po;
-        if (!$po) {
+        if (! $po) {
             return;
         }
 

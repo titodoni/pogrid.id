@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, BelongsToTenant;
+    use BelongsToTenant, HasFactory, Notifiable;
 
     protected $fillable = [
         'tenant_id',
@@ -64,4 +64,3 @@ class User extends Authenticatable
         return $this->role === 'MANAGER';
     }
 }
-
