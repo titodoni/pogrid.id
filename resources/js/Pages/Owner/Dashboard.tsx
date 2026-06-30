@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { ChevronDown, Settings, Lock, Plus, Palette, Stop, Broadcast, Globe, Copy, DotGreen } from '../../Components/Icons';
 
@@ -159,6 +159,33 @@ const renderWarningPill = (deadlineDateStr: string | undefined, hasRework: boole
             </span>
         );
     }
+};
+
+const getItemStateColor = (deadlineDateStr: string | undefined, hasRework: boolean, itemStatus: string): { bg: string; border: string; glow: string } => {
+    if (!deadlineDateStr) return { bg: 'transparent', border: 'transparent', glow: 'transparent' };
+    if (itemStatus === 'TERMINATED' || itemStatus === 'CANCELLED') return { bg: 'rgba(239, 68, 68, 0.03)', border: 'rgba(239, 68, 68, 0.15)', glow: 'rgba(239, 68, 68, 0.06)' };
+    
+    // Check Rework first (takes precedence or is a high priority status)
+    if (hasRework) {
+        return { bg: 'rgba(249, 115, 22, 0.04)', border: 'rgba(249, 115, 22, 0.2)', glow: 'rgba(249, 115, 22, 0.08)' };
+    }
+
+    const deadline = new Date(deadlineDateStr);
+    const deadlineClean = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
+    const today = new Date();
+    const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    const diffTime = deadlineClean.getTime() - todayClean.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+        // Red warning (delayed)
+        return { bg: 'rgba(239, 68, 68, 0.04)', border: 'rgba(239, 68, 68, 0.2)', glow: 'rgba(239, 68, 68, 0.08)' };
+    } else if (diffDays <= 3) {
+        // Orange warning (deadline close)
+        return { bg: 'rgba(249, 115, 22, 0.04)', border: 'rgba(249, 115, 22, 0.2)', glow: 'rgba(249, 115, 22, 0.08)' };
+    }
+    return { bg: 'transparent', border: 'transparent', glow: 'transparent' };
 };
 
 interface Alert {
@@ -367,6 +394,12 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
 
     const [activeTab, setActiveTab] = useState<'alerts' | 'active' | 'completed' | 'matrix'>('alerts');
     const [isPresentationMode, setIsPresentationMode] = useState(false);
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 30000);
+        return () => clearInterval(timer);
+    }, []);
 
     const togglePresentationMode = () => {
         setIsPresentationMode(prev => {
@@ -523,29 +556,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
 
     // Change Password modal
-    const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-    const [cpCurrentPassword, setCpCurrentPassword] = useState('');
-    const [cpNewPassword, setCpNewPassword] = useState('');
-    const [cpConfirmPassword, setCpConfirmPassword] = useState('');
 
-    const openChangePassword = () => {
-        setCpCurrentPassword('');
-        setCpNewPassword('');
-        setCpConfirmPassword('');
-        setShowSettingsDropdown(false);
-        setShowChangePasswordModal(true);
-    };
-
-    const submitChangePassword = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.post('/change-password', {
-            current_password: cpCurrentPassword,
-            new_password: cpNewPassword,
-            new_password_confirmation: cpConfirmPassword,
-        }, {
-            onSuccess: () => setShowChangePasswordModal(false),
-        });
-    };
 
     // Add Admin modal
     const [showAddAdminModal, setShowAddAdminModal] = useState(false);
@@ -574,7 +585,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
         });
     };
 
-    // No client/PO creation state — moved to dedicated page at /pos/create
+    // No client/PO creation state â€” moved to dedicated page at /pos/create
 
     const handleCancel = (itemId: number) => {
         if (confirm('Are you sure you want to cancel this item?')) {
@@ -592,8 +603,10 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
     const canBroadcastPo = auth_user?.role !== 'OWNER';
 
     return (
-        <div className="responsive-container" style={{
-            minHeight: '100vh',
+        <div className="responsive-container dashboard-root" style={{
+            minHeight: '100dvh',
+            display: 'flex',
+            flexDirection: 'column',
             backgroundColor: '#090d16',
             fontFamily: 'Inter, sans-serif',
             color: '#f8fafc'
@@ -604,197 +617,79 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                 marginBottom: '28px'
             }}>
                 <div>
-                    <h1 style={{ fontSize: '28px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.owner_command_center}</h1>
-                    <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>{t.subtitle_realtime}</p>
-                </div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    {isOwner && (
-                        <div style={{ position: 'relative' }}>
-                            <button
-                                onClick={() => setShowSettingsDropdown(prev => !prev)}
-                                style={{
-                                    padding: '10px 14px',
-                                    backgroundColor: showSettingsDropdown ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)',
-                                    color: '#94a3b8',
-                                    border: '1px solid rgba(255,255,255,0.08)',
-                                    borderRadius: '10px',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    fontSize: '18px',
-                                    lineHeight: '1',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                }}
-                            >
-                                <Settings size={18} />
-                            </button>
-
-                            {showSettingsDropdown && (
-                                <>
-                                    <div
-                                        onClick={() => setShowSettingsDropdown(false)}
-                                        style={{
-                                            position: 'fixed',
-                                            top: 0, left: 0, right: 0, bottom: 0,
-                                            zIndex: 40,
-                                        }}
-                                    />
-                                    <div className="settings-dropdown" style={{
-                                        position: 'absolute',
-                                        top: 'calc(100% + 6px)',
-                                        right: 0,
-                                        backgroundColor: '#0f172a',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '12px',
-                                        padding: '6px',
-                                        minWidth: '220px',
-                                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
-                                        zIndex: 50,
-                                    }}>
-                                        <button
-                                            onClick={openChangePassword}
-                                            style={{
-                                                display: 'block',
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: 'transparent',
-                                                border: 'none',
-                                                color: '#e2e8f0',
-                                                fontSize: '14px',
-                                                fontWeight: 500,
-                                                cursor: 'pointer',
-                                                borderRadius: '8px',
-                                                textAlign: 'left'
-                                            }}
-                                            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)')}
-                                            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                                        >
-                                            <Lock size={14} /> {t.change_password}
-                                        </button>
-                                        <button
-                                            onClick={openAddAdmin}
-                                            style={{
-                                                display: 'block',
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: 'transparent',
-                                                border: 'none',
-                                                color: '#e2e8f0',
-                                                fontSize: '14px',
-                                                fontWeight: 500,
-                                                cursor: 'pointer',
-                                                borderRadius: '8px',
-                                                textAlign: 'left'
-                                            }}
-                                            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)')}
-                                            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                                        >
-                                            <Plus size={14} /> {t.add_admin}
-                                        </button>
-                                        <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
-                                        <button
-                                            disabled
-                                            style={{
-                                                display: 'block',
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: 'transparent',
-                                                border: 'none',
-                                                color: '#64748b',
-                                                fontSize: '14px',
-                                                fontWeight: 500,
-                                                borderRadius: '8px',
-                                                textAlign: 'left',
-                                                cursor: 'not-allowed',
-                                                opacity: 0.5,
-                                            }}
-                                        >
-                                            <Palette size={14} /> {t.color_themes} <span style={{ fontSize: '11px', color: '#475569', marginLeft: '6px' }}>({t.coming_soon})</span>
-                                        </button>
-                                        <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
-                                        <div style={{ padding: '8px 12px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, marginBottom: '6px' }}>
-                                                <Globe size={14} />
-                                                <span>{t.language_label}</span>
-                                            </div>
-                                            <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '2px', borderRadius: '6px' }}>
-                                                <button
-                                                    onClick={() => changeLanguage('en')}
-                                                    style={{
-                                                        flex: 1,
-                                                        padding: '6px 8px',
-                                                        backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
-                                                        border: 'none',
-                                                        borderRadius: '4px',
-                                                        color: '#fff',
-                                                        fontWeight: 600,
-                                                        fontSize: '11px',
-                                                        cursor: 'pointer',
-                                                        textAlign: 'center'
-                                                    }}
-                                                >
-                                                    {t.lang_en}
-                                                </button>
-                                                <button
-                                                    onClick={() => changeLanguage('id')}
-                                                    style={{
-                                                        flex: 1,
-                                                        padding: '6px 8px',
-                                                        backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
-                                                        border: 'none',
-                                                        borderRadius: '4px',
-                                                        color: '#fff',
-                                                        fontWeight: 600,
-                                                        fontSize: '11px',
-                                                        cursor: 'pointer',
-                                                        textAlign: 'center'
-                                                    }}
-                                                >
-                                                    {t.lang_id}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
+                        <div className="greeting-name" style={{ fontSize: '13px', color: '#60a5fa', fontWeight: 600, marginBottom: '2px' }}>
+                            {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
                         </div>
-                    )}
-
+                        <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.owner_command_center}</h1>
+                        <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0 0' }}>
+                            {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                            {' · '}
+                            {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                    </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    {/* Profile - visible to all roles */}
                     <a
-                        href="/superadmin"
+                        href={'/c/' + (tenant?.slug || '') + '/profile'}
+                        onClick={() => setShowSettingsDropdown(false)}
                         style={{
-                            padding: '10px 18px',
+                            padding: '8px',
                             backgroundColor: 'rgba(255,255,255,0.05)',
                             color: '#94a3b8',
                             border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: '10px',
-                            fontWeight: 600,
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '16px',
+                            lineHeight: '1',
+                            display: 'flex',
                             textDecoration: 'none',
-                            fontSize: '14px',
-                            display: 'inline-flex',
-                            alignItems: 'center'
                         }}
+                        title={language === 'en' ? 'Profile' : 'Profil'}
                     >
-                        Super Admin Panel
+                        <Settings size={16} />
                     </a>
+
+                    {isOwner && (
+                        <button
+                            onClick={openAddAdmin}
+                            style={{
+                                padding: '8px 12px',
+                                backgroundColor: 'rgba(255,255,255,0.05)',
+                                color: '#94a3b8',
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                borderRadius: '8px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                            }}
+                        >
+                            <Plus size={14} /> {t.add_admin}
+                        </button>
+                    )}
+
                     <button
                         onClick={() => router.post('/logout')}
                         style={{
-                            padding: '10px 18px',
+                            padding: '8px 14px',
                             backgroundColor: '#ef4444',
                             color: '#fff',
                             fontWeight: 600,
                             border: 'none',
-                            borderRadius: '10px',
+                            borderRadius: '8px',
                             cursor: 'pointer',
-                            fontSize: '14px'
+                            fontSize: '13px',
+                            whiteSpace: 'nowrap'
                         }}
                     >
-                        Sign Out
+                        {language === 'en' ? 'Exit' : 'Keluar'}
                     </button>
                 </div>
             </header>
 
+            <div className="dashboard-above-scroll">
             {/* Error Messages */}
             {errors && Object.keys(errors).length > 0 && (
                 <div style={{
@@ -819,55 +714,51 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                 <div className="floor-terminal-box" style={{
                     backgroundColor: 'rgba(37, 99, 235, 0.06)',
                     border: '1px dashed rgba(37, 99, 235, 0.3)',
-                    borderRadius: '12px',
-                    padding: '16px 20px',
-                    marginBottom: '28px',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    marginBottom: '16px',
                     display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px'
+                    alignItems: 'center',
+                    gap: '10px'
                 }}>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span><Globe size={16} /> {t.floor_terminal_url} ({tenant.company_name})</span>
-                    </div>
-                    <div style={{ fontSize: '13px', color: '#94a3b8' }}>
-                        {t.floor_terminal_desc}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
-                        <code style={{
-                            backgroundColor: '#090d16',
-                            padding: '8px 12px',
-                            borderRadius: '8px',
-                            border: '1px solid rgba(255,255,255,0.06)',
-                            color: '#38bdf8',
-                            fontSize: '14px',
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#60a5fa', whiteSpace: 'nowrap' }}>
+                        {t.floor_terminal_url}
+                    </span>
+                    <code style={{
+                        backgroundColor: '#090d16',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        color: '#38bdf8',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        flex: 1,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                    }}>
+                        {typeof window !== 'undefined' ? `${window.location.origin}/c/${tenant.slug}` : `/c/${tenant.slug}`}
+                    </code>
+                    <button
+                        onClick={() => {
+                            const url = typeof window !== 'undefined' ? `${window.location.origin}/c/${tenant.slug}` : `/c/${tenant.slug}`;
+                            navigator.clipboard.writeText(url);
+                            alert('URL copied!');
+                        }}
+                        style={{
+                            padding: '4px 10px',
+                            backgroundColor: '#2563eb',
+                            color: '#fff',
                             fontWeight: 600,
-                            letterSpacing: '0.02em',
-                            wordBreak: 'break-all',
-                            flex: 1
-                        }}>
-                            {typeof window !== 'undefined' ? `${window.location.origin}/c/${tenant.slug}` : `/c/${tenant.slug}`}
-                        </code>
-                            <button
-                                className="copy-btn"
-                                onClick={() => {
-                                    const url = typeof window !== 'undefined' ? `${window.location.origin}/c/${tenant.slug}` : `/c/${tenant.slug}`;
-                                    navigator.clipboard.writeText(url);
-                                    alert('Copied Floor Terminal URL to clipboard!');
-                                }}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#2563eb',
-                                    color: '#fff',
-                                    fontWeight: 600,
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    fontSize: '13px',
-                                }}
-                            >
-                                Copy Link
-                            </button>
-                    </div>
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '11px',
+                            whiteSpace: 'nowrap'
+                        }}
+                    >
+                        Copy
+                    </button>
                 </div>
             )}
 
@@ -899,6 +790,52 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                 </button>
             </div>
 
+            {/* State Summary Bar */}
+            <div style={{
+                display: 'flex',
+                gap: '8px',
+                marginBottom: '0',
+                flexWrap: 'wrap'
+            }}>
+                {(() => {
+                    const issues = getUnifiedIssuesList();
+                    const delayed = issues.filter(i => i.type === 'DELAYED').length;
+                    const close = issues.filter(i => i.type === 'URGENT').length;
+                    const reworks = issues.filter(i => i.type === 'REWORK').length;
+                    const troubles = issues.filter(i => i.type === 'TROUBLE' || i.type === 'STUCK').length;
+                    const total = issues.length;
+                    return (
+                        <>
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', padding: '4px 10px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                {total} {language === 'en' ? 'Issues' : 'Isu'}
+                            </span>
+                            {delayed > 0 && (
+                                <span style={{ fontSize: '11px', fontWeight: 700, color: '#ef4444', padding: '4px 10px', backgroundColor: 'rgba(239,68,68,0.08)', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.15)' }}>
+                                    {delayed} {language === 'en' ? 'Delayed' : 'Terlambat'}
+                                </span>
+                            )}
+                            {close > 0 && (
+                                <span style={{ fontSize: '11px', fontWeight: 700, color: '#f97316', padding: '4px 10px', backgroundColor: 'rgba(249,115,22,0.08)', borderRadius: '6px', border: '1px solid rgba(249,115,22,0.15)' }}>
+                                    {close} {language === 'en' ? 'Closing' : 'Dekat'}
+                                </span>
+                            )}
+                            {reworks > 0 && (
+                                <span style={{ fontSize: '11px', fontWeight: 700, color: '#f97316', padding: '4px 10px', backgroundColor: 'rgba(249,115,22,0.08)', borderRadius: '6px', border: '1px solid rgba(249,115,22,0.15)' }}>
+                                    {reworks} Rework
+                                </span>
+                            )}
+                            {troubles > 0 && (
+                                <span style={{ fontSize: '11px', fontWeight: 700, color: '#ef4444', padding: '4px 10px', backgroundColor: 'rgba(239,68,68,0.08)', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.15)' }}>
+                                    {troubles} {language === 'en' ? 'Stuck' : 'Macet'}
+                                </span>
+                            )}
+                        </>
+                    );
+                })()}
+            </div>
+            </div>
+
+            <div className="dashboard-scroll">
             {/* Alert Matrix Panel */}
             {activeTab === 'alerts' && (() => {
                 const unifiedIssues = getUnifiedIssuesList();
@@ -1110,7 +1047,19 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                                         const itemExpanded = expandedItems.has(item.id);
 
                                                         return (
-                                                            <div key={item.id} className="item-compact" style={{ opacity: (isCancelled || isTerminated) ? 0.6 : 1 }}>
+                                                            <div key={item.id} className="item-compact" style={{
+                                                        ...(() => {
+                                                            const itemAlerts = alerts.filter(a => a.item_id === item.id && !a.is_resolved);
+                                                            const hasRework = itemAlerts.some(a => a.severity === 'YELLOW');
+                                                            const sc = getItemStateColor(po.global_deadline, hasRework, item.status);
+                                                            return {
+                                                                opacity: (isCancelled || isTerminated) ? 0.6 : 1,
+                                                                borderLeft: '3px solid ' + sc.border,
+                                                                backgroundColor: sc.bg,
+                                                                boxShadow: sc.glow !== 'transparent' ? '0 0 12px ' + sc.glow : 'none'
+                                                            };
+                                                        })()
+                                                    }}>
                                                                 <button className="item-compact-summary" onClick={() => toggleItem(item.id)}>
                                                                     <div style={{ flex: 1, minWidth: 0 }}>
                                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -1728,135 +1677,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                 </div>
             )}
 
-            {/* Change Password Modal */}
-            {showChangePasswordModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 50,
-                    padding: '20px'
-                }}>
-                    <div style={{
-                        backgroundColor: '#0f172a',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        borderRadius: '16px',
-                        padding: '24px',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                        width: '100%',
-                        maxWidth: '420px'
-                    }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 8px 0' }}>
-                            {t.change_password}
-                        </h2>
-
-                        <form onSubmit={submitChangePassword}>
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
-                                    {t.current_password}
-                                </label>
-                                <input
-                                    type="password"
-                                    value={cpCurrentPassword}
-                                    onChange={(e) => setCpCurrentPassword(e.target.value)}
-                                    required
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        backgroundColor: '#090d16',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none'
-                                    }}
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
-                                    {t.new_password}
-                                </label>
-                                <input
-                                    type="password"
-                                    value={cpNewPassword}
-                                    onChange={(e) => setCpNewPassword(e.target.value)}
-                                    required
-                                    minLength={6}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        backgroundColor: '#090d16',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none'
-                                    }}
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: '24px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
-                                    {t.confirm_password}
-                                </label>
-                                <input
-                                    type="password"
-                                    value={cpConfirmPassword}
-                                    onChange={(e) => setCpConfirmPassword(e.target.value)}
-                                    required
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        backgroundColor: '#090d16',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none'
-                                    }}
-                                />
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowChangePasswordModal(false)}
-                                    style={{
-                                        padding: '10px 16px',
-                                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                                        color: '#e2e8f0',
-                                        borderRadius: '8px',
-                                        fontWeight: 600,
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    {t.cancel}
-                                </button>
-                                <button
-                                    type="submit"
-                                    style={{
-                                        padding: '10px 20px',
-                                        backgroundColor: '#2563eb',
-                                        border: 'none',
-                                        color: '#fff',
-                                        borderRadius: '8px',
-                                        fontWeight: 600,
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    {t.save_changes}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            </div>
 
             {/* Add Admin Modal */}
             {showAddAdminModal && (
@@ -1997,3 +1818,8 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
         </div>
     );
 }
+
+
+
+
+

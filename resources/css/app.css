@@ -216,10 +216,14 @@ input, select, textarea {
     }
 
     .responsive-header h1 {
-        font-size: 20px !important;
+        font-size: 18px !important;
     }
 
     .responsive-header p {
+        font-size: 11px !important;
+    }
+
+    .responsive-header .greeting-name {
         font-size: 12px !important;
     }
 
@@ -246,6 +250,14 @@ input, select, textarea {
 
     .worker-item-card {
         padding: 12px !important;
+    }
+
+    .dashboard-above-scroll {
+        padding-bottom: 8px !important;
+    }
+
+    .dashboard-above-scroll .tab-bar {
+        margin-bottom: 10px !important;
     }
 
     .worker-item-card .item-meta-grid {
@@ -402,4 +414,22 @@ input, select, textarea {
         border: 1px solid #cbd5e1 !important;
         color: #0f172a !important;
     }
+}
+
+/* Dashboard viewport cap */
+.dashboard-root {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.dashboard-above-scroll {
+    flex-shrink: 0;
+    padding-bottom: 12px;
+}
+.dashboard-scroll {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }

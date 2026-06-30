@@ -7,6 +7,22 @@ use App\Models\ItemProgress;
 
 class ItemObserver
 {
+    public function creating(Item $item): void
+    {
+        if ($item->item_type === 'MANUFACTURE') {
+            $stages = $item->required_stages ?? [];
+            if (in_array('Machining', $stages) || in_array('Fabrication', $stages)) {
+                if (!in_array('QC', $stages)) {
+                    $stages[] = 'QC';
+                }
+                if (!in_array('Delivery', $stages)) {
+                    $stages[] = 'Delivery';
+                }
+                $item->required_stages = $stages;
+            }
+        }
+    }
+
     public function created(Item $item): void
     {
         if (is_array($item->required_stages)) {

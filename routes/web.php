@@ -6,6 +6,7 @@ use App\Http\Controllers\OwnerDashboardController;
 use App\Http\Controllers\PinResetController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\WorkerAuthController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WorkerDashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -65,8 +66,10 @@ Route::prefix('c/{slug}')->group(function () {
 
     Route::middleware('auth')->group(function () {
         Route::get('/export-pdf', [WorkerDashboardController::class, 'exportPdf']);
+        Route::get('/profile', [ProfileController::class, 'index']);
         Route::post('/progress/{progressId}/update', [WorkerDashboardController::class, 'updateProgress']);
         Route::post('/progress/{progressId}/kendala', [WorkerDashboardController::class, 'reportKendala']);
         Route::post('/progress/{progressId}/rework', [WorkerDashboardController::class, 'logQcRework']);
+        Route::post('/items/{itemId}/finance', [WorkerDashboardController::class, 'updateFinanceStatus']);
     });
 });

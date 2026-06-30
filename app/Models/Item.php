@@ -23,6 +23,8 @@ class Item extends Model
         'status',
         'vendor_name',
         'vendor_phone',
+        'invoice_status',
+        'payment_status',
     ];
 
     protected $casts = [

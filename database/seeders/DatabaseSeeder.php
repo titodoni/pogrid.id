@@ -91,7 +91,7 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $tenant->id,
             'name' => 'CNC Specialist',
             'pin' => Hash::make('0000'),
-            'role' => 'CNC',
+            'role' => 'MACHINING',
         ]);
 
         User::create([
@@ -147,7 +147,7 @@ class DatabaseSeeder extends Seeder
             'item_name' => 'Shaft S45C (CNC + Fabrication)',
             'target_qty' => 10,
             'item_type' => 'MANUFACTURE',
-            'required_stages' => ['CNC', 'Fabrication'],
+            'required_stages' => ['Machining', 'Fabrication'],
             'status' => 'PENDING',
         ]);
 
@@ -157,7 +157,7 @@ class DatabaseSeeder extends Seeder
             'item_name' => 'Flange Plate (CNC)',
             'target_qty' => 20,
             'item_type' => 'MANUFACTURE',
-            'required_stages' => ['CNC'],
+            'required_stages' => ['Machining'],
             'status' => 'PENDING',
         ]);
 
@@ -167,7 +167,7 @@ class DatabaseSeeder extends Seeder
             'item_name' => 'Special Bracket (CNC + Fabrication)',
             'target_qty' => 1,
             'item_type' => 'MANUFACTURE',
-            'required_stages' => ['CNC', 'Fabrication'],
+            'required_stages' => ['Machining', 'Fabrication'],
             'status' => 'PENDING',
         ]);
     }

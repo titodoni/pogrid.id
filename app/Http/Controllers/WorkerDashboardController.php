@@ -75,11 +75,26 @@ class WorkerDashboardController extends Controller
         }
 
         // Otherwise, render floor operators dashboard
-        $items = Item::with(['itemProgresses', 'po', 'alerts' => function ($q) {
+        $query = Item::with(['itemProgresses', 'po', 'alerts' => function ($q) {
             $q->where('is_resolved', false);
-        }])
-            ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])
-            ->get();
+        }]);
+
+        if (strtoupper($user->role) === 'FINANCE') {
+            $query->where(function ($q) {
+                $q->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])
+                  ->orWhere(function ($sub) {
+                      $sub->where('status', 'COMPLETED')
+                          ->where(function ($subFinance) {
+                              $subFinance->where('invoice_status', 'UNINVOICED')
+                                         ->orWhere('payment_status', 'UNPAID');
+                          });
+                  });
+            });
+        } else {
+            $query->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED']);
+        }
+
+        $items = $query->get();
 
         return Inertia::render('Worker/Dashboard', [
             'items' => $items,
@@ -466,6 +481,8 @@ class WorkerDashboardController extends Controller
         ]);
 
         $progress = ItemProgress::findOrFail($progressId);
+        $this->validateStageAccess($progress, auth()->user());
+
         $item = $progress->item;
 
         if ($item->target_qty > 1) {
@@ -490,6 +507,30 @@ class WorkerDashboardController extends Controller
             ]);
         }
 
+        // When the 'Delivery' stage progress is updated, automatically create/update a DeliveryOrder and corresponding DoItem
+        $stageNameLower = strtolower($progress->stage_name);
+        if (str_contains($stageNameLower, 'delivery') || str_contains($stageNameLower, 'pengiriman')) {
+            $po = $item->po;
+            $deliveryOrder = \App\Models\DeliveryOrder::updateOrCreate([
+                'tenant_id' => $item->tenant_id,
+                'po_id' => $item->po_id,
+                'do_number' => 'DO-' . $po->po_number,
+            ], [
+                'delivery_date' => now()->toDateString(),
+            ]);
+
+            $deliveredQty = $item->target_qty > 1 
+                ? $progress->completed_qty 
+                : ($progress->progress_percent >= 100.00 ? 1 : 0);
+
+            \App\Models\DoItem::updateOrCreate([
+                'delivery_order_id' => $deliveryOrder->id,
+                'item_id' => $item->id,
+            ], [
+                'delivered_qty' => $deliveredQty,
+            ]);
+        }
+
         return back()->with('success', 'Progress updated.');
     }
 
@@ -500,6 +541,8 @@ class WorkerDashboardController extends Controller
         ]);
 
         $progress = ItemProgress::findOrFail($progressId);
+        $this->validateStageAccess($progress, auth()->user());
+
         $progress->update(['status' => 'STUCK']);
 
         $item = $progress->item;
@@ -525,6 +568,12 @@ class WorkerDashboardController extends Controller
         $request->validate([
             'reject_qty' => ['required', 'integer', 'min:1'],
         ]);
+
+        $user = auth()->user();
+        $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
+        if (!in_array(strtoupper($user->role), $officeRoles) && strtoupper($user->role) !== 'QC') {
+            abort(403, 'Forbidden: Only QC inspectors can log rework.');
+        }
 
         $progress = ItemProgress::findOrFail($progressId);
         $item = $progress->item;
@@ -570,5 +619,139 @@ class WorkerDashboardController extends Controller
         ]);
 
         return back()->with('success', 'QC Rework logged and Rework stage spawned.');
+    }
+
+    public function updateFinanceStatus(Request $request, $slug, $itemId)
+    {
+        $request->validate([
+            'invoice_status' => ['required', 'string'],
+            'payment_status' => ['required', 'string'],
+        ]);
+
+        $user = auth()->user();
+        $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
+        if (!in_array(strtoupper($user->role), $officeRoles) && strtoupper($user->role) !== 'FINANCE') {
+            abort(403, 'Forbidden: Only Finance controllers can update finance status.');
+        }
+
+        $item = Item::findOrFail($itemId);
+
+        // Ensure Delivery stage status is 'COMPLETED' first
+        $deliveryProgress = ItemProgress::where('item_id', $itemId)
+            ->where(function ($query) {
+                $query->where('stage_name', 'Delivery')
+                      ->orWhere('stage_name', 'Pengiriman');
+            })
+            ->first();
+
+        if (!$deliveryProgress || $deliveryProgress->status !== 'COMPLETED') {
+            abort(403, 'Stage locked: Finance status cannot be updated until the Delivery stage is completed.');
+        }
+
+        $item->update([
+            'invoice_status' => $request->invoice_status,
+            'payment_status' => $request->payment_status,
+        ]);
+
+        return back()->with('success', 'Finance status updated.');
+    }
+
+    private function validateStageAccess(ItemProgress $progress, User $user): void
+    {
+        $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
+        $roleUpper = strtoupper($user->role);
+
+        // 1. Role validation check
+        if (!in_array($roleUpper, $officeRoles)) {
+            $stageLower = strtolower($progress->stage_name);
+            if (str_contains($stageLower, 'machining')) {
+                if ($roleUpper !== 'MACHINING') {
+                    abort(403, 'Stage locked: Only Machining operators can update this stage.');
+                }
+            } elseif (str_contains($stageLower, 'fabrication') || str_contains($stageLower, 'fabrikasi')) {
+                if ($roleUpper !== 'FABRICATION') {
+                    abort(403, 'Stage locked: Only Fabrication operators can update this stage.');
+                }
+            } elseif (str_contains($stageLower, 'vendor') || str_contains($stageLower, 'purchasing')) {
+                if ($roleUpper !== 'PURCHASING') {
+                    abort(403, 'Stage locked: Only Purchasing agents can update this stage.');
+                }
+            } elseif (str_contains($stageLower, 'qc')) {
+                if ($roleUpper !== 'QC') {
+                    abort(403, 'Stage locked: Only QC inspectors can update this stage.');
+                }
+            } elseif (str_contains($stageLower, 'delivery') || str_contains($stageLower, 'pengiriman')) {
+                if ($roleUpper !== 'DELIVERY') {
+                    abort(403, 'Stage locked: Only Delivery couriers can update this stage.');
+                }
+            }
+        }
+
+        $item = $progress->item;
+        if (!$item) {
+            return;
+        }
+
+        $requiredStages = $item->required_stages ?? [];
+        $isVendorChecked = in_array('Vendor', $requiredStages);
+        $isMachiningChecked = in_array('Machining', $requiredStages);
+        $isFabricationChecked = in_array('Fabrication', $requiredStages);
+        $stageNameLower = strtolower($progress->stage_name);
+
+        // 2. Off-state locks and workflow locks
+        if (!in_array($roleUpper, $officeRoles)) {
+            if ($isVendorChecked) {
+                if (str_contains($stageNameLower, 'machining') || 
+                    str_contains($stageNameLower, 'fabrication') || str_contains($stageNameLower, 'fabrikasi') ||
+                    str_contains($stageNameLower, 'qc') || 
+                    str_contains($stageNameLower, 'delivery') || str_contains($stageNameLower, 'pengiriman')) {
+                    abort(403, 'Stage locked: This is a Vendor job, so other production stages are locked.');
+                }
+            }
+
+            if ($isMachiningChecked && !$isFabricationChecked) {
+                if (str_contains($stageNameLower, 'fabrication') || str_contains($stageNameLower, 'fabrikasi')) {
+                    abort(403, 'Stage locked: Fabrication is not required/checked for this item.');
+                }
+            }
+
+            if ($isFabricationChecked && !$isMachiningChecked) {
+                if (str_contains($stageNameLower, 'machining')) {
+                    abort(403, 'Stage locked: Machining is not required/checked for this item.');
+                }
+            }
+
+            // QC stage update lockout
+            if (str_contains($stageNameLower, 'qc')) {
+                if ($isMachiningChecked) {
+                    $machiningCompleted = ItemProgress::where('item_id', $item->id)
+                        ->where('stage_name', 'Machining')
+                        ->where('status', 'COMPLETED')
+                        ->exists();
+                    if (!$machiningCompleted) {
+                        abort(403, 'Stage locked: QC cannot be updated until Machining stage is completed.');
+                    }
+                }
+                if ($isFabricationChecked) {
+                    $fabricationCompleted = ItemProgress::where('item_id', $item->id)
+                        ->where('stage_name', 'Fabrication')
+                        ->where('status', 'COMPLETED')
+                        ->exists();
+                    if (!$fabricationCompleted) {
+                        abort(403, 'Stage locked: QC cannot be updated until Fabrication stage is completed.');
+                    }
+                }
+            }
+
+            // Delivery stage update lockout
+            if (str_contains($stageNameLower, 'delivery') || str_contains($stageNameLower, 'pengiriman')) {
+                $qcProgress = ItemProgress::where('item_id', $item->id)
+                    ->where('stage_name', 'QC')
+                    ->first();
+                if (!$qcProgress || ($qcProgress->completed_qty <= 0 && $qcProgress->progress_percent <= 0)) {
+                    abort(403, 'Stage locked: Delivery cannot be updated until QC stage has completed quantities.');
+                }
+            }
+        }
     }
 }

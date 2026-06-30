@@ -152,7 +152,7 @@ class OwnerDashboardController extends Controller
 
         $loginMethod = $request->input('login_method');
         if (! $loginMethod) {
-            if ($request->filled('pin') || in_array(strtoupper($request->role), ['WORKER', 'QC', 'DRAFTER', 'CNC', 'FABRICATION', 'DELIVERY'])) {
+            if ($request->filled('pin') || in_array(strtoupper($request->role), ['WORKER', 'QC', 'DRAFTER', 'MACHINING', 'FABRICATION', 'DELIVERY'])) {
                 $loginMethod = 'PIN';
             } else {
                 $loginMethod = 'PASSWORD';
