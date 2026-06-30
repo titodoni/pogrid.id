@@ -19,8 +19,8 @@ No lint/typecheck npm scripts exist. `laravel/pint` is available via `vendor/bin
 
 ## Role-Specific Dashboards
 
-- **OWNER**: Production matrix + ⚙️ settings dropdown (Change Password, Add Admin, Color Themes). Cannot create POs (403).
-- **ADMIN/SALES/MANAGER**: Production-only view + Broadcast PO button. No user management.
+- **OWNER**: Production matrix + 🔧 Profile/Add Admin buttons + state summary bar. Cannot create POs (403).
+- **ADMIN/SALES/MANAGER**: Production-only view + Broadcast PO button + 🔧 Profile button. No user management.
 - **PURCHASING/FINANCE**: PIN login, Worker Dashboard (treated as floor workers).
 - All floor roles (WORKER/QC/CNC/FABRICATION/DRAFTER/DELIVERY): PIN login, Worker Dashboard.
 
@@ -32,6 +32,8 @@ No lint/typecheck npm scripts exist. `laravel/pint` is available via `vendor/bin
 - **Forgot Password** (Guard A): `ForgotPasswordController` uses Laravel `Password::reset()` with custom `ResetPasswordNotification`. Routes: `GET /forgot-password`, `POST /forgot-password`, `GET /reset-password/{token}`, `POST /reset-password`. Mail defaults to `log` driver — reset links appear in `storage/logs/laravel.log` in dev.
 - **Forgot PIN** (Guard B): `PinResetController`. Workers request PIN reset via `POST /c/{slug}/pin-reset/request` (guest), which creates a BLUE Alert. Admins approve via `POST /pin-reset/{alertId}/approve` (auth) which generates a new random 4-digit PIN and displays it once.
 - **FlashMessages**: Global `FlashMessages.tsx` component auto-dismisses success/error/validation toasts on every page. Flash data shared via `Inertia::share('flash', ...)` in `AppServiceProvider`. Each page is auto-wrapped in `app.tsx` `resolve` function.
+- **Profile page** at `GET /c/{slug}/profile` (all office roles). `ProfileController` renders `Owner/Profile.tsx` with password change form and language toggle.
+- **Dashboard layout**: split into `dashboard-above-scroll` (errors, terminal, tabs, state bar — always visible) and `dashboard-scroll` (content panels — scrolls). Root uses `dashboard-root` (100dvh, flex column, overflow hidden).
 - **OWNER cannot create POs** (403 on `POST /pos`). Must assign an Admin.
 - **Observer chain**: `Item::created` auto-spawns `ItemProgress` rows per `required_stages` JSON array. `ItemProgress::saved` recalculates weighted progress and cascades PO status. `DoItem::saved` marks PO COMPLETED when all items fully delivered.
 - **Session, cache, queue** all use database driver (SQLite dev, PostgreSQL prod). No Redis.
@@ -44,7 +46,7 @@ No lint/typecheck npm scripts exist. `laravel/pint` is available via `vendor/bin
 - Base `TestCase` resets `TenantManager` to null/`enableScope()` — tests must manage tenant state explicitly.
 - `ItemObserver` auto-creates `ItemProgress` rows on Item creation — assertions about progress counts must account for this.
 - `Event::fake()` and `Queue::fake()` used in feature tests for broadcast/job assertions.
-- Core test file: `tests/Feature/CoreLogicTest.php` (625 lines) — covers tenant isolation, progress calc, DO completion, QC rework, kendala alerts, sunk-cost, timeline evaluation.
+- Core test file: `tests/Feature/CoreLogicTest.php` (982 lines) — covers tenant isolation, progress calc, DO completion, QC rework, kendala alerts, sunk-cost, timeline evaluation.
 - `tests/Feature/AdminManagementTest.php` (202 lines) — covers registration, login, user CRUD, PO broadcast, PIN login.
 
 ## Quirks
