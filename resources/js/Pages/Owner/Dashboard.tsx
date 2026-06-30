@@ -1378,8 +1378,22 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                             gap: '4px'
                         }}>
                             <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>{t.active_risks}</span>
-                            <span style={{ fontSize: '24px', fontWeight: 800, color: '#ef4444' }}>
-                                {telemetry.risks.red} Red / {telemetry.risks.yellow} Yel
+                            <span style={{ fontSize: '20px', fontWeight: 800, color: telemetry.risks.red > 0 ? '#ef4444' : telemetry.risks.yellow > 0 ? '#f97316' : '#10b981' }}>
+                                {(() => {
+                                    const red = telemetry.risks.red;
+                                    const yellow = telemetry.risks.yellow;
+                                    if (red === 0 && yellow === 0) {
+                                        return language === 'en' ? 'All Healthy' : 'Semua Aman';
+                                    }
+                                    const parts = [];
+                                    if (red > 0) {
+                                        parts.push(language === 'en' ? `${red} Stuck` : `${red} Macet`);
+                                    }
+                                    if (yellow > 0) {
+                                        parts.push(language === 'en' ? `${yellow} Rework` : `${yellow} Rework`);
+                                    }
+                                    return parts.join(' / ');
+                                })()}
                             </span>
                         </div>
                         <div className="kpi-card" style={{

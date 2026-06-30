@@ -157,10 +157,26 @@
             <div class="kpi-val">{{ $telemetry['manufacture']['completed'] }} / {{ $telemetry['manufacture']['target'] }} Pcs</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-label">Active Warnings</div>
+            <div class="kpi-label">Active Risks</div>
             <div class="kpi-val">
-                <span style="color: #ef4444">{{ $telemetry['risks']['red'] }} RED</span> / 
-                <span style="color: #d97706">{{ $telemetry['risks']['yellow'] }} YEL</span>
+                @php
+                    $red = $telemetry['risks']['red'];
+                    $yellow = $telemetry['risks']['yellow'];
+                @endphp
+                @if($red == 0 && $yellow == 0)
+                    <span style="color: #10b981">All Healthy</span>
+                @else
+                    @php
+                        $parts = [];
+                        if ($red > 0) {
+                            $parts[] = "<span style='color: #ef4444'>{$red} Stuck</span>";
+                        }
+                        if ($yellow > 0) {
+                            $parts[] = "<span style='color: #f97316'>{$yellow} Rework</span>";
+                        }
+                        echo implode(' / ', $parts);
+                    @endphp
+                @endif
             </div>
         </div>
         <div class="kpi-card last">
