@@ -42,15 +42,16 @@ The analytics are integrated as a new **"Performance Matrix"** tab on the existi
 |                                                                                      |
 |  +-------------------+  +-------------------+  +-------------------+  +-----------+  |
 |  | On-Time Deliv. %  |  | Parts Manufactured|  | Active Risks      |  | Avg Delay |  |
-|  |     87.5%         |  |   1,250 / 1,500   |  |   3 Red / 2 Yel   |  |  1.8 Days |  |
-|  +-------------------+  +-------------------+  +-------------------+  +-----------+  |
+|  |     87.5%         |  |   1,250 / 1,500   |  |   1 Stuck / 1 Rew |  |  1.8 Days |  |
+|  |                   |  |                   |  |    (All Healthy)  |  |           |  |
+|  | +-----------------+  +-------------------+  +-------------------+  +-----------+  |
 |                                                                                      |
 |  +------------------------------------------+  +----------------------------------+  |
 |  | Production Output & Overdue Trends (SVG) |  | "Why Delayed" Reasons (SVG Pie)  |  |
 |  |                                          |  |                                  |  |
 |  |   [|||] [|||] [|||] [|||] [|||] (Output) |  |   ( ) Machine: 40%               |  |
 |  |   ~~~o~~~~o~~~~o~~~~o~~~~o~~~ (Overdue)  |  |   ( ) Material: 30%              |  |
-|  +------------------------------------------+  +----------------------------------+  |
+|  | +----------------------------------------+  +----------------------------------+  |
 |                                                                                      |
 |  +--------------------------------------------------------------------------------+  |
 |  | Bottleneck Stage Analyzer                                                      |  |
@@ -61,8 +62,36 @@ The analytics are integrated as a new **"Performance Matrix"** tab on the existi
 |  | QC           1              0                 1 (loops)      0.5 days          |  |
 |  | DELIVERY     0              0                 0              0.4 days          |  |
 |  +--------------------------------------------------------------------------------+  |
+|                                                                                      |
+|  +--------------------------------------------------------------------------------+  |
+|  | Active Delay & Risk Directory                                                  |  |
+|  | PO Number    Client         Item           Progress   Deadline   Overdue       |  |
+|  | PO-2026-004  Mega Steel     Gear Shaft     40%        2026-07-02 2 days late   |  |
+|  |              *Stuck: CNC Machine Broken alert details*                         |  |
+|  +--------------------------------------------------------------------------------+  |
 +--------------------------------------------------------------------------------------+
 ```
+
+### 3.1.2 Revisions & Enhanced UI Features
+1. **Active Delay & Risk Directory**: 
+   * A dedicated granular table listing every single delayed or stuck item currently active.
+   * Lists the PO number, client name, item, progress percentage, deadline, days overdue, and the precise alert or stuck reasons.
+   * **Interactive Navigation**: Clicking on the PO Number link in the table automatically switches the user back to the **Active POs** tab and auto-expands the corresponding PO card details.
+2. **Warning Engine**:
+   * Evaluates and highlights deadlines and alerts using high-contrast pills:
+     * **Yellow (Close Deadline)**: Triggered when `global_deadline` is <= 3 days in the future (shows `{N} more days` / `{N} hari lagi`).
+     * **Red (Passed/Delayed)**: Triggered when `global_deadline` is in the past (shows `Delayed {N} days` / `Terlambat {N} hari`).
+     * **Orange (Rework)**: Triggered when there is an active QC rework alert on the item (shows `Rework`).
+     * **Green (Normal)**: Triggered for healthy timelines (shows `Normal`).
+   * Warning engine pills are displayed uniformly on PO card summaries, expanded item details, and the worker/operator terminal task queue cards.
+3. **Unified Command Center ("Peringatan Aktif")**:
+   * Converted the standard unresolved alerts tab into a consolidated issues center.
+   * Merges all active database alerts (trouble alerts, PIN resets) with computed delayed items, close deadlines, reworks, and stuck stages into a single, high-priority issues list.
+   * Each issue card is badge-coded by type/severity and is interactive; clicking any PO-related issue card jumps the user directly to that PO card's expanded workspace in the active directory.
+4. **Friendly KPI Metrics**:
+   * Rephrased raw `"Red / Yel"` warnings in matrix metrics and PDF layouts into readable descriptors:
+     * `All Healthy` / `Semua Aman` when risks are 0.
+     * `{N} Stuck / {M} Rework` for active issues.
 
 ### 3.2 Dynamic Visual Design & Micro-Animations
 * **Theme**: Sleek dark mode (`#090d16` background) with high-contrast text and vibrant accents:

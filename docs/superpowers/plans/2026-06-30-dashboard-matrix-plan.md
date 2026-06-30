@@ -153,19 +153,22 @@ All operations must strictly respect **Tenant Isolation** using the row-level [T
 ---
 
 ## 4. Verification Checklists
-
-### Backend Readiness Check
-- [ ] Routes are registered and protected by authentication guards in [web.php](file:///C:/Users/titod/Documents/pogrid/routes/web.php).
-- [ ] Pre-aggregations are calculated within tenant-scoping context in [WorkerDashboardController.php](file:///C:/Users/titod/Documents/pogrid/app/Http/Controllers/WorkerDashboardController.php).
-- [ ] PDF export endpoint loads the `pdf.performance-matrix` view and serves the PDF file binary.
-
-### Frontend UI/UX Check
-- [ ] Active selection filter state is persisted to `localStorage` under `pogrid_lang`.
-- [ ] Toggle buttons switch interface text between English and Bahasa Indonesia.
-- [ ] SVG charts scale correctly on mobile and desktop viewports.
-- [ ] Hover tooltips appear on SVG path overlays.
-- [ ] Presentation Mode expands layouts to full viewport when clicked.
-- [ ] Print preview page-breaks are properly structured using `@media print`.
-
-### Test Suite Validation Check
-- [ ] Run `composer test` and verify that all pre-existing tests and new Performance Matrix tests compile and pass successfully.
+ 
+ ### Backend Readiness Check
+- [x] Routes are registered and protected by authentication guards in [web.php](file:///C:/Users/titod/Documents/pogrid/routes/web.php).
+- [x] Pre-aggregations are calculated within tenant-scoping context in [WorkerDashboardController.php](file:///C:/Users/titod/Documents/pogrid/app/Http/Controllers/WorkerDashboardController.php).
+- [x] PDF export endpoint loads the `pdf.performance-matrix` view and serves the PDF file binary.
+ 
+ ### Frontend UI/UX Check
+- [x] Active selection filter state is persisted to `localStorage` under `pogrid_lang`.
+- [x] Toggle buttons switch interface text between English and Bahasa Indonesia.
+- [x] SVG charts scale correctly on mobile and desktop viewports.
+- [x] Hover tooltips appear on SVG path overlays.
+- [x] Presentation Mode expands layouts to full viewport when clicked.
+- [x] Print preview page-breaks are properly structured using `@media print`.
+- [x] Active Delay & Risk Directory lists item-level delays with quick-jump navigation triggers.
+- [x] Warning Engine pills are rendered on PO summaries, item lists, and worker cards.
+- [x] Peringatan Aktif tab upgraded to a consolidated issues Command Center.
+ 
+ ### Test Suite Validation Check
+- [x] Run `composer test` and verify that all pre-existing tests and new Performance Matrix tests compile and pass successfully.
