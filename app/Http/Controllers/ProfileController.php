@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tenant;
-use App\Models\User;
 use App\Services\TenantManager;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class ProfileController extends Controller

@@ -35,25 +35,31 @@ const translations = {
         requesting: "Sending...",
         clear_btn: "CLEAR",
         select_worker_error: "Please select a worker first.",
-        pin_length_error: "PIN must be at least 4 digits."
+        pin_length_error: "PIN must be at least 4 digits.",
+        admin_must_use_password: "Administrative users must log in via password at /login.",
+        pin_incorrect: "PIN salah / Incorrect PIN.",
+        network_error: "Koneksi buruk / Poor network connection. Please check your internet."
     },
     id: {
-        worker_entrance: "Pintu Masuk Pekerja",
+        worker_entrance: "Akses Masuk Pekerja",
         select_name: "Pilih Nama Anda",
         no_workers: "Tidak ada pekerja yang terdaftar.",
-        entering_pin: "Memasukkan PIN untuk: {name}",
-        select_worker: "Pilih pekerja untuk memasukkan PIN",
+        entering_pin: "Masukkan PIN untuk: {name}",
+        select_worker: "Pilih nama Anda untuk memasukkan PIN",
         verify_btn: "VERIFIKASI & MASUK",
-        verifying: "Memverifikasi...",
+        verifying: "Memproses...",
         forgot_pin: "Lupa PIN?",
         forgot_pin_title: "Lupa PIN",
-        forgot_pin_desc: "Minta atur ulang PIN untuk {name}? Admin akan membuatkan PIN baru.",
+        forgot_pin_desc: "Ajukan reset PIN untuk {name}? Admin akan membuatkan PIN baru.",
         cancel: "Batal",
-        request_reset: "Minta Atur Ulang",
-        requesting: "Mengirim...",
+        request_reset: "Ajukan Reset PIN",
+        requesting: "Memproses...",
         clear_btn: "HAPUS",
-        select_worker_error: "Silakan pilih pekerja terlebih dahulu.",
-        pin_length_error: "PIN minimal harus 4 digit."
+        select_worker_error: "Silakan pilih nama pekerja terlebih dahulu.",
+        pin_length_error: "PIN minimal harus 4 angka.",
+        admin_must_use_password: "Pengguna administratif harus masuk menggunakan password di /login.",
+        pin_incorrect: "PIN salah / Incorrect PIN.",
+        network_error: "Koneksi buruk. Silakan periksa jaringan internet Anda."
     }
 };
 
@@ -107,12 +113,17 @@ export default function WorkerLogin({ tenant, workers }: Props) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        clearErrors();
         if (!selectedWorker) {
             setError('pin', t.select_worker_error);
             return;
         }
         if (pin.length < 4) {
             setError('pin', t.pin_length_error);
+            return;
+        }
+        if (!navigator.onLine) {
+            setError('pin', 'network_error');
             return;
         }
         post(`/c/${tenant.slug}/login`);
@@ -200,9 +211,9 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                     }}>
                         {'•'.repeat(pin.length)}
                     </div>
-                    {errors.pin && (
+                    {Object.keys(errors).length > 0 && (
                         <div style={{ color: '#f87171', fontSize: '11px', marginTop: '4px' }}>
-                            {errors.pin}
+                            {t[Object.values(errors)[0] as keyof typeof t] || Object.values(errors)[0]}
                         </div>
                     )}
                 </div>

@@ -187,7 +187,8 @@ class OwnerDashboardController extends Controller
                 Rule::requiredIf($request->login_method === 'PIN'),
                 'nullable',
                 'string',
-                'size:4',
+                'min:4',
+                'max:6',
                 'regex:/^[0-9]+$/',
             ],
         ]);
@@ -252,7 +253,8 @@ class OwnerDashboardController extends Controller
             'pin' => [
                 'nullable',
                 'string',
-                'size:4',
+                'min:4',
+                'max:6',
                 'regex:/^[0-9]+$/',
             ],
         ]);

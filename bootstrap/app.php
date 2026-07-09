@@ -4,6 +4,7 @@ use App\Http\Middleware\SetTenant;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -14,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
+            Inertia\Middleware::class,
             SetTenant::class,
         ]);
     })
@@ -21,4 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+        $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
+            if ($request->header('X-Inertia') || $request->wantsJson()) {
+                return back()->withErrors([
+                    'pin' => 'Too many login attempts. Please try again in '.$e->getHeaders()['Retry-After'].' seconds.',
+                ]);
+            }
+        });
     })->create();

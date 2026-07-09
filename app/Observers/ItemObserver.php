@@ -12,10 +12,10 @@ class ItemObserver
         if ($item->item_type === 'MANUFACTURE') {
             $stages = $item->required_stages ?? [];
             if (in_array('Machining', $stages) || in_array('Fabrication', $stages)) {
-                if (!in_array('QC', $stages)) {
+                if (! in_array('QC', $stages)) {
                     $stages[] = 'QC';
                 }
-                if (!in_array('Delivery', $stages)) {
+                if (! in_array('Delivery', $stages)) {
                     $stages[] = 'Delivery';
                 }
                 $item->required_stages = $stages;

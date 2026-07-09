@@ -12,24 +12,28 @@ const translations = {
         logging_in: "Logging in...",
         new_company: "New company?",
         register: "Register POgrid",
-        forgot_password: "Forgot Password?"
+        forgot_password: "Forgot Password?",
+        auth_failed: "These credentials do not match our records.",
+        network_error: "Koneksi buruk / Poor network connection. Please check your internet."
     },
     id: {
         title: "POgrid.id",
-        subtitle: "Pelacak Progres Produksi & Ketepatan Pengiriman",
-        username_label: "Nama Pengguna",
-        username_placeholder: "Masukkan nama pengguna",
-        password_label: "Kata Sandi",
+        subtitle: "Pantau Progres Produksi & Ketepatan Pengiriman",
+        username_label: "Username",
+        username_placeholder: "Masukkan username",
+        password_label: "Password",
         submit_btn: "Masuk",
-        logging_in: "Sedang masuk...",
+        logging_in: "Memproses...",
         new_company: "Perusahaan baru?",
         register: "Daftar POgrid",
-        forgot_password: "Lupa Kata Sandi?"
+        forgot_password: "Lupa Password?",
+        auth_failed: "Kredensial yang Anda masukkan salah.",
+        network_error: "Koneksi buruk. Silakan periksa jaringan internet Anda."
     }
 };
 
 export default function Login() {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
         username: '',
         password: '',
     });
@@ -50,6 +54,11 @@ export default function Login() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        clearErrors();
+        if (!navigator.onLine) {
+            setError('username', 'network_error');
+            return;
+        }
         post('/login');
     };
 
@@ -161,7 +170,7 @@ export default function Login() {
                         />
                         {errors.username && (
                             <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
-                                {errors.username}
+                                {t[errors.username as keyof typeof t] || errors.username}
                             </span>
                         )}
                     </div>
@@ -199,7 +208,7 @@ export default function Login() {
                         />
                         {errors.password && (
                             <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
-                                {errors.password}
+                                {t[errors.password as keyof typeof t] || errors.password}
                             </span>
                         )}
                     </div>

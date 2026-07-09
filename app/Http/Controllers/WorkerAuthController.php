@@ -50,7 +50,7 @@ class WorkerAuthController extends Controller
         $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
         if (in_array(strtoupper($user->role), $officeRoles)) {
             return back()->withErrors([
-                'pin' => 'Administrative users must log in via password at app.pogrid.id/login.',
+                'pin' => 'admin_must_use_password',
             ]);
         }
 
@@ -58,11 +58,11 @@ class WorkerAuthController extends Controller
             Auth::login($user);
             $request->session()->regenerate();
 
-            return redirect("/c/{$slug}/dashboard");
+            return redirect("/c/{$slug}");
         }
 
         return back()->withErrors([
-            'pin' => 'Incorrect PIN.',
+            'pin' => 'pin_incorrect',
         ]);
     }
 }

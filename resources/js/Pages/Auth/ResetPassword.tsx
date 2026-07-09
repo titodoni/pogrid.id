@@ -19,13 +19,13 @@ const translations = {
     },
     id: {
         title: "POgrid.id",
-        subtitle: "Atur kata sandi baru",
-        email_label: "Alamat Email",
+        subtitle: "Atur Password Baru",
+        email_label: "Email",
         email_placeholder: "Masukkan email Anda",
-        password_label: "Kata Sandi Baru",
-        confirm_password_label: "Konfirmasi Kata Sandi Baru",
-        submit_btn: "Atur Ulang Kata Sandi",
-        resetting: "Mengatur ulang...",
+        password_label: "Password Baru",
+        confirm_password_label: "Konfirmasi Password Baru",
+        submit_btn: "Simpan Password Baru",
+        resetting: "Memproses...",
         back_to_login: "Kembali ke Login"
     }
 };

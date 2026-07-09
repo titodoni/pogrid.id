@@ -44,35 +44,53 @@ const translations = {
         cancel: 'Cancel',
         submit: 'Submit PO',
         save: 'Save',
+        type_manufacture: 'Manufacture',
+        type_buyout: 'Buy Out',
+        type_service: 'Service',
+        err_fill_header: 'Please fill out all PO header fields.',
+        err_item_name: 'Please enter a name for Item #{num}.',
+        err_select_stage: 'Please select at least one stage for Item "{name}".',
+        err_vendor_info: 'Item "{name}" has a Vendor stage. Please provide the vendor name and phone.',
+        access_restricted: 'Access Restricted',
+        owner_restrict_desc: 'Owners cannot create POs. Please assign an Admin user.',
     },
     id: {
-        back: 'Kembali ke Dashboard',
-        title: 'PO Baru',
-        subtitle: 'Buat pesanan pembelian dengan beberapa item dan tahapan produksi.',
+        back: 'Kembali ke Dasbor',
+        title: 'Buat PO Baru',
+        subtitle: 'Buat purchase order dengan beberapa barang dan tahapan produksi.',
         po_number: 'Nomor PO',
-        client_po_number: 'Nomor PO Klien',
-        client_name: 'Nama Klien',
-        select_client: 'Pilih klien...',
-        other_client: 'Klien Lain...',
-        add_client: 'Tambah Klien',
+        client_po_number: 'No. PO Klien (Opsional)',
+        client_name: 'Nama Klien / Pelanggan',
+        select_client: 'Pilih Klien...',
+        other_client: 'Klien Lainnya...',
+        add_client: 'Tambah Klien Baru',
         enter_client_name: 'Masukkan nama klien',
-        delivery_date: 'Tanggal Pengiriman',
-        urgent: 'Tandai sebagai mendesak',
-        line_items: 'Item Pesanan',
-        add_item: 'Tambah Item',
-        remove_item: 'Hapus Item',
-        item_name: 'Nama Item',
-        item_type: 'Tipe Item',
-        quantity: 'Jumlah',
+        delivery_date: 'Tanggal Pengiriman / Deadline',
+        urgent: 'Tandai Prioritas Tinggi (Mendesak)',
+        line_items: 'Daftar Barang (Line Items)',
+        add_item: 'Tambah Barang',
+        remove_item: 'Hapus Barang',
+        item_name: 'Nama Barang',
+        item_type: 'Kategori / Tipe Barang',
+        quantity: 'Jumlah (Qty)',
         stages: 'Tahapan Produksi',
-        cnc: 'Machining',
-        fabrication: 'Fabrikasi',
+        cnc: 'Machining (Bubut/CNC)',
+        fabrication: 'Fabrikasi (Fab)',
         vendor: 'Vendor',
         vendor_name: 'Nama Vendor',
-        vendor_phone: 'Telepon Vendor',
+        vendor_phone: 'No. Telepon Vendor',
         cancel: 'Batal',
-        submit: 'Kirim PO',
+        submit: 'Rilis PO Baru',
         save: 'Simpan',
+        type_manufacture: 'Buat Sendiri (Manufacture)',
+        type_buyout: 'Beli Jadi (Buy Out)',
+        type_service: 'Jasa Maklon (Service)',
+        err_fill_header: 'Harap lengkapi semua kolom informasi utama PO.',
+        err_item_name: 'Harap isi nama untuk Item #{num}.',
+        err_select_stage: 'Harap pilih minimal satu tahapan untuk Item "{name}".',
+        err_vendor_info: 'Item "{name}" memiliki tahapan Vendor. Harap isi nama dan nomor telepon vendor.',
+        access_restricted: 'Akses Dibatasi',
+        owner_restrict_desc: 'Owner tidak dapat membuat PO. Harap tugaskan akun Admin.',
     }
 };
 
@@ -162,23 +180,23 @@ export default function CreatePo({ tenant, auth_user }: Props) {
         e.preventDefault();
 
         if (!poNumber.trim() || !clientName.trim() || !deliveryDate) {
-            alert('Please fill out all PO header fields.');
+            alert(t.err_fill_header);
             return;
         }
 
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
             if (!item.item_name.trim()) {
-                alert(`Please enter a name for Item #${i + 1}.`);
+                alert(t.err_item_name.replace('{num}', String(i + 1)));
                 return;
             }
             if (item.required_stages.length === 0) {
-                alert(`Please select at least one stage for Item "${item.item_name}".`);
+                alert(t.err_select_stage.replace('{name}', item.item_name));
                 return;
             }
             if (item.required_stages.includes('Vendor')) {
                 if (!item.vendor_name?.trim() || !item.vendor_phone?.trim()) {
-                    alert(`Item "${item.item_name}" has a Vendor stage. Please provide the vendor name and phone.`);
+                    alert(t.err_vendor_info.replace('{name}', item.item_name));
                     return;
                 }
             }
@@ -198,12 +216,12 @@ export default function CreatePo({ tenant, auth_user }: Props) {
         return (
             <div style={{ minHeight: '100vh', backgroundColor: '#090d16', color: '#f8fafc', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ textAlign: 'center', maxWidth: '420px', padding: '40px 20px' }}>
-                    <h1 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 12px 0' }}>Access Restricted</h1>
+                    <h1 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 12px 0' }}>{t.access_restricted}</h1>
                     <p style={{ fontSize: '14px', color: '#64748b', margin: '0 0 24px 0' }}>
-                        Owners cannot create POs. Please assign an Admin user.
+                        {t.owner_restrict_desc}
                     </p>
                     <button onClick={goBack} style={{ padding: '10px 20px', backgroundColor: '#2563eb', border: 'none', color: '#fff', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontSize: '14px' }}>
-                        Back to Dashboard
+                        {t.back}
                     </button>
                 </div>
             </div>
@@ -475,9 +493,9 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                                         outline: 'none',
                                         minHeight: '40px',
                                     }}>
-                                        <option value="MANUFACTURE">MANUFACTURE</option>
-                                        <option value="BUY_OUT">BUY OUT</option>
-                                        <option value="SERVICE">SERVICE</option>
+                                        <option value="MANUFACTURE">{t.type_manufacture}</option>
+                                        <option value="BUY_OUT">{t.type_buyout}</option>
+                                        <option value="SERVICE">{t.type_service}</option>
                                     </select>
                                 </div>
                                 <div>

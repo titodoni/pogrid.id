@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Events\KendalaReported;
 use App\Models\Alert;
+use App\Models\DeliveryOrder;
+use App\Models\DoItem;
 use App\Models\Item;
 use App\Models\ItemProgress;
 use App\Models\Po;
@@ -82,13 +84,13 @@ class WorkerDashboardController extends Controller
         if (strtoupper($user->role) === 'FINANCE') {
             $query->where(function ($q) {
                 $q->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])
-                  ->orWhere(function ($sub) {
-                      $sub->where('status', 'COMPLETED')
-                          ->where(function ($subFinance) {
-                              $subFinance->where('invoice_status', 'UNINVOICED')
-                                         ->orWhere('payment_status', 'UNPAID');
-                          });
-                  });
+                    ->orWhere(function ($sub) {
+                        $sub->where('status', 'COMPLETED')
+                            ->where(function ($subFinance) {
+                                $subFinance->where('invoice_status', 'UNINVOICED')
+                                    ->orWhere('payment_status', 'UNPAID');
+                            });
+                    });
             });
         } else {
             $query->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED']);
@@ -485,6 +487,8 @@ class WorkerDashboardController extends Controller
         $this->validateStageAccess($progress, auth()->user());
 
         $item = $progress->item;
+        $previousCompletedQty = $progress->completed_qty;
+        $previousProgressPercent = $progress->progress_percent;
 
         if ($item->target_qty > 1) {
             $completedQty = $request->input('completed_qty', 0);
@@ -497,6 +501,8 @@ class WorkerDashboardController extends Controller
                 'completed_qty' => $completedQty,
                 'progress_percent' => $progressPercent,
                 'status' => $status,
+                'previous_completed_qty' => $previousCompletedQty,
+                'previous_progress_percent' => $previousProgressPercent,
             ]);
         } else {
             $progressPercent = $request->input('progress_percent', 0.00);
@@ -505,26 +511,35 @@ class WorkerDashboardController extends Controller
             $progress->update([
                 'progress_percent' => $progressPercent,
                 'status' => $status,
+                'previous_completed_qty' => $previousCompletedQty,
+                'previous_progress_percent' => $previousProgressPercent,
             ]);
         }
+
+        // Auto-resolve any active RED alerts for this stage since it is now active/updating
+        Alert::where('item_id', $item->id)
+            ->where('is_resolved', false)
+            ->where('severity', 'RED')
+            ->where('message', 'like', "%on stage '{$progress->stage_name}'%")
+            ->update(['is_resolved' => true]);
 
         // When the 'Delivery' stage progress is updated, automatically create/update a DeliveryOrder and corresponding DoItem
         $stageNameLower = strtolower($progress->stage_name);
         if (str_contains($stageNameLower, 'delivery') || str_contains($stageNameLower, 'pengiriman')) {
             $po = $item->po;
-            $deliveryOrder = \App\Models\DeliveryOrder::updateOrCreate([
+            $deliveryOrder = DeliveryOrder::updateOrCreate([
                 'tenant_id' => $item->tenant_id,
                 'po_id' => $item->po_id,
-                'do_number' => 'DO-' . $po->po_number,
+                'do_number' => 'DO-'.$po->po_number,
             ], [
                 'delivery_date' => now()->toDateString(),
             ]);
 
-            $deliveredQty = $item->target_qty > 1 
-                ? $progress->completed_qty 
+            $deliveredQty = $item->target_qty > 1
+                ? $progress->completed_qty
                 : ($progress->progress_percent >= 100.00 ? 1 : 0);
 
-            \App\Models\DoItem::updateOrCreate([
+            DoItem::updateOrCreate([
                 'delivery_order_id' => $deliveryOrder->id,
                 'item_id' => $item->id,
             ], [
@@ -535,10 +550,68 @@ class WorkerDashboardController extends Controller
         return back()->with('success', 'Progress updated.');
     }
 
+    public function cancelLastUpdate(Request $request, $slug, $progressId)
+    {
+        $progress = ItemProgress::findOrFail($progressId);
+        $this->validateStageAccess($progress, auth()->user());
+
+        if ($progress->previous_completed_qty === null && $progress->previous_progress_percent === null) {
+            return back()->with('error', 'No previous progress update to cancel.');
+        }
+
+        $prevQty = $progress->previous_completed_qty ?? 0;
+        $prevPercent = $progress->previous_progress_percent ?? 0.00;
+
+        $item = $progress->item;
+        $status = 'IN_PROGRESS';
+        if ($item->target_qty > 1) {
+            if ($prevQty >= $item->target_qty) {
+                $status = 'COMPLETED';
+            } elseif ($prevQty == 0) {
+                $status = 'PENDING';
+            }
+        } else {
+            if ($prevPercent >= 100.00) {
+                $status = 'COMPLETED';
+            } elseif ($prevPercent == 0.00) {
+                $status = 'PENDING';
+            }
+        }
+
+        $progress->update([
+            'completed_qty' => $prevQty,
+            'progress_percent' => $prevPercent,
+            'status' => $status,
+            'previous_completed_qty' => null,
+            'previous_progress_percent' => null,
+        ]);
+
+        // Revert DO Item Qty if it was a Delivery stage
+        $stageNameLower = strtolower($progress->stage_name);
+        if (str_contains($stageNameLower, 'delivery') || str_contains($stageNameLower, 'pengiriman')) {
+            $deliveryOrder = DeliveryOrder::where('po_id', $item->po_id)->first();
+            if ($deliveryOrder) {
+                $deliveredQty = $item->target_qty > 1
+                    ? $prevQty
+                    : ($prevPercent >= 100.00 ? 1 : 0);
+
+                DoItem::updateOrCreate([
+                    'delivery_order_id' => $deliveryOrder->id,
+                    'item_id' => $item->id,
+                ], [
+                    'delivered_qty' => $deliveredQty,
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Last progress update reverted successfully.');
+    }
+
     public function reportKendala(Request $request, $slug, $progressId)
     {
         $request->validate([
             'kendala_type' => ['required', 'string'],
+            'note' => ['nullable', 'string', 'max:500'],
         ]);
 
         $progress = ItemProgress::findOrFail($progressId);
@@ -549,12 +622,15 @@ class WorkerDashboardController extends Controller
         $item = $progress->item;
         $po = $item->po;
 
+        $note = $request->input('note');
+        $noteText = $note ? " (Note: {$note})" : '';
+
         // Save RED alert
         $alert = Alert::create([
             'tenant_id' => TenantManager::getTenantId(),
             'item_id' => $item->id,
             'severity' => 'RED',
-            'message' => "Stuck: {$request->kendala_type} on stage '{$progress->stage_name}' for item '{$item->item_name}' (PO: {$po->po_number}).",
+            'message' => "Stuck: {$request->kendala_type} on stage '{$progress->stage_name}' for item '{$item->item_name}' (PO: {$po->po_number}){$noteText}.",
             'is_resolved' => false,
         ]);
 
@@ -562,6 +638,38 @@ class WorkerDashboardController extends Controller
         broadcast(new KendalaReported($alert))->toOthers();
 
         return back()->with('success', 'Kendala reported successfully.');
+    }
+
+    public function listTroubles(Request $request, $slug)
+    {
+        // 1. Resolve tenant context by slug
+        TenantManager::bypass();
+        $tenant = Tenant::where('slug', $slug)->first();
+        if (! $tenant) {
+            abort(404, 'Tenant not found.');
+        }
+        TenantManager::enableScope();
+        TenantManager::setTenantId($tenant->id);
+
+        if (! auth()->check()) {
+            return redirect()->route('worker.dashboard', ['slug' => $slug]);
+        }
+
+        $user = auth()->user();
+        if ($user->tenant_id !== $tenant->id) {
+            abort(403, 'Unauthorized tenant access.');
+        }
+
+        // Fetch all alerts for this tenant (resolved and unresolved)
+        $alerts = Alert::with(['item.po'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return Inertia::render('Worker/TroubleReports', [
+            'alerts' => $alerts,
+            'auth_user' => $user,
+            'tenant' => $tenant,
+        ]);
     }
 
     public function logQcRework(Request $request, $slug, $progressId)
@@ -572,7 +680,7 @@ class WorkerDashboardController extends Controller
 
         $user = auth()->user();
         $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
-        if (!in_array(strtoupper($user->role), $officeRoles) && strtoupper($user->role) !== 'QC') {
+        if (! in_array(strtoupper($user->role), $officeRoles) && strtoupper($user->role) !== 'QC') {
             abort(403, 'Forbidden: Only QC inspectors can log rework.');
         }
 
@@ -631,7 +739,7 @@ class WorkerDashboardController extends Controller
 
         $user = auth()->user();
         $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
-        if (!in_array(strtoupper($user->role), $officeRoles) && strtoupper($user->role) !== 'FINANCE') {
+        if (! in_array(strtoupper($user->role), $officeRoles) && strtoupper($user->role) !== 'FINANCE') {
             abort(403, 'Forbidden: Only Finance controllers can update finance status.');
         }
 
@@ -641,11 +749,11 @@ class WorkerDashboardController extends Controller
         $deliveryProgress = ItemProgress::where('item_id', $itemId)
             ->where(function ($query) {
                 $query->where('stage_name', 'Delivery')
-                      ->orWhere('stage_name', 'Pengiriman');
+                    ->orWhere('stage_name', 'Pengiriman');
             })
             ->first();
 
-        if (!$deliveryProgress || $deliveryProgress->status !== 'COMPLETED') {
+        if (! $deliveryProgress || $deliveryProgress->status !== 'COMPLETED') {
             abort(403, 'Stage locked: Finance status cannot be updated until the Delivery stage is completed.');
         }
 
@@ -663,11 +771,11 @@ class WorkerDashboardController extends Controller
         $roleUpper = strtoupper($user->role);
 
         // 1. Role validation check
-        if (!in_array($roleUpper, $officeRoles)) {
+        if (! in_array($roleUpper, $officeRoles)) {
             $stageLower = strtolower($progress->stage_name);
-            if (str_contains($stageLower, 'machining')) {
-                if ($roleUpper !== 'MACHINING') {
-                    abort(403, 'Stage locked: Only Machining operators can update this stage.');
+            if (str_contains($stageLower, 'machining') || str_contains($stageLower, 'cnc')) {
+                if ($roleUpper !== 'MACHINING' && $roleUpper !== 'CNC') {
+                    abort(403, 'Stage locked: Only Machining/CNC operators can update this stage.');
                 }
             } elseif (str_contains($stageLower, 'fabrication') || str_contains($stageLower, 'fabrikasi')) {
                 if ($roleUpper !== 'FABRICATION') {
@@ -689,34 +797,34 @@ class WorkerDashboardController extends Controller
         }
 
         $item = $progress->item;
-        if (!$item) {
+        if (! $item) {
             return;
         }
 
         $requiredStages = $item->required_stages ?? [];
         $isVendorChecked = in_array('Vendor', $requiredStages);
-        $isMachiningChecked = in_array('Machining', $requiredStages);
-        $isFabricationChecked = in_array('Fabrication', $requiredStages);
+        $isMachiningChecked = in_array('Machining', $requiredStages) || in_array('CNC', $requiredStages);
+        $isFabricationChecked = in_array('Fabrication', $requiredStages) || in_array('FABRICATION', $requiredStages) || in_array('FABRIKASI', $requiredStages);
         $stageNameLower = strtolower($progress->stage_name);
 
         // 2. Off-state locks and workflow locks
-        if (!in_array($roleUpper, $officeRoles)) {
+        if (! in_array($roleUpper, $officeRoles)) {
             if ($isVendorChecked) {
-                if (str_contains($stageNameLower, 'machining') || 
+                if (str_contains($stageNameLower, 'machining') ||
                     str_contains($stageNameLower, 'fabrication') || str_contains($stageNameLower, 'fabrikasi') ||
-                    str_contains($stageNameLower, 'qc') || 
+                    str_contains($stageNameLower, 'qc') ||
                     str_contains($stageNameLower, 'delivery') || str_contains($stageNameLower, 'pengiriman')) {
                     abort(403, 'Stage locked: This is a Vendor job, so other production stages are locked.');
                 }
             }
 
-            if ($isMachiningChecked && !$isFabricationChecked) {
+            if ($isMachiningChecked && ! $isFabricationChecked) {
                 if (str_contains($stageNameLower, 'fabrication') || str_contains($stageNameLower, 'fabrikasi')) {
                     abort(403, 'Stage locked: Fabrication is not required/checked for this item.');
                 }
             }
 
-            if ($isFabricationChecked && !$isMachiningChecked) {
+            if ($isFabricationChecked && ! $isMachiningChecked) {
                 if (str_contains($stageNameLower, 'machining')) {
                     abort(403, 'Stage locked: Machining is not required/checked for this item.');
                 }
@@ -729,7 +837,7 @@ class WorkerDashboardController extends Controller
                         ->where('stage_name', 'Machining')
                         ->where('status', 'COMPLETED')
                         ->exists();
-                    if (!$machiningCompleted) {
+                    if (! $machiningCompleted) {
                         abort(403, 'Stage locked: QC cannot be updated until Machining stage is completed.');
                     }
                 }
@@ -738,7 +846,7 @@ class WorkerDashboardController extends Controller
                         ->where('stage_name', 'Fabrication')
                         ->where('status', 'COMPLETED')
                         ->exists();
-                    if (!$fabricationCompleted) {
+                    if (! $fabricationCompleted) {
                         abort(403, 'Stage locked: QC cannot be updated until Fabrication stage is completed.');
                     }
                 }
@@ -749,7 +857,7 @@ class WorkerDashboardController extends Controller
                 $qcProgress = ItemProgress::where('item_id', $item->id)
                     ->where('stage_name', 'QC')
                     ->first();
-                if (!$qcProgress || ($qcProgress->completed_qty <= 0 && $qcProgress->progress_percent <= 0)) {
+                if (! $qcProgress || ($qcProgress->completed_qty <= 0 && $qcProgress->progress_percent <= 0)) {
                     abort(403, 'Stage locked: Delivery cannot be updated until QC stage has completed quantities.');
                 }
             }

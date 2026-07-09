@@ -41,6 +41,8 @@ return new class extends Migration
             $table->string('stage_name'); // CNC, FABRIKASI, etc.
             $table->integer('completed_qty')->default(0);
             $table->decimal('progress_percent', 5, 2)->default(0.00);
+            $table->integer('previous_completed_qty')->nullable();
+            $table->decimal('previous_progress_percent', 5, 2)->nullable();
             $table->string('status')->default('PENDING'); // PENDING, IN_PROGRESS, COMPLETED, STUCK
             $table->timestamps();
             $table->index('tenant_id');

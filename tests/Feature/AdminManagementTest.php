@@ -89,27 +89,27 @@ class AdminManagementTest extends TestCase
         $createResponse = $this->post('/users', [
             'role' => 'WORKER',
             'name' => 'Bambang',
-            'pin' => '4321',
+            'pin' => '000000',
         ]);
 
         $createResponse->assertRedirect();
         $worker = User::where('name', 'Bambang')->first();
         $this->assertNotNull($worker);
         $this->assertEquals('WORKER', $worker->role);
-        $this->assertTrue(Hash::check('4321', $worker->pin));
+        $this->assertTrue(Hash::check('000000', $worker->pin));
 
         // 2. Update the Worker User to QC
         $updateResponse = $this->post("/users/{$worker->id}/update", [
             'role' => 'QC',
             'name' => 'Bambang QC',
-            'pin' => '9999',
+            'pin' => '12345',
         ]);
 
         $updateResponse->assertRedirect();
         $worker->refresh();
         $this->assertEquals('QC', $worker->role);
         $this->assertEquals('Bambang QC', $worker->name);
-        $this->assertTrue(Hash::check('9999', $worker->pin));
+        $this->assertTrue(Hash::check('12345', $worker->pin));
 
         // 3. Delete the Worker User
         $deleteResponse = $this->post("/users/{$worker->id}/delete");
@@ -197,6 +197,41 @@ class AdminManagementTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('pin');
+        $this->assertGuest();
+    }
+
+    public function test_login_scramble_username_returns_error()
+    {
+        $response = $this->post('/login', [
+            'username' => 'nonexistent_user',
+            'password' => 'somepassword',
+        ]);
+
+        $response->assertSessionHasErrors('username');
+        $this->assertGuest();
+    }
+
+    public function test_login_scramble_password_returns_error()
+    {
+        $tenant = Tenant::create([
+            'company_name' => 'Gamma Fab',
+            'slug' => 'gamma-fab',
+        ]);
+
+        $user = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Eko Prasetyo',
+            'username' => 'eko_gamma',
+            'password' => Hash::make('secretpass'),
+            'role' => 'ADMIN',
+        ]);
+
+        $response = $this->post('/login', [
+            'username' => 'eko_gamma',
+            'password' => 'wrongpass',
+        ]);
+
+        $response->assertSessionHasErrors('username');
         $this->assertGuest();
     }
 }

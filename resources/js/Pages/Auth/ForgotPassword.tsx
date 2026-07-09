@@ -15,13 +15,13 @@ const translations = {
     },
     id: {
         title: "POgrid.id",
-        subtitle: "Atur ulang kata sandi Anda",
-        dev_mode_msg: "Dalam mode pengembangan, tautan atur ulang kata sandi dicatat. Periksa storage/logs/laravel.log untuk URL atur ulang.",
-        email_label: "Alamat Email",
-        email_placeholder: "Masukkan alamat email Anda",
-        submit_btn: "Kirim Tautan Atur Ulang",
+        subtitle: "Atur Ulang Password",
+        dev_mode_msg: "Dalam mode pengembangan, link atur ulang password dicatat pada file log. Silakan periksa storage/logs/laravel.log untuk melihat URL.",
+        email_label: "Email",
+        email_placeholder: "Masukkan email Anda",
+        submit_btn: "Kirim Link Atur Ulang",
         sending: "Mengirim...",
-        remember_password: "Ingat kata sandi Anda?",
+        remember_password: "Sudah ingat password Anda?",
         sign_in: "Masuk"
     }
 };

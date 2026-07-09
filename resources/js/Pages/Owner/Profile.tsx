@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { ChevronLeft, Lock, Globe } from '../../Components/Icons';
 
@@ -34,20 +34,20 @@ const translations = {
     },
     id: {
         page_title: 'Pengaturan Profil',
-        back: 'Kembali ke Dashboard',
+        back: 'Kembali ke Dasbor',
         greeting: 'Halo,',
-        change_password: 'Ubah Kata Sandi',
-        current_password: 'Kata Sandi Saat Ini',
-        new_password: 'Kata Sandi Baru',
-        confirm_password: 'Konfirmasi Kata Sandi',
+        change_password: 'Ganti Password',
+        current_password: 'Password Saat Ini',
+        new_password: 'Password Baru',
+        confirm_password: 'Konfirmasi Password',
         save_changes: 'Simpan Perubahan',
         cancel: 'Batal',
         language_label: 'Bahasa',
         lang_en: 'English',
         lang_id: 'Bahasa Indonesia',
         company: 'Perusahaan',
-        role: 'Peran',
-        password_changed: 'Kata sandi berhasil diubah.',
+        role: 'Jabatan',
+        password_changed: 'Password berhasil diubah.',
     }
 };
 
@@ -58,6 +58,13 @@ export default function Profile({ tenant, auth_user }: Props) {
         }
         return 'en';
     });
+
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 30000);
+        return () => clearInterval(timer);
+    }, []);
 
     const changeLanguage = (lang: 'en' | 'id') => {
         setLanguage(lang);
@@ -95,29 +102,44 @@ export default function Profile({ tenant, auth_user }: Props) {
             <header style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                justifyContent: 'space-between',
                 padding: '16px 20px',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                backgroundColor: 'rgba(9, 13, 22, 0.3)',
+                backdropFilter: 'blur(8px)',
                 flexShrink: 0,
             }}>
-                <a
-                    href={`/c/${tenant?.slug || ''}`}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        color: '#60a5fa',
-                        fontSize: '14px',
-                        fontWeight: 600,
-                        textDecoration: 'none',
-                        padding: '6px 12px',
-                        borderRadius: '8px',
-                        backgroundColor: 'rgba(96, 165, 250, 0.08)',
-                    }}
-                >
-                    <ChevronLeft size={16} /> {t.back}
-                </a>
-                <div style={{ flex: 1 }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <a
+                        href={`/c/${tenant?.slug || ''}`}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            color: '#60a5fa',
+                            fontSize: '14px',
+                            fontWeight: 600,
+                            textDecoration: 'none',
+                            padding: '8px 14px',
+                            borderRadius: '8px',
+                            backgroundColor: 'rgba(96, 165, 250, 0.08)',
+                            border: '1px solid rgba(96, 165, 250, 0.15)',
+                        }}
+                    >
+                        <ChevronLeft size={16} /> {t.back}
+                    </a>
+                    <div>
+                        <div className="greeting-name" style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 600, marginBottom: '2px' }}>
+                            {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
+                        </div>
+                        <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.page_title}</h1>
+                        <p style={{ fontSize: '11px', color: '#64748b', margin: '1px 0 0 0' }}>
+                            {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                            {' · '}
+                            {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                    </div>
+                </div>
                 <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '2px', borderRadius: '6px' }}>
                     <button
                         onClick={() => changeLanguage('en')}

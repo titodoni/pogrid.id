@@ -8,6 +8,7 @@ use App\Jobs\GenerateSunkCostInvoiceJob;
 use App\Models\Alert;
 use App\Models\DeliveryOrder;
 use App\Models\DoItem;
+use App\Models\Invoice;
 use App\Models\Item;
 use App\Models\Po;
 use App\Models\Tenant;
@@ -776,14 +777,14 @@ class CoreLogicTest extends TestCase
             'role' => 'DELIVERY',
             'pin' => bcrypt('5555'),
         ]);
-        
+
         $this->actingAs($deliveryWorker);
         $this->post("/c/{$this->tenant1->slug}/progress/{$deliveryStage->id}/update", ['completed_qty' => 5])->assertRedirect();
 
         // Delivery update automatically creates DO and DoItem
         $this->assertDatabaseHas('delivery_orders', [
             'po_id' => $po->id,
-            'do_number' => 'DO-' . $po->po_number,
+            'do_number' => 'DO-'.$po->po_number,
         ]);
         $this->assertDatabaseHas('do_items', [
             'item_id' => $item->id,
@@ -825,7 +826,7 @@ class CoreLogicTest extends TestCase
         $this->assertEquals('PAID', $item->payment_status);
 
         // Ensure NO invoices table entry was created
-        $this->assertEquals(0, \App\Models\Invoice::count());
+        $this->assertEquals(0, Invoice::count());
     }
 
     public function test_off_state_locks()
@@ -952,12 +953,12 @@ class CoreLogicTest extends TestCase
         $response->assertInertia(function ($page) use ($itemActive, $itemCompletedUninvoiced, $itemCompletedUnpaid, $itemCompletedBilled) {
             $items = $page->toArray()['props']['items'];
             $itemIds = collect($items)->pluck('id')->toArray();
-            
+
             // FINANCE should see Active, Completed Uninvoiced, and Completed Unpaid items.
             $this->assertContains($itemActive->id, $itemIds);
             $this->assertContains($itemCompletedUninvoiced->id, $itemIds);
             $this->assertContains($itemCompletedUnpaid->id, $itemIds);
-            
+
             // FINANCE should NOT see Completed Billed item.
             $this->assertNotContains($itemCompletedBilled->id, $itemIds);
         });
@@ -969,14 +970,155 @@ class CoreLogicTest extends TestCase
         $response->assertInertia(function ($page) use ($itemActive, $itemCompletedUninvoiced, $itemCompletedUnpaid, $itemCompletedBilled) {
             $items = $page->toArray()['props']['items'];
             $itemIds = collect($items)->pluck('id')->toArray();
-            
+
             // MACHINING should see Active item.
             $this->assertContains($itemActive->id, $itemIds);
-            
+
             // MACHINING should NOT see any completed items.
             $this->assertNotContains($itemCompletedUninvoiced->id, $itemIds);
             $this->assertNotContains($itemCompletedUnpaid->id, $itemIds);
             $this->assertNotContains($itemCompletedBilled->id, $itemIds);
         });
+    }
+
+    public function test_lapor_kendala_captures_note_and_can_be_listed()
+    {
+        Event::fake([KendalaReported::class]);
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-TEST-NOTE',
+            'client_name' => 'Note Client',
+            'global_deadline' => now()->addDays(5),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Note Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Machining'],
+            'status' => 'PENDING',
+        ]);
+
+        $worker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Machining Worker',
+            'role' => 'MACHINING',
+            'pin' => bcrypt('1234'),
+        ]);
+        $this->actingAs($worker);
+
+        $machiningStage = $item->itemProgresses()->where('stage_name', 'Machining')->first();
+
+        // Worker reports kendala with custom note
+        $response = $this->post("/c/{$this->tenant1->slug}/progress/{$machiningStage->id}/kendala", [
+            'kendala_type' => 'Machine Broken',
+            'note' => 'Custom breakdown details here',
+        ]);
+
+        $response->assertRedirect();
+
+        // Assert RED alert was logged with note
+        $this->assertDatabaseHas('alerts', [
+            'item_id' => $item->id,
+            'severity' => 'RED',
+            'is_resolved' => false,
+        ]);
+
+        $alert = Alert::where('item_id', $item->id)->first();
+        $this->assertStringContainsString('Custom breakdown details here', $alert->message);
+
+        // Fetch trouble reports page
+        $responseList = $this->get("/c/{$this->tenant1->slug}/trouble-reports");
+        $responseList->assertStatus(200);
+        $responseList->assertInertia(function ($page) use ($alert) {
+            $alerts = $page->toArray()['props']['alerts'];
+            $alertIds = collect($alerts)->pluck('id')->toArray();
+            $this->assertContains($alert->id, $alertIds);
+        });
+    }
+
+    public function test_revert_last_progress_update()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-TEST-REVERT',
+            'client_name' => 'Revert Client',
+            'global_deadline' => now()->addDays(5),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Revert Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['CNC'],
+            'status' => 'PENDING',
+        ]);
+
+        $worker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'CNC Worker',
+            'role' => 'CNC',
+            'pin' => bcrypt('1234'),
+        ]);
+        $this->actingAs($worker);
+
+        $cncStage = $item->itemProgresses()->where('stage_name', 'CNC')->first();
+
+        // 1. Log progress
+        $response = $this->post("/c/{$this->tenant1->slug}/progress/{$cncStage->id}/update", [
+            'completed_qty' => 5,
+        ]);
+        $response->assertRedirect();
+        $this->assertEquals(5, $cncStage->refresh()->completed_qty);
+        $this->assertEquals(0, $cncStage->previous_completed_qty); // Stored original
+
+        // 2. Revert progress
+        $responseRevert = $this->post("/c/{$this->tenant1->slug}/progress/{$cncStage->id}/cancel-last-update");
+        $responseRevert->assertRedirect();
+        $this->assertEquals(0, $cncStage->refresh()->completed_qty);
+        $this->assertNull($cncStage->previous_completed_qty);
+    }
+
+    public function test_finance_role_cannot_update_cnc_or_fabrication()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-TEST-ROLE',
+            'client_name' => 'Role Client',
+            'global_deadline' => now()->addDays(5),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Role Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['CNC', 'FABRIKASI'],
+            'status' => 'PENDING',
+        ]);
+
+        $financeWorker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Finance Worker',
+            'role' => 'FINANCE',
+            'pin' => bcrypt('1234'),
+        ]);
+        $this->actingAs($financeWorker);
+
+        $cncStage = $item->itemProgresses()->where('stage_name', 'CNC')->first();
+
+        // Try to update CNC stage - should fail with 403
+        $response = $this->post("/c/{$this->tenant1->slug}/progress/{$cncStage->id}/update", [
+            'completed_qty' => 5,
+        ]);
+        $response->assertStatus(403);
     }
 }

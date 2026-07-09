@@ -19,6 +19,8 @@ class ItemProgress extends Model
         'stage_name',
         'completed_qty',
         'progress_percent',
+        'previous_completed_qty',
+        'previous_progress_percent',
         'status',
     ];
 
