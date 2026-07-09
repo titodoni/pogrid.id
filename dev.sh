@@ -1,11 +1,17 @@
 #!/bin/bash
 set -e
 
+# --- One-time setup: graphify knowledge graph hooks ---
+if ! python3 -c "import graphify" 2>/dev/null; then
+  pip install graphifyy -q --break-system-packages 2>/dev/null || true
+fi
+git config core.hooksPath .githooks 2>/dev/null || true
+# -----------------------------------------------------
+
 cleanup() {
   echo "Shutting down..."
-  docker stop php-server php-queue 2>/dev/null || true
-  docker rm php-server php-queue 2>/dev/null || true
-  kill "$VITE_PID" 2>/dev/null || true
+  docker kill php-server php-queue 2>/dev/null || true
+  kill "$LOGS_PID" "$TAIL_PID" "$VITE_PID" 2>/dev/null || true
   wait 2>/dev/null
 }
 trap cleanup EXIT INT TERM
@@ -23,7 +29,9 @@ docker run -d --rm --name php-queue -v "$(pwd):/app" -w /app php-node \
 
 echo "Tailing server logs..."
 docker logs --tail=1 -f php-server &
+LOGS_PID=$!
 tail -f storage/logs/laravel.log 2>/dev/null &
+TAIL_PID=$!
 
 echo "Starting Vite..."
 npm run dev &
@@ -34,3 +42,4 @@ echo "Ready at http://localhost:8000 — Ctrl+C to stop"
 echo ""
 
 wait
+

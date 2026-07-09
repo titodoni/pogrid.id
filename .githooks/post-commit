@@ -1,0 +1,8 @@
+#!/bin/bash
+# Auto-update graphify knowledge graph after each commit
+GRAPHIFY_BIN="$HOME/.local/bin/graphify"
+GRAPHIFY_OUT="/home/tito/pogrid/graphify-out"
+
+if [ -x "$GRAPHIFY_BIN" ] && [ -d "$GRAPHIFY_OUT" ]; then
+    "$GRAPHIFY_BIN" update /home/tito/pogrid 2>/dev/null &
+fi
