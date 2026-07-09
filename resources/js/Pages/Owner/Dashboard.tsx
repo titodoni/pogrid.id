@@ -17,6 +17,8 @@ interface Item {
     item_type: string;
     progress_percent: string;
     status: string;
+    purchasing_status?: string | null;
+    drafter_status?: string | null;
     item_progresses: Stage[];
     delivered_qty: number;
     vendor_name?: string | null;
@@ -233,6 +235,7 @@ interface User {
     name: string;
     username: string | null;
     role: string;
+    login_method?: string | null;
 }
 
 interface Props {
@@ -247,6 +250,22 @@ interface Props {
     telemetry?: any;
     selected_range?: string;
 }
+
+// Role ordering for display
+const ROLE_ORDER = ['OWNER', 'ADMIN', 'DRAFTER', 'PURCHASING', 'MACHINING', 'CNC', 'FABRICATION', 'QC', 'DELIVERY', 'FINANCE', 'WORKER'];
+const ROLE_COLORS: Record<string, { bg: string; color: string }> = {
+    OWNER:      { bg: 'rgba(234,179,8,0.12)',    color: '#eab308' },
+    ADMIN:      { bg: 'rgba(59,130,246,0.12)',   color: '#3b82f6' },
+    DRAFTER:    { bg: 'rgba(168,85,247,0.12)',   color: '#a855f7' },
+    PURCHASING: { bg: 'rgba(249,115,22,0.12)',   color: '#f97316' },
+    MACHINING:  { bg: 'rgba(20,184,166,0.12)',   color: '#14b8a6' },
+    CNC:        { bg: 'rgba(20,184,166,0.12)',   color: '#14b8a6' },
+    FABRICATION:{ bg: 'rgba(99,102,241,0.12)',   color: '#6366f1' },
+    QC:         { bg: 'rgba(239,68,68,0.12)',    color: '#ef4444' },
+    DELIVERY:   { bg: 'rgba(16,185,129,0.12)',   color: '#10b981' },
+    FINANCE:    { bg: 'rgba(34,197,94,0.12)',    color: '#22c55e' },
+    WORKER:     { bg: 'rgba(100,116,139,0.12)',  color: '#64748b' },
+};
 
 const translations = {
     en: {
@@ -310,6 +329,25 @@ const translations = {
         days_overdue_label: "Overdue",
         days_suffix: "days",
         no_delays: "No active delays or overdue items.",
+        // User Management
+        team_tab: "Team",
+        team_title: "Team Members",
+        team_subtitle: "Manage floor operators and admin accounts",
+        user_name_label: "Full Name",
+        user_role_label: "Role",
+        user_login_label: "Login Method",
+        edit_user: "Edit User",
+        delete_user: "Delete User",
+        delete_user_confirm: "Are you sure you want to delete this user? This action cannot be undone.",
+        filter_all_roles: "All Roles",
+        login_method_password: "Password",
+        login_method_pin: "PIN",
+        new_pin_label: "New PIN (4-6 digits, leave blank to keep)",
+        new_password_label: "New Password (leave blank to keep)",
+        save_user: "Save Changes",
+        reset_pin: "Reset PIN",
+        no_users: "No users found.",
+        user_self_badge: "(You)",
     },
     id: {
         owner_command_center: "Dasbor Utama",
@@ -372,6 +410,25 @@ const translations = {
         days_overdue_label: "Terlambat",
         days_suffix: "hari",
         no_delays: "Tidak ada keterlambatan atau hambatan.",
+        // User Management
+        team_tab: "Tim",
+        team_title: "Anggota Tim",
+        team_subtitle: "Kelola operator lantai dan akun admin",
+        user_name_label: "Nama Lengkap",
+        user_role_label: "Role",
+        user_login_label: "Metode Login",
+        edit_user: "Edit Pengguna",
+        delete_user: "Hapus Pengguna",
+        delete_user_confirm: "Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.",
+        filter_all_roles: "Semua Role",
+        login_method_password: "Password",
+        login_method_pin: "PIN",
+        new_pin_label: "PIN Baru (4-6 digit, kosongkan untuk tidak mengubah)",
+        new_password_label: "Password Baru (kosongkan untuk tidak mengubah)",
+        save_user: "Simpan Perubahan",
+        reset_pin: "Reset PIN",
+        no_users: "Tidak ada pengguna.",
+        user_self_badge: "(Anda)",
     }
 };
 
@@ -392,7 +449,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
 
     const t = translations[language];
 
-    const [activeTab, setActiveTab] = useState<'alerts' | 'active' | 'completed' | 'matrix'>('alerts');
+    const [activeTab, setActiveTab] = useState<'alerts' | 'active' | 'completed' | 'matrix' | 'team'>('alerts');
     const [isPresentationMode, setIsPresentationMode] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -555,14 +612,64 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
 
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
 
-    // Change Password modal
-
-
     // Add Admin modal
     const [showAddAdminModal, setShowAddAdminModal] = useState(false);
     const [adminName, setAdminName] = useState('');
     const [adminUsername, setAdminUsername] = useState('');
     const [adminPassword, setAdminPassword] = useState('');
+
+    // ── User Management (Task 1) ──────────────────────────────────────────────
+    const [userRoleFilter, setUserRoleFilter] = useState<string>('ALL');
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [editName, setEditName] = useState('');
+    const [editRole, setEditRole] = useState('');
+    const [editLoginMethod, setEditLoginMethod] = useState<'PASSWORD' | 'PIN'>('PIN');
+    const [editUsername, setEditUsername] = useState('');
+    const [editPassword, setEditPassword] = useState('');
+    const [editPin, setEditPin] = useState('');
+    const [editSubmitting, setEditSubmitting] = useState(false);
+
+    const openEditUser = (user: User) => {
+        setEditingUser(user);
+        setEditName(user.name);
+        setEditRole(user.role);
+        const method = user.username ? 'PASSWORD' : 'PIN';
+        setEditLoginMethod(method);
+        setEditUsername(user.username || '');
+        setEditPassword('');
+        setEditPin('');
+        setEditSubmitting(false);
+    };
+
+    const closeEditUser = () => {
+        setEditingUser(null);
+        setEditSubmitting(false);
+    };
+
+    const submitEditUser = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingUser) return;
+        setEditSubmitting(true);
+        router.post(`/users/${editingUser.id}/update`, {
+            name: editName,
+            role: editRole,
+            login_method: editLoginMethod,
+            username: editLoginMethod === 'PASSWORD' ? editUsername : null,
+            password: editLoginMethod === 'PASSWORD' && editPassword ? editPassword : undefined,
+            pin: editLoginMethod === 'PIN' && editPin ? editPin : undefined,
+        }, {
+            onSuccess: () => closeEditUser(),
+            onError: () => setEditSubmitting(false),
+        });
+    };
+
+    const handleDeleteUser = (user: User) => {
+        if (!confirm(t.delete_user_confirm)) return;
+        router.post(`/users/${user.id}/delete`, {}, {
+            onSuccess: () => closeEditUser(),
+        });
+    };
+    // ─────────────────────────────────────────────────────────────────────────
 
     const openAddAdmin = () => {
         setAdminName('');
@@ -787,6 +894,19 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                 </button>
                 <button className={`tab ${activeTab === 'matrix' ? 'tab-active' : ''}`} onClick={() => setActiveTab('matrix')}>
                     {t.performance_matrix}
+                </button>
+                <button className={`tab ${activeTab === 'team' ? 'tab-active' : ''}`} onClick={() => setActiveTab('team')}>
+                    {t.team_tab}
+                    <span style={{
+                        marginLeft: '6px',
+                        fontSize: '10px',
+                        backgroundColor: 'rgba(255,255,255,0.1)',
+                        color: '#94a3b8',
+                        padding: '1px 6px',
+                        borderRadius: '8px'
+                    }}>
+                        {users.length}
+                    </span>
                 </button>
             </div>
 
@@ -1064,19 +1184,39 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                                                     <div style={{ flex: 1, minWidth: 0 }}>
                                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                                                                             <span style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc' }}>{item.item_name}</span>
-                                                                            <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.06)', color: '#94a3b8' }}>
-                                                                                {item.item_type}
-                                                                            </span>
+                                                                        <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.06)', color: '#94a3b8' }}>
+                                                                            {item.item_type}
+                                                                        </span>
+                                                                        {item.drafter_status && (
                                                                             <span className="badge" style={{
-                                                                                backgroundColor: isCancelled ? 'rgba(239, 68, 68, 0.15)'
-                                                                                    : isTerminated ? 'rgba(239, 68, 68, 0.15)'
-                                                                                    : progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                                                                                color: isCancelled ? '#ef4444'
-                                                                                    : isTerminated ? '#ef4444'
-                                                                                    : progress >= 100 ? '#10b981' : '#3b82f6'
+                                                                                backgroundColor: item.drafter_status === 'APPROVED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(139, 92, 246, 0.15)',
+                                                                                color: item.drafter_status === 'APPROVED' ? '#10b981' : '#a78bfa',
                                                                             }}>
-                                                                                {item.status}
+                                                                                {item.drafter_status}
                                                                             </span>
+                                                                        )}
+                                                                        {item.purchasing_status && (
+                                                                            <span className="badge" style={{
+                                                                                backgroundColor: item.purchasing_status === 'READY' ? 'rgba(16, 185, 129, 0.15)' :
+                                                                                    item.purchasing_status === 'PROSES' ? 'rgba(234, 179, 8, 0.15)' :
+                                                                                    'rgba(59, 130, 246, 0.1)',
+                                                                                color: item.purchasing_status === 'READY' ? '#10b981' :
+                                                                                    item.purchasing_status === 'PROSES' ? '#eab308' :
+                                                                                    '#3b82f6',
+                                                                            }}>
+                                                                                {item.purchasing_status}
+                                                                            </span>
+                                                                        )}
+                                                                        <span className="badge" style={{
+                                                                            backgroundColor: isCancelled ? 'rgba(239, 68, 68, 0.15)'
+                                                                                : isTerminated ? 'rgba(239, 68, 68, 0.15)'
+                                                                                : progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                                                            color: isCancelled ? '#ef4444'
+                                                                                : isTerminated ? '#ef4444'
+                                                                                : progress >= 100 ? '#10b981' : '#3b82f6'
+                                                                        }}>
+                                                                            {item.status}
+                                                                        </span>
                                                                             {(() => {
                                                                                 const itemAlerts = alerts.filter(a => a.item_id === item.id && !a.is_resolved);
                                                                                 const hasRework = itemAlerts.some(a => a.severity === 'YELLOW');
@@ -1109,6 +1249,16 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                                                                 <div style={{ fontSize: '12px', fontWeight: 600, color: '#38bdf8' }}>
                                                                                     Qty: {item.target_qty} pcs {item.delivered_qty > 0 ? `| Delivered: ${item.delivered_qty} pcs` : ''}
                                                                                 </div>
+                                                                                {item.drafter_status && (
+                                                                                    <div style={{ fontSize: '11px', color: item.drafter_status === 'APPROVED' ? '#10b981' : '#a78bfa' }}>
+                                                                                        {language === 'en' ? 'Drafter' : 'Drafter'}: {item.drafter_status}
+                                                                                    </div>
+                                                                                )}
+                                                                                {item.purchasing_status && (
+                                                                                    <div style={{ fontSize: '11px', color: item.purchasing_status === 'READY' ? '#10b981' : item.purchasing_status === 'PROSES' ? '#eab308' : '#3b82f6' }}>
+                                                                                        {language === 'en' ? 'Purchasing' : 'Pembelian'}: {item.purchasing_status}
+                                                                                    </div>
+                                                                                )}
                                                                                 {item.vendor_name && (
                                                                                     <div style={{ fontSize: '11px', color: '#10b981' }}>
                                                                                         Vendor: {item.vendor_name} ({item.vendor_phone})
@@ -1196,7 +1346,38 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                                                                             fontSize: '11px',
                                                                                             padding: '3px 8px'
                                                                                         }}>
-                                                                                            {stage.stage_name}: {stage.completed_qty > 0 ? `${stage.completed_qty} pcs` : `${parseFloat(stage.progress_percent).toFixed(0)}%`}
+                                                                                            {(() => {
+                                                                                                const nameLower = stage.stage_name.toLowerCase();
+                                                                                                const isDesign = nameLower.includes('design') || nameLower.includes('gambar') || nameLower.includes('draft');
+                                                                                                const isMaterial = nameLower.includes('material') || nameLower.includes('bahan') || nameLower.includes('vendor') || nameLower.includes('purchasing');
+
+                                                                                                let progressText = '';
+                                                                                                if (isDesign) {
+                                                                                                    const pct = parseFloat(stage.progress_percent);
+                                                                                                    if (stage.status === 'COMPLETED' || pct >= 100) {
+                                                                                                        progressText = language === 'id' ? 'Disetujui' : 'Approved';
+                                                                                                    } else if (pct > 0) {
+                                                                                                        progressText = language === 'id' ? 'Gambar' : 'Drawing';
+                                                                                                    } else {
+                                                                                                        progressText = 'Pending';
+                                                                                                    }
+                                                                                                } else if (isMaterial) {
+                                                                                                    const pct = parseFloat(stage.progress_percent);
+                                                                                                    if (stage.status === 'COMPLETED' || pct >= 100) {
+                                                                                                        progressText = language === 'id' ? 'Selesai' : 'Complete';
+                                                                                                    } else if (pct >= 60) {
+                                                                                                        progressText = language === 'id' ? 'Proses' : 'Process';
+                                                                                                    } else if (pct >= 30) {
+                                                                                                        progressText = language === 'id' ? 'Pesan' : 'Order';
+                                                                                                    } else {
+                                                                                                        progressText = 'Pending';
+                                                                                                    }
+                                                                                                } else {
+                                                                                                    progressText = stage.completed_qty > 0 ? `${stage.completed_qty} pcs` : `${parseFloat(stage.progress_percent).toFixed(0)}%`;
+                                                                                                }
+
+                                                                                                return `${stage.stage_name}: ${progressText}`;
+                                                                                            })()}
                                                                                         </span>
                                                                                     ))}
                                                                                 </div>
@@ -1678,6 +1859,490 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
             )}
 
             </div>
+
+            {/* ── Team / User Management Tab ─────────────────────────────── */}
+            {activeTab === 'team' && (() => {
+                const ALL_ROLES = ['OWNER', 'ADMIN', 'DRAFTER', 'PURCHASING', 'MACHINING', 'CNC', 'FABRICATION', 'QC', 'DELIVERY', 'FINANCE', 'WORKER'];
+                const filteredUsers = userRoleFilter === 'ALL'
+                    ? [...users].sort((a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role))
+                    : users.filter(u => u.role === userRoleFilter);
+
+                return (
+                    <div style={{ marginBottom: '32px' }}>
+                        {/* Header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                            <div>
+                                <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px 0' }}>{t.team_title}</h2>
+                                <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>{t.team_subtitle}</p>
+                            </div>
+                            {/* Role filter */}
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                <button
+                                    onClick={() => setUserRoleFilter('ALL')}
+                                    style={{
+                                        padding: '5px 12px',
+                                        borderRadius: '6px',
+                                        border: '1px solid',
+                                        borderColor: userRoleFilter === 'ALL' ? '#3b82f6' : 'rgba(255,255,255,0.08)',
+                                        backgroundColor: userRoleFilter === 'ALL' ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.03)',
+                                        color: userRoleFilter === 'ALL' ? '#3b82f6' : '#64748b',
+                                        fontSize: '11px',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    {t.filter_all_roles}
+                                </button>
+                                {ALL_ROLES.map(role => (
+                                    users.some(u => u.role === role) ? (
+                                        <button
+                                            key={role}
+                                            onClick={() => setUserRoleFilter(role)}
+                                            style={{
+                                                padding: '5px 12px',
+                                                borderRadius: '6px',
+                                                border: '1px solid',
+                                                borderColor: userRoleFilter === role
+                                                    ? (ROLE_COLORS[role]?.color || '#64748b')
+                                                    : 'rgba(255,255,255,0.08)',
+                                                backgroundColor: userRoleFilter === role
+                                                    ? (ROLE_COLORS[role]?.bg || 'rgba(255,255,255,0.06)')
+                                                    : 'rgba(255,255,255,0.03)',
+                                                color: userRoleFilter === role
+                                                    ? (ROLE_COLORS[role]?.color || '#64748b')
+                                                    : '#64748b',
+                                                fontSize: '11px',
+                                                fontWeight: 700,
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            {role}
+                                        </button>
+                                    ) : null
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* User cards grid */}
+                        {filteredUsers.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '40px', color: '#64748b', fontSize: '14px' }}>
+                                {t.no_users}
+                            </div>
+                        ) : (
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                                gap: '12px',
+                            }}>
+                                {filteredUsers.map(user => {
+                                    const isSelf = user.id === auth_user?.id;
+                                    const loginMethod = user.username ? 'PASSWORD' : 'PIN';
+                                    const roleStyle = ROLE_COLORS[user.role] || { bg: 'rgba(100,116,139,0.12)', color: '#64748b' };
+                                    return (
+                                        <div
+                                            key={user.id}
+                                            style={{
+                                                backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                                                border: '1px solid rgba(255,255,255,0.06)',
+                                                borderRadius: '12px',
+                                                padding: '16px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '10px',
+                                                transition: 'border-color 0.2s',
+                                            }}
+                                        >
+                                            {/* Card header: avatar + name + self badge */}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                <div style={{
+                                                    width: '36px',
+                                                    height: '36px',
+                                                    borderRadius: '10px',
+                                                    backgroundColor: roleStyle.bg,
+                                                    border: `1px solid ${roleStyle.color}30`,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '14px',
+                                                    fontWeight: 800,
+                                                    color: roleStyle.color,
+                                                    flexShrink: 0,
+                                                }}>
+                                                    {user.name.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                        <span style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc' }}>
+                                                            {user.name}
+                                                        </span>
+                                                        {isSelf && (
+                                                            <span style={{
+                                                                fontSize: '10px',
+                                                                backgroundColor: 'rgba(59,130,246,0.15)',
+                                                                color: '#3b82f6',
+                                                                padding: '1px 6px',
+                                                                borderRadius: '4px',
+                                                                fontWeight: 700,
+                                                            }}>
+                                                                {t.user_self_badge}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {user.username && (
+                                                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '1px' }}>@{user.username}</div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Badges row */}
+                                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                                <span style={{
+                                                    fontSize: '10px',
+                                                    fontWeight: 700,
+                                                    padding: '3px 8px',
+                                                    borderRadius: '5px',
+                                                    backgroundColor: roleStyle.bg,
+                                                    color: roleStyle.color,
+                                                }}>
+                                                    {user.role}
+                                                </span>
+                                                <span style={{
+                                                    fontSize: '10px',
+                                                    fontWeight: 700,
+                                                    padding: '3px 8px',
+                                                    borderRadius: '5px',
+                                                    backgroundColor: loginMethod === 'PASSWORD'
+                                                        ? 'rgba(59,130,246,0.1)'
+                                                        : 'rgba(16,185,129,0.1)',
+                                                    color: loginMethod === 'PASSWORD' ? '#3b82f6' : '#10b981',
+                                                }}>
+                                                    {loginMethod === 'PASSWORD' ? '🔑 ' + t.login_method_password : '🔢 ' + t.login_method_pin}
+                                                </span>
+                                            </div>
+
+                                            {/* Edit button — only non-OWNER roles for non-owners; everyone for ADMIN/OWNER auth */}
+                                            {!(isOwner && user.role === 'OWNER' && !isSelf) && (
+                                                <button
+                                                    id={`edit-user-${user.id}`}
+                                                    onClick={() => openEditUser(user)}
+                                                    style={{
+                                                        padding: '8px',
+                                                        backgroundColor: 'rgba(255,255,255,0.04)',
+                                                        border: '1px solid rgba(255,255,255,0.08)',
+                                                        borderRadius: '8px',
+                                                        color: '#94a3b8',
+                                                        fontSize: '12px',
+                                                        fontWeight: 600,
+                                                        cursor: 'pointer',
+                                                        width: '100%',
+                                                        textAlign: 'center',
+                                                        transition: 'all 0.15s',
+                                                    }}
+                                                    onMouseOver={e => {
+                                                        e.currentTarget.style.backgroundColor = 'rgba(59,130,246,0.1)';
+                                                        e.currentTarget.style.borderColor = 'rgba(59,130,246,0.25)';
+                                                        e.currentTarget.style.color = '#3b82f6';
+                                                    }}
+                                                    onMouseOut={e => {
+                                                        e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)';
+                                                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                                                        e.currentTarget.style.color = '#94a3b8';
+                                                    }}
+                                                >
+                                                    ✏️ {t.edit_user}
+                                                </button>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
+
+            {/* ── Edit User Modal (Task 1b / 1c / 1d) ────────────────────── */}
+            {editingUser && (
+                <div
+                    id="edit-user-modal"
+                    style={{
+                        position: 'fixed',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.75)',
+                        backdropFilter: 'blur(8px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 60,
+                        padding: '20px',
+                    }}
+                    onClick={e => { if (e.target === e.currentTarget) closeEditUser(); }}
+                >
+                    <div style={{
+                        backgroundColor: '#0f172a',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '16px',
+                        padding: '24px',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)',
+                        width: '100%',
+                        maxWidth: '460px',
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
+                    }}>
+                        {/* Modal header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                            <div>
+                                <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0' }}>{t.edit_user}</h2>
+                                <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>{editingUser.name}</p>
+                            </div>
+                            <button
+                                onClick={closeEditUser}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#64748b',
+                                    fontSize: '20px',
+                                    cursor: 'pointer',
+                                    lineHeight: 1,
+                                    padding: '0 4px',
+                                }}
+                            >×</button>
+                        </div>
+
+                        <form onSubmit={submitEditUser}>
+                            {/* Name */}
+                            <div style={{ marginBottom: '14px' }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                    {t.user_name_label}
+                                </label>
+                                <input
+                                    id="edit-user-name"
+                                    type="text"
+                                    value={editName}
+                                    onChange={e => setEditName(e.target.value)}
+                                    required
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        backgroundColor: '#090d16',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '8px',
+                                        color: '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none',
+                                        boxSizing: 'border-box',
+                                    }}
+                                />
+                            </div>
+
+                            {/* Role */}
+                            <div style={{ marginBottom: '14px' }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                    {t.user_role_label}
+                                </label>
+                                <select
+                                    id="edit-user-role"
+                                    value={editRole}
+                                    onChange={e => setEditRole(e.target.value)}
+                                    disabled={editingUser.role === 'OWNER'}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        backgroundColor: '#090d16',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '8px',
+                                        color: editingUser.role === 'OWNER' ? '#64748b' : '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none',
+                                        boxSizing: 'border-box',
+                                    }}
+                                >
+                                    {['OWNER','ADMIN','DRAFTER','PURCHASING','MACHINING','CNC','FABRICATION','QC','DELIVERY','FINANCE','WORKER'].map(r => (
+                                        <option key={r} value={r}>{r}</option>
+                                    ))}
+                                </select>
+                                {editingUser.role === 'OWNER' && (
+                                    <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0 0' }}>Owner role cannot be changed.</p>
+                                )}
+                            </div>
+
+                            {/* Login Method toggle */}
+                            <div style={{ marginBottom: '14px' }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: 600 }}>
+                                    {t.user_login_label}
+                                </label>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    {(['PASSWORD', 'PIN'] as const).map(method => (
+                                        <button
+                                            key={method}
+                                            type="button"
+                                            onClick={() => setEditLoginMethod(method)}
+                                            style={{
+                                                flex: 1,
+                                                padding: '9px',
+                                                borderRadius: '8px',
+                                                border: '1px solid',
+                                                borderColor: editLoginMethod === method ? '#3b82f6' : 'rgba(255,255,255,0.08)',
+                                                backgroundColor: editLoginMethod === method ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.03)',
+                                                color: editLoginMethod === method ? '#3b82f6' : '#94a3b8',
+                                                fontSize: '12px',
+                                                fontWeight: 700,
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            {method === 'PASSWORD' ? '🔑 ' + t.login_method_password : '🔢 ' + t.login_method_pin}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* PASSWORD fields */}
+                            {editLoginMethod === 'PASSWORD' && (
+                                <>
+                                    <div style={{ marginBottom: '14px' }}>
+                                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                            {t.admin_username}
+                                        </label>
+                                        <input
+                                            id="edit-user-username"
+                                            type="text"
+                                            value={editUsername}
+                                            onChange={e => setEditUsername(e.target.value)}
+                                            required
+                                            style={{
+                                                width: '100%',
+                                                padding: '10px 12px',
+                                                backgroundColor: '#090d16',
+                                                border: '1px solid rgba(255,255,255,0.08)',
+                                                borderRadius: '8px',
+                                                color: '#fff',
+                                                fontSize: '14px',
+                                                outline: 'none',
+                                                boxSizing: 'border-box',
+                                            }}
+                                        />
+                                    </div>
+                                    <div style={{ marginBottom: '14px' }}>
+                                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                            {t.new_password_label}
+                                        </label>
+                                        <input
+                                            id="edit-user-password"
+                                            type="password"
+                                            value={editPassword}
+                                            onChange={e => setEditPassword(e.target.value)}
+                                            minLength={6}
+                                            placeholder="••••••••"
+                                            style={{
+                                                width: '100%',
+                                                padding: '10px 12px',
+                                                backgroundColor: '#090d16',
+                                                border: '1px solid rgba(255,255,255,0.08)',
+                                                borderRadius: '8px',
+                                                color: '#fff',
+                                                fontSize: '14px',
+                                                outline: 'none',
+                                                boxSizing: 'border-box',
+                                            }}
+                                        />
+                                    </div>
+                                </>
+                            )}
+
+                            {/* PIN field */}
+                            {editLoginMethod === 'PIN' && (
+                                <div style={{ marginBottom: '14px' }}>
+                                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                        {t.new_pin_label}
+                                    </label>
+                                    <input
+                                        id="edit-user-pin"
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        value={editPin}
+                                        onChange={e => setEditPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                        minLength={4}
+                                        maxLength={6}
+                                        placeholder="e.g. 1234"
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px 12px',
+                                            backgroundColor: '#090d16',
+                                            border: '1px solid rgba(255,255,255,0.08)',
+                                            borderRadius: '8px',
+                                            color: '#fff',
+                                            fontSize: '18px',
+                                            letterSpacing: '0.3em',
+                                            outline: 'none',
+                                            boxSizing: 'border-box',
+                                        }}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Action buttons */}
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '20px', flexWrap: 'wrap' }}>
+                                {/* Delete — only if not self */}
+                                {editingUser.id !== auth_user?.id && (
+                                    <button
+                                        type="button"
+                                        id={`delete-user-${editingUser.id}`}
+                                        onClick={() => handleDeleteUser(editingUser)}
+                                        style={{
+                                            padding: '10px 16px',
+                                            backgroundColor: 'rgba(239,68,68,0.1)',
+                                            border: '1px solid rgba(239,68,68,0.25)',
+                                            color: '#ef4444',
+                                            borderRadius: '8px',
+                                            fontWeight: 600,
+                                            fontSize: '13px',
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        🗑️ {t.delete_user}
+                                    </button>
+                                )}
+                                <div style={{ flex: 1 }} />
+                                <button
+                                    type="button"
+                                    onClick={closeEditUser}
+                                    style={{
+                                        padding: '10px 16px',
+                                        backgroundColor: 'rgba(255,255,255,0.05)',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        color: '#e2e8f0',
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        fontSize: '13px',
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    {t.cancel}
+                                </button>
+                                <button
+                                    type="submit"
+                                    id={`save-user-${editingUser.id}`}
+                                    disabled={editSubmitting}
+                                    style={{
+                                        padding: '10px 20px',
+                                        backgroundColor: editSubmitting ? '#1d4ed8' : '#2563eb',
+                                        border: 'none',
+                                        color: '#fff',
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        fontSize: '13px',
+                                        cursor: editSubmitting ? 'not-allowed' : 'pointer',
+                                        opacity: editSubmitting ? 0.7 : 1,
+                                    }}
+                                >
+                                    {editSubmitting ? '...' : t.save_user}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* Add Admin Modal */}
             {showAddAdminModal && (
