@@ -104,9 +104,15 @@ class CoreLogicTest extends TestCase
             'status' => 'PENDING',
         ]);
 
-        // Check if parallel entries in item_progress table were spawned (expecting QC and Delivery to be auto-appended)
-        $this->assertEquals(4, $item->itemProgresses()->count());
-        $this->assertEquals(['Machining', 'Fabrication', 'QC', 'Delivery'], $item->itemProgresses()->pluck('stage_name')->toArray());
+        // Check if parallel entries in item_progress table were spawned (expecting Design, Material, QC and Delivery to be auto-appended)
+        $this->assertEquals(6, $item->itemProgresses()->count());
+        $this->assertEquals(['Material', 'Design', 'Machining', 'Fabrication', 'QC', 'Delivery'], $item->itemProgresses()->pluck('stage_name')->toArray());
+
+        // Complete Design & Material stages
+        $designStage = $item->itemProgresses()->where('stage_name', 'Design')->first();
+        $designStage->update(['completed_qty' => 20, 'status' => 'COMPLETED']);
+        $materialStage = $item->itemProgresses()->where('stage_name', 'Material')->first();
+        $materialStage->update(['completed_qty' => 20, 'status' => 'COMPLETED']);
 
         // Update progress of Machining stage (5 out of 20 pieces)
         $machiningStage = $item->itemProgresses()->where('stage_name', 'Machining')->first();
@@ -116,9 +122,9 @@ class CoreLogicTest extends TestCase
         ]);
 
         // Recalculate should trigger via observer.
-        // Formula (Qty > 1): Completed Qty Sum (5) / (Target (20) * Total Stages (4)) * 100 = 5 / 80 * 100 = 6.25%
+        // Formula (Qty > 1): Completed Qty Sum (20 + 20 + 5 = 45) / (Target (20) * Total Stages (6)) * 100 = 45 / 120 * 100 = 37.5%
         $item->refresh();
-        $this->assertEquals(6.25, (float) $item->progress_percent);
+        $this->assertEquals(37.5, (float) $item->progress_percent);
         $this->assertEquals('IN_PROGRESS', $item->status);
 
         // Update progress of Fabrication stage (15 out of 20 pieces)
@@ -128,9 +134,9 @@ class CoreLogicTest extends TestCase
             'status' => 'IN_PROGRESS',
         ]);
 
-        // Formula: Completed Qty Sum (5 + 15 = 20) / (20 * 4 = 80) * 100 = 25%
+        // Formula: Completed Qty Sum (20 + 20 + 5 + 15 = 60) / (20 * 6 = 120) * 100 = 50%
         $item->refresh();
-        $this->assertEquals(25.00, (float) $item->progress_percent);
+        $this->assertEquals(50.00, (float) $item->progress_percent);
 
         // Finish all
         $machiningStage->update(['completed_qty' => 20, 'status' => 'COMPLETED']);
@@ -168,14 +174,16 @@ class CoreLogicTest extends TestCase
 
         // Update progress of stages using percentages (e.g., DESIGN at 100%, Machining at 50%)
         $designStage = $item->itemProgresses()->where('stage_name', 'DESIGN')->first();
+        // Reset auto-created stages to 0 to isolate test values
+        $item->itemProgresses()->where('stage_name', 'Material')->update(['progress_percent' => 0.00, 'status' => 'PENDING', 'completed_qty' => 0]);
         $designStage->update([
             'progress_percent' => 100.00,
             'status' => 'COMPLETED',
         ]);
 
-        // Formula: (100 + 0 + 0 + 0) / 4 = 25.00%
+        // Formula: (100 + 0 + 0 + 0 + 0) / 5 = 20.00%
         $item->refresh();
-        $this->assertEquals(25.00, round((float) $item->progress_percent, 2));
+        $this->assertEquals(20.00, round((float) $item->progress_percent, 2));
 
         $machiningStage = $item->itemProgresses()->where('stage_name', 'Machining')->first();
         $machiningStage->update([
@@ -183,9 +191,9 @@ class CoreLogicTest extends TestCase
             'status' => 'IN_PROGRESS',
         ]);
 
-        // Formula: (100 + 50 + 0 + 0) / 4 = 37.50%
+        // Formula: (100 + 50 + 0 + 0 + 0) / 5 = 30.00%
         $item->refresh();
-        $this->assertEquals(37.50, (float) $item->progress_percent);
+        $this->assertEquals(30.00, (float) $item->progress_percent);
 
         $qcStage = $item->itemProgresses()->where('stage_name', 'QC')->first();
         $qcStage->update([
@@ -197,13 +205,19 @@ class CoreLogicTest extends TestCase
             'status' => 'COMPLETED',
         ]);
 
+        $materialStage = $item->itemProgresses()->where('stage_name', 'Material')->first();
+        $materialStage->update([
+            'progress_percent' => 100.00,
+            'status' => 'COMPLETED',
+        ]);
+
         $deliveryStage = $item->itemProgresses()->where('stage_name', 'Delivery')->first();
         $deliveryStage->update([
             'progress_percent' => 100.00,
             'status' => 'COMPLETED',
         ]);
 
-        // Formula: (100 + 100 + 100 + 100) / 4 = 100%
+        // Formula: (100 + 100 + 100 + 100 + 100) / 5 = 100%
         $item->refresh();
         $this->assertEquals(100.00, (float) $item->progress_percent);
         $this->assertEquals('COMPLETED', $item->status);
@@ -362,6 +376,8 @@ class CoreLogicTest extends TestCase
             'status' => 'PENDING',
         ]);
 
+        $item->itemProgresses()->whereIn('stage_name', ['Design', 'Material'])->update(['status' => 'COMPLETED', 'completed_qty' => 10]);
+
         $worker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker',
@@ -482,11 +498,11 @@ class CoreLogicTest extends TestCase
         ]);
 
         // Make progress of 50% item > 0% (Machining 5 out of 10)
-        // With QC and Delivery appended, total stages is 3. Progress is 5 / (10 * 3) = 16.67%
-        $machiningStage = $item50Percent->itemProgresses()->first();
+        // With Design, Material, QC and Delivery appended, total stages is 5. Progress is 5 / (10 * 5) = 10%
+        $machiningStage = $item50Percent->itemProgresses()->where('stage_name', 'Machining')->first();
         $machiningStage->update(['completed_qty' => 5]);
         $item50Percent->refresh();
-        $this->assertEquals(16.67, round((float) $item50Percent->progress_percent, 2));
+        $this->assertEquals(10.00, round((float) $item50Percent->progress_percent, 2));
 
         // Login as Owner
         $owner = User::create([
@@ -543,6 +559,7 @@ class CoreLogicTest extends TestCase
         $deliveryStage = $item->itemProgresses()->where('stage_name', 'Delivery')->first();
 
         // All stages fully completed
+        $item->itemProgresses()->whereIn('stage_name', ['Design', 'Material'])->update(['completed_qty' => 10, 'status' => 'COMPLETED']);
         $machiningStage->update(['completed_qty' => 10, 'status' => 'COMPLETED']);
         $fabStage->update(['completed_qty' => 10, 'status' => 'COMPLETED']);
         $qcStage->update(['completed_qty' => 10, 'status' => 'COMPLETED']);
@@ -570,9 +587,9 @@ class CoreLogicTest extends TestCase
         $machiningStage->refresh();
         $this->assertEquals(8, $machiningStage->completed_qty);
 
-        // Item progress should drop to 95% (8 Machining + 10 Fabrication + 10 QC + 10 Delivery) / 40 * 100 = 95%
+        // Item progress should drop to 96.67% (10 Design + 10 Material + 8 Machining + 10 Fabrication + 10 QC + 10 Delivery) / 60 * 100 = 96.67%
         $item->refresh();
-        $this->assertEquals(95.00, (float) $item->progress_percent);
+        $this->assertEquals(96.67, round((float) $item->progress_percent, 2));
         $this->assertEquals('IN_PROGRESS', $item->status);
 
         // Machining worker completes 2 reworked items
@@ -706,6 +723,8 @@ class CoreLogicTest extends TestCase
             'required_stages' => ['Machining', 'Fabrication'],
             'status' => 'PENDING',
         ]);
+
+        $item->itemProgresses()->whereIn('stage_name', ['Design', 'Material'])->update(['status' => 'COMPLETED', 'completed_qty' => 10]);
 
         $machiningStage = $item->itemProgresses()->where('stage_name', 'Machining')->first();
         $fabStage = $item->itemProgresses()->where('stage_name', 'Fabrication')->first();
@@ -1002,6 +1021,8 @@ class CoreLogicTest extends TestCase
             'status' => 'PENDING',
         ]);
 
+        $item->itemProgresses()->whereIn('stage_name', ['Design', 'Material'])->update(['status' => 'COMPLETED', 'completed_qty' => 10]);
+
         $worker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker',
@@ -1059,6 +1080,8 @@ class CoreLogicTest extends TestCase
             'required_stages' => ['CNC'],
             'status' => 'PENDING',
         ]);
+
+        $item->itemProgresses()->whereIn('stage_name', ['Design', 'Material'])->update(['status' => 'COMPLETED', 'completed_qty' => 10]);
 
         $worker = User::create([
             'tenant_id' => $this->tenant1->id,
@@ -1120,5 +1143,95 @@ class CoreLogicTest extends TestCase
             'completed_qty' => 5,
         ]);
         $response->assertStatus(403);
+    }
+
+    public function test_drafter_and_purchasing_role_stage_updates()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-TEST-DRAFT-PURCH',
+            'client_name' => 'Draft Purch Client',
+            'global_deadline' => now()->addDays(5),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Draft Purch Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Design', 'Material', 'CNC'],
+            'status' => 'PENDING',
+        ]);
+
+        $drafter = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Drafter Worker',
+            'role' => 'DRAFTER',
+            'pin' => bcrypt('1111'),
+        ]);
+
+        $purchasing = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Purchasing Worker',
+            'role' => 'PURCHASING',
+            'pin' => bcrypt('2222'),
+        ]);
+
+        $designStage = $item->itemProgresses()->where('stage_name', 'Design')->first();
+        $materialStage = $item->itemProgresses()->where('stage_name', 'Material')->first();
+
+        // 1. Drafter can update Design stage
+        $this->actingAs($drafter);
+        $responseDesign = $this->post("/c/{$this->tenant1->slug}/progress/{$designStage->id}/update", [
+            'progress_percent' => 50.00,
+        ]);
+        $responseDesign->assertRedirect();
+        $this->assertEquals(50.00, $designStage->refresh()->progress_percent);
+        $this->assertEquals(5, $designStage->completed_qty);
+
+        // Approve Design (100%)
+        $responseDesignApprove = $this->post("/c/{$this->tenant1->slug}/progress/{$designStage->id}/update", [
+            'progress_percent' => 100.00,
+        ]);
+        $responseDesignApprove->assertRedirect();
+        $this->assertEquals(100.00, $designStage->refresh()->progress_percent);
+        $this->assertEquals(10, $designStage->completed_qty);
+
+        // 2. Drafter cannot update Material stage
+        $responseDesignMaterial = $this->post("/c/{$this->tenant1->slug}/progress/{$materialStage->id}/update", [
+            'progress_percent' => 100.00,
+        ]);
+        $responseDesignMaterial->assertStatus(403);
+
+        // 3. Purchasing can update Material stage (Order: 33%, Proses: 66%, Complete: 100%)
+        $this->actingAs($purchasing);
+        $responseMaterialOrder = $this->post("/c/{$this->tenant1->slug}/progress/{$materialStage->id}/update", [
+            'progress_percent' => 33.00,
+        ]);
+        $responseMaterialOrder->assertRedirect();
+        $this->assertEquals(33.00, $materialStage->refresh()->progress_percent);
+        $this->assertEquals(3, $materialStage->completed_qty); // round(10 * 0.33)
+
+        $responseMaterialProses = $this->post("/c/{$this->tenant1->slug}/progress/{$materialStage->id}/update", [
+            'progress_percent' => 66.00,
+        ]);
+        $responseMaterialProses->assertRedirect();
+        $this->assertEquals(66.00, $materialStage->refresh()->progress_percent);
+        $this->assertEquals(7, $materialStage->completed_qty); // round(10 * 0.66)
+
+        $responseMaterialComplete = $this->post("/c/{$this->tenant1->slug}/progress/{$materialStage->id}/update", [
+            'progress_percent' => 100.00,
+        ]);
+        $responseMaterialComplete->assertRedirect();
+        $this->assertEquals(100.00, $materialStage->refresh()->progress_percent);
+        $this->assertEquals(10, $materialStage->completed_qty);
+
+        // 4. Purchasing cannot update Design stage
+        $responsePurchasingDesign = $this->post("/c/{$this->tenant1->slug}/progress/{$designStage->id}/update", [
+            'progress_percent' => 100.00,
+        ]);
+        $responsePurchasingDesign->assertStatus(403);
     }
 }

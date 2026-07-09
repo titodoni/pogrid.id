@@ -152,7 +152,7 @@ class OwnerDashboardController extends Controller
 
         $loginMethod = $request->input('login_method');
         if (! $loginMethod) {
-            if ($request->filled('pin') || in_array(strtoupper($request->role), ['WORKER', 'QC', 'DRAFTER', 'MACHINING', 'FABRICATION', 'DELIVERY'])) {
+            if ($request->filled('pin') || in_array(strtoupper($request->role), ['WORKER', 'QC', 'DRAFTER', 'MACHINING', 'FABRICATION', 'DELIVERY', 'PURCHASING', 'FINANCE', 'CNC'])) {
                 $loginMethod = 'PIN';
             } else {
                 $loginMethod = 'PASSWORD';
@@ -228,13 +228,8 @@ class OwnerDashboardController extends Controller
         }
         $request->merge(['login_method' => $loginMethod]);
 
-        $roleRules = ['required', 'string', 'max:255'];
-        if (auth()->user()->role === 'OWNER') {
-            $roleRules[] = Rule::in(['ADMIN']);
-        }
-
         $request->validate([
-            'role' => $roleRules,
+            'role' => ['required', 'string', 'max:255'],
             'login_method' => ['required', 'in:PASSWORD,PIN'],
             'name' => ['required', 'string', 'max:255'],
             'username' => [

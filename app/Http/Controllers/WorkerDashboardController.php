@@ -490,12 +490,17 @@ class WorkerDashboardController extends Controller
         $previousCompletedQty = $progress->completed_qty;
         $previousProgressPercent = $progress->progress_percent;
 
-        if ($item->target_qty > 1) {
-            $completedQty = $request->input('completed_qty', 0);
-            // Cap completed quantity at target
-            $completedQty = min($item->target_qty, $completedQty);
-            $progressPercent = ($completedQty / $item->target_qty) * 100;
-            $status = $completedQty >= $item->target_qty ? 'COMPLETED' : 'IN_PROGRESS';
+        $stageLower = strtolower($progress->stage_name);
+        $isCustomStage = str_contains($stageLower, 'design') || str_contains($stageLower, 'gambar') || str_contains($stageLower, 'draft') ||
+                          str_contains($stageLower, 'material') || str_contains($stageLower, 'bahan') || str_contains($stageLower, 'vendor') || str_contains($stageLower, 'purchasing');
+
+        if ($isCustomStage) {
+            $progressPercent = $request->input('progress_percent', 0.00);
+            $completedQty = round($item->target_qty * ($progressPercent / 100));
+            $status = $progressPercent >= 100.00 ? 'COMPLETED' : 'IN_PROGRESS';
+            if ($progressPercent == 0.00) {
+                $status = 'PENDING';
+            }
 
             $progress->update([
                 'completed_qty' => $completedQty,
@@ -505,15 +510,31 @@ class WorkerDashboardController extends Controller
                 'previous_progress_percent' => $previousProgressPercent,
             ]);
         } else {
-            $progressPercent = $request->input('progress_percent', 0.00);
-            $status = $progressPercent >= 100.00 ? 'COMPLETED' : 'IN_PROGRESS';
+            if ($item->target_qty > 1) {
+                $completedQty = $request->input('completed_qty', 0);
+                // Cap completed quantity at target
+                $completedQty = min($item->target_qty, $completedQty);
+                $progressPercent = ($completedQty / $item->target_qty) * 100;
+                $status = $completedQty >= $item->target_qty ? 'COMPLETED' : 'IN_PROGRESS';
 
-            $progress->update([
-                'progress_percent' => $progressPercent,
-                'status' => $status,
-                'previous_completed_qty' => $previousCompletedQty,
-                'previous_progress_percent' => $previousProgressPercent,
-            ]);
+                $progress->update([
+                    'completed_qty' => $completedQty,
+                    'progress_percent' => $progressPercent,
+                    'status' => $status,
+                    'previous_completed_qty' => $previousCompletedQty,
+                    'previous_progress_percent' => $previousProgressPercent,
+                ]);
+            } else {
+                $progressPercent = $request->input('progress_percent', 0.00);
+                $status = $progressPercent >= 100.00 ? 'COMPLETED' : 'IN_PROGRESS';
+
+                $progress->update([
+                    'progress_percent' => $progressPercent,
+                    'status' => $status,
+                    'previous_completed_qty' => $previousCompletedQty,
+                    'previous_progress_percent' => $previousProgressPercent,
+                ]);
+            }
         }
 
         // Auto-resolve any active RED alerts for this stage since it is now active/updating
@@ -730,6 +751,46 @@ class WorkerDashboardController extends Controller
         return back()->with('success', 'QC Rework logged and Rework stage spawned.');
     }
 
+    public function updateDrafterStatus(Request $request, $slug, $itemId)
+    {
+        $request->validate([
+            'drafter_status' => ['required', 'string', 'in:DRAWING,APPROVED'],
+        ]);
+
+        $user = auth()->user();
+        $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
+        $roleUpper = strtoupper($user->role);
+
+        if (! in_array($roleUpper, $officeRoles) && $roleUpper !== 'DRAFTER') {
+            abort(403, 'Forbidden: Only Drafters can update drafter status.');
+        }
+
+        $item = Item::findOrFail($itemId);
+        $item->update(['drafter_status' => $request->drafter_status]);
+
+        return back()->with('success', 'Drafter status updated.');
+    }
+
+    public function updatePurchasingStatus(Request $request, $slug, $itemId)
+    {
+        $request->validate([
+            'purchasing_status' => ['required', 'string', 'in:ORDER,PROSES,READY'],
+        ]);
+
+        $user = auth()->user();
+        $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
+        $roleUpper = strtoupper($user->role);
+
+        if (! in_array($roleUpper, $officeRoles) && $roleUpper !== 'PURCHASING') {
+            abort(403, 'Forbidden: Only Purchasing agents can update purchasing status.');
+        }
+
+        $item = Item::findOrFail($itemId);
+        $item->update(['purchasing_status' => $request->purchasing_status]);
+
+        return back()->with('success', 'Purchasing status updated.');
+    }
+
     public function updateFinanceStatus(Request $request, $slug, $itemId)
     {
         $request->validate([
@@ -773,7 +834,15 @@ class WorkerDashboardController extends Controller
         // 1. Role validation check
         if (! in_array($roleUpper, $officeRoles)) {
             $stageLower = strtolower($progress->stage_name);
-            if (str_contains($stageLower, 'machining') || str_contains($stageLower, 'cnc')) {
+            if (str_contains($stageLower, 'design') || str_contains($stageLower, 'gambar') || str_contains($stageLower, 'draft')) {
+                if ($roleUpper !== 'DRAFTER') {
+                    abort(403, 'Stage locked: Only Drafters can update this stage.');
+                }
+            } elseif (str_contains($stageLower, 'material') || str_contains($stageLower, 'bahan')) {
+                if ($roleUpper !== 'PURCHASING') {
+                    abort(403, 'Stage locked: Only Purchasing agents can update this stage.');
+                }
+            } elseif (str_contains($stageLower, 'machining') || str_contains($stageLower, 'cnc')) {
                 if ($roleUpper !== 'MACHINING' && $roleUpper !== 'CNC') {
                     abort(403, 'Stage locked: Only Machining/CNC operators can update this stage.');
                 }
@@ -827,6 +896,35 @@ class WorkerDashboardController extends Controller
             if ($isFabricationChecked && ! $isMachiningChecked) {
                 if (str_contains($stageNameLower, 'machining')) {
                     abort(403, 'Stage locked: Machining is not required/checked for this item.');
+                }
+            }
+
+            // Design and Material dependency lockouts for Machining and Fabrication
+            if (str_contains($stageNameLower, 'machining') || str_contains($stageNameLower, 'cnc') || str_contains($stageNameLower, 'fabrication') || str_contains($stageNameLower, 'fabrikasi')) {
+                $designProgress = ItemProgress::where('item_id', $item->id)
+                    ->where(function ($q) {
+                        $q->where('stage_name', 'like', '%Design%')
+                            ->orWhere('stage_name', 'like', '%DESIGN%')
+                            ->orWhere('stage_name', 'like', '%Gambar%')
+                            ->orWhere('stage_name', 'like', '%gambar%')
+                            ->orWhere('stage_name', 'like', '%Draft%')
+                            ->orWhere('stage_name', 'like', '%draft%');
+                    })
+                    ->first();
+                if ($designProgress && $designProgress->status !== 'COMPLETED') {
+                    abort(403, 'Stage locked: Drawing technical must be approved (Design stage completed) first.');
+                }
+
+                $materialProgress = ItemProgress::where('item_id', $item->id)
+                    ->where(function ($q) {
+                        $q->where('stage_name', 'like', '%Material%')
+                            ->orWhere('stage_name', 'like', '%MATERIAL%')
+                            ->orWhere('stage_name', 'like', '%Bahan%')
+                            ->orWhere('stage_name', 'like', '%bahan%');
+                    })
+                    ->first();
+                if ($materialProgress && $materialProgress->status !== 'COMPLETED') {
+                    abort(403, 'Stage locked: Material must be purchased (Material stage completed) first.');
                 }
             }
 

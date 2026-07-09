@@ -25,11 +25,15 @@ class Item extends Model
         'vendor_phone',
         'invoice_status',
         'payment_status',
+        'purchasing_status',
+        'drafter_status',
     ];
 
     protected $casts = [
         'required_stages' => 'array',
         'progress_percent' => 'decimal:2',
+        'purchasing_status' => 'string',
+        'drafter_status' => 'string',
     ];
 
     protected $appends = ['delivered_qty'];

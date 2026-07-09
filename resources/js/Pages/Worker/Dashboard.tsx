@@ -19,6 +19,10 @@ interface Item {
     item_type: string;
     progress_percent: string;
     status: string;
+    purchasing_status?: string | null;
+    drafter_status?: string | null;
+    invoice_status?: string;
+    payment_status?: string;
     po?: {
         po_number: string;
         external_po_number?: string | null;
@@ -258,6 +262,8 @@ const isStageLocked = (item: Item, stageName: string, userRole: string) => {
     const stageLower = stageName.toLowerCase();
 
     // Role-based permission mapping
+    if ((stageLower.includes('design') || stageLower.includes('gambar') || stageLower.includes('draft')) && role !== 'DRAFTER') return true;
+    if ((stageLower.includes('material') || stageLower.includes('bahan')) && role !== 'PURCHASING') return true;
     if ((stageLower.includes('machining') || stageLower.includes('cnc')) && (role !== 'MACHINING' && role !== 'CNC')) return true;
     if ((stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) && role !== 'FABRICATION') return true;
     if ((stageLower.includes('vendor') || stageLower.includes('purchasing')) && role !== 'PURCHASING') return true;
@@ -282,6 +288,14 @@ const isStageLocked = (item: Item, stageName: string, userRole: string) => {
         if (stageLower.includes('vendor')) return true;
 
         // Dependency lockouts
+        if (stageLower.includes('machining') || stageLower.includes('cnc') || stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) {
+            const designStage = item.item_progresses.find(s => s.stage_name.toLowerCase().includes('design') || s.stage_name.toLowerCase().includes('gambar') || s.stage_name.toLowerCase().includes('draft'));
+            if (designStage && designStage.status !== 'COMPLETED') return true;
+
+            const materialStage = item.item_progresses.find(s => s.stage_name.toLowerCase().includes('material') || s.stage_name.toLowerCase().includes('bahan'));
+            if (materialStage && materialStage.status !== 'COMPLETED') return true;
+        }
+
         if (stageLower === 'qc') {
             const prodStages = item.item_progresses.filter(s => originalStages.includes(s.stage_name));
             const allProdFinished = prodStages.length > 0 && prodStages.every(s => s.status === 'COMPLETED');
@@ -302,68 +316,12 @@ const isStageLocked = (item: Item, stageName: string, userRole: string) => {
     return false;
 };
 
-const getStageLockReason = (item: Item, stageName: string, userRole: string) => {
-    const role = userRole.toUpperCase();
-    const officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
-    if (officeRoles.includes(role)) {
-        return '';
-    }
-
-    const stageLower = stageName.toLowerCase();
-
-    // Check off-state configuration
-    const originalStages = item.item_progresses
-        .map(s => s.stage_name)
-        .filter(name => !['QC', 'Delivery', 'Finance', 'Pengiriman'].includes(name) && !name.endsWith('REWORK'));
-
-    const isVendorJob = originalStages.some(name => name.toLowerCase().includes('vendor'));
-
-    if (isVendorJob) {
-        if (['machining', 'fabrication', 'fabrikasi', 'cnc', 'qc', 'delivery', 'pengiriman', 'finance'].some(v => stageLower.includes(v))) {
-            return 'off_state';
-        }
-    } else {
-        if ((stageLower.includes('machining') || stageLower.includes('cnc')) && !originalStages.some(name => name.toLowerCase().includes('machining') || name.toLowerCase().includes('cnc'))) return 'off_state';
-        if ((stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) && !originalStages.some(name => name.toLowerCase().includes('fabrication') || name.toLowerCase().includes('fabrikasi'))) return 'off_state';
-        if (stageLower.includes('vendor')) return 'off_state';
-    }
-
-    // Role mismatch
-    if ((stageLower.includes('machining') || stageLower.includes('cnc')) && (role !== 'MACHINING' && role !== 'CNC')) return 'role_mismatch';
-    if ((stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) && role !== 'FABRICATION') return 'role_mismatch';
-    if ((stageLower.includes('vendor') || stageLower.includes('purchasing')) && role !== 'PURCHASING') return 'role_mismatch';
-    if (stageLower === 'qc' && role !== 'QC') return 'role_mismatch';
-    if ((stageLower === 'delivery' || stageLower === 'pengiriman') && role !== 'DELIVERY') return 'role_mismatch';
-    if (stageLower === 'finance' && role !== 'FINANCE') return 'role_mismatch';
-
-    // Dependency lockouts
-    if (stageLower === 'qc') {
-        const prodStages = item.item_progresses.filter(s => originalStages.includes(s.stage_name));
-        const allProdFinished = prodStages.length > 0 && prodStages.every(s => s.status === 'COMPLETED');
-        if (!allProdFinished) return 'locked_qc';
-    }
-
-    if (stageLower === 'delivery' || stageLower === 'pengiriman') {
-        const qcStage = item.item_progresses.find(s => s.stage_name === 'QC');
-        if (!qcStage || qcStage.completed_qty === 0) return 'locked_delivery';
-    }
-
-    if (stageLower === 'finance') {
-        const deliveryStage = item.item_progresses.find(s => s.stage_name === 'Delivery' || s.stage_name === 'Pengiriman');
-        if (!deliveryStage || deliveryStage.status !== 'COMPLETED') return 'locked_finance';
-    }
-
-    return '';
-};
-
 interface ItemCardProps {
     item: Item;
     userRole: string;
     slug: string;
     language: 'en' | 'id';
     translations: any;
-    showRulesModal: boolean;
-    setShowRulesModal: (show: boolean) => void;
 }
 
 function ItemCard({
@@ -372,10 +330,9 @@ function ItemCard({
     slug,
     language,
     translations,
-    showRulesModal,
-    setShowRulesModal,
 }: ItemCardProps) {
     const t = translations[language];
+    const [isHovered, setIsHovered] = useState(false);
 
     const getMatchingStageOrMock = (item: Item, role: string) => {
         const roleUpper = role.toUpperCase();
@@ -405,41 +362,22 @@ function ItemCard({
             if (roleUpper === 'QC' && nameLower === 'qc') return true;
             if (roleUpper === 'DELIVERY' && (nameLower === 'delivery' || nameLower === 'pengiriman')) return true;
             if (roleUpper === 'FINANCE' && nameLower === 'finance') return true;
-            if (roleUpper === 'PURCHASING' && (nameLower.includes('vendor') || nameLower.includes('purchasing'))) return true;
+            if (roleUpper === 'DRAFTER' && (nameLower.includes('design') || nameLower.includes('gambar') || nameLower.includes('draft'))) return true;
+            if (roleUpper === 'PURCHASING' && (nameLower.includes('vendor') || nameLower.includes('purchasing') || nameLower.includes('material') || nameLower.includes('bahan'))) return true;
             return false;
         });
 
-        if (matchedActual) {
-            return matchedActual;
-        }
-
-        // Return mock stage to trigger off_state lock reason when mismatching
-        if (roleUpper === 'CNC' || roleUpper === 'MACHINING') {
-            return { id: 0, stage_name: 'Machining', completed_qty: 0, progress_percent: '0', status: 'PENDING' };
-        }
-        if (roleUpper === 'FABRICATION') {
-            return { id: 0, stage_name: 'Fabrication', completed_qty: 0, progress_percent: '0', status: 'PENDING' };
-        }
-        if (roleUpper === 'QC') {
-            return { id: 0, stage_name: 'QC', completed_qty: 0, progress_percent: '0', status: 'PENDING' };
-        }
-        if (roleUpper === 'DELIVERY') {
-            return { id: 0, stage_name: 'Delivery', completed_qty: 0, progress_percent: '0', status: 'PENDING' };
-        }
-        if (roleUpper === 'FINANCE') {
-            return { id: 0, stage_name: 'Finance', completed_qty: 0, progress_percent: '0', status: 'PENDING' };
-        }
-        if (roleUpper === 'PURCHASING') {
-            return { id: 0, stage_name: 'Vendor', completed_qty: 0, progress_percent: '0', status: 'PENDING' };
-        }
-
-        return null;
+        return matchedActual || null;
     };
 
     const [activeStage, setActiveStage] = useState<{ stage: Stage; item: Item } | null>(() => {
         const matched = getMatchingStageOrMock(item, userRole);
-        return matched ? { stage: matched, item } : null;
+        if (matched && !isStageLocked(item, matched.stage_name, userRole)) {
+            return { stage: matched, item };
+        }
+        return null;
     });
+    const [isExpanded, setIsExpanded] = useState(false);
     const [showKendala, setShowKendala] = useState(false);
     const [showQc, setShowQc] = useState(false);
     const [kendalaType, setKendalaType] = useState('Machine Broken');
@@ -473,6 +411,12 @@ function ItemCard({
                     item
                 });
             }
+        } else {
+            const matched = getMatchingStageOrMock(item, userRole);
+            if (matched && !isStageLocked(item, matched.stage_name, userRole)) {
+                setActiveStage({ stage: matched, item });
+                setIsExpanded(true);
+            }
         }
     }, [item]);
 
@@ -483,6 +427,7 @@ function ItemCard({
     }, [item.invoice_status, item.payment_status]);
 
     const selectStage = (stage: Stage) => {
+        if (isStageLocked(item, stage.stage_name, userRole)) return;
         if (activeStage?.stage.id === stage.id) {
             setActiveStage(null);
             setShowKendala(false);
@@ -615,14 +560,31 @@ function ItemCard({
     const isActive = !!activeStage;
 
     return (
-        <div style={{
-            backgroundColor: '#0f172a',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
-            borderRadius: '12px',
-            overflow: 'hidden',
-        }}>
-            {/* Card Header */}
-            <div style={{ padding: '12px' }}>
+        <div 
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{
+                backgroundColor: '#0f172a',
+                backgroundImage: 'linear-gradient(135deg, #111827 0%, #0b0f19 100%)',
+                border: isHovered ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(255, 255, 255, 0.05)',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: isHovered ? '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(59, 130, 246, 0.1)' : '0 4px 6px -1px rgba(0, 0, 0, 0.3)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+            }}
+        >
+            {/* Card Header (Clickable to Toggle Drawer) */}
+            <div 
+                onClick={() => setIsExpanded(!isExpanded)}
+                style={{ 
+                    padding: '12px',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    transition: 'background-color 0.2s',
+                    backgroundColor: isHovered ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
+                }}
+            >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                     <h3 style={{
                         fontSize: '14px',
@@ -650,6 +612,36 @@ function ItemCard({
                             URGENT
                         </span>
                     )}
+                    {item.drafter_status && (
+                        <span style={{
+                            fontSize: '9px',
+                            fontWeight: 700,
+                            padding: '1px 5px',
+                            borderRadius: '3px',
+                            backgroundColor: item.drafter_status === 'APPROVED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(139, 92, 246, 0.15)',
+                            color: item.drafter_status === 'APPROVED' ? '#10b981' : '#a78bfa',
+                            flexShrink: 0,
+                        }}>
+                            {item.drafter_status}
+                        </span>
+                    )}
+                    {item.purchasing_status && (
+                        <span style={{
+                            fontSize: '9px',
+                            fontWeight: 700,
+                            padding: '1px 5px',
+                            borderRadius: '3px',
+                            backgroundColor: item.purchasing_status === 'READY' ? 'rgba(16, 185, 129, 0.15)' :
+                                item.purchasing_status === 'PROSES' ? 'rgba(234, 179, 8, 0.15)' :
+                                'rgba(59, 130, 246, 0.1)',
+                            color: item.purchasing_status === 'READY' ? '#10b981' :
+                                item.purchasing_status === 'PROSES' ? '#eab308' :
+                                '#3b82f6',
+                            flexShrink: 0,
+                        }}>
+                            {item.purchasing_status}
+                        </span>
+                    )}
                     {(() => {
                         const hasRework = item.alerts?.some(a => a.severity === 'YELLOW') || false;
                         return renderWarningPill(item.po?.global_deadline, hasRework, language);
@@ -665,6 +657,23 @@ function ItemCard({
                     }}>
                         {parseFloat(item.progress_percent).toFixed(1)}%
                     </span>
+                    {/* Chevron Indicator */}
+                    <span style={{
+                        color: '#64748b',
+                        display: 'flex',
+                        alignItems: 'center',
+                        marginLeft: '4px',
+                    }}>
+                        {isExpanded ? (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="18 15 12 9 6 15"></polyline>
+                            </svg>
+                        ) : (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        )}
+                    </span>
                 </div>
 
                 {/* Meta Grid */}
@@ -673,7 +682,6 @@ function ItemCard({
                     gridTemplateColumns: '1fr 1fr',
                     gap: '1px 12px',
                     fontSize: '11px',
-                    marginBottom: '8px',
                 }}>
                     <span style={{ color: '#60a5fa', fontWeight: 600 }}>
                         {item.po?.client_name || 'N/A'}
@@ -688,533 +696,603 @@ function ItemCard({
                         {item.target_qty} pcs
                     </span>
                 </div>
-
-                {/* Stage Pills */}
-                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                    {(() => {
-                        const isVendor = item.item_progresses.some(s => s.stage_name === 'Vendor');
-                        const isManufacture = !isVendor;
-
-                        const displayStages = [...item.item_progresses];
-                        if (isManufacture) {
-                            const isPaid = item.payment_status === 'PAID';
-                            const isInvoiced = item.invoice_status === 'INVOICED';
-                            const financeStatus = (isPaid && isInvoiced) ? 'COMPLETED' : 'PENDING';
-                            const financePercent = (isPaid && isInvoiced) ? '100' : '0';
-
-                            displayStages.push({
-                                id: -item.id,
-                                stage_name: 'Finance',
-                                completed_qty: 0,
-                                progress_percent: financePercent,
-                                status: financeStatus,
-                            });
-                        }
-
-                        return displayStages.map((stage) => {
-                            const isStageActive = activeStage && activeStage.stage.stage_name === stage.stage_name;
-                            const locked = isStageLocked(item, stage.stage_name, userRole);
-
-                            return (
-                                <button
-                                    key={stage.id}
-                                    onClick={() => selectStage(stage)}
-                                    style={{
-                                        padding: '5px 10px',
-                                        border: locked ? '1px dashed' : '1px solid',
-                                        borderColor: isStageActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.08)',
-                                        borderRadius: '6px',
-                                        backgroundColor: stage.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.1)'
-                                            : stage.status === 'STUCK' ? 'rgba(239, 68, 68, 0.1)'
-                                            : isStageActive ? '#1e3a8a' : '#090d16',
-                                        color: stage.status === 'COMPLETED' ? '#10b981'
-                                            : stage.status === 'STUCK' ? '#ef4444'
-                                            : isStageActive ? '#38bdf8' : '#e2e8f0',
-                                        fontSize: '11px',
-                                        fontWeight: 600,
-                                        cursor: 'pointer',
-                                        opacity: locked ? 0.6 : 1,
-                                    }}
-                                >
-                                    {stage.stage_name}
-                                    <span style={{
-                                        display: 'block',
-                                        fontSize: '9px',
-                                        color: '#64748b',
-                                        marginTop: '1px',
-                                    }}>
-                                        {stage.stage_name === 'Finance'
-                                            ? (stage.status === 'COMPLETED'
-                                                ? (language === 'id' ? 'Lunas & Invoice' : 'Paid & Invoiced')
-                                                : 'Pending'
-                                              )
-                                            : (item.target_qty > 1
-                                                ? `${stage.completed_qty}/${item.target_qty}`
-                                                : `${parseFloat(stage.progress_percent).toFixed(0)}%`
-                                              )
-                                        }
-                                    </span>
-                                </button>
-                            );
-                        });
-                    })()}
-                </div>
             </div>
 
-            {/* Inline Progress Controls */}
-            {activeStage ? (
+            {/* Expanded Drawer System */}
+            {isExpanded && (
                 <div style={{
-                    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-                    padding: '10px 12px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.01)',
                 }}>
-                    {(() => {
-                        const lockReason = getStageLockReason(item, activeStage.stage.stage_name, userRole);
-                        if (lockReason) {
-                            return (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        padding: '8px 12px',
-                                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                                        borderRadius: '6px',
-                                        color: '#ef4444',
-                                        fontSize: '12px',
-                                        fontWeight: 600
-                                    }}>
-                                        <AlertTriangle size={14} />
-                                        <span>{t[lockReason as keyof typeof t] || lockReason}</span>
-                                    </div>
-                                    <button
-                                        onClick={() => setShowRulesModal(true)}
-                                        style={{
-                                            padding: '8px 12px',
-                                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                                            color: '#3b82f6',
-                                            border: '1px solid rgba(59, 130, 246, 0.2)',
-                                            borderRadius: '6px',
-                                            fontSize: '11px',
-                                            fontWeight: 700,
-                                            cursor: 'pointer',
-                                            textAlign: 'center'
-                                        }}
-                                    >
-                                        {language === 'en' ? 'View Update Rules' : 'Lihat Aturan Update'}
-                                    </button>
-                                </div>
-                            );
-                        }
+                    {/* Inline Progress Controls */}
+                    {activeStage ? (
+                        <div style={{
+                            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                            padding: '10px 12px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                        }}>
+                            {(() => {
+                                const isDrafterStage = activeStage.stage.stage_name.toLowerCase().includes('design') ||
+                                    activeStage.stage.stage_name.toLowerCase().includes('gambar') ||
+                                    activeStage.stage.stage_name.toLowerCase().includes('draft');
 
-                        if (activeStage.stage.stage_name === 'Finance') {
-                            return (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
-                                            {t.finance_status}
-                                        </h4>
-                                    </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '10px', color: '#94a3b8', marginBottom: '4px' }}>
-                                                {t.invoice_label}
-                                            </label>
-                                            <select
-                                                value={invoiceStatus}
-                                                onChange={(e) => setInvoiceStatus(e.target.value as any)}
+                                if (isDrafterStage) {
+                                    const currentStatus = item.drafter_status;
+                                    const statuses = ['DRAWING', 'APPROVED'];
+                                    const currentIdx = statuses.indexOf(currentStatus || '');
+
+                                    return (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
+                                            <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                                {language === 'en' ? 'Drafter Status' : 'Status Drafter'}
+                                            </h4>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                                                {statuses.map((status) => {
+                                                    const isActive = currentStatus === status;
+                                                    const isDisabled = currentIdx !== -1 && statuses.indexOf(status) < currentIdx;
+                                                    return (
+                                                        <button
+                                                            key={status}
+                                                            onClick={() => {
+                                                                if (isActive) return;
+                                                                router.post(`/c/${slug}/items/${item.id}/drafter-status`, {
+                                                                    drafter_status: status,
+                                                                }, {
+                                                                    preserveScroll: true,
+                                                                });
+                                                            }}
+                                                            disabled={isDisabled}
+                                                            style={{
+                                                                padding: '12px 4px',
+                                                                borderRadius: '6px',
+                                                                border: 'none',
+                                                                backgroundColor: isActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
+                                                                color: '#fff',
+                                                                fontSize: '12px',
+                                                                fontWeight: 700,
+                                                                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                                                opacity: isDisabled ? 0.3 : 1,
+                                                            }}
+                                                        >
+                                                            {status}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                const isPurchasingStage = activeStage.stage.stage_name.toLowerCase().includes('vendor') ||
+                                    activeStage.stage.stage_name.toLowerCase().includes('purchasing') ||
+                                    activeStage.stage.stage_name.toLowerCase().includes('material') ||
+                                    activeStage.stage.stage_name.toLowerCase().includes('bahan');
+
+                                if (isPurchasingStage) {
+                                    const currentStatus = item.purchasing_status;
+                                    const statuses = ['ORDER', 'PROSES', 'READY']; // already ordered
+                                    const currentIdx = statuses.indexOf(currentStatus || '');
+
+                                    return (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
+                                            <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                                {language === 'en' ? 'Purchasing Status' : 'Status Pembelian'}
+                                            </h4>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                                                {statuses.map((status) => {
+                                                    const isActive = currentStatus === status;
+                                                    const isDisabled = currentIdx !== -1 && statuses.indexOf(status) < currentIdx;
+                                                    return (
+                                                        <button
+                                                            key={status}
+                                                            onClick={() => {
+                                                                if (isActive) return;
+                                                                router.post(`/c/${slug}/items/${item.id}/purchasing-status`, {
+                                                                    purchasing_status: status,
+                                                                }, {
+                                                                    preserveScroll: true,
+                                                                });
+                                                            }}
+                                                            disabled={isDisabled}
+                                                            style={{
+                                                                padding: '12px 4px',
+                                                                borderRadius: '6px',
+                                                                border: 'none',
+                                                                backgroundColor: isActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
+                                                                color: '#fff',
+                                                                fontSize: '12px',
+                                                                fontWeight: 700,
+                                                                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                                                opacity: isDisabled ? 0.3 : 1,
+                                                            }}
+                                                        >
+                                                            {status}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                if (activeStage.stage.stage_name === 'Finance') {
+                                    return (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                                    {t.finance_status}
+                                                </h4>
+                                            </div>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '10px', color: '#94a3b8', marginBottom: '4px' }}>
+                                                        {t.invoice_label}
+                                                    </label>
+                                                    <select
+                                                        value={invoiceStatus}
+                                                        onChange={(e) => setInvoiceStatus(e.target.value as any)}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '6px 8px',
+                                                            backgroundColor: '#090d16',
+                                                            color: '#fff',
+                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            borderRadius: '6px',
+                                                            fontSize: '12px',
+                                                            outline: 'none',
+                                                        }}
+                                                    >
+                                                        <option value="UNINVOICED">{t.uninvoiced}</option>
+                                                        <option value="INVOICED">{t.invoiced}</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '10px', color: '#94a3b8', marginBottom: '4px' }}>
+                                                        {t.payment_label}
+                                                    </label>
+                                                    <select
+                                                        value={paymentStatus}
+                                                        onChange={(e) => setPaymentStatus(e.target.value as any)}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '6px 8px',
+                                                            backgroundColor: '#090d16',
+                                                            color: '#fff',
+                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            borderRadius: '6px',
+                                                            fontSize: '12px',
+                                                            outline: 'none',
+                                                        }}
+                                                    >
+                                                        <option value="UNPAID">{t.unpaid}</option>
+                                                        <option value="PAID">{t.paid}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={handleFinanceSubmit}
                                                 style={{
-                                                    width: '100%',
-                                                    padding: '6px 8px',
-                                                    backgroundColor: '#090d16',
+                                                    marginTop: '4px',
+                                                    padding: '8px',
+                                                    backgroundColor: '#3b82f6',
                                                     color: '#fff',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    fontWeight: 700,
+                                                    border: 'none',
                                                     borderRadius: '6px',
-                                                    fontSize: '12px',
-                                                    outline: 'none',
+                                                    fontSize: '11px',
+                                                    cursor: 'pointer',
+                                                    textAlign: 'center',
                                                 }}
                                             >
-                                                <option value="UNINVOICED">{t.uninvoiced}</option>
-                                                <option value="INVOICED">{t.invoiced}</option>
-                                            </select>
+                                                {t.save}
+                                            </button>
                                         </div>
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '10px', color: '#94a3b8', marginBottom: '4px' }}>
-                                                {t.payment_label}
-                                            </label>
-                                            <select
-                                                value={paymentStatus}
-                                                onChange={(e) => setPaymentStatus(e.target.value as any)}
-                                                style={{
-                                                    width: '100%',
-                                                    padding: '6px 8px',
-                                                    backgroundColor: '#090d16',
-                                                    color: '#fff',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
-                                                    borderRadius: '6px',
-                                                    fontSize: '12px',
-                                                    outline: 'none',
-                                                }}
-                                            >
-                                                <option value="UNPAID">{t.unpaid}</option>
-                                                <option value="PAID">{t.paid}</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={handleFinanceSubmit}
-                                        style={{
-                                            marginTop: '4px',
-                                            padding: '8px',
-                                            backgroundColor: '#3b82f6',
-                                            color: '#fff',
-                                            fontWeight: 700,
-                                            border: 'none',
-                                            borderRadius: '6px',
-                                            fontSize: '11px',
-                                            cursor: 'pointer',
-                                            textAlign: 'center',
-                                        }}
-                                    >
-                                        {t.save}
-                                    </button>
-                                </div>
-                            );
-                        }
+                                    );
+                                }
 
-                        return (
-                            <>
-                                {item.target_qty > 1 ? (
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '24px',
-                                        marginBottom: '8px',
-                                    }}>
-                                        <div style={{ textAlign: 'center' }}>
+                                const stageNameLower = activeStage.stage.stage_name.toLowerCase();
+                                const isDesignStage = stageNameLower.includes('design') || stageNameLower.includes('gambar') || stageNameLower.includes('draft');
+                                const isMaterialStage = stageNameLower.includes('material') || stageNameLower.includes('bahan') || stageNameLower.includes('vendor') || stageNameLower.includes('purchasing');
+
+                                if (isDesignStage) {
+                                    const currentPct = parseFloat(activeStage.stage.progress_percent);
+                                    const options = [
+                                        { label: language === 'id' ? 'Drafting' : 'Drafting', pct: 50 },
+                                        { label: language === 'id' ? 'Disetujui' : 'Approved', pct: 100 },
+                                    ];
+
+                                    return (
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                            {options.map((opt) => {
+                                                const isDisabled = opt.pct < currentPct;
+                                                const isActive = Math.abs(currentPct - opt.pct) < 2;
+                                                return (
+                                                    <button
+                                                        key={opt.pct}
+                                                        onClick={() => !isDisabled && handlePercentSelect(opt.pct)}
+                                                        disabled={isDisabled}
+                                                        style={{
+                                                            padding: '12px 6px',
+                                                            borderRadius: '6px',
+                                                            border: 'none',
+                                                            backgroundColor: isActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
+                                                            color: '#fff',
+                                                            fontSize: '12px',
+                                                            fontWeight: 700,
+                                                            cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                                            opacity: isDisabled ? 0.3 : 1,
+                                                        }}
+                                                    >
+                                                        {opt.label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                }
+
+                                if (isMaterialStage) {
+                                    const currentPct = parseFloat(activeStage.stage.progress_percent);
+                                    const options = [
+                                        { label: language === 'id' ? 'Pesan (Order)' : 'Order', pct: 33 },
+                                        { label: language === 'id' ? 'Proses' : 'Process', pct: 66 },
+                                        { label: language === 'id' ? 'Selesai' : 'Complete', pct: 100 },
+                                    ];
+
+                                    return (
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', marginBottom: '8px' }}>
+                                            {options.map((opt) => {
+                                                const isDisabled = opt.pct < currentPct;
+                                                const isActive = Math.abs(currentPct - opt.pct) < 2;
+                                                return (
+                                                    <button
+                                                        key={opt.pct}
+                                                        onClick={() => !isDisabled && handlePercentSelect(opt.pct)}
+                                                        disabled={isDisabled}
+                                                        style={{
+                                                            padding: '12px 4px',
+                                                            borderRadius: '6px',
+                                                            border: 'none',
+                                                            backgroundColor: isActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
+                                                            color: '#fff',
+                                                            fontSize: '12px',
+                                                            fontWeight: 700,
+                                                            cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                                            opacity: isDisabled ? 0.3 : 1,
+                                                        }}
+                                                    >
+                                                        {opt.label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <>
+                                        {item.target_qty > 1 ? (
                                             <div style={{
-                                                fontSize: '22px',
-                                                fontWeight: 800,
-                                                lineHeight: 1,
-                                                marginBottom: '2px',
-                                            }}>
-                                                {activeStage.stage.completed_qty}
-                                            </div>
-                                            <div style={{ fontSize: '10px', color: '#64748b' }}>
-                                                / {item.target_qty}
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => handleStep(1)}
-                                            style={{
-                                                width: '40px',
-                                                height: '40px',
-                                                borderRadius: '20px',
-                                                border: 'none',
-                                                backgroundColor: '#10b981',
-                                                color: '#fff',
-                                                fontSize: '18px',
-                                                fontWeight: 700,
-                                                cursor: 'pointer',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                            }}
-                                        >
-                                            +
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div style={{
-                                        display: 'grid',
-                                        gridTemplateColumns: 'repeat(5, 1fr)',
-                                        gap: '6px',
-                                        marginBottom: '8px',
-                                    }}>
-                                        {[0, 25, 50, 75, 100].map((pct) => {
-                                            const currentPct = parseFloat(activeStage.stage.progress_percent);
-                                            const isDisabled = pct < currentPct;
-                                            return (
+                                                gap: '24px',
+                                                marginBottom: '8px',
+                                            }}>
+                                                <div style={{ textAlign: 'center' }}>
+                                                    <div style={{
+                                                        fontSize: '22px',
+                                                        fontWeight: 800,
+                                                        lineHeight: 1,
+                                                        marginBottom: '2px',
+                                                    }}>
+                                                        {activeStage.stage.completed_qty}
+                                                    </div>
+                                                    <div style={{ fontSize: '10px', color: '#64748b' }}>
+                                                        / {item.target_qty}
+                                                    </div>
+                                                </div>
                                                 <button
-                                                    key={pct}
-                                                    onClick={() => !isDisabled && handlePercentSelect(pct)}
-                                                    disabled={isDisabled}
+                                                    onClick={() => handleStep(1)}
                                                     style={{
-                                                        padding: '10px 4px',
-                                                        borderRadius: '6px',
+                                                        width: '40px',
+                                                        height: '40px',
+                                                        borderRadius: '20px',
                                                         border: 'none',
-                                                        backgroundColor: currentPct === pct
-                                                            ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
+                                                        backgroundColor: '#10b981',
                                                         color: '#fff',
-                                                        fontSize: '12px',
+                                                        fontSize: '18px',
                                                         fontWeight: 700,
-                                                        cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                                        opacity: isDisabled ? 0.3 : 1,
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
                                                     }}
                                                 >
-                                                    {pct}%
+                                                    +
                                                 </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-
-                                {/* Revert Last Update Button */}
-                                {((activeStage.stage.previous_completed_qty !== null && activeStage.stage.previous_completed_qty !== undefined) || 
-                                  (activeStage.stage.previous_progress_percent !== null && activeStage.stage.previous_progress_percent !== undefined)) && (
-                                    <div style={{ marginBottom: '8px' }}>
-                                        <button
-                                            onClick={revertLastUpdate}
-                                            style={{
-                                                width: '100%',
-                                                padding: '8px 12px',
-                                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                                color: '#ef4444',
-                                                border: '1px solid rgba(239, 68, 68, 0.2)',
-                                                borderRadius: '6px',
-                                                fontSize: '11px',
-                                                fontWeight: 700,
-                                                cursor: 'pointer',
-                                                textAlign: 'center',
-                                            }}
-                                        >
-                                            {language === 'en' ? 'Revert Last Update' : 'Batal / Revert Update Terakhir'}
-                                        </button>
-                                    </div>
-                                )}
-
-                                <div style={{ display: 'flex', gap: '6px' }}>
-                                    <button
-                                        onClick={() => setShowKendala(prev => !prev)}
-                                        style={{
-                                            flex: 1,
-                                            padding: '8px',
-                                            backgroundColor: showKendala ? 'rgba(239, 68, 68, 0.25)' : 'rgba(239, 68, 68, 0.1)',
-                                            color: '#ef4444',
-                                            border: '1px solid rgba(239, 68, 68, 0.25)',
-                                            borderRadius: '6px',
-                                            fontSize: '11px',
-                                            fontWeight: 700,
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '4px',
-                                        }}
-                                    >
-                                        <AlertTriangle size={12} /> {t.report_failure}
-                                    </button>
-                                    <button
-                                        onClick={() => setShowQc(prev => !prev)}
-                                        style={{
-                                            flex: 1,
-                                            padding: '8px',
-                                            backgroundColor: showQc ? 'rgba(234, 179, 8, 0.25)' : 'rgba(234, 179, 8, 0.1)',
-                                            color: '#eab308',
-                                            border: '1px solid rgba(234, 179, 8, 0.25)',
-                                            borderRadius: '6px',
-                                            fontSize: '11px',
-                                            fontWeight: 700,
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '4px',
-                                        }}
-                                    >
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <circle cx="11" cy="11" r="8" />
-                                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                                            <line x1="8" y1="11" x2="14" y2="11" />
-                                        </svg> {t.log_rework}
-                                    </button>
-                                </div>
-
-                                {showKendala && (
-                                    <form onSubmit={submitKendala} style={{
-                                        marginTop: '8px',
-                                        padding: '10px',
-                                        backgroundColor: 'rgba(0,0,0,0.2)',
-                                        borderRadius: '8px',
-                                    }}>
-                                        <label style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '4px', display: 'block' }}>
-                                            {t.failure_type_label}
-                                        </label>
-                                        <select
-                                            value={kendalaType}
-                                            onChange={(e) => setKendalaType(e.target.value)}
-                                            style={{
-                                                width: '100%',
-                                                padding: '8px 10px',
-                                                backgroundColor: '#090d16',
-                                                color: '#fff',
-                                                border: '1px solid rgba(255,255,255,0.1)',
-                                                borderRadius: '6px',
-                                                fontSize: '12px',
-                                                outline: 'none',
+                                            </div>
+                                        ) : (
+                                            <div style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: 'repeat(5, 1fr)',
+                                                gap: '6px',
                                                 marginBottom: '8px',
-                                            }}
-                                        >
-                                            <option value="Machine Broken">{t.machine_broken}</option>
-                                            <option value="Material Delay">{t.material_delay}</option>
-                                            <option value="Operator Sick">{t.operator_sick}</option>
-                                            <option value="Power Outage">{t.power_outage}</option>
-                                        </select>
-                                        <label style={{ fontSize: '10px', color: '#94a3b8', marginTop: '8px', marginBottom: '4px', display: 'block' }}>
-                                            {language === 'en' ? 'Note / Description' : 'Catatan / Deskripsi'}
-                                        </label>
-                                        <textarea
-                                            value={kendalaNote}
-                                            onChange={(e) => setKendalaNote(e.target.value)}
-                                            placeholder={language === 'en' ? 'Provide details about the issue...' : 'Berikan detail mengenai kendala...'}
-                                            style={{
-                                                width: '100%',
-                                                padding: '8px 10px',
-                                                backgroundColor: '#090d16',
-                                                color: '#fff',
-                                                border: '1px solid rgba(255,255,255,0.1)',
-                                                borderRadius: '6px',
-                                                fontSize: '12px',
-                                                outline: 'none',
-                                                marginBottom: '8px',
-                                                resize: 'vertical',
-                                                minHeight: '60px',
-                                                boxSizing: 'border-box',
-                                            }}
-                                        />
-                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                            }}>
+                                                {[0, 25, 50, 75, 100].map((pct) => {
+                                                    const currentPct = parseFloat(activeStage.stage.progress_percent);
+                                                    const isDisabled = pct < currentPct;
+                                                    return (
+                                                        <button
+                                                            key={pct}
+                                                            onClick={() => !isDisabled && handlePercentSelect(pct)}
+                                                            disabled={isDisabled}
+                                                            style={{
+                                                                padding: '10px 4px',
+                                                                borderRadius: '6px',
+                                                                border: 'none',
+                                                                backgroundColor: currentPct === pct
+                                                                    ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
+                                                                color: '#fff',
+                                                                fontSize: '12px',
+                                                                fontWeight: 700,
+                                                                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                                                opacity: isDisabled ? 0.3 : 1,
+                                                            }}
+                                                        >
+                                                            {pct}%
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+
+                                        {/* Revert Last Update Button */}
+                                        {((activeStage.stage.previous_completed_qty !== null && activeStage.stage.previous_completed_qty !== undefined) || 
+                                          (activeStage.stage.previous_progress_percent !== null && activeStage.stage.previous_progress_percent !== undefined)) && (
+                                            <div style={{ marginBottom: '8px' }}>
+                                                <button
+                                                    onClick={revertLastUpdate}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '8px 12px',
+                                                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                                        color: '#ef4444',
+                                                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                                                        borderRadius: '6px',
+                                                        fontSize: '11px',
+                                                        fontWeight: 700,
+                                                        cursor: 'pointer',
+                                                        textAlign: 'center',
+                                                    }}
+                                                >
+                                                    {language === 'en' ? 'Revert Last Update' : 'Batal / Revert Update Terakhir'}
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        <div style={{ display: 'flex', gap: '6px' }}>
                                             <button
-                                                type="button"
-                                                onClick={() => setShowKendala(false)}
+                                                onClick={() => setShowKendala(prev => !prev)}
                                                 style={{
-                                                    padding: '6px 12px',
-                                                    backgroundColor: 'transparent',
-                                                    color: '#94a3b8',
-                                                    border: 'none',
-                                                    fontSize: '11px',
-                                                    cursor: 'pointer',
-                                                }}
-                                            >
-                                                {t.cancel}
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                style={{
-                                                    padding: '6px 14px',
-                                                    backgroundColor: '#ef4444',
-                                                    color: '#fff',
+                                                    flex: 1,
+                                                    padding: '8px',
+                                                    backgroundColor: showKendala ? 'rgba(239, 68, 68, 0.25)' : 'rgba(239, 68, 68, 0.1)',
+                                                    color: '#ef4444',
+                                                    border: '1px solid rgba(239, 68, 68, 0.25)',
                                                     borderRadius: '6px',
-                                                    border: 'none',
-                                                    fontWeight: 600,
                                                     fontSize: '11px',
-                                                    cursor: 'pointer',
-                                                }}
-                                            >
-                                                {t.submit}
-                                            </button>
-                                        </div>
-                                    </form>
-                                )}
-
-                                {showQc && (
-                                    <form onSubmit={submitQcRework} style={{
-                                        marginTop: '8px',
-                                        padding: '10px',
-                                        backgroundColor: 'rgba(0,0,0,0.2)',
-                                        borderRadius: '8px',
-                                    }}>
-                                        <label style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '4px', display: 'block' }}>
-                                            {t.reject_qty_label}
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            value={rejectQty}
-                                            onChange={(e) => setRejectQty(e.target.value)}
-                                            style={{
-                                                width: '100%',
-                                                padding: '8px 10px',
-                                                backgroundColor: '#090d16',
-                                                color: '#fff',
-                                                border: '1px solid rgba(255,255,255,0.1)',
-                                                borderRadius: '6px',
-                                                fontSize: '12px',
-                                                outline: 'none',
-                                                marginBottom: '8px',
-                                            }}
-                                        />
-                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowQc(false)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    backgroundColor: 'transparent',
-                                                    color: '#94a3b8',
-                                                    border: 'none',
-                                                    fontSize: '11px',
-                                                    cursor: 'pointer',
-                                                }}
-                                            >
-                                                {t.cancel}
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                style={{
-                                                    padding: '6px 14px',
-                                                    backgroundColor: '#eab308',
-                                                    color: '#000',
-                                                    borderRadius: '6px',
-                                                    border: 'none',
                                                     fontWeight: 700,
-                                                    fontSize: '11px',
                                                     cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '4px',
                                                 }}
                                             >
-                                                {t.submit}
+                                                <AlertTriangle size={12} /> {t.report_failure}
+                                            </button>
+                                            <button
+                                                onClick={() => setShowQc(prev => !prev)}
+                                                style={{
+                                                    flex: 1,
+                                                    padding: '8px',
+                                                    backgroundColor: showQc ? 'rgba(234, 179, 8, 0.25)' : 'rgba(234, 179, 8, 0.1)',
+                                                    color: '#eab308',
+                                                    border: '1px solid rgba(234, 179, 8, 0.25)',
+                                                    borderRadius: '6px',
+                                                    fontSize: '11px',
+                                                    fontWeight: 700,
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '4px',
+                                                }}
+                                            >
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <circle cx="11" cy="11" r="8" />
+                                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                                    <line x1="8" y1="11" x2="14" y2="11" />
+                                                </svg> {t.log_rework}
                                             </button>
                                         </div>
-                                    </form>
-                                )}
-                            </>
-                        );
-                    })()}
-                    {/* Cancel Update Button */}
-                    <button
-                        onClick={() => {
-                            setActiveStage(null);
-                            setShowKendala(false);
-                            setShowQc(false);
-                        }}
-                        style={{
-                            marginTop: '12px',
-                            width: '100%',
-                            padding: '8px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                            color: '#94a3b8',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            borderRadius: '6px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            textAlign: 'center',
-                        }}
-                    >
-                        {language === 'en' ? 'Cancel Update' : 'Batal Update'}
-                    </button>
-                </div>
-            ) : (
-                <div style={{
-                    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-                    padding: '10px 12px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.15)',
-                    color: '#64748b',
-                    fontSize: '12px',
-                    textAlign: 'center',
-                }}>
-                    {language === 'en' ? 'No matching stage for your role on this item' : 'Tidak ada tahap yang sesuai dengan role Anda pada item ini'}
+
+                                        {showKendala && (
+                                            <form onSubmit={submitKendala} style={{
+                                                marginTop: '8px',
+                                                padding: '10px',
+                                                backgroundColor: 'rgba(0,0,0,0.2)',
+                                                borderRadius: '8px',
+                                            }}>
+                                                <label style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '4px', display: 'block' }}>
+                                                    {t.failure_type_label}
+                                                </label>
+                                                <select
+                                                    value={kendalaType}
+                                                    onChange={(e) => setKendalaType(e.target.value)}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '8px 10px',
+                                                        backgroundColor: '#090d16',
+                                                        color: '#fff',
+                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        borderRadius: '6px',
+                                                        fontSize: '12px',
+                                                        outline: 'none',
+                                                        marginBottom: '8px',
+                                                    }}
+                                                >
+                                                    <option value="Machine Broken">{t.machine_broken}</option>
+                                                    <option value="Material Delay">{t.material_delay}</option>
+                                                    <option value="Operator Sick">{t.operator_sick}</option>
+                                                    <option value="Power Outage">{t.power_outage}</option>
+                                                </select>
+                                                <label style={{ fontSize: '10px', color: '#94a3b8', marginTop: '8px', marginBottom: '4px', display: 'block' }}>
+                                                    {language === 'en' ? 'Note / Description' : 'Catatan / Deskripsi'}
+                                                </label>
+                                                <textarea
+                                                    value={kendalaNote}
+                                                    onChange={(e) => setKendalaNote(e.target.value)}
+                                                    placeholder={language === 'en' ? 'Provide details about the issue...' : 'Berikan detail mengenai kendala...'}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '8px 10px',
+                                                        backgroundColor: '#090d16',
+                                                        color: '#fff',
+                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        borderRadius: '6px',
+                                                        fontSize: '12px',
+                                                        outline: 'none',
+                                                        marginBottom: '8px',
+                                                        resize: 'vertical',
+                                                        minHeight: '60px',
+                                                        boxSizing: 'border-box',
+                                                    }}
+                                                />
+                                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowKendala(false)}
+                                                        style={{
+                                                            padding: '6px 12px',
+                                                            backgroundColor: 'transparent',
+                                                            color: '#94a3b8',
+                                                            border: 'none',
+                                                            fontSize: '11px',
+                                                            cursor: 'pointer',
+                                                        }}
+                                                    >
+                                                        {t.cancel}
+                                                    </button>
+                                                    <button
+                                                        type="submit"
+                                                        style={{
+                                                            padding: '6px 14px',
+                                                            backgroundColor: '#ef4444',
+                                                            color: '#fff',
+                                                            borderRadius: '6px',
+                                                            border: 'none',
+                                                            fontWeight: 600,
+                                                            fontSize: '11px',
+                                                            cursor: 'pointer',
+                                                        }}
+                                                    >
+                                                        {t.submit}
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        )}
+
+                                        {showQc && (
+                                            <form onSubmit={submitQcRework} style={{
+                                                marginTop: '8px',
+                                                padding: '10px',
+                                                backgroundColor: 'rgba(0,0,0,0.2)',
+                                                borderRadius: '8px',
+                                            }}>
+                                                <label style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '4px', display: 'block' }}>
+                                                    {t.reject_qty_label}
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    value={rejectQty}
+                                                    onChange={(e) => setRejectQty(e.target.value)}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '8px 10px',
+                                                        backgroundColor: '#090d16',
+                                                        color: '#fff',
+                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        borderRadius: '6px',
+                                                        fontSize: '12px',
+                                                        outline: 'none',
+                                                        marginBottom: '8px',
+                                                    }}
+                                                />
+                                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowQc(false)}
+                                                        style={{
+                                                            padding: '6px 12px',
+                                                            backgroundColor: 'transparent',
+                                                            color: '#94a3b8',
+                                                            border: 'none',
+                                                            fontSize: '11px',
+                                                            cursor: 'pointer',
+                                                        }}
+                                                    >
+                                                        {t.cancel}
+                                                    </button>
+                                                    <button
+                                                        type="submit"
+                                                        style={{
+                                                            padding: '6px 14px',
+                                                            backgroundColor: '#eab308',
+                                                            color: '#000',
+                                                            borderRadius: '6px',
+                                                            border: 'none',
+                                                            fontWeight: 700,
+                                                            fontSize: '11px',
+                                                            cursor: 'pointer',
+                                                        }}
+                                                    >
+                                                        {t.submit}
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        )}
+                                    </>
+                                );
+                            })()}
+
+                            {/* Cancel Update Button */}
+                            <button
+                                onClick={() => {
+                                    setActiveStage(null);
+                                    setShowKendala(false);
+                                    setShowQc(false);
+                                }}
+                                style={{
+                                    marginTop: '12px',
+                                    width: '100%',
+                                    padding: '8px',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                    color: '#94a3b8',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    borderRadius: '6px',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    textAlign: 'center',
+                                }}
+                            >
+                                {language === 'en' ? 'Cancel Update' : 'Batal Update'}
+                            </button>
+                        </div>
+                    ) : null}
                 </div>
             )}
         </div>
@@ -1236,7 +1314,6 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
 
     const t = translations[language];
 
-    const [showRulesModal, setShowRulesModal] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
@@ -1393,113 +1470,11 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
                                 slug={slug}
                                 language={language}
                                 translations={translations}
-                                showRulesModal={showRulesModal}
-                                setShowRulesModal={setShowRulesModal}
                             />
                         ))}
                     </div>
                 )}
             </div>
-
-            {/* Rules Modal */}
-            {showRulesModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 9999,
-                    padding: '20px',
-                }}>
-                    <div style={{
-                        backgroundColor: '#0f172a',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        borderRadius: '12px',
-                        padding: '24px',
-                        maxWidth: '500px',
-                        width: '100%',
-                        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.5)',
-                    }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 16px 0', color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <AlertTriangle size={20} />
-                            {language === 'en' ? 'Stage Update Rules' : 'Aturan Pembaruan Tahap'}
-                        </h3>
-                        <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6', display: 'grid', gap: '12px', marginBottom: '24px' }}>
-                            <div>
-                                <strong style={{ color: '#f8fafc' }}>
-                                    {language === 'en' ? '1. Role Authorization:' : '1. Otorisasi Peran:'}
-                                </strong>
-                                <p style={{ margin: '4px 0 0 0', color: '#94a3b8' }}>
-                                    {language === 'en'
-                                        ? 'You can only update stages matching your role (e.g. MACHINING for Machining, FABRICATION for Fabrication, QC for QC, DELIVERY for Delivery, FINANCE for Finance, PURCHASING for Vendor).'
-                                        : 'Anda hanya bisa mengubah tahap yang sesuai dengan role Anda (misal: role MACHINING hanya bisa mengubah Machining, FABRICATION untuk Fabrikasi, QC untuk QC, DELIVERY untuk Delivery, FINANCE untuk Finance, PURCHASING untuk Vendor).'}
-                                </p>
-                            </div>
-                            <div>
-                                <strong style={{ color: '#f8fafc' }}>
-                                    {language === 'en' ? '2. QC Stage Lock:' : '2. Kunci Tahap QC:'}
-                                </strong>
-                                <p style={{ margin: '4px 0 0 0', color: '#94a3b8' }}>
-                                    {language === 'en'
-                                        ? 'QC requires Machining & Fabrication to finish first.'
-                                        : 'QC membutuhkan tahap Machining & Fabrikasi selesai terlebih dahulu.'}
-                                </p>
-                            </div>
-                            <div>
-                                <strong style={{ color: '#f8fafc' }}>
-                                    {language === 'en' ? '3. Delivery Stage Lock:' : '3. Kunci Tahap Pengiriman:'}
-                                </strong>
-                                <p style={{ margin: '4px 0 0 0', color: '#94a3b8' }}>
-                                    {language === 'en'
-                                        ? 'Delivery requires QC completed quantity > 0.'
-                                        : 'Delivery membutuhkan jumlah selesai QC > 0.'}
-                                </p>
-                            </div>
-                            <div>
-                                <strong style={{ color: '#f8fafc' }}>
-                                    {language === 'en' ? '4. Finance Stage Lock:' : '4. Kunci Tahap Keuangan:'}
-                                </strong>
-                                <p style={{ margin: '4px 0 0 0', color: '#94a3b8' }}>
-                                    {language === 'en'
-                                        ? 'Finance requires Delivery to finish first.'
-                                        : 'Finance membutuhkan tahap Delivery selesai terlebih dahulu.'}
-                                </p>
-                            </div>
-                            <div>
-                                <strong style={{ color: '#f8fafc' }}>
-                                    {language === 'en' ? '5. Inactive Stages:' : '5. Tahap Nonaktif:'}
-                                </strong>
-                                <p style={{ margin: '4px 0 0 0', color: '#94a3b8' }}>
-                                    {language === 'en'
-                                        ? 'Stages inactive for this item type cannot be updated.'
-                                        : 'Tahap yang tidak aktif untuk jenis produksi item ini tidak dapat diubah.'}
-                                </p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => setShowRulesModal(false)}
-                            style={{
-                                width: '100%',
-                                padding: '10px',
-                                backgroundColor: '#2563eb',
-                                color: '#fff',
-                                fontWeight: 700,
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                            }}
-                        >
-                            {language === 'en' ? 'Close' : 'Tutup'}
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

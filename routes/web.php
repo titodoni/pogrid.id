@@ -72,6 +72,8 @@ Route::prefix('c/{slug}')->group(function () {
         Route::post('/progress/{progressId}/cancel-last-update', [WorkerDashboardController::class, 'cancelLastUpdate']);
         Route::post('/progress/{progressId}/kendala', [WorkerDashboardController::class, 'reportKendala']);
         Route::post('/progress/{progressId}/rework', [WorkerDashboardController::class, 'logQcRework']);
+        Route::post('/items/{itemId}/drafter-status', [WorkerDashboardController::class, 'updateDrafterStatus']);
+        Route::post('/items/{itemId}/purchasing-status', [WorkerDashboardController::class, 'updatePurchasingStatus']);
         Route::post('/items/{itemId}/finance', [WorkerDashboardController::class, 'updateFinanceStatus']);
     });
 });

@@ -169,10 +169,10 @@ class AdminManagementTest extends TestCase
         $gearShaft = $items->where('item_name', 'Gear Shaft')->first();
         $this->assertNotNull($gearShaft);
         $this->assertEquals(5, $gearShaft->target_qty);
-        $this->assertEquals(['Machining', 'QC', 'Delivery'], $gearShaft->required_stages);
+        $this->assertEquals(['Material', 'Design', 'Machining', 'QC', 'Delivery'], $gearShaft->required_stages);
 
-        // Assert observers auto-created stages (Machining, QC, and Delivery)
-        $this->assertCount(3, $gearShaft->itemProgresses);
+        // Assert observers auto-created stages (Design, Material, Machining, QC, and Delivery)
+        $this->assertCount(5, $gearShaft->itemProgresses);
         $this->assertContains('Machining', $gearShaft->itemProgresses->pluck('stage_name')->toArray());
     }
 
