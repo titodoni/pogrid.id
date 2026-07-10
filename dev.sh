@@ -8,6 +8,33 @@ fi
 git config core.hooksPath .githooks 2>/dev/null || true
 # -----------------------------------------------------
 
+MODE="${1:-dev}"
+
+# --- Build Docker image (shared by dev and test) ---
+echo "Building Docker image..."
+docker build -t php-node -f Dockerfile . 2>&1 | tail -1
+
+# ====================================================
+# TEST MODE: ./dev.sh test [--filter=...] [--suite=...]
+# ====================================================
+if [ "$MODE" = "test" ]; then
+  shift # remove "test" from args, pass the rest to artisan test
+  echo ""
+  echo "Running tests inside Docker..."
+  echo ""
+  docker run --rm \
+    -v "$(pwd):/app" \
+    -w /app \
+    -e APP_ENV=testing \
+    php-node \
+    php artisan test "$@"
+  exit $?
+fi
+
+# ====================================================
+# DEV MODE (default): ./dev.sh
+# ====================================================
+
 cleanup() {
   echo "Shutting down..."
   docker kill php-server php-queue 2>/dev/null || true
@@ -15,8 +42,6 @@ cleanup() {
   wait 2>/dev/null
 }
 trap cleanup EXIT INT TERM
-
-docker build -t php-node -f Dockerfile . 2>&1 | tail -1
 
 echo ""
 echo "Starting PHP Artisan server (http://localhost:8000)..."
@@ -42,4 +67,3 @@ echo "Ready at http://localhost:8000 — Ctrl+C to stop"
 echo ""
 
 wait
-

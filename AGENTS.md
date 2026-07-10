@@ -46,6 +46,7 @@ Three groups in `resources/js/Pages/`: `Auth/`, `Owner/`, `Worker/`. `FlashMessa
 
 - **Multi-tenancy**: row-level `TenantScope` + `TenantManager` singleton. Models use `BelongsToTenant`. `TenantManager::bypass()`/`enableScope()` for tests and admin contexts.
 - **Observer chain** (registered in `AppServiceProvider::boot()`): `Item::created` auto-creates `ItemProgress` rows per `required_stages`. `ItemProgress::saved` recalculates weighted progress, cascades PO status. `DoItem::saved` marks PO COMPLETED when all items delivered.
+- **QC stage**: `target_qty === 1` shows NG (auto-submits rework qty=1) + OK (marks 100%) buttons. `target_qty > 1` uses percentage buttons + rework form (with qty input), same as other stages.
 - **Session, cache, queue**: database driver (SQLite dev, PostgreSQL prod). **Broadcast**: Pusher, defaults to `log` in dev. No Redis.
 - **Cron-dependent**: no daemons. Queue + timeline evaluation run by cron at 1-min.
 

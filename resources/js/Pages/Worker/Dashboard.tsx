@@ -1039,6 +1039,7 @@ function ItemCard({
                                 const stageNameLower = activeStage.stage.stage_name.toLowerCase();
                                 const isDesignStage = stageNameLower.includes('design') || stageNameLower.includes('gambar') || stageNameLower.includes('draft');
                                 const isMaterialStage = stageNameLower.includes('material') || stageNameLower.includes('bahan') || stageNameLower.includes('vendor') || stageNameLower.includes('purchasing');
+                                const isQcStage = stageNameLower === 'qc';
 
                                 if (isDesignStage) {
                                     const currentPct = parseFloat(activeStage.stage.progress_percent);
@@ -1158,6 +1159,55 @@ function ItemCard({
                                                     +
                                                 </button>
                                             </div>
+                                        ) : isQcStage ? (
+                                            <div style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: '1fr 1fr',
+                                                gap: '8px',
+                                                marginBottom: '8px',
+                                            }}>
+                                                <button
+                                                    onClick={() => {
+                                                        if (!activeStage) return;
+                                                        router.post(`/c/${slug}/progress/${activeStage.stage.id}/rework`, {
+                                                            reject_qty: 1
+                                                        }, {
+                                                            preserveScroll: true,
+                                                            onSuccess: () => {
+                                                                setShowQc(false);
+                                                                setActiveStage(null);
+                                                            }
+                                                        });
+                                                    }}
+                                                    style={{
+                                                        padding: '16px 8px',
+                                                        borderRadius: '8px',
+                                                        border: 'none',
+                                                        backgroundColor: '#ef4444',
+                                                        color: '#fff',
+                                                        fontSize: '14px',
+                                                        fontWeight: 800,
+                                                        cursor: 'pointer',
+                                                    }}
+                                                >
+                                                    NG
+                                                </button>
+                                                <button
+                                                    onClick={() => handlePercentSelect(100)}
+                                                    style={{
+                                                        padding: '16px 8px',
+                                                        borderRadius: '8px',
+                                                        border: 'none',
+                                                        backgroundColor: '#10b981',
+                                                        color: '#fff',
+                                                        fontSize: '14px',
+                                                        fontWeight: 800,
+                                                        cursor: 'pointer',
+                                                    }}
+                                                >
+                                                    OK
+                                                </button>
+                                            </div>
                                         ) : (
                                             <div style={{
                                                 display: 'grid',
@@ -1238,30 +1288,32 @@ function ItemCard({
                                             >
                                                 <AlertTriangle size={12} /> {t.report_failure}
                                             </button>
-                                            <button
-                                                onClick={() => setShowQc(prev => !prev)}
-                                                style={{
-                                                    flex: 1,
-                                                    padding: '8px',
-                                                    backgroundColor: showQc ? 'rgba(234, 179, 8, 0.25)' : 'rgba(234, 179, 8, 0.1)',
-                                                    color: '#eab308',
-                                                    border: '1px solid rgba(234, 179, 8, 0.25)',
-                                                    borderRadius: '6px',
-                                                    fontSize: '11px',
-                                                    fontWeight: 700,
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    gap: '4px',
-                                                }}
-                                            >
-                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <circle cx="11" cy="11" r="8" />
-                                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                                                    <line x1="8" y1="11" x2="14" y2="11" />
-                                                </svg> {t.log_rework}
-                                            </button>
+                                            {(!isQcStage || item.target_qty > 1) && (
+                                                <button
+                                                    onClick={() => setShowQc(prev => !prev)}
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '8px',
+                                                        backgroundColor: showQc ? 'rgba(234, 179, 8, 0.25)' : 'rgba(234, 179, 8, 0.1)',
+                                                        color: '#eab308',
+                                                        border: '1px solid rgba(234, 179, 8, 0.25)',
+                                                        borderRadius: '6px',
+                                                        fontSize: '11px',
+                                                        fontWeight: 700,
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: '4px',
+                                                    }}
+                                                >
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <circle cx="11" cy="11" r="8" />
+                                                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                                        <line x1="8" y1="11" x2="14" y2="11" />
+                                                    </svg> {t.log_rework}
+                                                </button>
+                                            )}
                                         </div>
 
                                         {showKendala && (
