@@ -10,7 +10,9 @@ interface Props {
     auth_user?: {
         id: number;
         name: string;
-        role: string;
+        role_name: string;
+        role_level: string;
+        post_name: string | null;
     };
 }
 
@@ -205,7 +207,7 @@ export default function Profile({ tenant, auth_user }: Props) {
                                     {t.role}
                                 </div>
                                 <div style={{ fontSize: '14px', fontWeight: 700, color: '#60a5fa' }}>
-                                    {auth_user?.role}
+                                    {auth_user?.role_name}{auth_user?.post_name ? ` — ${auth_user.post_name}` : ''}
                                 </div>
                             </div>
                         </div>

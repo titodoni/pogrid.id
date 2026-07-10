@@ -6,6 +6,8 @@ use App\Events\ProductionTerminated;
 use App\Jobs\GenerateSunkCostInvoiceJob;
 use App\Models\Item;
 use App\Models\Po;
+use App\Models\Post;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantManager;
@@ -48,7 +50,7 @@ class OwnerDashboardController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->role === 'OWNER') {
+        if ($user->isOwner()) {
             abort(403, 'Owners cannot create or broadcast POs. Please assign an Admin user.');
         }
 
@@ -65,7 +67,7 @@ class OwnerDashboardController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->role === 'OWNER') {
+        if ($user->isOwner()) {
             abort(403, 'Owners cannot create or broadcast POs. Please assign an Admin user.');
         }
 
@@ -145,14 +147,22 @@ class OwnerDashboardController extends Controller
 
     public function createUser(Request $request)
     {
+        $authUser = auth()->user()->loadMissing('roleRelation');
+
         // OWNER can only create ADMIN users
-        if (auth()->user()->role === 'OWNER') {
-            $request->merge(['role' => 'ADMIN', 'login_method' => 'PASSWORD']);
+        if ($authUser->isOwner()) {
+            $adminRoleId = Role::where('name', 'STAFF')->value('id');
+            $adminPostId = Post::where('name', 'Admin')->value('id');
+            $request->merge([
+                'role_id' => $adminRoleId,
+                'post_id' => $adminPostId,
+                'login_method' => 'PASSWORD',
+            ]);
         }
 
         $loginMethod = $request->input('login_method');
         if (! $loginMethod) {
-            if ($request->filled('pin') || in_array(strtoupper($request->role), ['WORKER', 'QC', 'DRAFTER', 'MACHINING', 'FABRICATION', 'DELIVERY', 'PURCHASING', 'FINANCE', 'CNC'])) {
+            if ($request->filled('pin')) {
                 $loginMethod = 'PIN';
             } else {
                 $loginMethod = 'PASSWORD';
@@ -160,15 +170,11 @@ class OwnerDashboardController extends Controller
         }
         $request->merge(['login_method' => $loginMethod]);
 
-        $roleRules = ['required', 'string', 'max:255'];
-        if (auth()->user()->role === 'OWNER') {
-            $roleRules[] = Rule::in(['ADMIN']);
-        }
-
-        $request->validate([
-            'role' => $roleRules,
+        $rules = [
             'login_method' => ['required', 'in:PASSWORD,PIN'],
             'name' => ['required', 'string', 'max:255'],
+            'role_id' => ['required', 'exists:roles,id'],
+            'post_id' => ['nullable', 'exists:posts,id'],
             'username' => [
                 Rule::requiredIf($request->login_method === 'PASSWORD'),
                 'nullable',
@@ -191,12 +197,21 @@ class OwnerDashboardController extends Controller
                 'max:6',
                 'regex:/^[0-9]+$/',
             ],
-        ]);
+        ];
+
+        if ($authUser->isOwner()) {
+            $rules['role_id'] = ['required', Rule::exists('roles', 'id')->where(function ($q) {
+                $q->where('name', 'STAFF');
+            })];
+        }
+
+        $request->validate($rules);
 
         $userData = [
             'tenant_id' => TenantManager::getTenantId(),
             'name' => $request->name,
-            'role' => $request->role,
+            'role_id' => $request->role_id,
+            'post_id' => $request->post_id,
         ];
 
         if ($request->login_method === 'PASSWORD') {
@@ -229,9 +244,10 @@ class OwnerDashboardController extends Controller
         $request->merge(['login_method' => $loginMethod]);
 
         $request->validate([
-            'role' => ['required', 'string', 'max:255'],
             'login_method' => ['required', 'in:PASSWORD,PIN'],
             'name' => ['required', 'string', 'max:255'],
+            'role_id' => ['required', 'exists:roles,id'],
+            'post_id' => ['nullable', 'exists:posts,id'],
             'username' => [
                 Rule::requiredIf($request->login_method === 'PASSWORD'),
                 'nullable',
@@ -255,7 +271,8 @@ class OwnerDashboardController extends Controller
         ]);
 
         $user->name = $request->name;
-        $user->role = $request->role;
+        $user->role_id = $request->role_id;
+        $user->post_id = $request->post_id;
 
         if ($request->login_method === 'PASSWORD') {
             $user->username = $request->username;

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
+use App\Models\Post;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantManager;
@@ -41,14 +43,19 @@ class RegistrationController extends Controller
         // Establish tenant context for new user creation
         TenantManager::setTenantId($tenant->id);
 
-        // Create Owner Admin user (OWNER role, email-login based)
+        $staffRoleId = Role::where('name', 'STAFF')->value('id');
+        $managerPostId = Post::where('name', 'Manager')->value('id');
+
+        // Create Owner user
         $user = User::create([
             'tenant_id' => $tenant->id,
             'name' => $request->name,
             'email' => $request->email,
             'username' => 'owner_'.Str::random(6),
             'password' => Hash::make($request->password),
-            'role' => 'OWNER',
+            'role_id' => $staffRoleId,
+            'post_id' => $managerPostId,
+            'is_owner' => true,
         ]);
 
         // Log the user in

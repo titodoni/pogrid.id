@@ -4,7 +4,7 @@
 
 Before answering codebase questions, load `graphify-out/GRAPH_REPORT.md` and run `graphify query "<question>"` for graph-traversed context. Graph at `graphify-out/graph.json` (648 nodes, 1203 edges, 65 communities). Updated automatically post-commit.
 
-God nodes: TenantManager, Item, User, Po, Alert, ItemProgress.
+God nodes: TenantManager, Item, User, Po, Alert, ItemProgress, Role, Post.
 
 Laravel 11 + Inertia.js v2 + React 18 + TypeScript + Tailwind v4 + Vite 8.
 
@@ -29,6 +29,8 @@ Design system: [Astryx](https://astryx.design) (`@astryxdesign/core` provides CS
 Routes in `routes/web.php` (no API). Controllers return Inertia.
 
 **Guard A** (office): email/username + password at `/login`. **Guard B** (floor): PIN login at `/c/{slug}`, throttled 5 req/min. Privilege escalation blocks office roles from PIN login.
+
+**Roles & Posts**: Users have `role_id` (FK→roles: DRAFTER, PURCHASING, MACHINING, FABRICATION, PRODUCTION, QC, DELIVERY, FINANCE, STAFF) and `post_id` (FK→posts: Design, Material, CNC, Milling, Welder, Helper, QC, Delivery, Finance, Sales, Admin, Manager). `role_level` distinguishes `floor` vs `office`. Accessor `role_name`, `role_level`, `post_name` available on User model. Tenant owners marked with `is_owner` boolean.
 
 **Forgot Password** (Guard A): `Password::reset()` with `ResetPasswordNotification`. Links in `storage/logs/laravel.log` (mail driver: `log`).
 

@@ -38,7 +38,7 @@ class AdminManagementTest extends TestCase
         $user = User::where('email', 'agung@delta.com')->first();
         $this->assertNotNull($user);
         $this->assertEquals('Agung Pratama', $user->name);
-        $this->assertEquals('OWNER', $user->role);
+        $this->assertEquals('STAFF', $user->role_name);
         $this->assertEquals($tenant->id, $user->tenant_id);
     }
 
@@ -54,7 +54,8 @@ class AdminManagementTest extends TestCase
             'name' => 'Eko Prasetyo',
             'username' => 'eko_gamma',
             'password' => Hash::make('secretpass'),
-            'role' => 'ADMIN',
+            'role_id' => 8,
+            'post_id' => 12,
         ]);
 
         // Attempt login with correct username and password
@@ -79,7 +80,8 @@ class AdminManagementTest extends TestCase
             'name' => 'Admin User',
             'username' => 'admin_beta',
             'password' => Hash::make('password'),
-            'role' => 'ADMIN',
+            'role_id' => 8,
+            'post_id' => 12,
         ]);
 
         $this->actingAs($admin);
@@ -87,7 +89,8 @@ class AdminManagementTest extends TestCase
 
         // 1. Create a Worker User (PIN-based)
         $createResponse = $this->post('/users', [
-            'role' => 'WORKER',
+            'role_id' => 5,
+            'post_id' => 7,
             'name' => 'Bambang',
             'pin' => '000000',
         ]);
@@ -95,19 +98,20 @@ class AdminManagementTest extends TestCase
         $createResponse->assertRedirect();
         $worker = User::where('name', 'Bambang')->first();
         $this->assertNotNull($worker);
-        $this->assertEquals('WORKER', $worker->role);
+        $this->assertEquals('PRODUCTION', $worker->role_name);
         $this->assertTrue(Hash::check('000000', $worker->pin));
 
         // 2. Update the Worker User to QC
         $updateResponse = $this->post("/users/{$worker->id}/update", [
-            'role' => 'QC',
+            'role_id' => 6,
+            'post_id' => 8,
             'name' => 'Bambang QC',
             'pin' => '12345',
         ]);
 
         $updateResponse->assertRedirect();
         $worker->refresh();
-        $this->assertEquals('QC', $worker->role);
+        $this->assertEquals('QC', $worker->role_name);
         $this->assertEquals('Bambang QC', $worker->name);
         $this->assertTrue(Hash::check('12345', $worker->pin));
 
@@ -129,7 +133,8 @@ class AdminManagementTest extends TestCase
             'name' => 'Admin Alpha',
             'username' => 'admin_alpha',
             'password' => Hash::make('password'),
-            'role' => 'ADMIN',
+            'role_id' => 8,
+            'post_id' => 12,
         ]);
 
         $this->actingAs($admin);
@@ -186,7 +191,8 @@ class AdminManagementTest extends TestCase
         $admin = User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Admin Pin',
-            'role' => 'ADMIN',
+            'role_id' => 8,
+            'post_id' => 12,
             'pin' => bcrypt('1234'),
         ]);
 
@@ -223,7 +229,8 @@ class AdminManagementTest extends TestCase
             'name' => 'Eko Prasetyo',
             'username' => 'eko_gamma',
             'password' => Hash::make('secretpass'),
-            'role' => 'ADMIN',
+            'role_id' => 8,
+            'post_id' => 12,
         ]);
 
         $response = $this->post('/login', [

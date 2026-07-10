@@ -11,7 +11,9 @@ interface Props {
         id: number;
         name: string;
         username: string | null;
-        role: string;
+        role_name: string;
+        role_level: string;
+        is_owner: boolean;
     };
 }
 
@@ -36,6 +38,8 @@ const translations = {
         item_type: 'Item Type',
         quantity: 'Quantity',
         stages: 'Production Stages',
+        design: 'Design (Drafter)',
+        material: 'Material (Purchasing)',
         cnc: 'Machining',
         fabrication: 'Fabrication',
         vendor: 'Vendor',
@@ -74,6 +78,8 @@ const translations = {
         item_type: 'Kategori / Tipe Barang',
         quantity: 'Jumlah (Qty)',
         stages: 'Tahapan Produksi',
+        design: 'Desain Teknis (Drafter)',
+        material: 'Material (Purchasing)',
         cnc: 'Machining (Bubut/CNC)',
         fabrication: 'Fabrikasi (Fab)',
         vendor: 'Vendor',
@@ -88,7 +94,7 @@ const translations = {
         err_fill_header: 'Harap lengkapi semua kolom informasi utama PO.',
         err_item_name: 'Harap isi nama untuk Item #{num}.',
         err_select_stage: 'Harap pilih minimal satu tahapan untuk Item "{name}".',
-        err_vendor_info: 'Item "{name}" memiliki tahapan Vendor. Harap isi nama dan nomor telepon vendor.',
+        err_vendor_info: 'Harap isi nama dan nomor telepon vendor.',
         access_restricted: 'Akses Dibatasi',
         owner_restrict_desc: 'Owner tidak dapat membuat PO. Harap tugaskan akun Admin.',
     }
@@ -212,7 +218,7 @@ export default function CreatePo({ tenant, auth_user }: Props) {
         });
     };
 
-    if (auth_user?.role === 'OWNER') {
+    if (auth_user?.is_owner) {
         return (
             <div style={{ minHeight: '100vh', backgroundColor: '#090d16', color: '#f8fafc', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ textAlign: 'center', maxWidth: '420px', padding: '40px 20px' }}>
@@ -516,7 +522,7 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                                 <div>
                                     <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.stages}</label>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
-                                        {['Machining', 'Fabrication', 'Vendor'].map(stage => {
+                                        {['Design', 'Material', 'Machining', 'Fabrication', 'Vendor'].map(stage => {
                                             const stageKey = stage.toLowerCase();
                                             return (
                                                 <label key={stage} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#e2e8f0', cursor: 'pointer' }}>
@@ -526,7 +532,7 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                                                             : [...item.required_stages, stage];
                                                         updateItem(index, 'required_stages', stages);
                                                     }} />
-                                                    {stage === 'Machining' ? t.cnc : stage === 'Fabrication' ? t.fabrication : t.vendor}
+                                                    {stage === 'Design' ? t.design : stage === 'Material' ? t.material : stage === 'Machining' ? t.cnc : stage === 'Fabrication' ? t.fabrication : t.vendor}
                                                 </label>
                                             );
                                         })}

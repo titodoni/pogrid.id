@@ -20,7 +20,8 @@ class WorkerAuthController extends Controller
 
         $workers = User::where('tenant_id', $tenant->id)
             ->whereNotNull('pin')
-            ->get(['id', 'name', 'role']);
+            ->with('roleRelation:id,name', 'postRelation:id,name')
+            ->get(['id', 'name', 'role_id', 'post_id']);
 
         return Inertia::render('Worker/Login', [
             'tenant' => [
@@ -43,12 +44,12 @@ class WorkerAuthController extends Controller
         $tenant = Tenant::where('slug', $slug)->firstOrFail();
         $user = User::where('id', $request->user_id)
             ->where('tenant_id', $tenant->id)
+            ->with('roleRelation:id,name,level')
             ->firstOrFail();
         TenantManager::enableScope();
 
         // Block office administrative roles from PIN-based login (privilege escalation protection)
-        $officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
-        if (in_array(strtoupper($user->role), $officeRoles)) {
+        if ($user->role_level === 'office') {
             return back()->withErrors([
                 'pin' => 'admin_must_use_password',
             ]);

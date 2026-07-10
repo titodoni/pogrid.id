@@ -184,7 +184,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         <option value="">{t.select_name}...</option>
                         {workers.map((worker) => (
                             <option key={worker.id} value={worker.id}>
-                                {worker.name} — {worker.role}
+                                {worker.name} — {worker.role_name}
                             </option>
                         ))}
                     </select>

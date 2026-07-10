@@ -37,7 +37,9 @@ class PerformanceMatrixTest extends TestCase
         $this->owner = User::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Owner Budi',
-            'role' => 'OWNER',
+            'role_id' => 8,
+            'post_id' => 13,
+            'is_owner' => true,
             'username' => 'owner.budi',
             'password' => bcrypt('password123'),
         ]);
@@ -45,7 +47,8 @@ class PerformanceMatrixTest extends TestCase
         $this->worker = User::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Worker Joko',
-            'role' => 'WORKER',
+            'role_id' => 5,
+            'post_id' => 7,
             'pin' => bcrypt('1234'),
         ]);
         TenantManager::enableScope();

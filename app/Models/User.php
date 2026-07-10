@@ -2,16 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use App\Models\Traits\BelongsToTenant;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use BelongsToTenant, HasFactory, Notifiable;
 
     protected $fillable = [
@@ -21,7 +20,9 @@ class User extends Authenticatable
         'username',
         'password',
         'pin',
-        'role',
+        'role_id',
+        'post_id',
+        'is_owner',
     ];
 
     protected $hidden = [
@@ -30,37 +31,64 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    protected $appends = [
+        'role_name',
+        'role_level',
+        'post_name',
+    ];
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'pin' => 'hashed',
+            'is_owner' => 'boolean',
         ];
+    }
+
+    public function roleRelation(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function postRelation(): BelongsTo
+    {
+        return $this->belongsTo(Post::class, 'post_id');
+    }
+
+    public function getRoleNameAttribute(): string
+    {
+        return $this->roleRelation?->name ?? 'WORKER';
+    }
+
+    public function getRoleLevelAttribute(): string
+    {
+        return $this->roleRelation?->level ?? 'production';
+    }
+
+    public function getPostNameAttribute(): ?string
+    {
+        return $this->postRelation?->name;
     }
 
     public function isOwner(): bool
     {
-        return $this->role === 'OWNER';
+        return (bool) ($this->is_owner ?? false);
     }
 
     public function isWorker(): bool
     {
-        return $this->role === 'WORKER';
+        return $this->roleRelation?->level === 'production';
     }
 
     public function isQC(): bool
     {
-        return $this->role === 'QC';
+        return $this->roleRelation?->name === 'QC';
     }
 
     public function isManager(): bool
     {
-        return $this->role === 'MANAGER';
+        return ! $this->isOwner() && $this->roleRelation?->name === 'STAFF' && $this->postRelation?->name === 'Manager';
     }
 }

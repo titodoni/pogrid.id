@@ -234,14 +234,18 @@ interface User {
     id: number;
     name: string;
     username: string | null;
-    role: string;
-    login_method?: string | null;
+    role_name: string;
+    role_level: string;
+    post_name: string | null;
+    is_owner: boolean;
 }
 
 interface Props {
     pos: Po[];
     alerts: Alert[];
     users: User[];
+    roles: Array<{ id: number; name: string; display_name: string; level: string }>;
+    posts: Array<{ id: number; name: string; display_name: string }>;
     tenant?: {
         company_name: string;
         slug: string;
@@ -251,21 +255,7 @@ interface Props {
     selected_range?: string;
 }
 
-// Role ordering for display
-const ROLE_ORDER = ['OWNER', 'ADMIN', 'DRAFTER', 'PURCHASING', 'MACHINING', 'CNC', 'FABRICATION', 'QC', 'DELIVERY', 'FINANCE', 'WORKER'];
-const ROLE_COLORS: Record<string, { bg: string; color: string }> = {
-    OWNER:      { bg: 'rgba(234,179,8,0.12)',    color: '#eab308' },
-    ADMIN:      { bg: 'rgba(59,130,246,0.12)',   color: '#3b82f6' },
-    DRAFTER:    { bg: 'rgba(168,85,247,0.12)',   color: '#a855f7' },
-    PURCHASING: { bg: 'rgba(249,115,22,0.12)',   color: '#f97316' },
-    MACHINING:  { bg: 'rgba(20,184,166,0.12)',   color: '#14b8a6' },
-    CNC:        { bg: 'rgba(20,184,166,0.12)',   color: '#14b8a6' },
-    FABRICATION:{ bg: 'rgba(99,102,241,0.12)',   color: '#6366f1' },
-    QC:         { bg: 'rgba(239,68,68,0.12)',    color: '#ef4444' },
-    DELIVERY:   { bg: 'rgba(16,185,129,0.12)',   color: '#10b981' },
-    FINANCE:    { bg: 'rgba(34,197,94,0.12)',    color: '#22c55e' },
-    WORKER:     { bg: 'rgba(100,116,139,0.12)',  color: '#64748b' },
-};
+
 
 const translations = {
     en: {
@@ -432,7 +422,7 @@ const translations = {
     }
 };
 
-export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, telemetry, selected_range }: Props) {
+export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenant, auth_user, telemetry, selected_range }: Props) {
     const { errors } = usePage().props;
 
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
@@ -617,12 +607,15 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
     const [adminName, setAdminName] = useState('');
     const [adminUsername, setAdminUsername] = useState('');
     const [adminPassword, setAdminPassword] = useState('');
+    const [adminRoleId, setAdminRoleId] = useState<number | undefined>(undefined);
+    const [adminPostId, setAdminPostId] = useState<number | undefined>(undefined);
 
     // ── User Management (Task 1) ──────────────────────────────────────────────
     const [userRoleFilter, setUserRoleFilter] = useState<string>('ALL');
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [editName, setEditName] = useState('');
     const [editRole, setEditRole] = useState('');
+    const [editPostId, setEditPostId] = useState<string>('');
     const [editLoginMethod, setEditLoginMethod] = useState<'PASSWORD' | 'PIN'>('PIN');
     const [editUsername, setEditUsername] = useState('');
     const [editPassword, setEditPassword] = useState('');
@@ -632,8 +625,10 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
     const openEditUser = (user: User) => {
         setEditingUser(user);
         setEditName(user.name);
-        setEditRole(user.role);
-        const method = user.username ? 'PASSWORD' : 'PIN';
+        const userRole = (roles ?? []).find(r => r.name === user.role_name);
+        setEditRole(userRole ? String(userRole.id) : '');
+        setEditPostId(user.post_name || '');
+        const method = user.role_level === 'office' ? 'PASSWORD' : 'PIN';
         setEditLoginMethod(method);
         setEditUsername(user.username || '');
         setEditPassword('');
@@ -652,7 +647,8 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
         setEditSubmitting(true);
         router.post(`/users/${editingUser.id}/update`, {
             name: editName,
-            role: editRole,
+            role_id: parseInt(editRole),
+            post_id: editPostId || null,
             login_method: editLoginMethod,
             username: editLoginMethod === 'PASSWORD' ? editUsername : null,
             password: editLoginMethod === 'PASSWORD' && editPassword ? editPassword : undefined,
@@ -675,6 +671,8 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
         setAdminName('');
         setAdminUsername('');
         setAdminPassword('');
+        setAdminRoleId((roles ?? []).find(r => r.name === 'STAFF')?.id);
+        setAdminPostId((posts ?? []).find(p => p.name === 'Admin')?.id);
         setShowSettingsDropdown(false);
         setShowAddAdminModal(true);
     };
@@ -683,7 +681,8 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
         e.preventDefault();
         router.post('/users', {
             name: adminName,
-            role: 'ADMIN',
+            role_id: adminRoleId,
+            post_id: adminPostId,
             login_method: 'PASSWORD',
             username: adminUsername,
             password: adminPassword,
@@ -706,8 +705,8 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
         }
     };
 
-    const isOwner = auth_user?.role === 'OWNER';
-    const canBroadcastPo = auth_user?.role !== 'OWNER';
+    const isOwner = auth_user?.is_owner === true;
+    const canBroadcastPo = auth_user?.is_owner !== true;
 
     return (
         <div className="responsive-container dashboard-root" style={{
@@ -1862,10 +1861,21 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
 
             {/* ── Team / User Management Tab ─────────────────────────────── */}
             {activeTab === 'team' && (() => {
-                const ALL_ROLES = ['OWNER', 'ADMIN', 'DRAFTER', 'PURCHASING', 'MACHINING', 'CNC', 'FABRICATION', 'QC', 'DELIVERY', 'FINANCE', 'WORKER'];
+                const ALL_ROLES = (roles ?? []).map(r => r.name);
                 const filteredUsers = userRoleFilter === 'ALL'
-                    ? [...users].sort((a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role))
-                    : users.filter(u => u.role === userRoleFilter);
+                    ? [...users]
+                    : users.filter(u => u.role_name === userRoleFilter);
+
+                const roleColorMap: Record<string, { bg: string; color: string }> = {
+                    DRAFTER:      { bg: 'rgba(168,85,247,0.12)',   color: '#a855f7' },
+                    PURCHASING:   { bg: 'rgba(249,115,22,0.12)',   color: '#f97316' },
+                    MACHINING:    { bg: 'rgba(20,184,166,0.12)',   color: '#14b8a6' },
+                    FABRICATION:  { bg: 'rgba(99,102,241,0.12)',   color: '#6366f1' },
+                    PRODUCTION:   { bg: 'rgba(100,116,139,0.12)',  color: '#64748b' },
+                    QC:           { bg: 'rgba(239,68,68,0.12)',    color: '#ef4444' },
+                    DELIVERY:     { bg: 'rgba(16,185,129,0.12)',   color: '#10b981' },
+                    STAFF:        { bg: 'rgba(59,130,246,0.12)',   color: '#3b82f6' },
+                };
 
                 return (
                     <div style={{ marginBottom: '32px' }}>
@@ -1894,7 +1904,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                     {t.filter_all_roles}
                                 </button>
                                 {ALL_ROLES.map(role => (
-                                    users.some(u => u.role === role) ? (
+                                    users.some(u => u.role_name === role) ? (
                                         <button
                                             key={role}
                                             onClick={() => setUserRoleFilter(role)}
@@ -1903,13 +1913,13 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                                 borderRadius: '6px',
                                                 border: '1px solid',
                                                 borderColor: userRoleFilter === role
-                                                    ? (ROLE_COLORS[role]?.color || '#64748b')
+                                                    ? (roleColorMap[role]?.color || '#64748b')
                                                     : 'rgba(255,255,255,0.08)',
                                                 backgroundColor: userRoleFilter === role
-                                                    ? (ROLE_COLORS[role]?.bg || 'rgba(255,255,255,0.06)')
+                                                    ? (roleColorMap[role]?.bg || 'rgba(255,255,255,0.06)')
                                                     : 'rgba(255,255,255,0.03)',
                                                 color: userRoleFilter === role
-                                                    ? (ROLE_COLORS[role]?.color || '#64748b')
+                                                    ? (roleColorMap[role]?.color || '#64748b')
                                                     : '#64748b',
                                                 fontSize: '11px',
                                                 fontWeight: 700,
@@ -1937,7 +1947,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                 {filteredUsers.map(user => {
                                     const isSelf = user.id === auth_user?.id;
                                     const loginMethod = user.username ? 'PASSWORD' : 'PIN';
-                                    const roleStyle = ROLE_COLORS[user.role] || { bg: 'rgba(100,116,139,0.12)', color: '#64748b' };
+                                    const roleStyle = roleColorMap[user.role_name] || { bg: 'rgba(100,116,139,0.12)', color: '#64748b' };
                                     return (
                                         <div
                                             key={user.id}
@@ -2004,7 +2014,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                                     backgroundColor: roleStyle.bg,
                                                     color: roleStyle.color,
                                                 }}>
-                                                    {user.role}
+                                                    {user.role_name}
                                                 </span>
                                                 <span style={{
                                                     fontSize: '10px',
@@ -2021,7 +2031,7 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                             </div>
 
                                             {/* Edit button — only non-OWNER roles for non-owners; everyone for ADMIN/OWNER auth */}
-                                            {!(isOwner && user.role === 'OWNER' && !isSelf) && (
+                                            {!(isOwner && user.is_owner && !isSelf) && (
                                                 <button
                                                     id={`edit-user-${user.id}`}
                                                     onClick={() => openEditUser(user)}
@@ -2144,26 +2154,55 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                     id="edit-user-role"
                                     value={editRole}
                                     onChange={e => setEditRole(e.target.value)}
-                                    disabled={editingUser.role === 'OWNER'}
+                                    disabled={editingUser.is_owner}
                                     style={{
                                         width: '100%',
                                         padding: '10px 12px',
                                         backgroundColor: '#090d16',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
-                                        color: editingUser.role === 'OWNER' ? '#64748b' : '#fff',
+                                        color: editingUser.is_owner ? '#64748b' : '#fff',
                                         fontSize: '14px',
                                         outline: 'none',
                                         boxSizing: 'border-box',
                                     }}
                                 >
-                                    {['OWNER','ADMIN','DRAFTER','PURCHASING','MACHINING','CNC','FABRICATION','QC','DELIVERY','FINANCE','WORKER'].map(r => (
-                                        <option key={r} value={r}>{r}</option>
+                                    {(roles ?? []).map(r => (
+                                        <option key={r.id} value={r.id}>{r.display_name} ({r.name})</option>
                                     ))}
                                 </select>
-                                {editingUser.role === 'OWNER' && (
+                                {editingUser.is_owner && (
                                     <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0 0' }}>Owner role cannot be changed.</p>
                                 )}
+                            </div>
+
+                            {/* Post */}
+                            <div style={{ marginBottom: '14px' }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                    Post
+                                </label>
+                                <select
+                                    id="edit-user-post"
+                                    value={editPostId}
+                                    onChange={e => setEditPostId(e.target.value)}
+                                    disabled={editingUser.is_owner}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        backgroundColor: '#090d16',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '8px',
+                                        color: editingUser.is_owner ? '#64748b' : '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none',
+                                        boxSizing: 'border-box',
+                                    }}
+                                >
+                                    <option value="">-- No post --</option>
+                                    {(posts ?? []).map(p => (
+                                        <option key={p.id} value={p.id}>{p.display_name} ({p.name})</option>
+                                    ))}
+                                </select>
                             </div>
 
                             {/* Login Method toggle */}
@@ -2395,6 +2434,57 @@ export default function OwnerDashboard({ pos, alerts, users, tenant, auth_user, 
                                         outline: 'none'
                                     }}
                                 />
+                            </div>
+
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                    Role
+                                </label>
+                                <select
+                                    value={adminRoleId ?? ''}
+                                    onChange={e => setAdminRoleId(Number(e.target.value))}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 14px',
+                                        backgroundColor: '#090d16',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '8px',
+                                        color: '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none'
+                                    }}
+                                >
+                                    <option value="">-- Select role --</option>
+                                    {(roles ?? []).map(r => (
+                                        <option key={r.id} value={r.id}>{r.display_name} ({r.name})</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                    Post
+                                </label>
+                                <select
+                                    id="add-admin-post"
+                                    value={adminPostId ?? ''}
+                                    onChange={e => setAdminPostId(Number(e.target.value))}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 14px',
+                                        backgroundColor: '#090d16',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '8px',
+                                        color: '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none'
+                                    }}
+                                >
+                                    <option value="">-- Select post --</option>
+                                    {(posts ?? []).map(p => (
+                                        <option key={p.id} value={p.id}>{p.display_name} ({p.name})</option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div style={{ marginBottom: '16px' }}>

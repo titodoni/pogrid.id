@@ -321,7 +321,8 @@ class CoreLogicTest extends TestCase
         $worker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'QC Worker',
-            'role' => 'QC',
+            'role_id' => 6,
+            'post_id' => 8,
             'pin' => bcrypt('1234'),
         ]);
         $this->actingAs($worker);
@@ -381,7 +382,8 @@ class CoreLogicTest extends TestCase
         $worker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker',
-            'role' => 'MACHINING',
+            'role_id' => 3,
+            'post_id' => 4,
             'pin' => bcrypt('1234'),
         ]);
         $this->actingAs($worker);
@@ -508,7 +510,8 @@ class CoreLogicTest extends TestCase
         $owner = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Owner',
-            'role' => 'ADMIN',
+            'role_id' => 8,
+            'post_id' => 12,
             'email' => 'owner@example.com',
             'password' => bcrypt('password'),
         ]);
@@ -573,7 +576,8 @@ class CoreLogicTest extends TestCase
         $worker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'QC Worker',
-            'role' => 'QC',
+            'role_id' => 6,
+            'post_id' => 8,
             'pin' => bcrypt('1234'),
         ]);
         $this->actingAs($worker);
@@ -596,7 +600,8 @@ class CoreLogicTest extends TestCase
         $machiningWorker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker Rework',
-            'role' => 'MACHINING',
+            'role_id' => 3,
+            'post_id' => 4,
             'pin' => bcrypt('1234'),
         ]);
         $this->actingAs($machiningWorker);
@@ -735,7 +740,8 @@ class CoreLogicTest extends TestCase
         $machiningWorker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker',
-            'role' => 'MACHINING',
+            'role_id' => 3,
+            'post_id' => 4,
             'pin' => bcrypt('1111'),
         ]);
 
@@ -743,7 +749,8 @@ class CoreLogicTest extends TestCase
         $fabWorker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Fabrication Worker',
-            'role' => 'FABRICATION',
+            'role_id' => 4,
+            'post_id' => 6,
             'pin' => bcrypt('2222'),
         ]);
 
@@ -751,7 +758,8 @@ class CoreLogicTest extends TestCase
         $qcWorker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'QC Worker',
-            'role' => 'QC',
+            'role_id' => 6,
+            'post_id' => 8,
             'pin' => bcrypt('3333'),
         ]);
 
@@ -759,7 +767,8 @@ class CoreLogicTest extends TestCase
         $financeWorker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Finance Worker',
-            'role' => 'FINANCE',
+            'role_id' => 9,
+            'post_id' => 10,
             'pin' => bcrypt('4444'),
         ]);
 
@@ -773,10 +782,9 @@ class CoreLogicTest extends TestCase
         $response = $this->post("/c/{$this->tenant1->slug}/progress/{$machiningStage->id}/update", ['completed_qty' => 5]);
         $response->assertStatus(403);
 
-        // Test QC worker trying to update QC stage before Machining & Fabrication are complete -> Blocked (403)
+        // Test QC worker can update QC stage anytime (no dependency on production stages)
         $this->actingAs($qcWorker);
-        $response = $this->post("/c/{$this->tenant1->slug}/progress/{$qcStage->id}/update", ['completed_qty' => 5]);
-        $response->assertStatus(403);
+        $this->post("/c/{$this->tenant1->slug}/progress/{$qcStage->id}/update", ['completed_qty' => 5])->assertRedirect();
 
         // Complete Machining & Fabrication
         $this->actingAs($machiningWorker);
@@ -784,18 +792,22 @@ class CoreLogicTest extends TestCase
         $this->actingAs($fabWorker);
         $this->post("/c/{$this->tenant1->slug}/progress/{$fabStage->id}/update", ['completed_qty' => 10])->assertRedirect();
 
-        // QC worker now updates QC stage -> Allowed
-        $this->actingAs($qcWorker);
-        $this->post("/c/{$this->tenant1->slug}/progress/{$qcStage->id}/update", ['completed_qty' => 5])->assertRedirect();
-
         // Delivery stage locked until QC completed_qty > 0.
         // Let's test a Delivery worker trying to update Delivery stage.
         $deliveryWorker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Delivery Worker',
-            'role' => 'DELIVERY',
+            'role_id' => 7,
+            'post_id' => 9,
             'pin' => bcrypt('5555'),
         ]);
+
+        // Blocks if Delivery has no delivered qty yet
+        $this->actingAs($financeWorker);
+        $this->post("/c/{$this->tenant1->slug}/items/{$item->id}/finance", [
+            'invoice_status' => 'INVOICED',
+            'payment_status' => 'PAID',
+        ])->assertStatus(403);
 
         $this->actingAs($deliveryWorker);
         $this->post("/c/{$this->tenant1->slug}/progress/{$deliveryStage->id}/update", ['completed_qty' => 5])->assertRedirect();
@@ -822,18 +834,18 @@ class CoreLogicTest extends TestCase
             'payment_status' => 'PAID',
         ])->assertStatus(403);
 
-        // Blocks if Delivery stage not completed
+        // Partial delivery done (5/10) -> Finance can invoice now
         $this->actingAs($financeWorker);
         $this->post("/c/{$this->tenant1->slug}/items/{$item->id}/finance", [
             'invoice_status' => 'INVOICED',
             'payment_status' => 'PAID',
-        ])->assertStatus(403);
+        ])->assertRedirect();
 
         // Complete Delivery stage
         $this->actingAs($deliveryWorker);
         $this->post("/c/{$this->tenant1->slug}/progress/{$deliveryStage->id}/update", ['completed_qty' => 10])->assertRedirect();
 
-        // Now Finance worker can update finance status
+        // Finance can update again after full delivery
         $this->actingAs($financeWorker);
         $this->post("/c/{$this->tenant1->slug}/items/{$item->id}/finance", [
             'invoice_status' => 'INVOICED',
@@ -874,7 +886,8 @@ class CoreLogicTest extends TestCase
         $machiningWorker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker 2',
-            'role' => 'MACHINING',
+            'role_id' => 3,
+            'post_id' => 4,
             'pin' => bcrypt('1111'),
         ]);
 
@@ -953,7 +966,8 @@ class CoreLogicTest extends TestCase
         $financeWorker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Finance Worker Queue',
-            'role' => 'FINANCE',
+            'role_id' => 9,
+            'post_id' => 10,
             'pin' => bcrypt('1111'),
         ]);
 
@@ -961,7 +975,8 @@ class CoreLogicTest extends TestCase
         $machiningWorker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker Queue',
-            'role' => 'MACHINING',
+            'role_id' => 3,
+            'post_id' => 4,
             'pin' => bcrypt('2222'),
         ]);
 
@@ -1026,7 +1041,8 @@ class CoreLogicTest extends TestCase
         $worker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker',
-            'role' => 'MACHINING',
+            'role_id' => 3,
+            'post_id' => 4,
             'pin' => bcrypt('1234'),
         ]);
         $this->actingAs($worker);
@@ -1086,7 +1102,8 @@ class CoreLogicTest extends TestCase
         $worker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'CNC Worker',
-            'role' => 'CNC',
+            'role_id' => 3,
+            'post_id' => 4,
             'pin' => bcrypt('1234'),
         ]);
         $this->actingAs($worker);
@@ -1131,7 +1148,8 @@ class CoreLogicTest extends TestCase
         $financeWorker = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Finance Worker',
-            'role' => 'FINANCE',
+            'role_id' => 9,
+            'post_id' => 10,
             'pin' => bcrypt('1234'),
         ]);
         $this->actingAs($financeWorker);
@@ -1168,14 +1186,16 @@ class CoreLogicTest extends TestCase
         $drafter = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Drafter Worker',
-            'role' => 'DRAFTER',
+            'role_id' => 1,
+            'post_id' => 1,
             'pin' => bcrypt('1111'),
         ]);
 
         $purchasing = User::create([
             'tenant_id' => $this->tenant1->id,
             'name' => 'Purchasing Worker',
-            'role' => 'PURCHASING',
+            'role_id' => 2,
+            'post_id' => 2,
             'pin' => bcrypt('2222'),
         ]);
 

@@ -169,7 +169,9 @@ interface Props {
     auth_user?: {
         id: number;
         name: string;
-        role: string;
+        role_name: string;
+        role_level: string;
+        post_name: string | null;
     };
 }
 
@@ -180,6 +182,9 @@ const translations = {
         exit_terminal: "Exit",
         active_items: "Active Production Items",
         no_active_items: "No active items on the floor.",
+        no_qc_items: "No items require QC inspection yet.",
+        no_delivery_items: "No items delivered / finished yet.",
+        no_finance_items: "No items delivered / finished yet.",
         client: "Client",
         deadline: "Deadline",
         qty: "Qty",
@@ -206,9 +211,13 @@ const translations = {
         uninvoiced: "Uninvoiced",
         paid: "Paid",
         unpaid: "Unpaid",
-        invoice_label: "Invoicing Status",
-        payment_label: "Payment Status",
+        invoice_label: "Invoice",
+        payment_label: "Payment",
         save: "Save",
+        issue_invoice: "Issue Invoice",
+        record_payment: "Record Payment",
+        revoke: "Revoke",
+        finance_completed: "Completed",
         off_state: "Off State: Inactive for this production type",
         role_mismatch: "Read Only: Unauthorized operator role",
     },
@@ -218,6 +227,9 @@ const translations = {
         exit_terminal: "Keluar",
         active_items: "Pekerjaan Aktif",
         no_active_items: "Tidak ada pekerjaan aktif.",
+        no_qc_items: "Belum ada barang yang perlu inspeksi QC.",
+        no_delivery_items: "Belum ada barang yang dikirim / selesai.",
+        no_finance_items: "Belum ada barang yang dikirim / selesai.",
         client: "Klien",
         deadline: "Batas Waktu",
         qty: "Jumlah",
@@ -244,9 +256,13 @@ const translations = {
         uninvoiced: "Belum Difakturkan",
         paid: "Lunas",
         unpaid: "Belum Bayar",
-        invoice_label: "Status Invoice",
-        payment_label: "Status Pembayaran",
+        invoice_label: "Invoice",
+        payment_label: "Pembayaran",
         save: "Simpan",
+        issue_invoice: "Terbitkan Invoice",
+        record_payment: "Catat Pembayaran",
+        revoke: "Batalkan",
+        finance_completed: "Selesai",
         off_state: "Nonaktif: Tidak digunakan untuk jenis produksi ini",
         role_mismatch: "Hanya Baca: Role Anda tidak diizinkan melakukan input",
     }
@@ -264,8 +280,8 @@ const isStageLocked = (item: Item, stageName: string, userRole: string) => {
     // Role-based permission mapping
     if ((stageLower.includes('design') || stageLower.includes('gambar') || stageLower.includes('draft')) && role !== 'DRAFTER') return true;
     if ((stageLower.includes('material') || stageLower.includes('bahan')) && role !== 'PURCHASING') return true;
-    if ((stageLower.includes('machining') || stageLower.includes('cnc')) && (role !== 'MACHINING' && role !== 'CNC')) return true;
-    if ((stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) && role !== 'FABRICATION') return true;
+    if ((stageLower.includes('machining') || stageLower.includes('cnc')) && (role !== 'MACHINING' && role !== 'CNC' && role !== 'PRODUCTION')) return true;
+    if ((stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) && (role !== 'FABRICATION' && role !== 'PRODUCTION')) return true;
     if ((stageLower.includes('vendor') || stageLower.includes('purchasing')) && role !== 'PURCHASING') return true;
     if (stageLower === 'qc' && role !== 'QC') return true;
     if ((stageLower === 'delivery' || stageLower === 'pengiriman') && role !== 'DELIVERY') return true;
@@ -288,20 +304,6 @@ const isStageLocked = (item: Item, stageName: string, userRole: string) => {
         if (stageLower.includes('vendor')) return true;
 
         // Dependency lockouts
-        if (stageLower.includes('machining') || stageLower.includes('cnc') || stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) {
-            const designStage = item.item_progresses.find(s => s.stage_name.toLowerCase().includes('design') || s.stage_name.toLowerCase().includes('gambar') || s.stage_name.toLowerCase().includes('draft'));
-            if (designStage && designStage.status !== 'COMPLETED') return true;
-
-            const materialStage = item.item_progresses.find(s => s.stage_name.toLowerCase().includes('material') || s.stage_name.toLowerCase().includes('bahan'));
-            if (materialStage && materialStage.status !== 'COMPLETED') return true;
-        }
-
-        if (stageLower === 'qc') {
-            const prodStages = item.item_progresses.filter(s => originalStages.includes(s.stage_name));
-            const allProdFinished = prodStages.length > 0 && prodStages.every(s => s.status === 'COMPLETED');
-            if (!allProdFinished) return true;
-        }
-
         if (stageLower === 'delivery' || stageLower === 'pengiriman') {
             const qcStage = item.item_progresses.find(s => s.stage_name === 'QC');
             if (!qcStage || qcStage.completed_qty === 0) return true;
@@ -309,7 +311,7 @@ const isStageLocked = (item: Item, stageName: string, userRole: string) => {
 
         if (stageLower === 'finance') {
             const deliveryStage = item.item_progresses.find(s => s.stage_name === 'Delivery' || s.stage_name === 'Pengiriman');
-            if (!deliveryStage || deliveryStage.status !== 'COMPLETED') return true;
+            if (!deliveryStage || deliveryStage.completed_qty === 0) return true;
         }
     }
 
@@ -334,7 +336,7 @@ function ItemCard({
     const t = translations[language];
     const [isHovered, setIsHovered] = useState(false);
 
-    const getMatchingStageOrMock = (item: Item, role: string) => {
+    const getMatchingStages = (item: Item, role: string): Stage[] => {
         const roleUpper = role.toUpperCase();
         const isVendor = item.item_progresses.some(s => s.stage_name === 'Vendor');
         const isManufacture = !isVendor;
@@ -355,10 +357,10 @@ function ItemCard({
             });
         }
 
-        const matchedActual = displayStages.find(stage => {
+        return displayStages.filter(stage => {
             const nameLower = stage.stage_name.toLowerCase();
-            if ((roleUpper === 'CNC' || roleUpper === 'MACHINING') && (nameLower.includes('machining') || nameLower.includes('cnc'))) return true;
-            if (roleUpper === 'FABRICATION' && (nameLower.includes('fabrication') || nameLower.includes('fabrikasi'))) return true;
+            if ((roleUpper === 'CNC' || roleUpper === 'MACHINING' || roleUpper === 'PRODUCTION') && (nameLower.includes('machining') || nameLower.includes('cnc'))) return true;
+            if ((roleUpper === 'FABRICATION' || roleUpper === 'PRODUCTION') && (nameLower.includes('fabrication') || nameLower.includes('fabrikasi'))) return true;
             if (roleUpper === 'QC' && nameLower === 'qc') return true;
             if (roleUpper === 'DELIVERY' && (nameLower === 'delivery' || nameLower === 'pengiriman')) return true;
             if (roleUpper === 'FINANCE' && nameLower === 'finance') return true;
@@ -366,8 +368,11 @@ function ItemCard({
             if (roleUpper === 'PURCHASING' && (nameLower.includes('vendor') || nameLower.includes('purchasing') || nameLower.includes('material') || nameLower.includes('bahan'))) return true;
             return false;
         });
+    };
 
-        return matchedActual || null;
+    const getMatchingStageOrMock = (item: Item, role: string) => {
+        const stages = getMatchingStages(item, role);
+        return stages.length > 0 ? stages[0] : null;
     };
 
     const [activeStage, setActiveStage] = useState<{ stage: Stage; item: Item } | null>(() => {
@@ -704,6 +709,52 @@ function ItemCard({
                     borderTop: '1px solid rgba(255, 255, 255, 0.05)',
                     backgroundColor: 'rgba(255, 255, 255, 0.01)',
                 }}>
+                    {/* Stage selector for hybrid roles */}
+                    {(() => {
+                        const userStages = getMatchingStages(item, userRole).filter(s => s.stage_name !== 'Finance');
+                        if (userStages.length > 1) {
+                            return (
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '4px',
+                                    padding: '8px 12px',
+                                    borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                                    flexWrap: 'wrap',
+                                }}>
+                                    {userStages.map(stage => {
+                                        const isActive = activeStage?.stage.id === stage.id;
+                                        const stageLower = stage.stage_name.toLowerCase();
+                                        let color = '#64748b';
+                                        if (stageLower.includes('machining') || stageLower.includes('cnc')) color = '#3b82f6';
+                                        else if (stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) color = '#8b5cf6';
+                                        else if (stageLower === 'qc') color = '#f59e0b';
+                                        else if (stageLower === 'delivery' || stageLower === 'pengiriman') color = '#10b981';
+
+                                        return (
+                                            <button
+                                                key={stage.id}
+                                                onClick={() => selectStage(stage)}
+                                                style={{
+                                                    padding: '4px 10px',
+                                                    borderRadius: '4px',
+                                                    border: isActive ? '1px solid ' + color : '1px solid rgba(255,255,255,0.08)',
+                                                    backgroundColor: isActive ? color + '20' : 'transparent',
+                                                    color: isActive ? color : '#94a3b8',
+                                                    fontSize: '10px',
+                                                    fontWeight: 700,
+                                                    cursor: isStageLocked(item, stage.stage_name, userRole) ? 'not-allowed' : 'pointer',
+                                                    opacity: isStageLocked(item, stage.stage_name, userRole) ? 0.4 : 1,
+                                                }}
+                                            >
+                                                {stage.stage_name}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        }
+                        return null;
+                    })()}
                     {/* Inline Progress Controls */}
                     {activeStage ? (
                         <div style={{
@@ -816,76 +867,171 @@ function ItemCard({
                                 }
 
                                 if (activeStage.stage.stage_name === 'Finance') {
+                                    const isInvoiced = invoiceStatus === 'INVOICED';
+                                    const isPaid = paymentStatus === 'PAID';
+
                                     return (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
-                                                    {t.finance_status}
-                                                </h4>
-                                            </div>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                                <div>
-                                                    <label style={{ display: 'block', fontSize: '10px', color: '#94a3b8', marginBottom: '4px' }}>
-                                                        {t.invoice_label}
-                                                    </label>
-                                                    <select
-                                                        value={invoiceStatus}
-                                                        onChange={(e) => setInvoiceStatus(e.target.value as any)}
-                                                        style={{
-                                                            width: '100%',
-                                                            padding: '6px 8px',
-                                                            backgroundColor: '#090d16',
-                                                            color: '#fff',
-                                                            border: '1px solid rgba(255,255,255,0.1)',
-                                                            borderRadius: '6px',
-                                                            fontSize: '12px',
-                                                            outline: 'none',
-                                                        }}
-                                                    >
-                                                        <option value="UNINVOICED">{t.uninvoiced}</option>
-                                                        <option value="INVOICED">{t.invoiced}</option>
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label style={{ display: 'block', fontSize: '10px', color: '#94a3b8', marginBottom: '4px' }}>
-                                                        {t.payment_label}
-                                                    </label>
-                                                    <select
-                                                        value={paymentStatus}
-                                                        onChange={(e) => setPaymentStatus(e.target.value as any)}
-                                                        style={{
-                                                            width: '100%',
-                                                            padding: '6px 8px',
-                                                            backgroundColor: '#090d16',
-                                                            color: '#fff',
-                                                            border: '1px solid rgba(255,255,255,0.1)',
-                                                            borderRadius: '6px',
-                                                            fontSize: '12px',
-                                                            outline: 'none',
-                                                        }}
-                                                    >
-                                                        <option value="UNPAID">{t.unpaid}</option>
-                                                        <option value="PAID">{t.paid}</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={handleFinanceSubmit}
-                                                style={{
-                                                    marginTop: '4px',
-                                                    padding: '8px',
-                                                    backgroundColor: '#3b82f6',
-                                                    color: '#fff',
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <span style={{
+                                                    fontSize: '10px',
                                                     fontWeight: 700,
-                                                    border: 'none',
+                                                    padding: '2px 8px',
+                                                    borderRadius: '4px',
+                                                    backgroundColor: isInvoiced ? 'rgba(16, 185, 129, 0.15)' : 'rgba(100, 116, 139, 0.15)',
+                                                    color: isInvoiced ? '#10b981' : '#94a3b8',
+                                                    border: '1px solid ' + (isInvoiced ? 'rgba(16, 185, 129, 0.3)' : 'rgba(100, 116, 139, 0.2)'),
+                                                }}>
+                                                    {t.invoice_label}: {isInvoiced ? t.invoiced : t.uninvoiced}
+                                                </span>
+                                                <span style={{
+                                                    fontSize: '10px',
+                                                    fontWeight: 700,
+                                                    padding: '2px 8px',
+                                                    borderRadius: '4px',
+                                                    backgroundColor: isPaid ? 'rgba(16, 185, 129, 0.15)' : 'rgba(100, 116, 139, 0.15)',
+                                                    color: isPaid ? '#10b981' : '#94a3b8',
+                                                    border: '1px solid ' + (isPaid ? 'rgba(16, 185, 129, 0.3)' : 'rgba(100, 116, 139, 0.2)'),
+                                                }}>
+                                                    {t.payment_label}: {isPaid ? t.paid : t.unpaid}
+                                                </span>
+                                            </div>
+
+                                            {!isInvoiced ? (
+                                                <button
+                                                    onClick={() => {
+                                                        router.post(`/c/${slug}/items/${item.id}/finance`, {
+                                                            invoice_status: 'INVOICED',
+                                                            payment_status: 'UNPAID',
+                                                        }, {
+                                                            preserveScroll: true,
+                                                            onSuccess: (page) => {
+                                                                const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
+                                                                if (updatedItem) {
+                                                                    setActiveStage({
+                                                                        stage: {
+                                                                            id: -updatedItem.id,
+                                                                            stage_name: 'Finance',
+                                                                            completed_qty: 0,
+                                                                            progress_percent: '0',
+                                                                            status: 'PENDING',
+                                                                        },
+                                                                        item: updatedItem,
+                                                                    });
+                                                                }
+                                                            }
+                                                        });
+                                                    }}
+                                                    style={{
+                                                        padding: '10px',
+                                                        backgroundColor: '#3b82f6',
+                                                        color: '#fff',
+                                                        fontWeight: 700,
+                                                        border: 'none',
+                                                        borderRadius: '6px',
+                                                        fontSize: '12px',
+                                                        cursor: 'pointer',
+                                                        textAlign: 'center',
+                                                    }}
+                                                >
+                                                    {t.issue_invoice}
+                                                </button>
+                                            ) : isPaid ? (
+                                                <div style={{
+                                                    padding: '10px',
+                                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                                    color: '#10b981',
+                                                    border: '1px solid rgba(16, 185, 129, 0.2)',
                                                     borderRadius: '6px',
-                                                    fontSize: '11px',
-                                                    cursor: 'pointer',
+                                                    fontSize: '12px',
+                                                    fontWeight: 700,
                                                     textAlign: 'center',
-                                                }}
-                                            >
-                                                {t.save}
-                                            </button>
+                                                }}>
+                                                    ✓ {t.finance_completed}
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => {
+                                                        router.post(`/c/${slug}/items/${item.id}/finance`, {
+                                                            invoice_status: 'INVOICED',
+                                                            payment_status: 'PAID',
+                                                        }, {
+                                                            preserveScroll: true,
+                                                            onSuccess: (page) => {
+                                                                const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
+                                                                if (updatedItem) {
+                                                                    setActiveStage({
+                                                                        stage: {
+                                                                            id: -updatedItem.id,
+                                                                            stage_name: 'Finance',
+                                                                            completed_qty: 0,
+                                                                            progress_percent: '100',
+                                                                            status: 'COMPLETED',
+                                                                        },
+                                                                        item: updatedItem,
+                                                                    });
+                                                                }
+                                                            }
+                                                        });
+                                                    }}
+                                                    style={{
+                                                        padding: '10px',
+                                                        backgroundColor: '#10b981',
+                                                        color: '#fff',
+                                                        fontWeight: 700,
+                                                        border: 'none',
+                                                        borderRadius: '6px',
+                                                        fontSize: '12px',
+                                                        cursor: 'pointer',
+                                                        textAlign: 'center',
+                                                    }}
+                                                >
+                                                    {t.record_payment}
+                                                </button>
+                                            )}
+
+                                            {(isInvoiced || isPaid) && (
+                                                <button
+                                                    onClick={() => {
+                                                        const newInvoice = isInvoiced && !isPaid ? 'UNINVOICED' : 'UNINVOICED';
+                                                        const newPayment = isPaid ? 'UNPAID' : 'UNPAID';
+                                                        router.post(`/c/${slug}/items/${item.id}/finance`, {
+                                                            invoice_status: newInvoice,
+                                                            payment_status: newPayment,
+                                                        }, {
+                                                            preserveScroll: true,
+                                                            onSuccess: (page) => {
+                                                                const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
+                                                                if (updatedItem) {
+                                                                    setActiveStage({
+                                                                        stage: {
+                                                                            id: -updatedItem.id,
+                                                                            stage_name: 'Finance',
+                                                                            completed_qty: 0,
+                                                                            progress_percent: '0',
+                                                                            status: 'PENDING',
+                                                                        },
+                                                                        item: updatedItem,
+                                                                    });
+                                                                }
+                                                            }
+                                                        });
+                                                    }}
+                                                    style={{
+                                                        padding: '6px',
+                                                        backgroundColor: 'transparent',
+                                                        color: '#64748b',
+                                                        border: '1px solid rgba(100, 116, 139, 0.2)',
+                                                        borderRadius: '6px',
+                                                        fontSize: '10px',
+                                                        fontWeight: 600,
+                                                        cursor: 'pointer',
+                                                        textAlign: 'center',
+                                                    }}
+                                                >
+                                                    {t.revoke}
+                                                </button>
+                                            )}
                                         </div>
                                     );
                                 }
@@ -1303,7 +1449,7 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
     const { props, url } = usePage();
     const pathParts = url.split('/');
     const slug = pathParts[2] || '';
-    const userRole = auth_user?.role ? auth_user.role.toUpperCase() : '';
+    const userRole = auth_user?.role_name ? auth_user.role_name.toUpperCase() : '';
 
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
         if (typeof window !== 'undefined') {
@@ -1458,7 +1604,7 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
             }}>
                 {items.length === 0 ? (
                     <p style={{ color: '#64748b', padding: '24px', textAlign: 'center', fontSize: '14px' }}>
-                        {t.no_active_items}
+                        {userRole === 'QC' ? t.no_qc_items : userRole === 'DELIVERY' ? t.no_delivery_items : userRole === 'FINANCE' ? t.no_finance_items : t.no_active_items}
                     </p>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

@@ -35,7 +35,7 @@ To maintain near-zero operational costs on shared hosting while delivering high-
 ## 3. DOMAIN LEVEL TENANCY & ROUTING
 * **Single Database Multi-Tenancy:** Handled via row-level security using a global `TenantScope` filtering by `tenant_id` on all operational models.
 * **Zero Subdomains:** Strictly NO wildcard subdomains to bypass shared hosting SSL/DNS limits. All traffic routes through `app.pogrid.id`.
-* **Guard A (Standard Web Auth):** Owners, Drafters, Purchasing, and Finance login via Email + Password at `app.pogrid.id/login`.
+* **Guard A (Standard Web Auth):** Office staff (Owner, Admin, Sales, Manager) login via Username/Email + Password at `app.pogrid.id/login`.
 * **Guard B (Path-Based Worker Auth):** Floor workers access `app.pogrid.id/c/{slug}` (e.g., `/c/teknik-mandiri`). They select their name from a clean dropdown/grid and enter a hashed 4-6 digit PIN using a large, touch-optimized on-screen numpad. 
 
 ---
@@ -84,7 +84,9 @@ The system continuously evaluates time left until delivery to give the Owner an 
 ## 7. DATA MODEL BLUEPRINT
 Every operational table MUST include a indexed `tenant_id` column.
 * `tenants`: id, company_name, slug, subscription_status, trial_ends_at.
-* `users`: id, tenant_id, name, email, password, pin (hashed), role (OWNER, WORKER, QC, etc).
+* `users`: id, tenant_id, name, email, password, pin (hashed), role_id (FK→roles), post_id (FK→posts), is_owner (boolean), username.
+* `roles`: id, name, display_name, level (production/office).
+* `posts`: id, name, display_name.
 * `pos`: id, tenant_id, po_number, client_name, global_deadline, status.
 * `items`: id, tenant_id, po_id, item_name, target_qty, item_type (MANUFACTURE, BUY_OUT, SERVICE), required_stages (jsonb), progress_percent, status.
 * `item_progress`: id, tenant_id, item_id, stage_name, completed_qty, progress_percent, status (PENDING, IN_PROGRESS, COMPLETED, STUCK).
