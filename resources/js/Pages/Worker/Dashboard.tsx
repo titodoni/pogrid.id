@@ -388,6 +388,7 @@ function ItemCard({
     const [kendalaType, setKendalaType] = useState('Machine Broken');
     const [kendalaNote, setKendalaNote] = useState('');
     const [rejectQty, setRejectQty] = useState('1');
+    const [manualQtyInput, setManualQtyInput] = useState<string>('');
 
     // Finance form states
     const [invoiceStatus, setInvoiceStatus] = useState<'UNINVOICED' | 'INVOICED'>(() => (item.invoice_status as any) || 'UNINVOICED');
@@ -430,6 +431,10 @@ function ItemCard({
         setInvoiceStatus((item.invoice_status as any) || 'UNINVOICED');
         setPaymentStatus((item.payment_status as any) || 'UNPAID');
     }, [item.invoice_status, item.payment_status]);
+
+    useEffect(() => {
+        setManualQtyInput('');
+    }, [activeStage]);
 
     const selectStage = (stage: Stage) => {
         if (isStageLocked(item, stage.stage_name, userRole)) return;
@@ -481,6 +486,30 @@ function ItemCard({
 
         router.post(`/c/${slug}/progress/${activeStage.stage.id}/update`, {
             completed_qty: newQty
+        }, {
+            preserveScroll: true,
+            onSuccess: (page) => {
+                const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
+                if (updatedItem) {
+                    const updatedStage = updatedItem.item_progresses.find(s => s.id === activeStage.stage.id);
+                    if (updatedStage) {
+                        setActiveStage({ stage: updatedStage, item: updatedItem });
+                    }
+                }
+            }
+        });
+    };
+
+    const handleManualSubmit = () => {
+        if (!activeStage || manualQtyInput === '') return;
+        const qty = parseInt(manualQtyInput, 10);
+        if (isNaN(qty)) return;
+        const currentQty = activeStage.stage.completed_qty;
+        if (qty < currentQty) return;
+        const clampedQty = Math.min(item.target_qty, qty);
+
+        router.post(`/c/${slug}/progress/${activeStage.stage.id}/update`, {
+            completed_qty: clampedQty
         }, {
             preserveScroll: true,
             onSuccess: (page) => {
@@ -581,7 +610,16 @@ function ItemCard({
         >
             {/* Card Header (Clickable to Toggle Drawer) */}
             <div 
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={() => {
+                    const next = !isExpanded;
+                    setIsExpanded(next);
+                    if (next && !activeStage) {
+                        const matched = getMatchingStageOrMock(item, userRole);
+                        if (matched && !isStageLocked(item, matched.stage_name, userRole)) {
+                            setActiveStage({ stage: matched, item });
+                        }
+                    }
+                }}
                 style={{ 
                     padding: '12px',
                     cursor: 'pointer',
@@ -1118,12 +1156,12 @@ function ItemCard({
 
                                 return (
                                     <>
-                                        {item.target_qty > 1 ? (
+                                        {item.target_qty > 1 && (
                                             <div style={{
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                gap: '24px',
+                                                gap: '8px',
                                                 marginBottom: '8px',
                                             }}>
                                                 <div style={{ textAlign: 'center' }}>
@@ -1139,6 +1177,27 @@ function ItemCard({
                                                         / {item.target_qty}
                                                     </div>
                                                 </div>
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    max={item.target_qty}
+                                                    value={manualQtyInput}
+                                                    onChange={(e) => setManualQtyInput(e.target.value)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
+                                                    placeholder={`0-${item.target_qty}`}
+                                                    style={{
+                                                        width: '64px',
+                                                        padding: '8px 6px',
+                                                        borderRadius: '6px',
+                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        backgroundColor: 'rgba(0,0,0,0.3)',
+                                                        color: '#fff',
+                                                        fontSize: '14px',
+                                                        fontWeight: 700,
+                                                        textAlign: 'center',
+                                                        outline: 'none',
+                                                    }}
+                                                />
                                                 <button
                                                     onClick={() => handleStep(1)}
                                                     style={{
@@ -1159,7 +1218,9 @@ function ItemCard({
                                                     +
                                                 </button>
                                             </div>
-                                        ) : isQcStage ? (
+                                        )}
+
+                                        {item.target_qty === 1 && isQcStage && (
                                             <div style={{
                                                 display: 'grid',
                                                 gridTemplateColumns: '1fr 1fr',
@@ -1208,7 +1269,9 @@ function ItemCard({
                                                     OK
                                                 </button>
                                             </div>
-                                        ) : (
+                                        )}
+
+                                        {item.target_qty === 1 && !isQcStage && (
                                             <div style={{
                                                 display: 'grid',
                                                 gridTemplateColumns: 'repeat(5, 1fr)',
@@ -1466,10 +1529,11 @@ function ItemCard({
                                 );
                             })()}
 
-                            {/* Cancel Update Button */}
+                            {/* Done Button */}
                             <button
                                 onClick={() => {
                                     setActiveStage(null);
+                                    setIsExpanded(false);
                                     setShowKendala(false);
                                     setShowQc(false);
                                 }}
@@ -1477,9 +1541,9 @@ function ItemCard({
                                     marginTop: '12px',
                                     width: '100%',
                                     padding: '8px',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                    color: '#94a3b8',
-                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                                    color: '#10b981',
+                                    border: '1px solid rgba(16, 185, 129, 0.3)',
                                     borderRadius: '6px',
                                     fontSize: '11px',
                                     fontWeight: 700,
@@ -1487,7 +1551,7 @@ function ItemCard({
                                     textAlign: 'center',
                                 }}
                             >
-                                {language === 'en' ? 'Cancel Update' : 'Batal Update'}
+                                {language === 'en' ? 'Done' : 'Selesai'}
                             </button>
                         </div>
                     ) : null}

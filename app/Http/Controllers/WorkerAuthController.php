@@ -45,8 +45,14 @@ class WorkerAuthController extends Controller
         $user = User::where('id', $request->user_id)
             ->where('tenant_id', $tenant->id)
             ->with('roleRelation:id,name,level')
-            ->firstOrFail();
+            ->first();
         TenantManager::enableScope();
+
+        if (!$user) {
+            return back()->withErrors([
+                'pin' => 'user_not_found_worker',
+            ]);
+        }
 
         // Block office administrative roles from PIN-based login (privilege escalation protection)
         if ($user->role_level === 'office') {

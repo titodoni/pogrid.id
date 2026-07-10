@@ -14,7 +14,9 @@ const translations = {
         register: "Register POgrid",
         forgot_password: "Forgot Password?",
         auth_failed: "These credentials do not match our records.",
-        network_error: "Koneksi buruk / Poor network connection. Please check your internet."
+        user_not_found: "No account found with that username/email.",
+        wrong_password: "Incorrect password. Please try again.",
+        network_error: "Poor network connection. Please check your internet."
     },
     id: {
         title: "POgrid.id",
@@ -28,6 +30,8 @@ const translations = {
         register: "Daftar POgrid",
         forgot_password: "Lupa Password?",
         auth_failed: "Kredensial yang Anda masukkan salah.",
+        user_not_found: "Tidak ada akun dengan username/email tersebut.",
+        wrong_password: "Password salah. Silakan coba lagi.",
         network_error: "Koneksi buruk. Silakan periksa jaringan internet Anda."
     }
 };

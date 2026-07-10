@@ -30,6 +30,23 @@ Routes in `routes/web.php` (no API). Controllers return Inertia.
 
 **Guard A** (office): email/username + password at `/login`. **Guard B** (floor): PIN login at `/c/{slug}`, throttled 5 req/min. Privilege escalation blocks office roles from PIN login.
 
+**Demo accounts** (seeded by `DatabaseSeeder`):
+- Tenant: `teknik-mandiri` (slug)
+- Office login at `/login`: password `poiuy`
+  - `sari` — Sari Dewi (Owner)
+  - `budi` — Budi Santoso (Admin)
+  - `fitri` — Fitri Handayani (Sales)
+  - `dimas` — Dimas Ardiansyah (Manager)
+- Floor PIN login at `/c/teknik-mandiri`: PIN `0000`
+  - Rina Wulandari (Purchasing)
+  - Dewi Sartika (Finance)
+  - Arief Prasetyo (Drafter)
+  - Hendra Gunawan (Machining)
+  - Bambang Supriyadi (Fabrication)
+  - Agus Hermawan (QC)
+  - Slamet Riyadi (Delivery)
+  - Joko Susilo (Production)
+
 **Roles & Posts**: Users have `role_id` (FK→roles: DRAFTER, PURCHASING, MACHINING, FABRICATION, PRODUCTION, QC, DELIVERY, FINANCE, STAFF) and `post_id` (FK→posts: Design, Material, CNC, Milling, Welder, Helper, QC, Delivery, Finance, Sales, Admin, Manager). `role_level` distinguishes `floor` vs `office`. Accessor `role_name`, `role_level`, `post_name` available on User model. Tenant owners marked with `is_owner` boolean.
 
 **Forgot Password** (Guard A): `Password::reset()` with `ResetPasswordNotification`. Links in `storage/logs/laravel.log` (mail driver: `log`).
@@ -41,6 +58,22 @@ Routes in `routes/web.php` (no API). Controllers return Inertia.
 ## Pages
 
 Three groups in `resources/js/Pages/`: `Auth/`, `Owner/`, `Worker/`. `FlashMessages.tsx` wraps pages via `app.tsx` `resolve` function. Flash shared via `Inertia::share('flash', ...)` in `AppServiceProvider`.
+
+## Error Handling
+
+**FlashMessages.tsx** (`resources/js/Components/FlashMessages.tsx`) wraps all pages via `app.tsx` resolve. Supports 4 toast types: `success` (green), `error` (red), `warning` (amber), `info` (blue). Shared via `Inertia::share('flash')` in `AppServiceProvider`.
+
+**Error keys** resolved by `FlashMessages.tsx` for localized messages (EN/ID):
+- `user_not_found` — no account for username/email (Guard A)
+- `user_not_found_worker` — selected worker not in tenant (Guard B)
+- `wrong_password` — correct user, wrong password (Guard A)
+- `pin_incorrect` — wrong PIN (Guard B)
+- `admin_must_use_password` — office role blocked from PIN login (Guard B)
+- `too_many_attempts` — throttle 429 (Guard B, 5 req/min)
+- `network_error` — client offline check
+- `select_worker_error` / `pin_length_error` — client-side validation (Guard B)
+
+Controller error flow: `AuthController::login()` checks user existence first (bypasses tenant scope), returns `user_not_found` vs `wrong_password`. `WorkerAuthController::login()` returns `user_not_found_worker` if user doesn't match tenant, `admin_must_use_password` for office roles, `pin_incorrect` otherwise. Throttle exception in `bootstrap/app.php` renders `too_many_attempts` key for Inertia requests.
 
 ## Architecture
 

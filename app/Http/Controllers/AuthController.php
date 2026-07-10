@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tenant;
+use App\Models\User;
+use App\Services\TenantManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -23,6 +25,17 @@ class AuthController extends Controller
 
         $field = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
+        // Check user exists first for better error messaging
+        TenantManager::bypass();
+        $user = User::where($field, $request->username)->first();
+        TenantManager::enableScope();
+
+        if (!$user) {
+            return back()->withErrors([
+                'username' => 'user_not_found',
+            ])->onlyInput('username');
+        }
+
         if (Auth::attempt([$field => $request->username, 'password' => $request->password])) {
             $request->session()->regenerate();
             $user = Auth::user();
@@ -32,7 +45,7 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'username' => 'auth_failed',
+            'username' => 'wrong_password',
         ])->onlyInput('username');
     }
 

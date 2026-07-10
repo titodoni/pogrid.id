@@ -37,8 +37,10 @@ const translations = {
         select_worker_error: "Please select a worker first.",
         pin_length_error: "PIN must be at least 4 digits.",
         admin_must_use_password: "Administrative users must log in via password at /login.",
-        pin_incorrect: "PIN salah / Incorrect PIN.",
-        network_error: "Koneksi buruk / Poor network connection. Please check your internet."
+        pin_incorrect: "Incorrect PIN. Please try again.",
+        user_not_found_worker: "Selected worker not found in this company.",
+        too_many_attempts: "Too many attempts. Please wait 1 minute before trying again.",
+        network_error: "Poor network connection. Please check your internet."
     },
     id: {
         worker_entrance: "Akses Masuk Pekerja",
@@ -57,8 +59,10 @@ const translations = {
         clear_btn: "HAPUS",
         select_worker_error: "Silakan pilih nama pekerja terlebih dahulu.",
         pin_length_error: "PIN minimal harus 4 angka.",
-        admin_must_use_password: "Pengguna administratif harus masuk menggunakan password di /login.",
-        pin_incorrect: "PIN salah / Incorrect PIN.",
+        admin_must_use_password: "Pengguna administratif harus masuk menggunakan password di halaman login.",
+        pin_incorrect: "PIN salah. Silakan coba lagi.",
+        user_not_found_worker: "Pekerja yang dipilih tidak ditemukan di perusahaan ini.",
+        too_many_attempts: "Terlalu banyak percobaan. Harap tunggu 1 menit sebelum mencoba lagi.",
         network_error: "Koneksi buruk. Silakan periksa jaringan internet Anda."
     }
 };

@@ -58,8 +58,8 @@ class DatabaseSeeder extends Seeder
         // 4. Create Office Staff (Password Login: poiuy)
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Sari Dewi (Owner)',
-            'username' => 'owner',
+            'name' => 'Sari Dewi',
+            'username' => 'sari',
             'email' => 'owner@teknikmandiri.com',
             'password' => Hash::make('poiuy'),
             'role_id' => $roles['STAFF']->id,
@@ -69,8 +69,8 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Budi Santoso (Admin)',
-            'username' => 'admin',
+            'name' => 'Budi Santoso',
+            'username' => 'budi',
             'email' => 'admin@teknikmandiri.com',
             'password' => Hash::make('poiuy'),
             'role_id' => $roles['STAFF']->id,
@@ -79,8 +79,8 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Sales Staff',
-            'username' => 'sales',
+            'name' => 'Fitri Handayani',
+            'username' => 'fitri',
             'email' => 'sales@teknikmandiri.com',
             'password' => Hash::make('poiuy'),
             'role_id' => $roles['STAFF']->id,
@@ -89,8 +89,8 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Manager Operasional',
-            'username' => 'manager',
+            'name' => 'Dimas Ardiansyah',
+            'username' => 'dimas',
             'email' => 'manager@teknikmandiri.com',
             'password' => Hash::make('poiuy'),
             'role_id' => $roles['STAFF']->id,
@@ -100,7 +100,7 @@ class DatabaseSeeder extends Seeder
         // 5. Create Floor Staff (PIN Login: 0000)
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Purchasing Agent',
+            'name' => 'Rina Wulandari',
             'pin' => Hash::make('0000'),
             'role_id' => $roles['PURCHASING']->id,
             'post_id' => $posts['Material']->id,
@@ -108,7 +108,7 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Finance Controller',
+            'name' => 'Dewi Sartika',
             'pin' => Hash::make('0000'),
             'role_id' => $roles['FINANCE']->id,
             'post_id' => $posts['Finance']->id,
@@ -116,7 +116,7 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Drafter Designer',
+            'name' => 'Arief Prasetyo',
             'pin' => Hash::make('0000'),
             'role_id' => $roles['DRAFTER']->id,
             'post_id' => $posts['Design']->id,
@@ -124,7 +124,7 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'CNC Specialist',
+            'name' => 'Hendra Gunawan',
             'pin' => Hash::make('0000'),
             'role_id' => $roles['MACHINING']->id,
             'post_id' => $posts['CNC']->id,
@@ -132,7 +132,7 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Fabricator Welder',
+            'name' => 'Bambang Supriyadi',
             'pin' => Hash::make('0000'),
             'role_id' => $roles['FABRICATION']->id,
             'post_id' => $posts['Welder']->id,
@@ -140,7 +140,7 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'QC Inspector',
+            'name' => 'Agus Hermawan',
             'pin' => Hash::make('0000'),
             'role_id' => $roles['QC']->id,
             'post_id' => $posts['QC']->id,
@@ -148,7 +148,7 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Delivery Courier',
+            'name' => 'Slamet Riyadi',
             'pin' => Hash::make('0000'),
             'role_id' => $roles['DELIVERY']->id,
             'post_id' => $posts['Delivery']->id,
@@ -156,7 +156,7 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'tenant_id' => $tenant->id,
-            'name' => 'Worker Umum',
+            'name' => 'Joko Susilo',
             'pin' => Hash::make('0000'),
             'role_id' => $roles['PRODUCTION']->id,
             'post_id' => $posts['Helper']->id,

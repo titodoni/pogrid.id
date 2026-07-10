@@ -28,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
             return [
                 'success' => session('success'),
                 'error' => session('error'),
+                'warning' => session('warning'),
+                'info' => session('info'),
             ];
         });
     }
