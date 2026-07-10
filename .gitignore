@@ -26,3 +26,7 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /graphify-out
+/.agents
+/.bob
+/skills-lock.json
+

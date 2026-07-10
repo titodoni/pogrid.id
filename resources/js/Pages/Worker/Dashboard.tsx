@@ -56,11 +56,15 @@ const formatDeadline = (deadlineDateStr: string | undefined, lang: 'en' | 'id') 
     }
 };
 
-const renderWarningPill = (deadlineDateStr: string | undefined, hasRework: boolean, lang: 'en' | 'id') => {
+const renderWarningPill = (deadlineDateStr: string | undefined, reworkMessage: string | null | boolean, lang: 'en' | 'id') => {
     if (!deadlineDateStr) return null;
     
     // Check Rework first (takes precedence or is a high priority status)
-    if (hasRework) {
+    if (reworkMessage) {
+        const displayMsg = typeof reworkMessage === 'string'
+            ? reworkMessage
+            : (lang === 'id' ? 'Rework' : 'Rework');
+
         return (
             <span className="badge" style={{
                 backgroundColor: 'rgba(249, 115, 22, 0.15)', // Orange background
@@ -76,7 +80,7 @@ const renderWarningPill = (deadlineDateStr: string | undefined, hasRework: boole
                 flexShrink: 0
             }}>
                 <span style={{ width: '4px', height: '4px', backgroundColor: '#f97316', borderRadius: '50%' }} />
-                {lang === 'id' ? 'Rework' : 'Rework'}
+                {displayMsg}
             </span>
         );
     }
@@ -655,6 +659,19 @@ function ItemCard({
                             URGENT
                         </span>
                     )}
+                    <span style={{
+                        fontSize: '9px',
+                        fontWeight: 700,
+                        padding: '1px 5px',
+                        borderRadius: '3px',
+                        backgroundColor: 'rgba(255,255,255,0.06)',
+                        color: '#94a3b8',
+                        flexShrink: 0,
+                    }}>
+                        {item.item_type === 'MANUFACTURE' 
+                            ? (language === 'id' ? 'Produksi Internal' : 'Manufactured') 
+                            : (language === 'id' ? 'Beli Jadi (Buyout)' : 'Buyout')}
+                    </span>
                     {item.drafter_status && (
                         <span style={{
                             fontSize: '9px',
@@ -665,7 +682,9 @@ function ItemCard({
                             color: item.drafter_status === 'APPROVED' ? '#10b981' : '#a78bfa',
                             flexShrink: 0,
                         }}>
-                            {item.drafter_status}
+                            {item.drafter_status === 'APPROVED' 
+                                ? (language === 'id' ? 'Gambar Disetujui' : 'Drawing Approved')
+                                : (language === 'id' ? `Gambar: ${item.drafter_status}` : `Drawing: ${item.drafter_status}`)}
                         </span>
                     )}
                     {item.purchasing_status && (
@@ -682,12 +701,17 @@ function ItemCard({
                                 '#3b82f6',
                             flexShrink: 0,
                         }}>
-                            {item.purchasing_status}
+                            {item.purchasing_status === 'READY'
+                                ? (language === 'id' ? 'Bahan Baku Siap' : 'Material Ready')
+                                : item.purchasing_status === 'PROSES'
+                                ? (language === 'id' ? 'Bahan Dipesan' : 'Material Ordered')
+                                : (language === 'id' ? `Material: ${item.purchasing_status}` : `Material: ${item.purchasing_status}`)}
                         </span>
                     )}
                     {(() => {
-                        const hasRework = item.alerts?.some(a => a.severity === 'YELLOW') || false;
-                        return renderWarningPill(item.po?.global_deadline, hasRework, language);
+                        const reworkAlert = item.alerts?.find(a => a.severity === 'YELLOW' && !a.is_resolved);
+                        const reworkVal = reworkAlert ? (reworkAlert.message ? `Rework: ${reworkAlert.message}` : 'Rework') : null;
+                        return renderWarningPill(item.po?.global_deadline, reworkVal, language);
                     })()}
                     <span style={{
                         fontSize: '9px',
@@ -697,8 +721,15 @@ function ItemCard({
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         color: '#3b82f6',
                         flexShrink: 0,
+                        display: 'inline-flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '1px',
                     }}>
-                        {parseFloat(item.progress_percent).toFixed(1)}%
+                        <span>{parseFloat(item.progress_percent).toFixed(0)}%</span>
+                        <span style={{ fontSize: '7.5px', color: '#64748b', fontWeight: 'normal' }}>
+                            ({item.delivered_qty || 0}/{item.target_qty || 0} pcs)
+                        </span>
                     </span>
                     {/* Chevron Indicator */}
                     <span style={{

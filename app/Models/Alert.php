@@ -15,6 +15,7 @@ class Alert extends Model
         'tenant_id',
         'item_id',
         'severity',
+        'reason_type',
         'message',
         'is_resolved',
     ];

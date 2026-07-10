@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Alert;
 use App\Models\DeliveryOrder;
+use App\Models\DoItem;
 use App\Models\Item;
 use App\Models\ItemProgress;
 use App\Models\Po;
@@ -129,33 +130,35 @@ class PerformanceMatrixTest extends TestCase
     public function test_on_time_delivery_rate_calculation()
     {
         TenantManager::bypass();
-        // Create 2 POs: 1 on-time and 1 delayed
+        // Create 2 POs: 1 on-time and 1 delayed.
+        // Deadlines must fall within the 'month' range (last 30 days)
+        // so the fixed OTDR formula (filters by global_deadline) picks them up.
         $po1 = Po::create([
             'tenant_id' => $this->tenant->id,
             'po_number' => 'PO-1',
             'client_name' => 'Client A',
-            'global_deadline' => now()->addDays(2)->toDateString(),
+            'global_deadline' => now()->subDays(5)->toDateString(), // deadline in range
             'status' => 'COMPLETED',
         ]);
         $do1 = DeliveryOrder::create([
             'tenant_id' => $this->tenant->id,
             'po_id' => $po1->id,
             'do_number' => 'DO-1',
-            'delivery_date' => now()->toDateString(),
+            'delivery_date' => now()->subDays(6)->toDateString(), // delivered 1 day early = on time
         ]);
 
         $po2 = Po::create([
             'tenant_id' => $this->tenant->id,
             'po_number' => 'PO-2',
             'client_name' => 'Client B',
-            'global_deadline' => now()->subDays(5)->toDateString(),
+            'global_deadline' => now()->subDays(10)->toDateString(), // deadline in range
             'status' => 'COMPLETED',
         ]);
         $do2 = DeliveryOrder::create([
             'tenant_id' => $this->tenant->id,
             'po_id' => $po2->id,
             'do_number' => 'DO-2',
-            'delivery_date' => now()->toDateString(), // 5 days late
+            'delivery_date' => now()->toDateString(), // delivered today = 10 days late
         ]);
 
         TenantManager::enableScope();
@@ -181,7 +184,7 @@ class PerformanceMatrixTest extends TestCase
             'status' => 'PENDING',
         ]);
 
-        // Item 1: 10 target, 60% progress = 6 completed
+        // Item 1: 10 target, 6 delivered via DoItem
         $item1 = Item::create([
             'tenant_id' => $this->tenant->id,
             'po_id' => $po->id,
@@ -190,15 +193,21 @@ class PerformanceMatrixTest extends TestCase
             'target_qty' => 10,
             'required_stages' => ['Machining'],
         ]);
-        foreach ($item1->itemProgresses as $progress1) {
-            $progress1->update([
-                'completed_qty' => 6,
-                'progress_percent' => 60.00,
-                'status' => 'IN_PROGRESS',
-            ]);
-        }
 
-        // Item 2: 5 target, 100% progress = 5 completed
+        // Create a DeliveryOrder and DoItem to record real delivery
+        $do1 = DeliveryOrder::create([
+            'tenant_id' => $this->tenant->id,
+            'po_id' => $po->id,
+            'do_number' => 'DO-ITEM1',
+            'delivery_date' => now()->toDateString(),
+        ]);
+        DoItem::create([
+            'delivery_order_id' => $do1->id,
+            'item_id' => $item1->id,
+            'delivered_qty' => 6,
+        ]);
+
+        // Item 2: 5 target, 5 delivered via DoItem
         $item2 = Item::create([
             'tenant_id' => $this->tenant->id,
             'po_id' => $po->id,
@@ -207,13 +216,11 @@ class PerformanceMatrixTest extends TestCase
             'target_qty' => 5,
             'required_stages' => ['Machining'],
         ]);
-        foreach ($item2->itemProgresses as $progress2) {
-            $progress2->update([
-                'completed_qty' => 5,
-                'progress_percent' => 100.00,
-                'status' => 'COMPLETED',
-            ]);
-        }
+        DoItem::create([
+            'delivery_order_id' => $do1->id,
+            'item_id' => $item2->id,
+            'delivered_qty' => 5,
+        ]);
 
         TenantManager::enableScope();
         TenantManager::setTenantId($this->tenant->id);
@@ -222,6 +229,7 @@ class PerformanceMatrixTest extends TestCase
         $response = $this->get("/c/{$this->tenant->slug}?range=month");
 
         $response->assertInertia(function ($page) {
+            // Target = 15 (10 + 5), delivered = 11 (6 + 5)
             $page->where('telemetry.manufacture.target', 15)
                 ->where('telemetry.manufacture.completed', 11);
         });
@@ -281,12 +289,12 @@ class PerformanceMatrixTest extends TestCase
 
         $response->assertInertia(function ($page) {
             $metrics = collect($page->toArray()['props']['telemetry']['stage_metrics']);
-            $machiningMetric = $metrics->firstWhere('stage', 'Machining');
+            $productionMetric = $metrics->firstWhere('stage', 'Production');
 
-            $this->assertNotNull($machiningMetric);
-            $this->assertEquals(1, $machiningMetric['active_items']);
-            $this->assertEquals(1, $machiningMetric['stuck_count']);
-            $this->assertEquals(1, $machiningMetric['rework_count']);
+            $this->assertNotNull($productionMetric);
+            $this->assertEquals(1, $productionMetric['active_items']);
+            $this->assertEquals(1, $productionMetric['stuck_count']);
+            $this->assertEquals(1, $productionMetric['rework_count']);
 
             $delayed = collect($page->toArray()['props']['telemetry']['delayed_items']);
             $this->assertCount(1, $delayed);
@@ -294,6 +302,94 @@ class PerformanceMatrixTest extends TestCase
             $this->assertEquals('Client D', $delayed[0]['client_name']);
             $this->assertEquals('Gear', $delayed[0]['item_name']);
             $this->assertStringContainsString('Machine Broken', $delayed[0]['reason']);
+        });
+    }
+
+    public function test_client_health_and_finance_health_aggregations()
+    {
+        TenantManager::bypass();
+
+        // Create PO 1: completed, client = Client X, uninvoiced item
+        $po1 = Po::create([
+            'tenant_id' => $this->tenant->id,
+            'po_number' => 'PO-C1',
+            'client_name' => 'Client X',
+            'global_deadline' => now()->subDays(5)->toDateString(),
+            'status' => 'COMPLETED',
+        ]);
+        $item1 = Item::create([
+            'tenant_id' => $this->tenant->id,
+            'po_id' => $po1->id,
+            'item_name' => 'Part X',
+            'item_type' => 'MANUFACTURE',
+            'target_qty' => 5,
+            'required_stages' => ['Machining'],
+            'invoice_status' => 'UNINVOICED',
+            'payment_status' => 'UNPAID',
+        ]);
+
+        // Create PO 2: pending (active), client = Client Y
+        $po2 = Po::create([
+            'tenant_id' => $this->tenant->id,
+            'po_number' => 'PO-C2',
+            'client_name' => 'Client Y',
+            'global_deadline' => now()->subDays(10)->toDateString(), // overdue
+            'status' => 'PENDING',
+            'is_urgent' => true,
+        ]);
+        $item2 = Item::create([
+            'tenant_id' => $this->tenant->id,
+            'po_id' => $po2->id,
+            'item_name' => 'Part Y',
+            'item_type' => 'MANUFACTURE',
+            'target_qty' => 3,
+            'required_stages' => ['Machining'],
+            'invoice_status' => 'UNINVOICED',
+            'payment_status' => 'UNPAID',
+        ]);
+
+        // Create a BLUE alert for PO 2 (makes it URGENT)
+        Alert::create([
+            'tenant_id' => $this->tenant->id,
+            'item_id' => $item2->id,
+            'severity' => 'BLUE',
+            'message' => 'Blue alert',
+            'is_resolved' => false,
+        ]);
+
+        TenantManager::enableScope();
+        TenantManager::setTenantId($this->tenant->id);
+
+        $this->actingAs($this->owner);
+        $response = $this->get("/c/{$this->tenant->slug}?range=month");
+
+        $response->assertInertia(function ($page) {
+            $telemetry = $page->toArray()['props']['telemetry'];
+
+            // Urgent count should be 1 (due to active BLUE alert on PO2 item)
+            $this->assertEquals(1, $telemetry['urgent_active']);
+
+            // Finance health counts:
+            // $item1 has invoice_status UNINVOICED and PO status COMPLETED -> uninvoiced_count = 1
+            // $item1 payment_status UNPAID but invoice_status is UNINVOICED -> not counted as unpaid yet
+            // $item2 has payment_status UNPAID but invoice_status is UNINVOICED -> not counted as unpaid yet
+            $this->assertEquals(1, $telemetry['finance_health']['uninvoiced_count']);
+            $this->assertEquals(0, $telemetry['finance_health']['unpaid_count']);
+
+            // Client health lists
+            $clientHealth = collect($telemetry['client_health']);
+            $this->assertCount(2, $clientHealth);
+
+            // Client Y should be sorted first because it has overdue items (risk score higher)
+            $clientY = $clientHealth->firstWhere('client_name', 'Client Y');
+            $this->assertNotNull($clientY);
+            $this->assertEquals(1, $clientY['active_pos']);
+            $this->assertEquals(1, $clientY['overdue_items']); // PO2 is pending and overdue
+
+            $clientX = $clientHealth->firstWhere('client_name', 'Client X');
+            $this->assertNotNull($clientX);
+            $this->assertEquals(0, $clientX['active_pos']);
+            $this->assertEquals(1, $clientX['uninvoiced_count']); // completed item is UNINVOICED
         });
     }
 
