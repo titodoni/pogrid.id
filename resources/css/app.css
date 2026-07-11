@@ -852,3 +852,43 @@ input, select, textarea {
         display: none !important;
     }
 }
+
+/* Responsive Bottleneck Stage Analyzer */
+@media (max-width: 768px) {
+    .bottleneck-table-container {
+        display: none !important;
+    }
+    .bottleneck-mobile-list {
+        display: flex !important;
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+@media (min-width: 769px) {
+    .bottleneck-table-container {
+        display: block !important;
+    }
+    .bottleneck-mobile-list {
+        display: none !important;
+    }
+}
+
+/* Responsive Client Performance Board */
+@media (max-width: 768px) {
+    .client-table-container {
+        display: none !important;
+    }
+    .client-mobile-list {
+        display: flex !important;
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+@media (min-width: 769px) {
+    .client-table-container {
+        display: block !important;
+    }
+    .client-mobile-list {
+        display: none !important;
+    }
+}

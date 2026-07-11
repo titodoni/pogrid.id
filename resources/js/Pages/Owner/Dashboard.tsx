@@ -3268,54 +3268,110 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', marginBottom: '22px' }}>
                             <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa', marginBottom: '16px' }}>{t.bottleneck_analyzer}</h3>
                             <div style={{ width: '100%', overflowX: 'auto' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                                    <thead>
-                                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                            <th style={{ textAlign: 'left', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.stage}</th>
-                                            <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.active_items}</th>
-                                            <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.stuck_incidents}</th>
-                                            <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.rework_count}</th>
-                                            <th style={{ textAlign: 'right', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.avg_cycle_time}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {telemetry.stage_metrics && telemetry.stage_metrics.map((metric: any, idx: number) => (
-                                            <tr
-                                                key={`stage-${idx}`}
+                                <div className="bottleneck-table-container">
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                        <thead>
+                                            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                                                <th style={{ textAlign: 'left', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.stage}</th>
+                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.active_items}</th>
+                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.stuck_incidents}</th>
+                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.rework_count}</th>
+                                                <th style={{ textAlign: 'right', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.avg_cycle_time}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {telemetry.stage_metrics && telemetry.stage_metrics.map((metric: any, idx: number) => (
+                                                <tr
+                                                    key={`stage-${idx}`}
+                                                    onClick={() => setMatrixFilter(prev =>
+                                                        prev?.type === 'stage' && prev?.value === metric.stage
+                                                            ? null
+                                                            : { type: 'stage', value: metric.stage, label: language === 'id' ? 'Tahap' : 'Stage' }
+                                                    )}
+                                                    style={{
+                                                        borderBottom: '1px solid rgba(255,255,255,0.04)',
+                                                        color: '#e4e4e7',
+                                                        cursor: 'pointer',
+                                                        backgroundColor: matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage ? 'rgba(37,99,235,0.1)' : 'transparent',
+                                                        transition: 'all 0.2s ease',
+                                                    }}
+                                                >
+                                                    <td style={{ padding: '10px 16px', fontWeight: 700 }}>
+                                                        <span style={{ color: matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage ? '#3b82f6' : 'inherit' }}>
+                                                            {metric.stage.toUpperCase()}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ padding: '10px 16px', textAlign: 'center' }}>{metric.active_items}</td>
+                                                    <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                                                        {metric.stuck_count > 0
+                                                            ? <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444' }}>{metric.stuck_count} stuck</span>
+                                                            : '0'}
+                                                    </td>
+                                                    <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                                                        {metric.rework_count > 0
+                                                            ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24' }}>{metric.rework_count} rework</span>
+                                                            : '0'}
+                                                    </td>
+                                                    <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 700, color: '#3b82f6' }}>{metric.avg_cycle_time.toFixed(2)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div className="bottleneck-mobile-list">
+                                    {telemetry.stage_metrics && telemetry.stage_metrics.map((metric: any, idx: number) => {
+                                        const isSelected = matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage;
+                                        return (
+                                            <div
+                                                key={`stage-mobile-${idx}`}
                                                 onClick={() => setMatrixFilter(prev =>
                                                     prev?.type === 'stage' && prev?.value === metric.stage
                                                         ? null
                                                         : { type: 'stage', value: metric.stage, label: language === 'id' ? 'Tahap' : 'Stage' }
                                                 )}
                                                 style={{
-                                                    borderBottom: '1px solid rgba(255,255,255,0.04)',
-                                                    color: '#e4e4e7',
+                                                    backgroundColor: isSelected ? 'rgba(37,99,235,0.1)' : '#18181b',
+                                                    border: isSelected ? '1px solid #3b82f6' : '1px solid rgba(255,255,255,0.06)',
+                                                    borderRadius: '10px',
+                                                    padding: '12px',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '8px',
                                                     cursor: 'pointer',
-                                                    backgroundColor: matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage ? 'rgba(37,99,235,0.1)' : 'transparent',
-                                                    transition: 'all 0.2s ease',
                                                 }}
                                             >
-                                                <td style={{ padding: '10px 16px', fontWeight: 700 }}>
-                                                    <span style={{ color: matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage ? '#3b82f6' : 'inherit' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <span style={{ fontWeight: 800, fontSize: '13px', color: isSelected ? '#3b82f6' : '#fafafa' }}>
                                                         {metric.stage.toUpperCase()}
                                                     </span>
-                                                </td>
-                                                <td style={{ padding: '10px 16px', textAlign: 'center' }}>{metric.active_items}</td>
-                                                <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                                                    {metric.stuck_count > 0
-                                                        ? <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444' }}>{metric.stuck_count} stuck</span>
-                                                        : '0'}
-                                                </td>
-                                                <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                                                    {metric.rework_count > 0
-                                                        ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24' }}>{metric.rework_count} rework</span>
-                                                        : '0'}
-                                                </td>
-                                                <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 700, color: '#3b82f6' }}>{metric.avg_cycle_time.toFixed(2)}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#3b82f6' }}>
+                                                        {metric.avg_cycle_time.toFixed(2)} {language === 'id' ? 'Hari' : 'Days'}
+                                                    </span>
+                                                </div>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '11px', color: '#a1a1aa' }}>
+                                                    <span>{t.active_items}: <strong>{metric.active_items}</strong></span>
+                                                    <span>•</span>
+                                                    <span>
+                                                        {t.stuck_incidents}: {metric.stuck_count > 0 ? (
+                                                            <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444', fontSize: '10px', padding: '1px 5px' }}>
+                                                                {metric.stuck_count} stuck
+                                                            </span>
+                                                        ) : '0'}
+                                                    </span>
+                                                    <span>•</span>
+                                                    <span>
+                                                        {t.rework_count}: {metric.rework_count > 0 ? (
+                                                            <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24', fontSize: '10px', padding: '1px 5px' }}>
+                                                                {metric.rework_count} rework
+                                                            </span>
+                                                        ) : '0'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
 
@@ -3333,80 +3389,163 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     </span>
                                 </div>
                                 <div style={{ width: '100%', overflowX: 'auto' }}>
-                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                                        <thead>
-                                            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                                <th style={{ textAlign: 'left', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
-                                                    {language === 'id' ? 'Klien' : 'Client'}
-                                                </th>
-                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
-                                                    {language === 'id' ? 'PO Aktif' : 'Active POs'}
-                                                </th>
-                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
-                                                    {language === 'id' ? 'Ketepatan Waktu' : 'On-Time Rate'}
-                                                </th>
-                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
-                                                    {language === 'id' ? 'Item Terlambat' : 'Overdue Items'}
-                                                </th>
-                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
-                                                    {language === 'id' ? 'Belum Faktur' : 'Uninvoiced'}
-                                                </th>
-                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
-                                                    {language === 'id' ? 'Belum Bayar' : 'Unpaid'}
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {telemetry.client_health.map((client: any, idx: number) => {
-                                                const otdrColor = client.on_time_rate == null
-                                                    ? '#71717a'
-                                                    : client.on_time_rate >= 80 ? '#34d399'
-                                                    : client.on_time_rate >= 60 ? '#fbbf24'
-                                                    : '#ef4444';
-                                                const hasRisk = client.overdue_items > 0 || client.uninvoiced_count > 0 || client.unpaid_count > 0;
-                                                return (
-                                                    <tr key={`client-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#e4e4e7', backgroundColor: hasRisk ? 'rgba(239,68,68,0.015)' : 'transparent' }}>
-                                                        <td
+                                    <div className="client-table-container">
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                            <thead>
+                                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                                                    <th style={{ textAlign: 'left', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
+                                                        {language === 'id' ? 'Klien' : 'Client'}
+                                                    </th>
+                                                    <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
+                                                        {language === 'id' ? 'PO Aktif' : 'Active POs'}
+                                                    </th>
+                                                    <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
+                                                        {language === 'id' ? 'Ketepatan Waktu' : 'On-Time Rate'}
+                                                    </th>
+                                                    <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
+                                                        {language === 'id' ? 'Item Terlambat' : 'Overdue Items'}
+                                                    </th>
+                                                    <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
+                                                        {language === 'id' ? 'Belum Faktur' : 'Uninvoiced'}
+                                                    </th>
+                                                    <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
+                                                        {language === 'id' ? 'Belum Bayar' : 'Unpaid'}
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {telemetry.client_health.map((client: any, idx: number) => {
+                                                    const otdrColor = client.on_time_rate == null
+                                                        ? '#71717a'
+                                                        : client.on_time_rate >= 80 ? '#34d399'
+                                                        : client.on_time_rate >= 60 ? '#fbbf24'
+                                                        : '#ef4444';
+                                                    const hasRisk = client.overdue_items > 0 || client.uninvoiced_count > 0 || client.unpaid_count > 0;
+                                                    return (
+                                                        <tr key={`client-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#e4e4e7', backgroundColor: hasRisk ? 'rgba(239,68,68,0.015)' : 'transparent' }}>
+                                                            <td
+                                                                onClick={() => setMatrixFilter({ type: 'client', value: client.client_name, label: language === 'id' ? 'Klien' : 'Client' })}
+                                                                style={{ padding: '11px 16px', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', color: '#818cf8' }}
+                                                            >
+                                                                {client.client_name}
+                                                            </td>
+                                                            <td style={{ padding: '11px 16px', textAlign: 'center', color: '#a1a1aa' }}>{client.active_pos}</td>
+                                                            <td style={{ padding: '11px 16px', textAlign: 'center' }}>
+                                                                {client.on_time_rate != null
+                                                                    ? <span style={{ fontWeight: 700, color: otdrColor }}>{client.on_time_rate}%</span>
+                                                                    : <span style={{ color: '#52525b', fontSize: '11px' }}>N/A</span>}
+                                                            </td>
+                                                            <td
+                                                                onClick={() => client.overdue_items > 0 && setMatrixFilter({ type: 'client_overdue', value: client.client_name, label: language === 'id' ? 'Overdue Klien' : 'Client Overdue' })}
+                                                                style={{ padding: '11px 16px', textAlign: 'center', cursor: client.overdue_items > 0 ? 'pointer' : 'default' }}
+                                                            >
+                                                                {client.overdue_items > 0
+                                                                    ? <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444' }}>{client.overdue_items}</span>
+                                                                    : <span style={{ color: '#71717a' }}>-</span>}
+                                                            </td>
+                                                            <td
+                                                                onClick={() => client.uninvoiced_count > 0 && setMatrixFilter({ type: 'client_uninvoiced', value: client.client_name, label: language === 'id' ? 'Belum Difakturkan Klien' : 'Client Uninvoiced' })}
+                                                                style={{ padding: '11px 16px', textAlign: 'center', cursor: client.uninvoiced_count > 0 ? 'pointer' : 'default' }}
+                                                            >
+                                                                {client.uninvoiced_count > 0
+                                                                    ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24' }}>{client.uninvoiced_count}</span>
+                                                                    : <span style={{ color: '#71717a' }}>-</span>}
+                                                            </td>
+                                                            <td
+                                                                onClick={() => client.unpaid_count > 0 && setMatrixFilter({ type: 'client_unpaid', value: client.client_name, label: language === 'id' ? 'Belum Dibayar Klien' : 'Client Unpaid' })}
+                                                                style={{ padding: '11px 16px', textAlign: 'center', cursor: client.unpaid_count > 0 ? 'pointer' : 'default' }}
+                                                            >
+                                                                {client.unpaid_count > 0
+                                                                    ? <span className="badge" style={{ backgroundColor: 'rgba(249,115,22,0.15)', color: '#fb923c' }}>{client.unpaid_count}</span>
+                                                                    : <span style={{ color: '#71717a' }}>-</span>}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div className="client-mobile-list">
+                                        {telemetry.client_health.map((client: any, idx: number) => {
+                                            const otdrColor = client.on_time_rate == null
+                                                ? '#71717a'
+                                                : client.on_time_rate >= 80 ? '#34d399'
+                                                : client.on_time_rate >= 60 ? '#fbbf24'
+                                                : '#ef4444';
+                                            return (
+                                                <div
+                                                    key={`client-mobile-${idx}`}
+                                                    style={{
+                                                        backgroundColor: '#18181b',
+                                                        border: '1px solid rgba(255,255,255,0.06)',
+                                                        borderRadius: '12px',
+                                                        padding: '12px',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        gap: '8px',
+                                                    }}
+                                                >
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <span
                                                             onClick={() => setMatrixFilter({ type: 'client', value: client.client_name, label: language === 'id' ? 'Klien' : 'Client' })}
-                                                            style={{ padding: '11px 16px', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', color: '#818cf8' }}
+                                                            style={{ fontWeight: 800, fontSize: '13px', cursor: 'pointer', textDecoration: 'underline', color: '#818cf8' }}
                                                         >
                                                             {client.client_name}
-                                                        </td>
-                                                        <td style={{ padding: '11px 16px', textAlign: 'center', color: '#a1a1aa' }}>{client.active_pos}</td>
-                                                        <td style={{ padding: '11px 16px', textAlign: 'center' }}>
-                                                            {client.on_time_rate != null
-                                                                ? <span style={{ fontWeight: 700, color: otdrColor }}>{client.on_time_rate}%</span>
-                                                                : <span style={{ color: '#52525b', fontSize: '11px' }}>N/A</span>}
-                                                        </td>
-                                                        <td
+                                                        </span>
+                                                        <span style={{ fontSize: '12px', fontWeight: 700, color: otdrColor }}>
+                                                            {client.on_time_rate != null ? `${client.on_time_rate}% OTD` : 'N/A OTD'}
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ fontSize: '11px', color: '#a1a1aa' }}>
+                                                        {language === 'id' ? 'PO Aktif' : 'Active POs'}: <strong>{client.active_pos}</strong>
+                                                    </div>
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        borderTop: '1px solid rgba(255,255,255,0.04)',
+                                                        paddingTop: '8px',
+                                                        fontSize: '11px',
+                                                    }}>
+                                                        <div
                                                             onClick={() => client.overdue_items > 0 && setMatrixFilter({ type: 'client_overdue', value: client.client_name, label: language === 'id' ? 'Overdue Klien' : 'Client Overdue' })}
-                                                            style={{ padding: '11px 16px', textAlign: 'center', cursor: client.overdue_items > 0 ? 'pointer' : 'default' }}
+                                                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', flex: 1, cursor: client.overdue_items > 0 ? 'pointer' : 'default' }}
                                                         >
-                                                            {client.overdue_items > 0
-                                                                ? <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444' }}>{client.overdue_items}</span>
-                                                                : <span style={{ color: '#71717a' }}>-</span>}
-                                                        </td>
-                                                        <td
+                                                            <span style={{ color: '#71717a', fontSize: '10px' }}>{language === 'id' ? 'Terlambat' : 'Overdue'}</span>
+                                                            {client.overdue_items > 0 ? (
+                                                                <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444', padding: '2px 6px' }}>{client.overdue_items}</span>
+                                                            ) : (
+                                                                <span style={{ color: '#71717a' }}>-</span>
+                                                            )}
+                                                        </div>
+                                                        <div
                                                             onClick={() => client.uninvoiced_count > 0 && setMatrixFilter({ type: 'client_uninvoiced', value: client.client_name, label: language === 'id' ? 'Belum Difakturkan Klien' : 'Client Uninvoiced' })}
-                                                            style={{ padding: '11px 16px', textAlign: 'center', cursor: client.uninvoiced_count > 0 ? 'pointer' : 'default' }}
+                                                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', flex: 1, cursor: client.uninvoiced_count > 0 ? 'pointer' : 'default' }}
                                                         >
-                                                            {client.uninvoiced_count > 0
-                                                                ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24' }}>{client.uninvoiced_count}</span>
-                                                                : <span style={{ color: '#71717a' }}>-</span>}
-                                                        </td>
-                                                        <td
+                                                            <span style={{ color: '#71717a', fontSize: '10px' }}>{language === 'id' ? 'Faktur' : 'Invoice'}</span>
+                                                            {client.uninvoiced_count > 0 ? (
+                                                                <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24', padding: '2px 6px' }}>{client.uninvoiced_count}</span>
+                                                            ) : (
+                                                                <span style={{ color: '#71717a' }}>-</span>
+                                                            )}
+                                                        </div>
+                                                        <div
                                                             onClick={() => client.unpaid_count > 0 && setMatrixFilter({ type: 'client_unpaid', value: client.client_name, label: language === 'id' ? 'Belum Dibayar Klien' : 'Client Unpaid' })}
-                                                            style={{ padding: '11px 16px', textAlign: 'center', cursor: client.unpaid_count > 0 ? 'pointer' : 'default' }}
+                                                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', flex: 1, cursor: client.unpaid_count > 0 ? 'pointer' : 'default' }}
                                                         >
-                                                            {client.unpaid_count > 0
-                                                                ? <span className="badge" style={{ backgroundColor: 'rgba(249,115,22,0.15)', color: '#fb923c' }}>{client.unpaid_count}</span>
-                                                                : <span style={{ color: '#71717a' }}>-</span>}
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
+                                                            <span style={{ color: '#71717a', fontSize: '10px' }}>{language === 'id' ? 'Bayar' : 'Paid'}</span>
+                                                            {client.unpaid_count > 0 ? (
+                                                                <span className="badge" style={{ backgroundColor: 'rgba(249,115,22,0.15)', color: '#fb923c', padding: '2px 6px' }}>{client.unpaid_count}</span>
+                                                            ) : (
+                                                                <span style={{ color: '#71717a' }}>-</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             </div>
                         )}
