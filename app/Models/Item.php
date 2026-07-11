@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Item extends Model
 {
-    use BelongsToTenant, HasFactory;
+    use BelongsToTenant, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
@@ -40,6 +41,10 @@ class Item extends Model
 
     public function getDeliveredQtyAttribute(): int
     {
+        if (array_key_exists('do_items_sum_delivered_qty', $this->attributes)) {
+            return (int) $this->attributes['do_items_sum_delivered_qty'];
+        }
+
         return (int) $this->doItems()->sum('delivered_qty');
     }
 

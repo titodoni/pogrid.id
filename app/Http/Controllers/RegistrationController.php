@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
 use App\Models\Post;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantManager;

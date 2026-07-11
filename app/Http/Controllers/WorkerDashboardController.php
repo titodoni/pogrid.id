@@ -57,8 +57,13 @@ class WorkerDashboardController extends Controller
 
         // 4. Determine dashboard views by office vs floor roles division
         if ($user->role_level === 'office') {
-            $pos = Po::with('items.itemProgresses')->get();
-            $alerts = Alert::with('item')->where('is_resolved', false)->get();
+            $pos = Po::with([
+                'items' => function ($q) {
+                    $q->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty')
+                        ->with(['itemProgresses', 'alerts']);
+                },
+            ])->get();
+            $alerts = Alert::with('item.po')->where('is_resolved', false)->get();
             $users = User::with('roleRelation:id,name', 'postRelation:id,name')->get();
             $roles = Role::all(['id', 'name', 'display_name', 'level']);
             $posts = Post::all(['id', 'name', 'display_name']);
@@ -83,9 +88,13 @@ class WorkerDashboardController extends Controller
         }
 
         // Otherwise, render floor operators dashboard
-        $query = Item::with(['itemProgresses', 'po', 'alerts' => function ($q) {
-            $q->where('is_resolved', false);
-        }]);
+        $query = Item::with([
+            'itemProgresses',
+            'po',
+            'alerts' => function ($q) {
+                $q->where('is_resolved', false);
+            },
+        ])->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty');
 
         if ($user->role_name === 'FINANCE') {
             $query->where(function ($q) {
@@ -337,7 +346,8 @@ class WorkerDashboardController extends Controller
         $delayedItemsData = [];
         $allItemsData = [];
         $activeItems = Item::whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])
-            ->with(['po', 'itemProgresses'])
+            ->with(['po', 'itemProgresses', 'alerts'])
+            ->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty')
             ->get();
 
         foreach ($activeItems as $item) {
@@ -350,8 +360,8 @@ class WorkerDashboardController extends Controller
             $isOverdue = now()->startOfDay()->gt($deadline);
 
             $stuckProgress = $item->itemProgresses->firstWhere('status', 'STUCK');
-            $stuckAlert = Alert::where('item_id', $item->id)->where('is_resolved', false)->where('severity', 'RED')->first();
-            $reworkAlert = Alert::where('item_id', $item->id)->where('is_resolved', false)->where('severity', 'YELLOW')->first();
+            $stuckAlert = $item->alerts->first(fn ($a) => ! $a->is_resolved && $a->severity === 'RED');
+            $reworkAlert = $item->alerts->first(fn ($a) => ! $a->is_resolved && $a->severity === 'YELLOW');
 
             if ($isOverdue || $stuckProgress || $stuckAlert || $reworkAlert) {
                 $currentStage = null;
@@ -413,7 +423,9 @@ class WorkerDashboardController extends Controller
 
         // ── 9.5. Complete Items & POs Directory for Click-through Drilldown ─────
         $allItemsData = [];
-        $allItems = Item::with(['po.deliveryOrders', 'itemProgresses', 'doItems'])->get();
+        $allItems = Item::with(['po.deliveryOrders', 'itemProgresses', 'doItems', 'alerts'])
+            ->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty')
+            ->get();
 
         foreach ($allItems as $item) {
             $po = $item->po;
@@ -483,8 +495,8 @@ class WorkerDashboardController extends Controller
             $reason = null;
             if ($daysOverdue > 0 || $currentStage === 'Finance') {
                 $stuckProgress = $item->itemProgresses->firstWhere('status', 'STUCK');
-                $stuckAlert = Alert::where('item_id', $item->id)->where('is_resolved', false)->where('severity', 'RED')->first();
-                $reworkAlert = Alert::where('item_id', $item->id)->where('is_resolved', false)->where('severity', 'YELLOW')->first();
+                $stuckAlert = $item->alerts->first(fn ($a) => ! $a->is_resolved && $a->severity === 'RED');
+                $reworkAlert = $item->alerts->first(fn ($a) => ! $a->is_resolved && $a->severity === 'YELLOW');
 
                 if ($stuckAlert) {
                     $reason = $stuckAlert->message;
@@ -504,8 +516,10 @@ class WorkerDashboardController extends Controller
             // Determine manufactured completed quantity in range
             $deliveredQtyInRange = 0;
             if ($item->item_type === 'MANUFACTURE') {
-                $deliveredQtyInRange = $item->doItems()
-                    ->whereBetween('updated_at', [$startDate, $endDate])
+                $deliveredQtyInRange = $item->doItems
+                    ->filter(function ($doItem) use ($startDate, $endDate) {
+                        return $doItem->updated_at >= $startDate && $doItem->updated_at <= $endDate;
+                    })
                     ->sum('delivered_qty');
             }
 

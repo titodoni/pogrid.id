@@ -48,7 +48,7 @@ class WorkerAuthController extends Controller
             ->first();
         TenantManager::enableScope();
 
-        if (!$user) {
+        if (! $user) {
             return back()->withErrors([
                 'pin' => 'user_not_found_worker',
             ]);

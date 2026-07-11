@@ -30,7 +30,7 @@ class AuthController extends Controller
         $user = User::where($field, $request->username)->first();
         TenantManager::enableScope();
 
-        if (!$user) {
+        if (! $user) {
             return back()->withErrors([
                 'username' => 'user_not_found',
             ])->onlyInput('username');

@@ -24,7 +24,7 @@ class BackfillItemStages extends Command
             $stages = $item->required_stages ?? [];
             $stagesLower = array_map('strtolower', $stages);
             $changed = false;
-            $existingNames = $item->itemProgresses->pluck('stage_name')->map(fn($n) => strtolower($n))->toArray();
+            $existingNames = $item->itemProgresses->pluck('stage_name')->map(fn ($n) => strtolower($n))->toArray();
 
             $hasMaterial = in_array('material', $stagesLower) || in_array('bahan', $stagesLower);
             $hasDesign = in_array('design', $stagesLower) || in_array('drawing', $stagesLower) || in_array('gambar', $stagesLower) || in_array('draft', $stagesLower);
