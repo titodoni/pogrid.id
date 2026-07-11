@@ -774,7 +774,15 @@ function ItemCard({
                     )}
                     {(() => {
                         const reworkAlert = item.alerts?.find(a => a.severity === 'YELLOW' && !a.is_resolved);
-                        const reworkVal = reworkAlert ? (reworkAlert.message ? `Rework: ${reworkAlert.message}` : 'Rework') : null;
+                        let reworkVal = null;
+                        if (reworkAlert) {
+                            if (reworkAlert.message) {
+                                const match = reworkAlert.message.match(/(\d+)\s+items?\s+rejected/i);
+                                reworkVal = match ? `Rework (${match[1]} pcs)` : 'Rework';
+                            } else {
+                                reworkVal = 'Rework';
+                            }
+                        }
                         return renderWarningPill(item.po?.global_deadline, reworkVal, language);
                     })()}
                 </div>
