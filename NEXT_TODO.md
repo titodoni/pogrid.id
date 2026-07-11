@@ -62,24 +62,34 @@ We have successfully overhauled the Owner Matrix Dashboard, Worker Floor Dashboa
 
 ## 🚀 Future Roadmap & Next TODOs
 
-### 🔧 1. Backend Performance & Query Optimization
-- [ ] **Add Database Indexes**:
-    - Add composite indexes on `items` for `(deleted_at, status, invoice_status, payment_status)` to optimize complex telemetry queries in [WorkerDashboardController.php](file:///home/tito/pogrid/app/Http/Controllers/WorkerDashboardController.php).
-- [ ] **Eager Load Optimization**:
-    - Further optimize lazy relations to avoid N+1 queries during telemetry calculation under high item counts.
+### ⚙️ 1. User Management & Admin UI
+- [ ] **Worker Accounts Directory**:
+    - Add a User Management sub-tab in the Owner dashboard to list all floor workers, their active roles, and posts.
+- [ ] **Edit User & PIN Management Modal**:
+    - Allow administrators to edit worker profiles, toggle between Password and PIN login methods, and change credentials/PINs directly.
+- [ ] **PIN Reset Request Approval Panel**:
+    - Add a dashboard UI widget for Admins to view pending PIN reset requests (`BLUE` alerts) and approve them to automatically generate and display a new 4-digit PIN once.
+- [ ] **Delete Worker Flow**:
+    - Build a delete worker action with confirmation dialog, ensuring self-deletion protection.
 
-### 📊 2. Telemetry & Reporting Upgrades
+### 🔧 2. Backend Performance & Query Optimization
+- [ ] **Add Database Indexes**:
+    - Create a database migration to add composite indexes on `items` for `(deleted_at, status, invoice_status, payment_status)` to optimize complex telemetry queries in [WorkerDashboardController.php](file:///home/tito/pogrid/app/Http/Controllers/WorkerDashboardController.php).
+- [ ] **Eager Loading Optimization**:
+    - Optimize relations to avoid N+1 query loops inside metrics generation functions (e.g. `buildClientHealth`).
+
+### 📊 3. Telemetry & Reporting Upgrades
 - [ ] **CSV / Excel Telemetry Export**:
     - Add a "Export to Excel" button next to "Download PDF" on the Matrix view to download raw filtered tabular reports.
 - [ ] **Historical Rework Analytics**:
     - Implement a "Rework Logbook" telemetry tab to trace total rework counts per client, item, or production stage over the last 6 months to locate recurring quality control bottlenecks.
 
-### 🔔 3. Realtime Push & Alerts
+### 🔔 4. Realtime Push & Alerts
 - [ ] **Pusher Channel Subscriptions**:
-    - Bind Vue/React state to Pusher broadcast channels so Owner dashboard dashboards automatically slide in toast notifications when workers report a trouble/stuck alert (`Lapor Kendala`) on the floor.
+    - Bind React state to Pusher broadcast channels so Owner dashboard dashboards automatically slide in toast notifications when workers report a trouble/stuck alert (`Lapor Kendala`) on the floor.
 - [ ] **Alert Escalation Rules**:
     - Set up automated warnings (e.g., mail or SMS notifications via log) if a `RED` alert remains unresolved for more than 24 hours.
 
-### 👷 4. Worker Self-Monitoring (KPIs)
+### 👷 5. Worker Self-Monitoring (KPIs)
 - [ ] **Worker Performance History**:
     - Provide a "My Completed Tasks" sub-tab on the Worker floor dashboard so workers can view their completed items, average stage cycle times, and contribution metrics for self-monitoring.
