@@ -67,19 +67,19 @@ const renderWarningPill = (deadlineDateStr: string | undefined, reworkMessage: s
 
         return (
             <span className="badge" style={{
-                backgroundColor: 'rgba(249, 115, 22, 0.15)', // Orange background
-                color: '#f97316', // Orange text
-                border: '1px solid rgba(249, 115, 22, 0.2)',
+                backgroundColor: 'rgba(251, 146, 60, 0.12)', // Orange background
+                color: '#fb923c', // Orange text
+                border: '1px solid rgba(251, 146, 60, 0.2)',
                 fontSize: '10px',
                 padding: '1px 6px',
                 fontWeight: 700,
-                borderRadius: '4px',
+                borderRadius: '6px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '3px',
                 flexShrink: 0
             }}>
-                <span style={{ width: '4px', height: '4px', backgroundColor: '#f97316', borderRadius: '50%' }} />
+                <span style={{ width: '4px', height: '4px', backgroundColor: '#fb923c', borderRadius: '50%' }} />
                 {displayMsg}
             </span>
         );
@@ -101,19 +101,19 @@ const renderWarningPill = (deadlineDateStr: string | undefined, reworkMessage: s
             : `Delayed ${days} day${days > 1 ? 's' : ''}`;
         return (
             <span className="badge" style={{
-                backgroundColor: 'rgba(239, 68, 68, 0.15)', // Red background
-                color: '#ef4444', // Red text
-                border: '1px solid rgba(239, 68, 68, 0.2)',
+                backgroundColor: 'rgba(248, 113, 113, 0.12)', // Red background
+                color: '#f87171', // Red text
+                border: '1px solid rgba(248, 113, 113, 0.2)',
                 fontSize: '10px',
                 padding: '1px 6px',
                 fontWeight: 700,
-                borderRadius: '4px',
+                borderRadius: '6px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '3px',
                 flexShrink: 0
             }}>
-                <span style={{ width: '4px', height: '4px', backgroundColor: '#ef4444', borderRadius: '50%' }} />
+                <span style={{ width: '4px', height: '4px', backgroundColor: '#f87171', borderRadius: '50%' }} />
                 {text}
             </span>
         );
@@ -129,19 +129,19 @@ const renderWarningPill = (deadlineDateStr: string | undefined, reworkMessage: s
         }
         return (
             <span className="badge" style={{
-                backgroundColor: 'rgba(234, 179, 8, 0.15)', // Yellow background
-                color: '#eab308', // Yellow text
-                border: '1px solid rgba(234, 179, 8, 0.2)',
+                backgroundColor: 'rgba(251, 191, 36, 0.12)', // Yellow background
+                color: '#fbbf24', // Yellow text
+                border: '1px solid rgba(251, 191, 36, 0.2)',
                 fontSize: '10px',
                 padding: '1px 6px',
                 fontWeight: 700,
-                borderRadius: '4px',
+                borderRadius: '6px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '3px',
                 flexShrink: 0
             }}>
-                <span style={{ width: '4px', height: '4px', backgroundColor: '#eab308', borderRadius: '50%' }} />
+                <span style={{ width: '4px', height: '4px', backgroundColor: '#fbbf24', borderRadius: '50%' }} />
                 {text}
             </span>
         );
@@ -149,19 +149,19 @@ const renderWarningPill = (deadlineDateStr: string | undefined, reworkMessage: s
         // Green warning (normal/on track)
         return (
             <span className="badge" style={{
-                backgroundColor: 'rgba(16, 185, 129, 0.15)', // Green background
-                color: '#10b981', // Green text
-                border: '1px solid rgba(16, 185, 129, 0.2)',
+                backgroundColor: 'rgba(52, 211, 153, 0.12)', // Green background
+                color: '#34d399', // Green text
+                border: '1px solid rgba(52, 211, 153, 0.2)',
                 fontSize: '10px',
                 padding: '1px 6px',
                 fontWeight: 700,
-                borderRadius: '4px',
+                borderRadius: '6px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '3px',
                 flexShrink: 0
             }}>
-                <span style={{ width: '4px', height: '4px', backgroundColor: '#10b981', borderRadius: '50%' }} />
+                <span style={{ width: '4px', height: '4px', backgroundColor: '#34d399', borderRadius: '50%' }} />
                 {lang === 'id' ? 'Normal' : 'Normal'}
             </span>
         );
@@ -599,17 +599,10 @@ function ItemCard({
 
     return (
         <div 
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            className="worker-item-card"
             style={{
-                backgroundColor: '#0f172a',
-                backgroundImage: 'linear-gradient(135deg, #111827 0%, #0b0f19 100%)',
-                border: isHovered ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(255, 255, 255, 0.05)',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                boxShadow: isHovered ? '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(59, 130, 246, 0.1)' : '0 4px 6px -1px rgba(0, 0, 0, 0.3)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+                borderColor: (item.po?.is_urgent || item.alerts?.some(a => a.severity === 'YELLOW' && !a.is_resolved)) ? 'rgba(251, 146, 60, 0.3)' : 'rgba(255, 255, 255, 0.06)',
+                boxShadow: (item.po?.is_urgent || item.alerts?.some(a => a.severity === 'YELLOW' && !a.is_resolved)) ? '0 4px 15px rgba(251, 146, 60, 0.08)' : '0 4px 6px -1px rgba(0, 0, 0, 0.3)',
             }}
         >
             {/* Card Header (Clickable to Toggle Drawer) */}
@@ -625,35 +618,106 @@ function ItemCard({
                     }
                 }}
                 style={{ 
-                    padding: '12px',
+                    padding: '14px 16px',
                     cursor: 'pointer',
                     userSelect: 'none',
                     transition: 'background-color 0.2s',
                     backgroundColor: isHovered ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
                 }}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
             >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                {/* Row 1: Item Name & Progress Info */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
                     <h3 style={{
-                        fontSize: '14px',
+                        fontSize: '15px',
                         fontWeight: 800,
                         margin: 0,
                         color: '#f8fafc',
-                        flex: 1,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+                        lineHeight: '1.35',
+                        wordBreak: 'break-word',
                     }}>
                         {item.item_name}
                     </h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                        <span style={{
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            padding: '2px 6px',
+                            borderRadius: '6px',
+                            backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                            color: '#818cf8',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                        }}>
+                            <span>{parseFloat(item.progress_percent).toFixed(0)}%</span>
+                            <span style={{ fontSize: '8px', color: '#a1a1aa', fontWeight: 'normal' }}>
+                                ({item.delivered_qty || 0}/{item.target_qty || 0})
+                            </span>
+                        </span>
+                        {/* Chevron Indicator */}
+                        <span style={{
+                            color: '#71717a',
+                            display: 'flex',
+                            alignItems: 'center',
+                        }}>
+                            {isExpanded ? (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="18 15 12 9 6 15"></polyline>
+                                </svg>
+                            ) : (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            )}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Row 2: Client & PO Details */}
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'baseline',
+                    fontSize: '11px',
+                    marginTop: '6px',
+                }}>
+                    <span style={{ color: '#818cf8', fontWeight: 600 }}>
+                        {item.po?.client_name || 'N/A'}
+                    </span>
+                    <span style={{ color: '#a1a1aa', textAlign: 'right' }}>
+                        {item.po?.po_number || ''}
+                    </span>
+                </div>
+
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'baseline',
+                    fontSize: '11px',
+                    marginTop: '2px',
+                    color: '#a1a1aa',
+                }}>
+                    <span>
+                        {formatDeadline(item.po?.global_deadline, language)}
+                    </span>
+                    <span style={{ color: '#a5b4fc', fontWeight: 600, textAlign: 'right' }}>
+                        {item.target_qty} pcs
+                    </span>
+                </div>
+
+                {/* Row 3: Badges */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px' }}>
                     {item.po?.is_urgent && (
                         <span style={{
                             fontSize: '9px',
                             fontWeight: 700,
                             padding: '1px 5px',
-                            borderRadius: '3px',
-                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                            color: '#ef4444',
-                            border: '1px solid rgba(239, 68, 68, 0.4)',
+                            borderRadius: '4px',
+                            backgroundColor: 'rgba(248, 113, 113, 0.12)',
+                            color: '#f87171',
+                            border: '1px solid rgba(248, 113, 113, 0.2)',
                             flexShrink: 0,
                         }}>
                             URGENT
@@ -663,9 +727,9 @@ function ItemCard({
                         fontSize: '9px',
                         fontWeight: 700,
                         padding: '1px 5px',
-                        borderRadius: '3px',
+                        borderRadius: '4px',
                         backgroundColor: 'rgba(255,255,255,0.06)',
-                        color: '#94a3b8',
+                        color: '#a1a1aa',
                         flexShrink: 0,
                     }}>
                         {item.item_type === 'MANUFACTURE' 
@@ -677,9 +741,9 @@ function ItemCard({
                             fontSize: '9px',
                             fontWeight: 700,
                             padding: '1px 5px',
-                            borderRadius: '3px',
-                            backgroundColor: item.drafter_status === 'APPROVED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(139, 92, 246, 0.15)',
-                            color: item.drafter_status === 'APPROVED' ? '#10b981' : '#a78bfa',
+                            borderRadius: '4px',
+                            backgroundColor: item.drafter_status === 'APPROVED' ? 'rgba(52, 211, 153, 0.12)' : 'rgba(139, 92, 246, 0.12)',
+                            color: item.drafter_status === 'APPROVED' ? '#34d399' : '#a78bfa',
                             flexShrink: 0,
                         }}>
                             {item.drafter_status === 'APPROVED' 
@@ -692,13 +756,13 @@ function ItemCard({
                             fontSize: '9px',
                             fontWeight: 700,
                             padding: '1px 5px',
-                            borderRadius: '3px',
-                            backgroundColor: item.purchasing_status === 'READY' ? 'rgba(16, 185, 129, 0.15)' :
-                                item.purchasing_status === 'PROSES' ? 'rgba(234, 179, 8, 0.15)' :
-                                'rgba(59, 130, 246, 0.1)',
-                            color: item.purchasing_status === 'READY' ? '#10b981' :
-                                item.purchasing_status === 'PROSES' ? '#eab308' :
-                                '#3b82f6',
+                            borderRadius: '4px',
+                            backgroundColor: item.purchasing_status === 'READY' ? 'rgba(52, 211, 153, 0.12)' :
+                                item.purchasing_status === 'PROSES' ? 'rgba(251, 191, 36, 0.12)' :
+                                'rgba(99, 102, 241, 0.12)',
+                            color: item.purchasing_status === 'READY' ? '#34d399' :
+                                item.purchasing_status === 'PROSES' ? '#fbbf24' :
+                                '#818cf8',
                             flexShrink: 0,
                         }}>
                             {item.purchasing_status === 'READY'
@@ -713,62 +777,6 @@ function ItemCard({
                         const reworkVal = reworkAlert ? (reworkAlert.message ? `Rework: ${reworkAlert.message}` : 'Rework') : null;
                         return renderWarningPill(item.po?.global_deadline, reworkVal, language);
                     })()}
-                    <span style={{
-                        fontSize: '9px',
-                        fontWeight: 700,
-                        padding: '1px 5px',
-                        borderRadius: '3px',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        color: '#3b82f6',
-                        flexShrink: 0,
-                        display: 'inline-flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '1px',
-                    }}>
-                        <span>{parseFloat(item.progress_percent).toFixed(0)}%</span>
-                        <span style={{ fontSize: '7.5px', color: '#64748b', fontWeight: 'normal' }}>
-                            ({item.delivered_qty || 0}/{item.target_qty || 0} pcs)
-                        </span>
-                    </span>
-                    {/* Chevron Indicator */}
-                    <span style={{
-                        color: '#64748b',
-                        display: 'flex',
-                        alignItems: 'center',
-                        marginLeft: '4px',
-                    }}>
-                        {isExpanded ? (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="18 15 12 9 6 15"></polyline>
-                            </svg>
-                        ) : (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                        )}
-                    </span>
-                </div>
-
-                {/* Meta Grid */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '1px 12px',
-                    fontSize: '11px',
-                }}>
-                    <span style={{ color: '#60a5fa', fontWeight: 600 }}>
-                        {item.po?.client_name || 'N/A'}
-                    </span>
-                    <span style={{ color: '#94a3b8', textAlign: 'right' }}>
-                        {item.po?.po_number || ''}
-                    </span>
-                    <span style={{ color: '#94a3b8' }}>
-                        {formatDeadline(item.po?.global_deadline, language)}
-                    </span>
-                    <span style={{ color: '#38bdf8', fontWeight: 600, textAlign: 'right' }}>
-                        {item.target_qty} pcs
-                    </span>
                 </div>
             </div>
 
@@ -793,11 +801,11 @@ function ItemCard({
                                     {userStages.map(stage => {
                                         const isActive = activeStage?.stage.id === stage.id;
                                         const stageLower = stage.stage_name.toLowerCase();
-                                        let color = '#64748b';
-                                        if (stageLower.includes('machining') || stageLower.includes('cnc')) color = '#3b82f6';
+                                        let color = '#71717a';
+                                        if (stageLower.includes('machining') || stageLower.includes('cnc')) color = '#6366f1';
                                         else if (stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) color = '#8b5cf6';
-                                        else if (stageLower === 'qc') color = '#f59e0b';
-                                        else if (stageLower === 'delivery' || stageLower === 'pengiriman') color = '#10b981';
+                                        else if (stageLower === 'qc') color = '#fbbf24';
+                                        else if (stageLower === 'delivery' || stageLower === 'pengiriman') color = '#34d399';
 
                                         return (
                                             <button
@@ -805,10 +813,10 @@ function ItemCard({
                                                 onClick={() => selectStage(stage)}
                                                 style={{
                                                     padding: '4px 10px',
-                                                    borderRadius: '4px',
+                                                    borderRadius: '6px',
                                                     border: isActive ? '1px solid ' + color : '1px solid rgba(255,255,255,0.08)',
                                                     backgroundColor: isActive ? color + '20' : 'transparent',
-                                                    color: isActive ? color : '#94a3b8',
+                                                    color: isActive ? color : '#a1a1aa',
                                                     fontSize: '10px',
                                                     fontWeight: 700,
                                                     cursor: isStageLocked(item, stage.stage_name, userRole) ? 'not-allowed' : 'pointer',
@@ -843,10 +851,17 @@ function ItemCard({
 
                                     return (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
-                                            <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                            <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: '0 0 2px 0' }}>
                                                 {language === 'en' ? 'Drafter Status' : 'Status Drafter'}
                                             </h4>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                                            <div style={{
+                                                display: 'flex',
+                                                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                                padding: '4px',
+                                                borderRadius: '12px',
+                                                border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                gap: '4px'
+                                            }}>
                                                 {statuses.map((status) => {
                                                     const isActive = currentStatus === status;
                                                     const isDisabled = currentIdx !== -1 && statuses.indexOf(status) < currentIdx;
@@ -863,15 +878,17 @@ function ItemCard({
                                                             }}
                                                             disabled={isDisabled}
                                                             style={{
+                                                                flex: 1,
                                                                 padding: '12px 4px',
-                                                                borderRadius: '6px',
+                                                                borderRadius: '8px',
                                                                 border: 'none',
-                                                                backgroundColor: isActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
-                                                                color: '#fff',
+                                                                background: isActive ? '#6366f1' : 'transparent',
+                                                                color: isActive ? '#fafafa' : '#a1a1aa',
                                                                 fontSize: '12px',
                                                                 fontWeight: 700,
                                                                 cursor: isDisabled ? 'not-allowed' : 'pointer',
                                                                 opacity: isDisabled ? 0.3 : 1,
+                                                                boxShadow: isActive ? '0 4px 12px rgba(99, 102, 241, 0.3)' : 'none',
                                                             }}
                                                         >
                                                             {status}
@@ -895,10 +912,17 @@ function ItemCard({
 
                                     return (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
-                                            <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                            <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: '0 0 2px 0' }}>
                                                 {language === 'en' ? 'Purchasing Status' : 'Status Pembelian'}
                                             </h4>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                                            <div style={{
+                                                display: 'flex',
+                                                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                                padding: '4px',
+                                                borderRadius: '12px',
+                                                border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                gap: '4px'
+                                            }}>
                                                 {statuses.map((status) => {
                                                     const isActive = currentStatus === status;
                                                     const isDisabled = currentIdx !== -1 && statuses.indexOf(status) < currentIdx;
@@ -915,15 +939,17 @@ function ItemCard({
                                                             }}
                                                             disabled={isDisabled}
                                                             style={{
+                                                                flex: 1,
                                                                 padding: '12px 4px',
-                                                                borderRadius: '6px',
+                                                                borderRadius: '8px',
                                                                 border: 'none',
-                                                                backgroundColor: isActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
-                                                                color: '#fff',
+                                                                background: isActive ? '#6366f1' : 'transparent',
+                                                                color: isActive ? '#fafafa' : '#a1a1aa',
                                                                 fontSize: '12px',
                                                                 fontWeight: 700,
                                                                 cursor: isDisabled ? 'not-allowed' : 'pointer',
                                                                 opacity: isDisabled ? 0.3 : 1,
+                                                                boxShadow: isActive ? '0 4px 12px rgba(99, 102, 241, 0.3)' : 'none',
                                                             }}
                                                         >
                                                             {status}
@@ -946,10 +972,10 @@ function ItemCard({
                                                     fontSize: '10px',
                                                     fontWeight: 700,
                                                     padding: '2px 8px',
-                                                    borderRadius: '4px',
-                                                    backgroundColor: isInvoiced ? 'rgba(16, 185, 129, 0.15)' : 'rgba(100, 116, 139, 0.15)',
-                                                    color: isInvoiced ? '#10b981' : '#94a3b8',
-                                                    border: '1px solid ' + (isInvoiced ? 'rgba(16, 185, 129, 0.3)' : 'rgba(100, 116, 139, 0.2)'),
+                                                    borderRadius: '6px',
+                                                    backgroundColor: isInvoiced ? 'rgba(52, 211, 153, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+                                                    color: isInvoiced ? '#34d399' : '#a1a1aa',
+                                                    border: '1px solid ' + (isInvoiced ? 'rgba(52, 211, 153, 0.2)' : 'rgba(255, 255, 255, 0.06)'),
                                                 }}>
                                                     {t.invoice_label}: {isInvoiced ? t.invoiced : t.uninvoiced}
                                                 </span>
@@ -957,10 +983,10 @@ function ItemCard({
                                                     fontSize: '10px',
                                                     fontWeight: 700,
                                                     padding: '2px 8px',
-                                                    borderRadius: '4px',
-                                                    backgroundColor: isPaid ? 'rgba(16, 185, 129, 0.15)' : 'rgba(100, 116, 139, 0.15)',
-                                                    color: isPaid ? '#10b981' : '#94a3b8',
-                                                    border: '1px solid ' + (isPaid ? 'rgba(16, 185, 129, 0.3)' : 'rgba(100, 116, 139, 0.2)'),
+                                                    borderRadius: '6px',
+                                                    backgroundColor: isPaid ? 'rgba(52, 211, 153, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+                                                    color: isPaid ? '#34d399' : '#a1a1aa',
+                                                    border: '1px solid ' + (isPaid ? 'rgba(52, 211, 153, 0.2)' : 'rgba(255, 255, 255, 0.06)'),
                                                 }}>
                                                     {t.payment_label}: {isPaid ? t.paid : t.unpaid}
                                                 </span>
@@ -993,11 +1019,11 @@ function ItemCard({
                                                     }}
                                                     style={{
                                                         padding: '10px',
-                                                        backgroundColor: '#3b82f6',
-                                                        color: '#fff',
+                                                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                                                        color: '#fafafa',
                                                         fontWeight: 700,
                                                         border: 'none',
-                                                        borderRadius: '6px',
+                                                        borderRadius: '10px',
                                                         fontSize: '12px',
                                                         cursor: 'pointer',
                                                         textAlign: 'center',
@@ -1008,10 +1034,10 @@ function ItemCard({
                                             ) : isPaid ? (
                                                 <div style={{
                                                     padding: '10px',
-                                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                                                    color: '#10b981',
-                                                    border: '1px solid rgba(16, 185, 129, 0.2)',
-                                                    borderRadius: '6px',
+                                                    backgroundColor: 'rgba(52, 211, 153, 0.12)',
+                                                    color: '#34d399',
+                                                    border: '1px solid rgba(52, 211, 153, 0.2)',
+                                                    borderRadius: '8px',
                                                     fontSize: '12px',
                                                     fontWeight: 700,
                                                     textAlign: 'center',
@@ -1045,11 +1071,11 @@ function ItemCard({
                                                     }}
                                                     style={{
                                                         padding: '10px',
-                                                        backgroundColor: '#10b981',
+                                                        backgroundColor: '#34d399',
                                                         color: '#fff',
                                                         fontWeight: 700,
                                                         border: 'none',
-                                                        borderRadius: '6px',
+                                                        borderRadius: '10px',
                                                         fontSize: '12px',
                                                         cursor: 'pointer',
                                                         textAlign: 'center',
@@ -1089,9 +1115,9 @@ function ItemCard({
                                                     style={{
                                                         padding: '6px',
                                                         backgroundColor: 'transparent',
-                                                        color: '#64748b',
-                                                        border: '1px solid rgba(100, 116, 139, 0.2)',
-                                                        borderRadius: '6px',
+                                                        color: '#71717a',
+                                                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                                                        borderRadius: '8px',
                                                         fontSize: '10px',
                                                         fontWeight: 600,
                                                         cursor: 'pointer',
@@ -1131,7 +1157,7 @@ function ItemCard({
                                                             padding: '12px 6px',
                                                             borderRadius: '6px',
                                                             border: 'none',
-                                                            backgroundColor: isActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
+                                                            backgroundColor: isActive ? '#6366f1' : 'rgba(255, 255, 255, 0.05)',
                                                             color: '#fff',
                                                             fontSize: '12px',
                                                             fontWeight: 700,
@@ -1169,7 +1195,7 @@ function ItemCard({
                                                             padding: '12px 4px',
                                                             borderRadius: '6px',
                                                             border: 'none',
-                                                            backgroundColor: isActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
+                                                            backgroundColor: isActive ? '#6366f1' : 'rgba(255, 255, 255, 0.05)',
                                                             color: '#fff',
                                                             fontSize: '12px',
                                                             fontWeight: 700,
@@ -1192,62 +1218,94 @@ function ItemCard({
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                gap: '8px',
-                                                marginBottom: '8px',
+                                                gap: '12px',
+                                                marginBottom: '12px',
+                                                padding: '8px 12px',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                                                borderRadius: '12px',
+                                                border: '1px solid rgba(255, 255, 255, 0.04)',
                                             }}>
-                                                <div style={{ textAlign: 'center' }}>
-                                                    <div style={{
-                                                        fontSize: '22px',
-                                                        fontWeight: 800,
-                                                        lineHeight: 1,
-                                                        marginBottom: '2px',
-                                                    }}>
-                                                        {activeStage.stage.completed_qty}
+                                                <div style={{ marginRight: 'auto', paddingLeft: '4px' }}>
+                                                    <div style={{ fontSize: '10px', color: '#a1a1aa', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                                                        {language === 'en' ? 'Completed' : 'Selesai'}
                                                     </div>
-                                                    <div style={{ fontSize: '10px', color: '#64748b' }}>
-                                                        / {item.target_qty}
+                                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '2px' }}>
+                                                        <span style={{ fontSize: '24px', fontWeight: 800, color: '#fafafa', lineHeight: '1' }}>
+                                                            {activeStage.stage.completed_qty}
+                                                        </span>
+                                                        <span style={{ fontSize: '12px', color: '#71717a' }}>
+                                                            / {item.target_qty}
+                                                        </span>
                                                     </div>
                                                 </div>
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    max={item.target_qty}
-                                                    value={manualQtyInput}
-                                                    onChange={(e) => setManualQtyInput(e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
-                                                    placeholder={`0-${item.target_qty}`}
-                                                    style={{
-                                                        width: '64px',
-                                                        padding: '8px 6px',
-                                                        borderRadius: '6px',
-                                                        border: '1px solid rgba(255,255,255,0.1)',
-                                                        backgroundColor: 'rgba(0,0,0,0.3)',
-                                                        color: '#fff',
-                                                        fontSize: '14px',
-                                                        fontWeight: 700,
-                                                        textAlign: 'center',
-                                                        outline: 'none',
-                                                    }}
-                                                />
-                                                <button
-                                                    onClick={() => handleStep(1)}
-                                                    style={{
-                                                        width: '40px',
-                                                        height: '40px',
-                                                        borderRadius: '20px',
-                                                        border: 'none',
-                                                        backgroundColor: '#10b981',
-                                                        color: '#fff',
-                                                        fontSize: '18px',
-                                                        fontWeight: 700,
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                    }}
-                                                >
-                                                    +
-                                                </button>
+                                                
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleStep(-1)}
+                                                        style={{
+                                                            width: '44px',
+                                                            height: '44px',
+                                                            borderRadius: '12px',
+                                                            border: '1px solid rgba(248, 113, 113, 0.2)',
+                                                            backgroundColor: 'rgba(248, 113, 113, 0.08)',
+                                                            color: '#f87171',
+                                                            fontSize: '20px',
+                                                            fontWeight: 700,
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                        }}
+                                                        title="Decrease"
+                                                    >
+                                                        −
+                                                    </button>
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        max={item.target_qty}
+                                                        value={manualQtyInput}
+                                                        onChange={(e) => setManualQtyInput(e.target.value)}
+                                                        onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
+                                                        placeholder={`Set`}
+                                                        style={{
+                                                            width: '56px',
+                                                            height: '44px',
+                                                            borderRadius: '12px',
+                                                            border: '1px solid rgba(255,255,255,0.08)',
+                                                            backgroundColor: '#0a0a0c',
+                                                            color: '#fafafa',
+                                                            fontSize: '14px',
+                                                            fontWeight: 700,
+                                                            textAlign: 'center',
+                                                            outline: 'none',
+                                                            boxSizing: 'border-box',
+                                                        }}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleStep(1)}
+                                                        style={{
+                                                            width: '44px',
+                                                            height: '44px',
+                                                            borderRadius: '12px',
+                                                            border: 'none',
+                                                            backgroundColor: '#34d399',
+                                                            color: '#18181b',
+                                                            fontSize: '20px',
+                                                            fontWeight: 700,
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            boxShadow: '0 4px 12px rgba(52, 211, 153, 0.3)',
+                                                        }}
+                                                        title="Increase"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
                                             </div>
                                         )}
 
@@ -1275,8 +1333,8 @@ function ItemCard({
                                                         padding: '16px 8px',
                                                         borderRadius: '8px',
                                                         border: 'none',
-                                                        backgroundColor: '#ef4444',
-                                                        color: '#fff',
+                                                        backgroundColor: '#f87171',
+                                                        color: '#ffffff',
                                                         fontSize: '14px',
                                                         fontWeight: 800,
                                                         cursor: 'pointer',
@@ -1290,8 +1348,8 @@ function ItemCard({
                                                         padding: '16px 8px',
                                                         borderRadius: '8px',
                                                         border: 'none',
-                                                        backgroundColor: '#10b981',
-                                                        color: '#fff',
+                                                        backgroundColor: '#34d399',
+                                                        color: '#ffffff',
                                                         fontSize: '14px',
                                                         fontWeight: 800,
                                                         cursor: 'pointer',
@@ -1322,7 +1380,7 @@ function ItemCard({
                                                                 borderRadius: '6px',
                                                                 border: 'none',
                                                                 backgroundColor: currentPct === pct
-                                                                    ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
+                                                                    ? '#6366f1' : 'rgba(255, 255, 255, 0.05)',
                                                                 color: '#fff',
                                                                 fontSize: '12px',
                                                                 fontWeight: 700,
@@ -1346,10 +1404,10 @@ function ItemCard({
                                                     style={{
                                                         width: '100%',
                                                         padding: '8px 12px',
-                                                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                                        color: '#ef4444',
-                                                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                                                        borderRadius: '6px',
+                                                        backgroundColor: 'rgba(248, 113, 113, 0.12)',
+                                                        color: '#f87171',
+                                                        border: '1px solid rgba(248, 113, 113, 0.2)',
+                                                        borderRadius: '8px',
                                                         fontSize: '11px',
                                                         fontWeight: 700,
                                                         cursor: 'pointer',
@@ -1360,17 +1418,16 @@ function ItemCard({
                                                 </button>
                                             </div>
                                         )}
-
                                         <div style={{ display: 'flex', gap: '6px' }}>
                                             <button
                                                 onClick={() => setShowKendala(prev => !prev)}
                                                 style={{
                                                     flex: 1,
                                                     padding: '8px',
-                                                    backgroundColor: showKendala ? 'rgba(239, 68, 68, 0.25)' : 'rgba(239, 68, 68, 0.1)',
-                                                    color: '#ef4444',
-                                                    border: '1px solid rgba(239, 68, 68, 0.25)',
-                                                    borderRadius: '6px',
+                                                    backgroundColor: showKendala ? 'rgba(248, 113, 113, 0.22)' : 'rgba(248, 113, 113, 0.1)',
+                                                    color: '#f87171',
+                                                    border: '1px solid rgba(248, 113, 113, 0.2)',
+                                                    borderRadius: '8px',
                                                     fontSize: '11px',
                                                     fontWeight: 700,
                                                     cursor: 'pointer',
@@ -1388,10 +1445,10 @@ function ItemCard({
                                                     style={{
                                                         flex: 1,
                                                         padding: '8px',
-                                                        backgroundColor: showQc ? 'rgba(234, 179, 8, 0.25)' : 'rgba(234, 179, 8, 0.1)',
-                                                        color: '#eab308',
-                                                        border: '1px solid rgba(234, 179, 8, 0.25)',
-                                                        borderRadius: '6px',
+                                                        backgroundColor: showQc ? 'rgba(251, 191, 36, 0.22)' : 'rgba(251, 191, 36, 0.1)',
+                                                        color: '#fbbf24',
+                                                        border: '1px solid rgba(251, 191, 36, 0.2)',
+                                                        borderRadius: '8px',
                                                         fontSize: '11px',
                                                         fontWeight: 700,
                                                         cursor: 'pointer',
@@ -1414,10 +1471,10 @@ function ItemCard({
                                             <form onSubmit={submitKendala} style={{
                                                 marginTop: '8px',
                                                 padding: '10px',
-                                                backgroundColor: 'rgba(0,0,0,0.2)',
-                                                borderRadius: '8px',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                                                borderRadius: '10px',
                                             }}>
-                                                <label style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '4px', display: 'block' }}>
+                                                <label style={{ fontSize: '10px', color: '#a1a1aa', marginBottom: '4px', display: 'block' }}>
                                                     {t.failure_type_label}
                                                 </label>
                                                 <select
@@ -1426,10 +1483,10 @@ function ItemCard({
                                                     style={{
                                                         width: '100%',
                                                         padding: '8px 10px',
-                                                        backgroundColor: '#090d16',
-                                                        color: '#fff',
-                                                        border: '1px solid rgba(255,255,255,0.1)',
-                                                        borderRadius: '6px',
+                                                        backgroundColor: '#0a0a0c',
+                                                        color: '#fafafa',
+                                                        border: '1px solid rgba(255,255,255,0.08)',
+                                                        borderRadius: '8px',
                                                         fontSize: '12px',
                                                         outline: 'none',
                                                         marginBottom: '8px',
@@ -1440,7 +1497,7 @@ function ItemCard({
                                                     <option value="Operator Sick">{t.operator_sick}</option>
                                                     <option value="Power Outage">{t.power_outage}</option>
                                                 </select>
-                                                <label style={{ fontSize: '10px', color: '#94a3b8', marginTop: '8px', marginBottom: '4px', display: 'block' }}>
+                                                <label style={{ fontSize: '10px', color: '#a1a1aa', marginTop: '8px', marginBottom: '4px', display: 'block' }}>
                                                     {language === 'en' ? 'Note / Description' : 'Catatan / Deskripsi'}
                                                 </label>
                                                 <textarea
@@ -1450,10 +1507,10 @@ function ItemCard({
                                                     style={{
                                                         width: '100%',
                                                         padding: '8px 10px',
-                                                        backgroundColor: '#090d16',
-                                                        color: '#fff',
-                                                        border: '1px solid rgba(255,255,255,0.1)',
-                                                        borderRadius: '6px',
+                                                        backgroundColor: '#0a0a0c',
+                                                        color: '#fafafa',
+                                                        border: '1px solid rgba(255,255,255,0.08)',
+                                                        borderRadius: '8px',
                                                         fontSize: '12px',
                                                         outline: 'none',
                                                         marginBottom: '8px',
@@ -1469,7 +1526,7 @@ function ItemCard({
                                                         style={{
                                                             padding: '6px 12px',
                                                             backgroundColor: 'transparent',
-                                                            color: '#94a3b8',
+                                                            color: '#a1a1aa',
                                                             border: 'none',
                                                             fontSize: '11px',
                                                             cursor: 'pointer',
@@ -1481,9 +1538,9 @@ function ItemCard({
                                                         type="submit"
                                                         style={{
                                                             padding: '6px 14px',
-                                                            backgroundColor: '#ef4444',
+                                                            backgroundColor: '#f87171',
                                                             color: '#fff',
-                                                            borderRadius: '6px',
+                                                            borderRadius: '8px',
                                                             border: 'none',
                                                             fontWeight: 600,
                                                             fontSize: '11px',
@@ -1500,10 +1557,10 @@ function ItemCard({
                                             <form onSubmit={submitQcRework} style={{
                                                 marginTop: '8px',
                                                 padding: '10px',
-                                                backgroundColor: 'rgba(0,0,0,0.2)',
-                                                borderRadius: '8px',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                                                borderRadius: '10px',
                                             }}>
-                                                <label style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '4px', display: 'block' }}>
+                                                <label style={{ fontSize: '10px', color: '#a1a1aa', marginBottom: '4px', display: 'block' }}>
                                                     {t.reject_qty_label}
                                                 </label>
                                                 <input
@@ -1514,10 +1571,10 @@ function ItemCard({
                                                     style={{
                                                         width: '100%',
                                                         padding: '8px 10px',
-                                                        backgroundColor: '#090d16',
-                                                        color: '#fff',
-                                                        border: '1px solid rgba(255,255,255,0.1)',
-                                                        borderRadius: '6px',
+                                                        backgroundColor: '#0a0a0c',
+                                                        color: '#fafafa',
+                                                        border: '1px solid rgba(255,255,255,0.08)',
+                                                        borderRadius: '8px',
                                                         fontSize: '12px',
                                                         outline: 'none',
                                                         marginBottom: '8px',
@@ -1530,7 +1587,7 @@ function ItemCard({
                                                         style={{
                                                             padding: '6px 12px',
                                                             backgroundColor: 'transparent',
-                                                            color: '#94a3b8',
+                                                            color: '#a1a1aa',
                                                             border: 'none',
                                                             fontSize: '11px',
                                                             cursor: 'pointer',
@@ -1542,9 +1599,9 @@ function ItemCard({
                                                         type="submit"
                                                         style={{
                                                             padding: '6px 14px',
-                                                            backgroundColor: '#eab308',
-                                                            color: '#000',
-                                                            borderRadius: '6px',
+                                                            backgroundColor: '#fbbf24',
+                                                            color: '#18181b',
+                                                            borderRadius: '8px',
                                                             border: 'none',
                                                             fontWeight: 700,
                                                             fontSize: '11px',
@@ -1572,10 +1629,10 @@ function ItemCard({
                                     marginTop: '12px',
                                     width: '100%',
                                     padding: '8px',
-                                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                                    color: '#10b981',
-                                    border: '1px solid rgba(16, 185, 129, 0.3)',
-                                    borderRadius: '6px',
+                                    backgroundColor: 'rgba(52, 211, 153, 0.12)',
+                                    color: '#34d399',
+                                    border: '1px solid rgba(52, 211, 153, 0.2)',
+                                    borderRadius: '8px',
                                     fontSize: '11px',
                                     fontWeight: 700,
                                     cursor: 'pointer',
@@ -1620,48 +1677,43 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
     };
 
     return (
-        <div style={{
-            minHeight: '100dvh',
-            backgroundColor: '#090d16',
+        <div className="dashboard-root" style={{
+            backgroundColor: '#09090b',
             fontFamily: 'Inter, sans-serif',
-            color: '#f8fafc',
-            display: 'flex',
-            flexDirection: 'column',
+            color: '#fafafa',
         }}>
             {/* Header */}
-            <header style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '16px 20px',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                backgroundColor: 'rgba(9, 13, 22, 0.3)',
+            <header className="responsive-header" style={{
+                padding: '12px 16px',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                backgroundColor: 'rgba(9, 9, 11, 0.6)',
                 backdropFilter: 'blur(8px)',
                 flexShrink: 0,
             }}>
                 <div>
-                    <div className="greeting-name" style={{ fontSize: '13px', color: '#60a5fa', fontWeight: 600, marginBottom: '2px' }}>
+                    <div className="greeting-name" style={{ fontSize: '13px', color: '#818cf8', fontWeight: 600, marginBottom: '2px' }}>
                         {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
                     </div>
                     <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.floor_terminal}</h1>
-                    <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0 0' }}>
+                    <p style={{ fontSize: '12px', color: '#71717a', margin: '2px 0 0 0' }}>
                         {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         {' · '}
                         {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '2px', borderRadius: '6px', marginRight: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '4px' }}>
+                    {/* Left: Language switcher */}
+                    <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(255, 255, 255, 0.04)', padding: '2px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
                         <button
                             onClick={() => changeLanguage('en')}
                             style={{
-                                padding: '4px 8px',
-                                backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
+                                padding: '6px 12px',
+                                backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
                                 border: 'none',
-                                borderRadius: '4px',
+                                borderRadius: '6px',
                                 color: '#fff',
                                 fontWeight: 600,
-                                fontSize: '10px',
+                                fontSize: '11px',
                                 cursor: 'pointer',
                             }}
                         >
@@ -1670,13 +1722,13 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
                         <button
                             onClick={() => changeLanguage('id')}
                             style={{
-                                padding: '4px 8px',
-                                backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
+                                padding: '6px 12px',
+                                backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
                                 border: 'none',
-                                borderRadius: '4px',
+                                borderRadius: '6px',
                                 color: '#fff',
                                 fontWeight: 600,
-                                fontSize: '10px',
+                                fontSize: '11px',
                                 cursor: 'pointer',
                             }}
                         >
@@ -1684,61 +1736,71 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
                         </button>
                     </div>
 
-                    {/* Trouble Reports Button */}
-                    <a
-                        href={`/c/${slug}/trouble-reports`}
-                        style={{
-                            padding: '8px',
-                            backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                            color: '#ef4444',
-                            border: '1px solid rgba(239, 68, 68, 0.15)',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            lineHeight: '1',
-                            display: 'flex',
-                            textDecoration: 'none',
-                        }}
-                        title={language === 'en' ? 'Trouble Reports' : 'Laporan Kendala'}
-                    >
-                        <AlertTriangle size={16} />
-                    </a>
+                    {/* Right: Actions */}
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        {/* Trouble Reports Button */}
+                        <a
+                            href={`/c/${slug}/trouble-reports`}
+                            style={{
+                                width: '38px',
+                                height: '38px',
+                                backgroundColor: 'rgba(248, 113, 113, 0.12)',
+                                color: '#f87171',
+                                border: '1px solid rgba(248, 113, 113, 0.2)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                textDecoration: 'none',
+                            }}
+                            title={language === 'en' ? 'Trouble Reports' : 'Laporan Kendala'}
+                        >
+                            <AlertTriangle size={18} />
+                        </a>
 
-                    {/* Profile Button */}
-                    <a
-                        href={`/c/${slug}/profile`}
-                        style={{
-                            padding: '8px',
-                            backgroundColor: 'rgba(255,255,255,0.05)',
-                            color: '#94a3b8',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            lineHeight: '1',
-                            display: 'flex',
-                            textDecoration: 'none',
-                        }}
-                        title={language === 'en' ? 'Profile' : 'Profil'}
-                    >
-                        <Settings size={16} />
-                    </a>
+                        {/* Profile Button */}
+                        <a
+                            href={`/c/${slug}/profile`}
+                            style={{
+                                width: '38px',
+                                height: '38px',
+                                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                                color: '#a1a1aa',
+                                border: '1px solid rgba(255, 255, 255, 0.06)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                textDecoration: 'none',
+                            }}
+                            title={language === 'en' ? 'Profile' : 'Profil'}
+                        >
+                            <Settings size={18} />
+                        </a>
 
-                    <button
-                        onClick={() => router.post('/logout')}
-                        style={{
-                            padding: '8px 14px',
-                            backgroundColor: '#ef4444',
-                            color: '#fff',
-                            fontWeight: 600,
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                        }}
-                    >
-                        {t.exit_terminal}
-                    </button>
+                        <button
+                            onClick={() => router.post('/logout')}
+                            style={{
+                                height: '38px',
+                                padding: '0 16px',
+                                backgroundColor: '#f87171',
+                                color: '#fff',
+                                fontWeight: 700,
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 4px 12px rgba(248, 113, 113, 0.2)',
+                            }}
+                        >
+                            {t.exit_terminal}
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -1750,7 +1812,7 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
                 WebkitOverflowScrolling: 'touch',
             }}>
                 {items.length === 0 ? (
-                    <p style={{ color: '#64748b', padding: '24px', textAlign: 'center', fontSize: '14px' }}>
+                    <p style={{ color: '#71717a', padding: '24px', textAlign: 'center', fontSize: '14px' }}>
                         {userRole === 'QC' ? t.no_qc_items : userRole === 'DELIVERY' ? t.no_delivery_items : userRole === 'FINANCE' ? t.no_finance_items : t.no_active_items}
                     </p>
                 ) : (
