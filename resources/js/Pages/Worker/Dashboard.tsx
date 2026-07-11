@@ -464,6 +464,7 @@ function ItemCard({
             payment_status: paymentStatus,
         }, {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: (page) => {
                 const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
                 if (updatedItem) {
@@ -492,6 +493,7 @@ function ItemCard({
             completed_qty: newQty
         }, {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: (page) => {
                 const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
                 if (updatedItem) {
@@ -516,6 +518,7 @@ function ItemCard({
             completed_qty: clampedQty
         }, {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: (page) => {
                 const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
                 if (updatedItem) {
@@ -532,6 +535,7 @@ function ItemCard({
         if (!activeStage) return;
         router.post(`/c/${slug}/progress/${activeStage.stage.id}/cancel-last-update`, {}, {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: (page) => {
                 const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
                 if (updatedItem) {
@@ -550,6 +554,7 @@ function ItemCard({
             progress_percent: percent
         }, {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: (page) => {
                 const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
                 if (updatedItem) {
@@ -570,6 +575,7 @@ function ItemCard({
             note: kendalaNote,
         }, {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: () => {
                 setShowKendala(false);
                 setKendalaNote('');
@@ -585,6 +591,7 @@ function ItemCard({
             reject_qty: parseInt(rejectQty, 10)
         }, {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: () => {
                 setShowQc(false);
                 setActiveStage(null);
@@ -882,6 +889,7 @@ function ItemCard({
                                                                     drafter_status: status,
                                                                 }, {
                                                                     preserveScroll: true,
+                                                                    preserveState: true,
                                                                 });
                                                             }}
                                                             disabled={isDisabled}
@@ -943,6 +951,7 @@ function ItemCard({
                                                                     purchasing_status: status,
                                                                 }, {
                                                                     preserveScroll: true,
+                                                                    preserveState: true,
                                                                 });
                                                             }}
                                                             disabled={isDisabled}
@@ -1008,6 +1017,7 @@ function ItemCard({
                                                             payment_status: 'UNPAID',
                                                         }, {
                                                             preserveScroll: true,
+                                                            preserveState: true,
                                                             onSuccess: (page) => {
                                                                 const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
                                                                 if (updatedItem) {
@@ -1060,6 +1070,7 @@ function ItemCard({
                                                             payment_status: 'PAID',
                                                         }, {
                                                             preserveScroll: true,
+                                                            preserveState: true,
                                                             onSuccess: (page) => {
                                                                 const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
                                                                 if (updatedItem) {
@@ -1103,6 +1114,7 @@ function ItemCard({
                                                             payment_status: newPayment,
                                                         }, {
                                                             preserveScroll: true,
+                                                            preserveState: true,
                                                             onSuccess: (page) => {
                                                                 const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
                                                                 if (updatedItem) {
@@ -1331,6 +1343,7 @@ function ItemCard({
                                                             reject_qty: 1
                                                         }, {
                                                             preserveScroll: true,
+                                                            preserveState: true,
                                                             onSuccess: () => {
                                                                 setShowQc(false);
                                                                 setActiveStage(null);
