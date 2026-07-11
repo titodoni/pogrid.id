@@ -2125,20 +2125,20 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                                 if (isDesign) {
                                                                                                     const pct = parseFloat(stage.progress_percent);
                                                                                                     if (stage.status === 'COMPLETED' || pct >= 100) {
-                                                                                                        progressText = language === 'id' ? 'Disetujui' : 'Approved';
+                                                                                                        progressText = language === 'id' ? 'Approved' : 'Approved';
                                                                                                     } else if (pct > 0) {
-                                                                                                        progressText = language === 'id' ? 'Gambar' : 'Drawing';
+                                                                                                        progressText = language === 'id' ? 'Digambar' : 'Drawing';
                                                                                                     } else {
                                                                                                         progressText = 'Pending';
                                                                                                     }
                                                                                                 } else if (isMaterial) {
                                                                                                     const pct = parseFloat(stage.progress_percent);
                                                                                                     if (stage.status === 'COMPLETED' || pct >= 100) {
-                                                                                                        progressText = language === 'id' ? 'Selesai' : 'Complete';
+                                                                                                        progressText = language === 'id' ? 'Ready' : 'Ready';
                                                                                                     } else if (pct >= 60) {
-                                                                                                        progressText = language === 'id' ? 'Proses' : 'Process';
+                                                                                                        progressText = language === 'id' ? 'Terkirim' : 'Process';
                                                                                                     } else if (pct >= 30) {
-                                                                                                        progressText = language === 'id' ? 'Pesan' : 'Order';
+                                                                                                        progressText = language === 'id' ? 'Dipesan' : 'Ordered';
                                                                                                     } else {
                                                                                                         progressText = 'Pending';
                                                                                                     }
