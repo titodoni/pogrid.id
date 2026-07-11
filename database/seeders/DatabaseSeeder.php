@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             'PRODUCTION' => Role::firstOrCreate(['name' => 'PRODUCTION'], ['display_name' => 'Helper', 'level' => 'production']),
             'QC' => Role::firstOrCreate(['name' => 'QC'], ['display_name' => 'QC Inspector', 'level' => 'production']),
             'DELIVERY' => Role::firstOrCreate(['name' => 'DELIVERY'], ['display_name' => 'Delivery', 'level' => 'production']),
+            'FINANCE' => Role::firstOrCreate(['name' => 'FINANCE'], ['display_name' => 'Finance', 'level' => 'production']),
             'STAFF' => Role::firstOrCreate(['name' => 'STAFF'], ['display_name' => 'Staff', 'level' => 'office']),
         ];
 
@@ -183,7 +184,7 @@ class DatabaseSeeder extends Seeder
         Item::create([
             'tenant_id' => $tenant->id,
             'po_id' => $po1->id,
-            'item_name' => 'Shaft S45C (CNC + Fabrication)',
+            'item_name' => 'Shaft S45C',
             'target_qty' => 10,
             'item_type' => 'MANUFACTURE',
             'required_stages' => ['Machining', 'Fabrication'],
@@ -193,7 +194,7 @@ class DatabaseSeeder extends Seeder
         Item::create([
             'tenant_id' => $tenant->id,
             'po_id' => $po1->id,
-            'item_name' => 'Flange Plate (CNC)',
+            'item_name' => 'Flange Plate',
             'target_qty' => 20,
             'item_type' => 'MANUFACTURE',
             'required_stages' => ['Machining'],
@@ -203,7 +204,7 @@ class DatabaseSeeder extends Seeder
         Item::create([
             'tenant_id' => $tenant->id,
             'po_id' => $po2->id,
-            'item_name' => 'Special Bracket (CNC + Fabrication)',
+            'item_name' => 'Special Bracket',
             'target_qty' => 1,
             'item_type' => 'MANUFACTURE',
             'required_stages' => ['Machining', 'Fabrication'],

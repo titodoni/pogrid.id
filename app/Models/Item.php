@@ -62,4 +62,9 @@ class Item extends Model
     {
         return $this->hasMany(DoItem::class);
     }
+
+    public function getItemNameAttribute($value): string
+    {
+        return trim(preg_replace('/\s*\((cnc|fabrication|bubut|fab|gambar|design|drawing|draft|material|purchasing|qc|delivery)[^)]*\)/i', '', $value));
+    }
 }
