@@ -36,6 +36,10 @@ We have successfully overhauled the Owner Matrix Dashboard, Worker Floor Dashboa
 *   **Interactive Summary Bar Pills**: Converted the static text summary pills (Issues, Delayed, Closing, Rework, Stuck) into interactive button elements. Clicking any pill switches to the corresponding tab and applies filters automatically (e.g., clicking "Rework" opens the Active tab and applies the "Marked" filter).
 *   **Compact Single-Row Header**: Redesigned the main Owner header on mobile into a grid row, shrinking buttons and hiding the date/time display to save 50px of vertical viewport height.
 *   **Truncated Terminal URL Chip**: Clamped the floor terminal URL element to truncate with ellipsis (`text-overflow: ellipsis`) and flex-shrink properly so the page does not overflow horizontally.
+*   **PO & Item Directory Mobile Cards**: Designed a custom stacked card list layout for mobile viewports, avoiding wide table horizontal overflows by displaying PO info, item name, progress badges, deadline dates, and active delay notes cleanly.
+*   **Bottleneck Analyzer Mobile Cards**: Split the Stage Analyzer table into a desktop table and a mobile-friendly card layout showing stage names, average cycle times, active item metrics, stuck counts, and rework statistics.
+*   **Client Performance Board Mobile Cards**: Converted the Client Performance table on mobile into modern client profile cards displaying OTD metrics, active PO counts, and a bottom status grid with clear indicators for overdue, uninvoiced, and unpaid risks.
+*   **Unambiguous Dashboard Dashes**: Replaced confusing green checkmarks (`✓`) in the Client Board columns (indicating zero outstanding items) with clean, muted dashes (`-`) to represent "none" cleanly and remove visual ambiguity.
 
 ### 3. Worker Floor Dashboard Updates
 *   **Tactile Stepper Controls**: Redesigned completed quantity controls by splitting display text from action buttons and standardizing on a robust `44px` finger-friendly touch target with both increment (`+`) and decrement (`−`) step controls.
