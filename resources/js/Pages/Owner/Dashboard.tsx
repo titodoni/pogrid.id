@@ -3384,7 +3384,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         >
                                                             {client.overdue_items > 0
                                                                 ? <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444' }}>{client.overdue_items}</span>
-                                                                : <span style={{ color: '#34d399', fontSize: '14px' }}>✓</span>}
+                                                                : <span style={{ color: '#71717a' }}>-</span>}
                                                         </td>
                                                         <td
                                                             onClick={() => client.uninvoiced_count > 0 && setMatrixFilter({ type: 'client_uninvoiced', value: client.client_name, label: language === 'id' ? 'Belum Difakturkan Klien' : 'Client Uninvoiced' })}
@@ -3392,7 +3392,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         >
                                                             {client.uninvoiced_count > 0
                                                                 ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24' }}>{client.uninvoiced_count}</span>
-                                                                : <span style={{ color: '#34d399', fontSize: '14px' }}>✓</span>}
+                                                                : <span style={{ color: '#71717a' }}>-</span>}
                                                         </td>
                                                         <td
                                                             onClick={() => client.unpaid_count > 0 && setMatrixFilter({ type: 'client_unpaid', value: client.client_name, label: language === 'id' ? 'Belum Dibayar Klien' : 'Client Unpaid' })}
@@ -3400,7 +3400,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         >
                                                             {client.unpaid_count > 0
                                                                 ? <span className="badge" style={{ backgroundColor: 'rgba(249,115,22,0.15)', color: '#fb923c' }}>{client.unpaid_count}</span>
-                                                                : <span style={{ color: '#34d399', fontSize: '14px' }}>✓</span>}
+                                                                : <span style={{ color: '#71717a' }}>-</span>}
                                                         </td>
                                                     </tr>
                                                 );
