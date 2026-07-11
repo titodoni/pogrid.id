@@ -729,8 +729,6 @@ class CoreLogicTest extends TestCase
             'status' => 'PENDING',
         ]);
 
-        $item->itemProgresses()->whereIn('stage_name', ['Design', 'Material'])->update(['status' => 'COMPLETED', 'completed_qty' => 10]);
-
         $machiningStage = $item->itemProgresses()->where('stage_name', 'Machining')->first();
         $fabStage = $item->itemProgresses()->where('stage_name', 'Fabrication')->first();
         $qcStage = $item->itemProgresses()->where('stage_name', 'QC')->first();
@@ -772,6 +770,13 @@ class CoreLogicTest extends TestCase
             'pin' => bcrypt('4444'),
         ]);
 
+        // Test production stage is NOT blocked before Design/Material completed (Design starts at 50%, Material at 33%)
+        $this->actingAs($machiningWorker);
+        $this->post("/c/{$this->tenant1->slug}/progress/{$machiningStage->id}/update", ['completed_qty' => 5])->assertRedirect();
+
+        // Complete Design & Material stages
+        $item->itemProgresses()->whereIn('stage_name', ['Design', 'Material'])->update(['status' => 'COMPLETED', 'completed_qty' => 10]);
+
         // Test MACHINING worker trying to update Fabrication -> Blocked (403)
         $this->actingAs($machiningWorker);
         $response = $this->post("/c/{$this->tenant1->slug}/progress/{$fabStage->id}/update", ['completed_qty' => 5]);
@@ -782,15 +787,19 @@ class CoreLogicTest extends TestCase
         $response = $this->post("/c/{$this->tenant1->slug}/progress/{$machiningStage->id}/update", ['completed_qty' => 5]);
         $response->assertStatus(403);
 
-        // Test QC worker can update QC stage anytime (no dependency on production stages)
+        // Test QC worker trying to update QC stage before production is completed -> Blocked (403)
         $this->actingAs($qcWorker);
-        $this->post("/c/{$this->tenant1->slug}/progress/{$qcStage->id}/update", ['completed_qty' => 5])->assertRedirect();
+        $this->post("/c/{$this->tenant1->slug}/progress/{$qcStage->id}/update", ['completed_qty' => 5])->assertStatus(403);
 
         // Complete Machining & Fabrication
         $this->actingAs($machiningWorker);
         $this->post("/c/{$this->tenant1->slug}/progress/{$machiningStage->id}/update", ['completed_qty' => 10])->assertRedirect();
         $this->actingAs($fabWorker);
         $this->post("/c/{$this->tenant1->slug}/progress/{$fabStage->id}/update", ['completed_qty' => 10])->assertRedirect();
+
+        // QC worker updates QC stage now that production is completed
+        $this->actingAs($qcWorker);
+        $this->post("/c/{$this->tenant1->slug}/progress/{$qcStage->id}/update", ['completed_qty' => 5])->assertRedirect();
 
         // Delivery stage locked until QC completed_qty > 0.
         // Let's test a Delivery worker trying to update Delivery stage.
@@ -1253,5 +1262,83 @@ class CoreLogicTest extends TestCase
             'progress_percent' => 100.00,
         ]);
         $responsePurchasingDesign->assertStatus(403);
+    }
+
+    public function test_cancel_last_update_on_custom_stages()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-TEST-REVERT-CUSTOM',
+            'client_name' => 'Revert Custom Client',
+            'global_deadline' => now()->addDays(5),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Revert Custom Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['CNC'],
+            'status' => 'PENDING',
+        ]);
+
+        $drafter = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Drafter Worker Revert',
+            'role_id' => 1,
+            'post_id' => 1,
+            'pin' => bcrypt('1111'),
+        ]);
+
+        $purchasing = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Purchasing Worker Revert',
+            'role_id' => 2,
+            'post_id' => 2,
+            'pin' => bcrypt('2222'),
+        ]);
+
+        $designStage = $item->itemProgresses()->where('stage_name', 'Design')->first();
+        $materialStage = $item->itemProgresses()->where('stage_name', 'Material')->first();
+
+        // 1. Drafter updates design to APPROVED (100%)
+        $this->actingAs($drafter);
+        $this->post("/c/{$this->tenant1->slug}/items/{$item->id}/drafter-status", [
+            'drafter_status' => 'APPROVED',
+        ])->assertRedirect();
+
+        $item->refresh();
+        $this->assertEquals('APPROVED', $item->drafter_status);
+        $this->assertEquals(100.00, $designStage->refresh()->progress_percent);
+        $this->assertEquals('COMPLETED', $designStage->status);
+
+        // Revert Design
+        $this->post("/c/{$this->tenant1->slug}/progress/{$designStage->id}/cancel-last-update")->assertRedirect();
+        $item->refresh();
+        // Should revert to DRAWING since original initial design progress_percent is 50.00%
+        $this->assertEquals('DRAWING', $item->drafter_status);
+        $this->assertEquals(50.00, $designStage->refresh()->progress_percent);
+        $this->assertEquals('IN_PROGRESS', $designStage->status);
+
+        // 2. Purchasing updates material to READY (100%)
+        $this->actingAs($purchasing);
+        $this->post("/c/{$this->tenant1->slug}/items/{$item->id}/purchasing-status", [
+            'purchasing_status' => 'READY',
+        ])->assertRedirect();
+
+        $item->refresh();
+        $this->assertEquals('READY', $item->purchasing_status);
+        $this->assertEquals(100.00, $materialStage->refresh()->progress_percent);
+        $this->assertEquals('COMPLETED', $materialStage->status);
+
+        // Revert Material
+        $this->post("/c/{$this->tenant1->slug}/progress/{$materialStage->id}/cancel-last-update")->assertRedirect();
+        $item->refresh();
+        // Should revert to ORDER since original initial material progress_percent is 33.00%
+        $this->assertEquals('ORDER', $item->purchasing_status);
+        $this->assertEquals(33.00, $materialStage->refresh()->progress_percent);
+        $this->assertEquals('IN_PROGRESS', $materialStage->status);
     }
 }

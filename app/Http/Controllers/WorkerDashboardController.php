@@ -96,7 +96,9 @@ class WorkerDashboardController extends Controller
             },
         ])->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty');
 
-        if ($user->role_name === 'FINANCE') {
+        $roleName = strtoupper($user->role_name);
+
+        if ($roleName === 'FINANCE') {
             $query->where(function ($q) {
                 $q->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])
                     ->orWhere(function ($sub) {
@@ -109,6 +111,70 @@ class WorkerDashboardController extends Controller
             });
         } else {
             $query->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED']);
+
+            // Filter items by matching stage for floor roles
+            if ($roleName === 'DRAFTER') {
+                $query->whereHas('itemProgresses', function ($q) {
+                    $q->where(fn($sub) => $sub->where('stage_name', 'like', '%Design%')
+                        ->orWhere('stage_name', 'like', '%DESIGN%')
+                        ->orWhere('stage_name', 'like', '%Gambar%')
+                        ->orWhere('stage_name', 'like', '%gambar%')
+                        ->orWhere('stage_name', 'like', '%Draft%')
+                        ->orWhere('stage_name', 'like', '%draft%')
+                    );
+                });
+            } elseif ($roleName === 'PURCHASING') {
+                $query->whereHas('itemProgresses', function ($q) {
+                    $q->where(fn($sub) => $sub->where('stage_name', 'like', '%Material%')
+                        ->orWhere('stage_name', 'like', '%Bahan%')
+                        ->orWhere('stage_name', 'like', '%Vendor%')
+                        ->orWhere('stage_name', 'like', '%Purchasing%')
+                        ->orWhere('stage_name', 'like', '%material%')
+                        ->orWhere('stage_name', 'like', '%bahan%')
+                        ->orWhere('stage_name', 'like', '%vendor%')
+                        ->orWhere('stage_name', 'like', '%purchasing%')
+                    );
+                });
+            } elseif ($roleName === 'MACHINING' || $roleName === 'CNC') {
+                $query->whereHas('itemProgresses', function ($q) {
+                    $q->where(fn($sub) => $sub->where('stage_name', 'like', '%Machining%')
+                        ->orWhere('stage_name', 'like', '%CNC%')
+                        ->orWhere('stage_name', 'like', '%machining%')
+                        ->orWhere('stage_name', 'like', '%cnc%')
+                    );
+                });
+            } elseif ($roleName === 'FABRICATION') {
+                $query->whereHas('itemProgresses', function ($q) {
+                    $q->where(fn($sub) => $sub->where('stage_name', 'like', '%Fabrication%')
+                        ->orWhere('stage_name', 'like', '%Fabrikasi%')
+                        ->orWhere('stage_name', 'like', '%fabrication%')
+                        ->orWhere('stage_name', 'like', '%fabrikasi%')
+                    );
+                });
+            } elseif ($roleName === 'PRODUCTION') {
+                $query->whereHas('itemProgresses', function ($q) {
+                    $q->where(fn($sub) => $sub->where('stage_name', 'like', '%Machining%')
+                        ->orWhere('stage_name', 'like', '%CNC%')
+                        ->orWhere('stage_name', 'like', '%Fabrication%')
+                        ->orWhere('stage_name', 'like', '%Fabrikasi%')
+                        ->orWhere('stage_name', 'like', '%machining%')
+                        ->orWhere('stage_name', 'like', '%cnc%')
+                        ->orWhere('stage_name', 'like', '%fabrication%')
+                        ->orWhere('stage_name', 'like', '%fabrikasi%')
+                    );
+                });
+            } elseif ($roleName === 'QC') {
+                $query->whereHas('itemProgresses', function ($q) {
+                    $q->where('stage_name', 'QC');
+                });
+            } elseif ($roleName === 'DELIVERY') {
+                $query->whereHas('itemProgresses', function ($q) {
+                    $q->where('stage_name', 'Delivery')
+                        ->orWhere('stage_name', 'Pengiriman');
+                });
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         $items = $query->get();
@@ -858,6 +924,17 @@ class WorkerDashboardController extends Controller
                 'previous_completed_qty' => $previousCompletedQty,
                 'previous_progress_percent' => $previousProgressPercent,
             ]);
+
+            // Sync item status attribute
+            if (str_contains($stageLower, 'design') || str_contains($stageLower, 'gambar') || str_contains($stageLower, 'draft')) {
+                $item->update([
+                    'drafter_status' => $progressPercent >= 100.00 ? 'APPROVED' : ($progressPercent > 0 ? 'DRAWING' : null)
+                ]);
+            } elseif (str_contains($stageLower, 'material') || str_contains($stageLower, 'bahan') || str_contains($stageLower, 'vendor') || str_contains($stageLower, 'purchasing')) {
+                $item->update([
+                    'purchasing_status' => $progressPercent >= 100.00 ? 'READY' : ($progressPercent >= 66.00 ? 'PROSES' : ($progressPercent >= 33.00 ? 'ORDER' : null))
+                ]);
+            }
         } else {
             if ($item->target_qty > 1) {
                 $completedQty = $request->input('completed_qty', 0);
@@ -934,17 +1011,32 @@ class WorkerDashboardController extends Controller
 
         $item = $progress->item;
         $status = 'IN_PROGRESS';
-        if ($item->target_qty > 1) {
-            if ($prevQty >= $item->target_qty) {
-                $status = 'COMPLETED';
-            } elseif ($prevQty == 0) {
-                $status = 'PENDING';
-            }
-        } else {
+        
+        $stageLower = strtolower($progress->stage_name);
+        $isCustomStage = str_contains($stageLower, 'design') || str_contains($stageLower, 'gambar') || str_contains($stageLower, 'draft') ||
+                          str_contains($stageLower, 'material') || str_contains($stageLower, 'bahan') || str_contains($stageLower, 'vendor') || str_contains($stageLower, 'purchasing');
+
+        if ($isCustomStage) {
             if ($prevPercent >= 100.00) {
                 $status = 'COMPLETED';
             } elseif ($prevPercent == 0.00) {
                 $status = 'PENDING';
+            } else {
+                $status = 'IN_PROGRESS';
+            }
+        } else {
+            if ($item->target_qty > 1) {
+                if ($prevQty >= $item->target_qty) {
+                    $status = 'COMPLETED';
+                } elseif ($prevQty == 0) {
+                    $status = 'PENDING';
+                }
+            } else {
+                if ($prevPercent >= 100.00) {
+                    $status = 'COMPLETED';
+                } elseif ($prevPercent == 0.00) {
+                    $status = 'PENDING';
+                }
             }
         }
 
@@ -956,8 +1048,23 @@ class WorkerDashboardController extends Controller
             'previous_progress_percent' => null,
         ]);
 
-        // Revert DO Item Qty if it was a Delivery stage
         $stageNameLower = strtolower($progress->stage_name);
+
+        // Revert drafter_status on item if it's Design stage
+        if (str_contains($stageNameLower, 'design') || str_contains($stageNameLower, 'gambar') || str_contains($stageNameLower, 'draft')) {
+            $item->update([
+                'drafter_status' => $prevPercent >= 100.00 ? 'APPROVED' : ($prevPercent > 0 ? 'DRAWING' : null)
+            ]);
+        }
+
+        // Revert purchasing_status on item if it's Material stage
+        if (str_contains($stageNameLower, 'material') || str_contains($stageNameLower, 'bahan') || str_contains($stageNameLower, 'vendor') || str_contains($stageNameLower, 'purchasing')) {
+            $item->update([
+                'purchasing_status' => $prevPercent >= 100.00 ? 'READY' : ($prevPercent >= 66.00 ? 'PROSES' : ($prevPercent >= 33.00 ? 'ORDER' : null))
+            ]);
+        }
+
+        // Revert DO Item Qty if it was a Delivery stage
         if (str_contains($stageNameLower, 'delivery') || str_contains($stageNameLower, 'pengiriman')) {
             $deliveryOrder = DeliveryOrder::where('po_id', $item->po_id)->first();
             if ($deliveryOrder) {
@@ -1115,23 +1222,40 @@ class WorkerDashboardController extends Controller
         }
 
         $item = Item::findOrFail($itemId);
+
+        // Find the design stage to store previous values
+        $designProgress = ItemProgress::where('item_id', $item->id)
+            ->where(function ($q) {
+                $q->where('stage_name', 'like', '%Design%')
+                    ->orWhere('stage_name', 'like', '%DESIGN%')
+                    ->orWhere('stage_name', 'like', '%Gambar%')
+                    ->orWhere('stage_name', 'like', '%gambar%')
+                    ->orWhere('stage_name', 'like', '%Draft%')
+                    ->orWhere('stage_name', 'like', '%draft%');
+            })
+            ->first();
+
+        if ($designProgress) {
+            $previousCompletedQty = $designProgress->completed_qty;
+            $previousProgressPercent = $designProgress->progress_percent;
+        } else {
+            $previousCompletedQty = null;
+            $previousProgressPercent = null;
+        }
+
         $item->update(['drafter_status' => $request->drafter_status]);
 
-        if ($request->drafter_status === 'APPROVED') {
-            ItemProgress::where('item_id', $item->id)
-                ->where(function ($q) {
-                    $q->where('stage_name', 'like', '%Design%')
-                        ->orWhere('stage_name', 'like', '%DESIGN%')
-                        ->orWhere('stage_name', 'like', '%Gambar%')
-                        ->orWhere('stage_name', 'like', '%gambar%')
-                        ->orWhere('stage_name', 'like', '%Draft%')
-                        ->orWhere('stage_name', 'like', '%draft%');
-                })
-                ->update([
-                    'completed_qty' => $item->target_qty,
-                    'progress_percent' => 100.00,
-                    'status' => 'COMPLETED',
-                ]);
+        if ($designProgress) {
+            $pct = $request->drafter_status === 'APPROVED' ? 100.00 : 50.00;
+            $status = $pct >= 100.00 ? 'COMPLETED' : 'IN_PROGRESS';
+
+            $designProgress->update([
+                'completed_qty' => round($item->target_qty * ($pct / 100)),
+                'progress_percent' => $pct,
+                'status' => $status,
+                'previous_completed_qty' => $previousCompletedQty,
+                'previous_progress_percent' => $previousProgressPercent,
+            ]);
         }
 
         return back()->with('success', 'Drafter status updated.');
@@ -1150,21 +1274,46 @@ class WorkerDashboardController extends Controller
         }
 
         $item = Item::findOrFail($itemId);
+
+        // Find the material stage to store previous values
+        $materialProgress = ItemProgress::where('item_id', $item->id)
+            ->where(function ($q) {
+                $q->where('stage_name', 'like', '%Material%')
+                    ->orWhere('stage_name', 'like', '%MATERIAL%')
+                    ->orWhere('stage_name', 'like', '%Bahan%')
+                    ->orWhere('stage_name', 'like', '%bahan%');
+            })
+            ->first();
+
+        if ($materialProgress) {
+            $previousCompletedQty = $materialProgress->completed_qty;
+            $previousProgressPercent = $materialProgress->progress_percent;
+        } else {
+            $previousCompletedQty = null;
+            $previousProgressPercent = null;
+        }
+
         $item->update(['purchasing_status' => $request->purchasing_status]);
 
-        if ($request->purchasing_status === 'READY') {
-            ItemProgress::where('item_id', $item->id)
-                ->where(function ($q) {
-                    $q->where('stage_name', 'like', '%Material%')
-                        ->orWhere('stage_name', 'like', '%MATERIAL%')
-                        ->orWhere('stage_name', 'like', '%Bahan%')
-                        ->orWhere('stage_name', 'like', '%bahan%');
-                })
-                ->update([
-                    'completed_qty' => $item->target_qty,
-                    'progress_percent' => 100.00,
-                    'status' => 'COMPLETED',
-                ]);
+        if ($materialProgress) {
+            $pct = 0.00;
+            if ($request->purchasing_status === 'READY') {
+                $pct = 100.00;
+            } elseif ($request->purchasing_status === 'PROSES') {
+                $pct = 66.00;
+            } elseif ($request->purchasing_status === 'ORDER') {
+                $pct = 33.00;
+            }
+
+            $status = $pct >= 100.00 ? 'COMPLETED' : 'IN_PROGRESS';
+
+            $materialProgress->update([
+                'completed_qty' => round($item->target_qty * ($pct / 100)),
+                'progress_percent' => $pct,
+                'status' => $status,
+                'previous_completed_qty' => $previousCompletedQty,
+                'previous_progress_percent' => $previousProgressPercent,
+            ]);
         }
 
         return back()->with('success', 'Purchasing status updated.');
@@ -1275,6 +1424,29 @@ class WorkerDashboardController extends Controller
             if ($isFabricationChecked && ! $isMachiningChecked) {
                 if (str_contains($stageNameLower, 'machining')) {
                     abort(403, 'Stage locked: Machining is not required/checked for this item.');
+                }
+            }
+
+
+
+            // QC requires Machining & Fabrication completed first
+            if (str_contains($stageNameLower, 'qc') && !str_contains($stageNameLower, 'rework')) {
+                $prodProgresses = ItemProgress::where('item_id', $item->id)
+                    ->where(function ($q) {
+                        $q->where('stage_name', 'like', '%machining%')
+                            ->orWhere('stage_name', 'like', '%CNC%')
+                            ->orWhere('stage_name', 'like', '%cnc%')
+                            ->orWhere('stage_name', 'like', '%fabrication%')
+                            ->orWhere('stage_name', 'like', '%fabrikasi%');
+                    })
+                    ->where('stage_name', 'not like', '%rework%')
+                    ->where('stage_name', 'not like', '%REWORK%')
+                    ->get();
+
+                foreach ($prodProgresses as $prod) {
+                    if ($prod->status !== 'COMPLETED') {
+                        abort(403, 'Stage locked: QC requires Machining & Fabrication to be COMPLETED first.');
+                    }
                 }
             }
 

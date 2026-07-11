@@ -86,10 +86,10 @@ FINANCE: Invoice/Payment
 ```
 
 ### 3b. Verify Dependency Locks
-- `WorkerDashboardController.php:902-928`: Machining/Fabrication requires Design + Material COMPLETED first
-- `WorkerDashboardController.php:931-951`: QC requires Machining or Fabrication COMPLETED
-- `WorkerDashboardController.php:953-961`: Delivery requires QC has completed quantities
-- `WorkerDashboardController.php:818`: Finance requires Delivery completed
+- Design & Material stages are non-blockers for production (Machining/Fabrication/CNC/Fabrikasi can run at any time)
+- QC requires Machining or Fabrication COMPLETED
+- Delivery requires QC has completed quantities
+- Finance requires Delivery completed
 
 ### 3c. Test cancelLastUpdate on Custom Stages
 - `POST /c/{slug}/progress/{progressId}/cancel-last-update`

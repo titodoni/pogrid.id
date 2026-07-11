@@ -307,15 +307,28 @@ const isStageLocked = (item: Item, stageName: string, userRole: string) => {
         if ((stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) && !originalStages.some(name => name.toLowerCase().includes('fabrication') || name.toLowerCase().includes('fabrikasi'))) return true;
         if (stageLower.includes('vendor')) return true;
 
-        // Dependency lockouts
+
+
+        // QC requires Machining & Fabrication COMPLETED first
+        if (stageLower === 'qc' && !stageLower.includes('rework')) {
+            const prodStages = item.item_progresses.filter(s => 
+                (s.stage_name.toLowerCase().includes('machining') || 
+                 s.stage_name.toLowerCase().includes('cnc') || 
+                 s.stage_name.toLowerCase().includes('fabrication') || 
+                 s.stage_name.toLowerCase().includes('fabrikasi')) &&
+                !s.stage_name.toLowerCase().includes('rework')
+            );
+            if (prodStages.some(s => s.status !== 'COMPLETED')) return true;
+        }
+
         if (stageLower === 'delivery' || stageLower === 'pengiriman') {
             const qcStage = item.item_progresses.find(s => s.stage_name === 'QC');
-            if (!qcStage || qcStage.completed_qty === 0) return true;
+            if (!qcStage || (item.target_qty > 1 ? qcStage.completed_qty === 0 : parseFloat(qcStage.progress_percent) < 100)) return true;
         }
 
         if (stageLower === 'finance') {
             const deliveryStage = item.item_progresses.find(s => s.stage_name === 'Delivery' || s.stage_name === 'Pengiriman');
-            if (!deliveryStage || deliveryStage.completed_qty === 0) return true;
+            if (!deliveryStage || (item.target_qty > 1 ? deliveryStage.completed_qty === 0 : parseFloat(deliveryStage.progress_percent) < 100)) return true;
         }
     }
 
@@ -339,6 +352,94 @@ function ItemCard({
 }: ItemCardProps) {
     const t = translations[language];
     const [isHovered, setIsHovered] = useState(false);
+
+    const getAllStages = (item: Item): Stage[] => {
+        const isVendor = item.item_progresses.some(s => s.stage_name === 'Vendor');
+        const isManufacture = !isVendor;
+
+        const displayStages = [...item.item_progresses];
+        if (isManufacture) {
+            const isPaid = item.payment_status === 'PAID';
+            const isInvoiced = item.invoice_status === 'INVOICED';
+            const financeStatus = (isPaid && isInvoiced) ? 'COMPLETED' : 'PENDING';
+            const financePercent = (isPaid && isInvoiced) ? '100' : '0';
+
+            displayStages.push({
+                id: -item.id,
+                stage_name: 'Finance',
+                completed_qty: 0,
+                progress_percent: financePercent,
+                status: financeStatus,
+            });
+        }
+        return displayStages;
+    };
+
+    const getStageLockReason = (item: Item, stageName: string, userRole: string, lang: 'en' | 'id') => {
+        const t = translations[lang];
+        const stageLower = stageName.toLowerCase();
+
+        // First check role permission
+        if (isStageLocked(item, stageName, userRole)) {
+            // Find if it's role mismatch
+            const role = userRole.toUpperCase();
+            const officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
+            if (!officeRoles.includes(role)) {
+                if ((stageLower.includes('design') || stageLower.includes('gambar') || stageLower.includes('draft')) && role !== 'DRAFTER') return t.role_mismatch;
+                if ((stageLower.includes('material') || stageLower.includes('bahan')) && role !== 'PURCHASING') return t.role_mismatch;
+                if ((stageLower.includes('machining') || stageLower.includes('cnc')) && (role !== 'MACHINING' && role !== 'CNC' && role !== 'PRODUCTION')) return t.role_mismatch;
+                if ((stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) && (role !== 'FABRICATION' && role !== 'PRODUCTION')) return t.role_mismatch;
+                if ((stageLower.includes('vendor') || stageLower.includes('purchasing')) && role !== 'PURCHASING') return t.role_mismatch;
+                if (stageLower === 'qc' && role !== 'QC') return t.role_mismatch;
+                if ((stageLower === 'delivery' || stageLower === 'pengiriman') && role !== 'DELIVERY') return t.role_mismatch;
+                if (stageLower === 'finance' && role !== 'FINANCE') return t.role_mismatch;
+            }
+
+            // Off-state locks
+            const originalStages = item.item_progresses
+                .map(s => s.stage_name)
+                .filter(name => !['QC', 'Delivery', 'Finance', 'Pengiriman'].includes(name) && !name.endsWith('REWORK'));
+            const isVendorJob = originalStages.some(name => name.toLowerCase().includes('vendor'));
+
+            if (isVendorJob) {
+                if (['machining', 'fabrication', 'fabrikasi', 'cnc', 'qc', 'delivery', 'pengiriman', 'finance'].some(v => stageLower.includes(v))) {
+                    return t.off_state;
+                }
+            } else {
+                if ((stageLower.includes('machining') || stageLower.includes('cnc')) && !originalStages.some(name => name.toLowerCase().includes('machining') || name.toLowerCase().includes('cnc'))) return t.off_state;
+                if ((stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) && !originalStages.some(name => name.toLowerCase().includes('fabrication') || name.toLowerCase().includes('fabrikasi'))) return t.off_state;
+                if (stageLower.includes('vendor')) return t.off_state;
+
+
+
+                if (stageLower === 'qc') {
+                    const prodStages = item.item_progresses.filter(s => 
+                        (s.stage_name.toLowerCase().includes('machining') || 
+                         s.stage_name.toLowerCase().includes('cnc') || 
+                         s.stage_name.toLowerCase().includes('fabrication') || 
+                         s.stage_name.toLowerCase().includes('fabrikasi')) &&
+                        !s.stage_name.toLowerCase().includes('rework')
+                    );
+                    if (prodStages.some(s => s.status !== 'COMPLETED')) return t.locked_qc;
+                }
+
+                if (stageLower === 'delivery' || stageLower === 'pengiriman') {
+                    const qcStage = item.item_progresses.find(s => s.stage_name === 'QC');
+                    if (!qcStage || (item.target_qty > 1 ? qcStage.completed_qty === 0 : parseFloat(qcStage.progress_percent) < 100)) {
+                        return t.locked_delivery;
+                    }
+                }
+
+                if (stageLower === 'finance') {
+                    const deliveryStage = item.item_progresses.find(s => s.stage_name === 'Delivery' || s.stage_name === 'Pengiriman');
+                    if (!deliveryStage || (item.target_qty > 1 ? deliveryStage.completed_qty === 0 : parseFloat(deliveryStage.progress_percent) < 100)) {
+                        return t.locked_finance;
+                    }
+                }
+            }
+        }
+        return null;
+    };
 
     const getMatchingStages = (item: Item, role: string): Stage[] => {
         const roleUpper = role.toUpperCase();
@@ -743,42 +844,44 @@ function ItemCard({
                             ? (language === 'id' ? 'Produksi Internal' : 'Manufactured') 
                             : (language === 'id' ? 'Beli Jadi (Buyout)' : 'Buyout')}
                     </span>
-                    {item.drafter_status && (
-                        <span style={{
-                            fontSize: '9px',
-                            fontWeight: 700,
-                            padding: '1px 5px',
-                            borderRadius: '4px',
-                            backgroundColor: item.drafter_status === 'APPROVED' ? 'rgba(52, 211, 153, 0.12)' : 'rgba(139, 92, 246, 0.12)',
-                            color: item.drafter_status === 'APPROVED' ? '#34d399' : '#a78bfa',
-                            flexShrink: 0,
-                        }}>
-                            {item.drafter_status === 'APPROVED' 
-                                ? (language === 'id' ? 'Gambar Disetujui' : 'Drawing Approved')
-                                : (language === 'id' ? `Gambar: ${item.drafter_status}` : `Drawing: ${item.drafter_status}`)}
-                        </span>
-                    )}
-                    {item.purchasing_status && (
-                        <span style={{
-                            fontSize: '9px',
-                            fontWeight: 700,
-                            padding: '1px 5px',
-                            borderRadius: '4px',
-                            backgroundColor: item.purchasing_status === 'READY' ? 'rgba(52, 211, 153, 0.12)' :
-                                item.purchasing_status === 'PROSES' ? 'rgba(251, 191, 36, 0.12)' :
-                                'rgba(99, 102, 241, 0.12)',
-                            color: item.purchasing_status === 'READY' ? '#34d399' :
-                                item.purchasing_status === 'PROSES' ? '#fbbf24' :
-                                '#818cf8',
-                            flexShrink: 0,
-                        }}>
-                            {item.purchasing_status === 'READY'
-                                ? (language === 'id' ? 'Bahan Baku Siap' : 'Material Ready')
-                                : item.purchasing_status === 'PROSES'
-                                ? (language === 'id' ? 'Bahan Dipesan' : 'Material Ordered')
-                                : (language === 'id' ? `Material: ${item.purchasing_status}` : `Material: ${item.purchasing_status}`)}
-                        </span>
-                    )}
+                    {(() => {
+                        const designStage = item.item_progresses.find(s => s.stage_name.toLowerCase().includes('design') || s.stage_name.toLowerCase().includes('gambar') || s.stage_name.toLowerCase().includes('draft'));
+                        if (!designStage) return null;
+                        const isApproved = item.drafter_status === 'APPROVED' || parseFloat(designStage.progress_percent) >= 100;
+                        const label = isApproved ? 'Drafter: ✓' : `Drafter: ${language === 'id' ? 'Proses' : 'Processing'}`;
+                        return (
+                            <span style={{
+                                fontSize: '9px',
+                                fontWeight: 700,
+                                padding: '1px 5px',
+                                borderRadius: '4px',
+                                backgroundColor: isApproved ? 'rgba(52, 211, 153, 0.12)' : 'rgba(139, 92, 246, 0.12)',
+                                color: isApproved ? '#34d399' : '#a78bfa',
+                                flexShrink: 0,
+                            }}>
+                                {label}
+                            </span>
+                        );
+                    })()}
+                    {(() => {
+                        const materialStage = item.item_progresses.find(s => s.stage_name.toLowerCase().includes('material') || s.stage_name.toLowerCase().includes('bahan'));
+                        if (!materialStage) return null;
+                        const isReady = item.purchasing_status === 'READY' || parseFloat(materialStage.progress_percent) >= 100;
+                        const label = isReady ? 'Purchasing: ✓' : `Purchasing: ${language === 'id' ? 'Proses' : 'Processing'}`;
+                        return (
+                            <span style={{
+                                fontSize: '9px',
+                                fontWeight: 700,
+                                padding: '1px 5px',
+                                borderRadius: '4px',
+                                backgroundColor: isReady ? 'rgba(52, 211, 153, 0.12)' : 'rgba(99, 102, 241, 0.12)',
+                                color: isReady ? '#34d399' : '#818cf8',
+                                flexShrink: 0,
+                            }}>
+                                {label}
+                            </span>
+                        );
+                    })()}
                     {(() => {
                         const reworkAlert = item.alerts?.find(a => a.severity === 'YELLOW' && !a.is_resolved);
                         let reworkVal = null;
@@ -1152,84 +1255,7 @@ function ItemCard({
                                 }
 
                                 const stageNameLower = activeStage.stage.stage_name.toLowerCase();
-                                const isDesignStage = stageNameLower.includes('design') || stageNameLower.includes('gambar') || stageNameLower.includes('draft');
-                                const isMaterialStage = stageNameLower.includes('material') || stageNameLower.includes('bahan') || stageNameLower.includes('vendor') || stageNameLower.includes('purchasing');
                                 const isQcStage = stageNameLower === 'qc';
-
-                                if (isDesignStage) {
-                                    const currentPct = parseFloat(activeStage.stage.progress_percent);
-                                    const options = [
-                                        { label: language === 'id' ? 'Drafting' : 'Drafting', pct: 50 },
-                                        { label: language === 'id' ? 'Disetujui' : 'Approved', pct: 100 },
-                                    ];
-
-                                    return (
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                            {options.map((opt) => {
-                                                const isDisabled = opt.pct < currentPct;
-                                                const isActive = Math.abs(currentPct - opt.pct) < 2;
-                                                return (
-                                                    <button
-                                                        key={opt.pct}
-                                                        onClick={() => !isDisabled && handlePercentSelect(opt.pct)}
-                                                        disabled={isDisabled}
-                                                        style={{
-                                                            padding: '12px 6px',
-                                                            borderRadius: '6px',
-                                                            border: 'none',
-                                                            backgroundColor: isActive ? '#6366f1' : 'rgba(255, 255, 255, 0.05)',
-                                                            color: '#fff',
-                                                            fontSize: '12px',
-                                                            fontWeight: 700,
-                                                            cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                                            opacity: isDisabled ? 0.3 : 1,
-                                                        }}
-                                                    >
-                                                        {opt.label}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    );
-                                }
-
-                                if (isMaterialStage) {
-                                    const currentPct = parseFloat(activeStage.stage.progress_percent);
-                                    const options = [
-                                        { label: language === 'id' ? 'Pesan (Order)' : 'Order', pct: 33 },
-                                        { label: language === 'id' ? 'Proses' : 'Process', pct: 66 },
-                                        { label: language === 'id' ? 'Selesai' : 'Complete', pct: 100 },
-                                    ];
-
-                                    return (
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', marginBottom: '8px' }}>
-                                            {options.map((opt) => {
-                                                const isDisabled = opt.pct < currentPct;
-                                                const isActive = Math.abs(currentPct - opt.pct) < 2;
-                                                return (
-                                                    <button
-                                                        key={opt.pct}
-                                                        onClick={() => !isDisabled && handlePercentSelect(opt.pct)}
-                                                        disabled={isDisabled}
-                                                        style={{
-                                                            padding: '12px 4px',
-                                                            borderRadius: '6px',
-                                                            border: 'none',
-                                                            backgroundColor: isActive ? '#6366f1' : 'rgba(255, 255, 255, 0.05)',
-                                                            color: '#fff',
-                                                            fontSize: '12px',
-                                                            fontWeight: 700,
-                                                            cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                                            opacity: isDisabled ? 0.3 : 1,
-                                                        }}
-                                                    >
-                                                        {opt.label}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    );
-                                }
 
                                 return (
                                     <>
@@ -1663,7 +1689,55 @@ function ItemCard({
                                 {language === 'en' ? 'Done' : 'Selesai'}
                             </button>
                         </div>
-                    ) : null}
+                    ) : (
+                        // Fallback view when activeStage is null (locked stage or role mismatch)
+                        <div style={{
+                            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                            padding: '12px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                        }}>
+                            {/* Role Mismatch Warning if role has no matching stages at all */}
+                            {getMatchingStageOrMock(item, userRole) === null ? (
+                                <div style={{
+                                    padding: '8px 12px',
+                                    backgroundColor: 'rgba(248, 113, 113, 0.08)',
+                                    color: '#f87171',
+                                    border: '1px solid rgba(248, 113, 113, 0.15)',
+                                    borderRadius: '8px',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    justifyContent: 'center'
+                                }}>
+                                    <span style={{ display: 'inline-block', width: '6px', height: '6px', backgroundColor: '#f87171', borderRadius: '50%' }} />
+                                    {t.role_mismatch}
+                                </div>
+                            ) : (() => {
+                                // Locked warning banner
+                                const matched = getMatchingStageOrMock(item, userRole);
+                                const lockReason = matched ? getStageLockReason(item, matched.stage_name, userRole, language) : null;
+                                return lockReason ? (
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        padding: '10px 12px',
+                                        backgroundColor: 'rgba(251, 191, 36, 0.08)',
+                                        border: '1px solid rgba(251, 191, 36, 0.15)',
+                                        borderRadius: '8px',
+                                        color: '#fbbf24',
+                                        fontSize: '11px',
+                                        fontWeight: 600,
+                                    }}>
+                                        <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+                                        <span>{lockReason}</span>
+                                    </div>
+                                ) : null;
+                            })()}
+                        </div>
+                    )}
                 </div>
             )}
         </div>
