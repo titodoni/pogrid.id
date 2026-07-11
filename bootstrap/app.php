@@ -26,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
             if ($request->header('X-Inertia') || $request->wantsJson()) {
                 $retryAfter = $e->getHeaders()['Retry-After'] ?? 60;
+
                 return back()->withErrors([
                     'pin' => 'too_many_attempts',
                 ]);

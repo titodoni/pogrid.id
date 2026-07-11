@@ -592,6 +592,53 @@ input, select, textarea {
     overscroll-behavior: contain;
 }
 
+/* Natural page scrolling fallback on mobile to avoid locked scroll containers */
+@media (max-width: 768px) {
+    .dashboard-root {
+        height: auto !important;
+        min-height: 100dvh !important;
+        overflow: visible !important;
+    }
+    .dashboard-above-scroll {
+        overflow: visible !important;
+    }
+    .dashboard-scroll {
+        flex: none !important;
+        min-height: unset !important;
+        overflow-y: visible !important;
+        overflow-x: visible !important;
+    }
+}
+
+/* Horizontal scrollable row for filters (e.g. Roles) */
+.role-filter-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-bottom: 16px;
+    padding-bottom: 4px;
+}
+.role-filter-row::-webkit-scrollbar {
+    display: none;
+}
+.role-filter-row button {
+    flex-shrink: 0 !important;
+}
+
+/* User Card visual improvements & transitions */
+.user-card {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.user-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(99, 102, 241, 0.25) !important;
+    background-color: rgba(15, 23, 42, 0.8) !important;
+    box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.15);
+}
+
+
 .item-pct-label {
     width: 100px;
     text-align: right;
@@ -892,3 +939,22 @@ input, select, textarea {
         display: none !important;
     }
 }
+
+/* Responsive visibility utilities */
+@media (max-width: 640px) {
+    .show-mobile-only {
+        display: block !important;
+    }
+    .hide-mobile-only {
+        display: none !important;
+    }
+}
+@media (min-width: 641px) {
+    .show-mobile-only {
+        display: none !important;
+    }
+    .hide-mobile-only {
+        display: flex !important;
+    }
+}
+

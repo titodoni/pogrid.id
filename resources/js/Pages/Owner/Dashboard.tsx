@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
-import { ChevronDown, Settings, Lock, Plus, Palette, Stop, Broadcast, Globe, Copy, DotGreen } from '../../Components/Icons';
+import { ChevronDown, Settings, Lock, Plus, Palette, Stop, Broadcast, Globe, Copy, DotGreen, Search } from '../../Components/Icons';
 
 interface Stage {
     id: number;
@@ -458,6 +458,108 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
     };
 
     const t = translations[language];
+
+    const [showSearchModal, setShowSearchModal] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearchItemClick = (poId: number, itemId?: number) => {
+        const targetPo = pos.find(p => p.id === poId);
+        if (!targetPo) return;
+
+        changeTab(targetPo.status === 'COMPLETED' ? 'completed' : 'active');
+
+        setExpandedPOs(prev => {
+            const next = new Set(prev);
+            next.add(poId);
+            return next;
+        });
+
+        if (itemId) {
+            setExpandedItems(prev => {
+                const next = new Set(prev);
+                next.add(itemId);
+                return next;
+            });
+        }
+
+        setShowSearchModal(false);
+
+        setTimeout(() => {
+            const element = document.getElementById(`po-card-${poId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.style.transition = 'background-color 0.3s ease';
+                element.style.backgroundColor = 'rgba(99, 102, 241, 0.2)';
+                setTimeout(() => {
+                    element.style.backgroundColor = '';
+                }, 1200);
+            }
+        }, 150);
+    };
+
+    const handleSearchAlertClick = (alertId: string) => {
+        changeTab('alerts');
+        setShowSearchModal(false);
+
+        setTimeout(() => {
+            const element = document.getElementById(`alert-card-${alertId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.style.transition = 'background-color 0.3s ease';
+                element.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                setTimeout(() => {
+                    element.style.backgroundColor = '';
+                }, 1200);
+            }
+        }, 150);
+    };
+
+    const getSearchResults = () => {
+        if (!searchQuery.trim()) return { pos: [], items: [], clients: [], alerts: [] };
+
+        const query = searchQuery.toLowerCase();
+        const matchedPos: any[] = [];
+        const matchedItems: any[] = [];
+        const matchedClients = new Set<string>();
+        const matchedAlerts: any[] = [];
+
+        pos.forEach(po => {
+            const poMatch = po.po_number.toLowerCase().includes(query) || 
+                            (po.external_po_number && po.external_po_number.toLowerCase().includes(query));
+            const clientMatch = po.client_name.toLowerCase().includes(query);
+
+            if (poMatch || clientMatch) {
+                matchedPos.push(po);
+            }
+            if (clientMatch) {
+                matchedClients.add(po.client_name);
+            }
+
+            po.items.forEach(item => {
+                const itemMatch = item.item_name.toLowerCase().includes(query) || 
+                                  (item.item_type && item.item_type.toLowerCase().includes(query));
+                if (itemMatch || poMatch || clientMatch) {
+                    matchedItems.push({ ...item, po_id: po.id, po_number: po.po_number, client_name: po.client_name, po_status: po.status });
+                }
+            });
+        });
+
+        const unifiedIssues = getUnifiedIssuesList();
+        unifiedIssues.forEach(issue => {
+            const alertMatch = issue.message.toLowerCase().includes(query) || 
+                               issue.title.toLowerCase().includes(query);
+            if (alertMatch) {
+                matchedAlerts.push(issue);
+            }
+        });
+
+        return {
+            pos: matchedPos,
+            items: matchedItems,
+            clients: Array.from(matchedClients),
+            alerts: matchedAlerts
+        };
+    };
 
     const [activeTab, setActiveTab] = useState<'alerts' | 'active' | 'completed' | 'matrix' | 'team'>(() => {
         if (typeof window !== 'undefined') {
@@ -1360,6 +1462,37 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }} className="owner-header-actions">
+                    {/* Search Modal Button */}
+                    <button
+                        onClick={() => {
+                            setSearchQuery('');
+                            setShowSearchModal(true);
+                        }}
+                        style={{
+                            padding: '8px',
+                            backgroundColor: 'rgba(255,255,255,0.05)',
+                            color: '#a1a1aa',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '16px',
+                            lineHeight: '1',
+                            display: 'flex',
+                        }}
+                        title={language === 'en' ? 'Search POs, Items, Clients...' : 'Cari PO, Barang, Klien...'}
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.15)';
+                            e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+                            e.currentTarget.style.color = '#818cf8';
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                            e.currentTarget.style.color = '#a1a1aa';
+                        }}
+                    >
+                        <Search size={16} />
+                    </button>
                     {/* Profile - visible to all roles */}
                     <a
                         href={'/c/' + (tenant?.slug || '') + '/profile'}
@@ -1656,6 +1789,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     return (
                                         <div
                                             key={issue.id}
+                                            id={`alert-card-${issue.id}`}
                                             onClick={() => {
                                                 if (issue.po_id) {
                                                     changeTab('active');
@@ -1856,7 +1990,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     ? Math.round(po.items.reduce((sum, item) => sum + parseFloat(item.progress_percent), 0) / po.items.length)
                                     : 0;
                                 return (
-                                    <div key={po.id} className="po-accordion">
+                                    <div key={po.id} id={`po-card-${po.id}`} className="po-accordion">
                                         <button className="po-accordion-header" onClick={() => togglePO(po.id)}>
                                             <ChevronDown size={16} expanded={isExpanded} />
                                             <div style={{ flex: 1, minWidth: 0 }}>
@@ -3575,47 +3709,85 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     QC:           { bg: 'rgba(248,113,113,0.12)',    color: '#f87171' },
                     DELIVERY:     { bg: 'rgba(16,185,129,0.12)',   color: '#34d399' },
                     STAFF:        { bg: 'rgba(99,102,241,0.12)',   color: '#818cf8' },
+                    FINANCE:      { bg: 'rgba(236,72,153,0.12)',   color: '#ec4899' },
                 };
 
                 return (
                 <div>
                         {/* Header */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
                             <div>
                                 <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 2px 0' }}>{t.team_title}</h2>
                                 <p style={{ fontSize: '12px', color: '#71717a', margin: 0 }}>{t.team_subtitle}</p>
                             </div>
-                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                                <button
-                                    onClick={openAddUser}
+                            <button
+                                onClick={openAddUser}
+                                style={{
+                                    padding: '6px 14px',
+                                    borderRadius: '8px',
+                                    border: '1px solid rgba(16,185,129,0.3)',
+                                    backgroundColor: 'rgba(16,185,129,0.1)',
+                                    color: '#34d399',
+                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    flexShrink: 0,
+                                }}
+                            >
+                                <Plus size={14} /> {t.add_user}
+                            </button>
+                        </div>
+
+                        {/* Role Filters: Dropdown for Mobile, Pills for Desktop (Rule: No side scrolling on mobile) */}
+                        <div style={{ marginBottom: '16px' }}>
+                            {/* Mobile Dropdown View */}
+                            <div className="show-mobile-only">
+                                <label style={{ display: 'block', fontSize: '11px', color: '#71717a', marginBottom: '6px', fontWeight: 600, textTransform: 'uppercase' }}>
+                                    {language === 'en' ? 'Filter by Role' : 'Saring berdasarkan Role'}
+                                </label>
+                                <select
+                                    value={userRoleFilter}
+                                    onChange={e => setUserRoleFilter(e.target.value)}
                                     style={{
-                                        padding: '5px 12px',
-                                        borderRadius: '6px',
-                                        border: '1px solid rgba(16,185,129,0.3)',
-                                        backgroundColor: 'rgba(16,185,129,0.1)',
-                                        color: '#34d399',
-                                        fontSize: '11px',
-                                        fontWeight: 700,
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '4px',
+                                        width: '100%',
+                                        padding: '10px 14px',
+                                        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '8px',
+                                        color: '#fafafa',
+                                        fontSize: '13px',
+                                        fontWeight: 600,
+                                        outline: 'none',
                                     }}
                                 >
-                                    <Plus size={12} /> {t.add_user}
-                                </button>
+                                    <option value="ALL">{t.filter_all_roles}</option>
+                                    {ALL_ROLES.map(role => (
+                                        users.some(u => u.role_name === role) ? (
+                                            <option key={role} value={role}>{role}</option>
+                                        ) : null
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Desktop Pills View */}
+                            <div className="hide-mobile-only" style={{ gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
                                 <button
                                     onClick={() => setUserRoleFilter('ALL')}
                                     style={{
-                                        padding: '5px 12px',
-                                        borderRadius: '6px',
+                                        padding: '6px 14px',
+                                        borderRadius: '9999px',
+                                        fontSize: '12px',
+                                        fontWeight: 600,
                                         border: '1px solid',
                                         borderColor: userRoleFilter === 'ALL' ? '#6366f1' : 'rgba(255,255,255,0.08)',
-                                        backgroundColor: userRoleFilter === 'ALL' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255,255,255,0.03)',
-                                        color: userRoleFilter === 'ALL' ? '#818cf8' : '#71717a',
-                                        fontSize: '11px',
-                                        fontWeight: 700,
+                                        backgroundColor: userRoleFilter === 'ALL' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255,255,255,0.05)',
+                                        color: userRoleFilter === 'ALL' ? '#818cf8' : '#a1a1aa',
                                         cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        flexShrink: 0,
                                     }}
                                 >
                                     {t.filter_all_roles}
@@ -3626,21 +3798,23 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             key={role}
                                             onClick={() => setUserRoleFilter(role)}
                                             style={{
-                                                padding: '5px 12px',
-                                                borderRadius: '6px',
+                                                padding: '6px 14px',
+                                                borderRadius: '9999px',
+                                                fontSize: '12px',
+                                                fontWeight: 600,
                                                 border: '1px solid',
                                                 borderColor: userRoleFilter === role
                                                     ? (roleColorMap[role]?.color || '#71717a')
                                                     : 'rgba(255,255,255,0.08)',
                                                 backgroundColor: userRoleFilter === role
                                                     ? (roleColorMap[role]?.bg || 'rgba(255,255,255,0.06)')
-                                                    : 'rgba(255,255,255,0.03)',
+                                                    : 'rgba(255,255,255,0.05)',
                                                 color: userRoleFilter === role
                                                     ? (roleColorMap[role]?.color || '#71717a')
-                                                    : '#71717a',
-                                                fontSize: '11px',
-                                                fontWeight: 700,
+                                                    : '#a1a1aa',
                                                 cursor: 'pointer',
+                                                transition: 'all 0.2s ease',
+                                                flexShrink: 0,
                                             }}
                                         >
                                             {role}
@@ -3658,7 +3832,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         ) : (
                             <div style={{
                                 display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
                                 gap: '12px',
                             }}>
                                     {filteredUsers.map(user => {
@@ -3668,6 +3842,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         return (
                                             <div
                                                 key={user.id}
+                                                className="user-card"
                                                 style={{
                                                     backgroundColor: 'rgba(15, 23, 42, 0.6)',
                                                     border: '1px solid rgba(255,255,255,0.06)',
@@ -4535,6 +4710,308 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     </div>
                 </div>
             )}
+
+            {/* ── Search Modal ────────────────────────────────────────── */}
+            {showSearchModal && (() => {
+                const results = getSearchResults();
+                const totalResults = results.pos.length + results.items.length + results.clients.length + results.alerts.length;
+
+                return (
+                    <div
+                        id="search-modal"
+                        style={{
+                            position: 'fixed',
+                            top: 0, left: 0, right: 0, bottom: 0,
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            backdropFilter: 'blur(10px)',
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            justifyContent: 'center',
+                            zIndex: 100,
+                            padding: '40px 20px',
+                        }}
+                        onClick={e => { if (e.target === e.currentTarget) setShowSearchModal(false); }}
+                    >
+                        <div style={{
+                            backgroundColor: '#18181b',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: '16px',
+                            padding: '24px',
+                            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)',
+                            width: '100%',
+                            maxWidth: '640px',
+                            maxHeight: '80vh',
+                            display: 'flex',
+                            flexDirection: 'column',
+                        }}>
+                            {/* Header */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>
+                                    {language === 'en' ? 'Search Directory' : 'Cari Data'}
+                                </h3>
+                                <button
+                                    onClick={() => setShowSearchModal(false)}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#71717a',
+                                        fontSize: '20px',
+                                        cursor: 'pointer',
+                                        lineHeight: 1,
+                                        padding: '0 4px',
+                                    }}
+                                >×</button>
+                            </div>
+
+                            {/* Search Input */}
+                            <div style={{ position: 'relative', marginBottom: '16px', flexShrink: 0 }}>
+                                <Search size={18} style={{ position: 'absolute', left: '14px', top: '14px', color: '#71717a' }} />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                    placeholder={language === 'en' ? "Search POs, items, clients, or issues..." : "Cari nomor PO, barang, klien, atau kendala..."}
+                                    autoFocus
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px 16px 12px 42px',
+                                        backgroundColor: '#09090b',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '10px',
+                                        color: '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none',
+                                        boxSizing: 'border-box',
+                                    }}
+                                />
+                            </div>
+
+                            {/* Results list */}
+                            <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
+                                {!searchQuery.trim() ? (
+                                    <div style={{ textAlign: 'center', padding: '40px 20px', color: '#71717a' }}>
+                                        <div style={{ fontSize: '24px', marginBottom: '12px' }}>🔍</div>
+                                        <p style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 4px 0' }}>
+                                            {language === 'en' ? 'Search POs, Items, Clients & Issues' : 'Cari PO, Barang, Klien & Kendala'}
+                                        </p>
+                                        <p style={{ fontSize: '12px', margin: 0 }}>
+                                            {language === 'en' ? 'Type above to query client names, PO numbers, item statuses, and logged trouble reports.' : 'Ketik di atas untuk mencari nama klien, nomor PO, status barang, dan laporan kendala.'}
+                                        </p>
+                                    </div>
+                                ) : totalResults === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '40px 20px', color: '#71717a' }}>
+                                        <div style={{ fontSize: '24px', marginBottom: '12px' }}>📭</div>
+                                        <p style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 4px 0' }}>
+                                            {language === 'en' ? 'No results found' : 'Tidak ada hasil'}
+                                        </p>
+                                        <p style={{ fontSize: '12px', margin: 0 }}>
+                                            {language === 'en' ? `No matches found for "${searchQuery}"` : `Tidak ada hasil pencarian untuk "${searchQuery}"`}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                        {/* 1. Alerts / Issues Section */}
+                                        {results.alerts.length > 0 && (
+                                            <div>
+                                                <h4 style={{ fontSize: '11px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                                    {language === 'en' ? 'Alerts & Operational Issues' : 'Kendala & Masalah Operasional'}
+                                                </h4>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                    {results.alerts.map((issue: any) => {
+                                                        const badgeColor = issue.severity === 'RED' ? '#ef4444' 
+                                                            : issue.severity === 'BLUE' ? '#3b82f6' 
+                                                            : issue.severity === 'ORANGE' ? '#fb923c'
+                                                            : '#fbbf24';
+
+                                                        return (
+                                                            <div
+                                                                key={issue.id}
+                                                                onClick={() => handleSearchAlertClick(issue.id.replace('alert-db-', '').replace('alert-pin-', ''))}
+                                                                style={{
+                                                                    backgroundColor: 'rgba(255,255,255,0.03)',
+                                                                    border: '1px solid rgba(255,255,255,0.06)',
+                                                                    borderRadius: '8px',
+                                                                    padding: '12px',
+                                                                    cursor: 'pointer',
+                                                                    transition: 'all 0.15s ease',
+                                                                }}
+                                                                className="hover-grow"
+                                                            >
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                                                    <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', backgroundColor: badgeColor, color: '#fff' }}>
+                                                                        {issue.title}
+                                                                    </span>
+                                                                </div>
+                                                                <p style={{ fontSize: '13px', margin: 0, color: '#fafafa' }}>{issue.message}</p>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* 2. Purchase Orders Section */}
+                                        {results.pos.length > 0 && (
+                                            <div>
+                                                <h4 style={{ fontSize: '11px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                                    {language === 'en' ? 'Purchase Orders (POs)' : 'Daftar PO'}
+                                                </h4>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                    {results.pos.map((po: any) => {
+                                                        const itemsProgress = po.items.length > 0
+                                                            ? Math.round(po.items.reduce((sum: number, item: any) => sum + parseFloat(item.progress_percent), 0) / po.items.length)
+                                                            : 0;
+
+                                                        return (
+                                                            <div
+                                                                key={po.id}
+                                                                onClick={() => handleSearchItemClick(po.id)}
+                                                                style={{
+                                                                    backgroundColor: 'rgba(255,255,255,0.03)',
+                                                                    border: '1px solid rgba(255,255,255,0.06)',
+                                                                    borderRadius: '8px',
+                                                                    padding: '12px',
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                                className="hover-grow"
+                                                            >
+                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                                                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#fafafa' }}>{po.po_number}</span>
+                                                                    <span style={{
+                                                                        fontSize: '10px',
+                                                                        fontWeight: 700,
+                                                                        color: po.status === 'COMPLETED' ? '#34d399' : '#fbbf24',
+                                                                        backgroundColor: po.status === 'COMPLETED' ? 'rgba(16,185,129,0.12)' : 'rgba(234,179,8,0.12)',
+                                                                        padding: '2px 6px',
+                                                                        borderRadius: '4px'
+                                                                    }}>
+                                                                        {po.status}
+                                                                    </span>
+                                                                </div>
+                                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>
+                                                                    <span>{po.client_name}</span>
+                                                                    <span>{language === 'en' ? 'Deadline: ' : 'Tenggat: '} {new Date(po.global_deadline).toLocaleDateString()}</span>
+                                                                </div>
+                                                                {/* Progress Bar */}
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <div style={{ flex: 1, height: '6px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                                                                        <div style={{ width: `${itemsProgress}%`, height: '100%', backgroundColor: po.status === 'COMPLETED' ? '#10b981' : '#6366f1', borderRadius: '3px' }} />
+                                                                    </div>
+                                                                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#fafafa' }}>{itemsProgress}%</span>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* 3. Items Section */}
+                                        {results.items.length > 0 && (
+                                            <div>
+                                                <h4 style={{ fontSize: '11px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                                    {language === 'en' ? 'Items & Components' : 'Barang & Komponen'}
+                                                </h4>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                    {results.items.map((item: any) => {
+                                                        const progress = Math.round(parseFloat(item.progress_percent));
+
+                                                        return (
+                                                            <div
+                                                                key={`${item.po_id}-${item.id}`}
+                                                                onClick={() => handleSearchItemClick(item.po_id, item.id)}
+                                                                style={{
+                                                                    backgroundColor: 'rgba(255,255,255,0.03)',
+                                                                    border: '1px solid rgba(255,255,255,0.06)',
+                                                                    borderRadius: '8px',
+                                                                    padding: '12px',
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                                className="hover-grow"
+                                                            >
+                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                                                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#fafafa' }}>{item.item_name}</span>
+                                                                    <span style={{
+                                                                        fontSize: '10px',
+                                                                        fontWeight: 700,
+                                                                        color: item.status === 'COMPLETED' ? '#34d399' : '#a855f7',
+                                                                        backgroundColor: item.status === 'COMPLETED' ? 'rgba(16,185,129,0.12)' : 'rgba(168,85,247,0.12)',
+                                                                        padding: '2px 6px',
+                                                                        borderRadius: '4px'
+                                                                    }}>
+                                                                        {item.status}
+                                                                    </span>
+                                                                </div>
+                                                                <div style={{ fontSize: '11px', color: '#a1a1aa', marginBottom: '8px' }}>
+                                                                    {item.client_name} &middot; PO {item.po_number}
+                                                                </div>
+                                                                {/* Progress Bar */}
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <div style={{ flex: 1, height: '4px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+                                                                        <div style={{ width: `${progress}%`, height: '100%', backgroundColor: item.status === 'COMPLETED' ? '#10b981' : '#a855f7', borderRadius: '2px' }} />
+                                                                    </div>
+                                                                    <span style={{ fontSize: '10px', fontWeight: 700, color: '#fafafa' }}>{progress}%</span>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* 4. Clients Section */}
+                                        {results.clients.length > 0 && (
+                                            <div>
+                                                <h4 style={{ fontSize: '11px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                                    {language === 'en' ? 'Clients' : 'Klien'}
+                                                </h4>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+                                                    {results.clients.map((clientName: string) => {
+                                                        const clientPos = pos.filter(p => p.client_name === clientName);
+                                                        const activeCount = clientPos.filter(p => p.status !== 'COMPLETED').length;
+                                                        const doneCount = clientPos.filter(p => p.status === 'COMPLETED').length;
+
+                                                        return (
+                                                            <div
+                                                                key={clientName}
+                                                                onClick={() => {
+                                                                    const firstPo = clientPos[0];
+                                                                    if (firstPo) handleSearchItemClick(firstPo.id);
+                                                                }}
+                                                                style={{
+                                                                    backgroundColor: 'rgba(255,255,255,0.03)',
+                                                                    border: '1px solid rgba(255,255,255,0.06)',
+                                                                    borderRadius: '8px',
+                                                                    padding: '12px',
+                                                                    cursor: 'pointer',
+                                                                    display: 'flex',
+                                                                    justifyContent: 'space-between',
+                                                                    alignItems: 'center',
+                                                                }}
+                                                                className="hover-grow"
+                                                            >
+                                                                <span style={{ fontSize: '13px', fontWeight: 700, color: '#fafafa' }}>{clientName}</span>
+                                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                                    <span style={{ fontSize: '10px', color: '#fbbf24', backgroundColor: 'rgba(234,179,8,0.12)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                                                                        {activeCount} {language === 'en' ? 'Active' : 'Aktif'}
+                                                                    </span>
+                                                                    <span style={{ fontSize: '10px', color: '#34d399', backgroundColor: 'rgba(16,185,129,0.12)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                                                                        {doneCount} {language === 'en' ? 'Done' : 'Selesai'}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
 
         </div>
     );

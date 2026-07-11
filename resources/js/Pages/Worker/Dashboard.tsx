@@ -1828,11 +1828,8 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
             </header>
 
             {/* Items List */}
-            <div style={{
-                flex: 1,
-                overflowY: 'auto',
+            <div className="dashboard-scroll" style={{
                 padding: '12px',
-                WebkitOverflowScrolling: 'touch',
             }}>
                 {items.length === 0 ? (
                     <p style={{ color: '#71717a', padding: '24px', textAlign: 'center', fontSize: '14px' }}>
