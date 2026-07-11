@@ -6,7 +6,7 @@ This document outlines the accomplishments from the current Matrix Dashboard Ove
 
 ## 🏆 Accomplishments in Phase 1 & Enhancements
 
-We have successfully overhauled the Owner Matrix Dashboard and Worker Floor Dashboard:
+We have successfully overhauled the Owner Matrix Dashboard, Worker Floor Dashboard, and system-wide Authentication/Onboarding UI layouts:
 
 ### 1. Owner Matrix Dashboard Makeover
 *   **Production Pipeline**: Restructured the visual pipeline flow to reflect the actual shop floor workflow (`Drafter` $\rightarrow$ `Purchasing` $\rightarrow$ `CNC / Milling / Welder / Helper (Productions)` $\rightarrow$ `QC` $\rightarrow$ `Finance` $\rightarrow$ `Delivery`).
@@ -29,8 +29,30 @@ We have successfully overhauled the Owner Matrix Dashboard and Worker Floor Dash
     *   Added quantity fractions next to progress percentages (e.g., `33% (1 / 3 pcs)`).
     *   Replaced generic rework warning indicators with specific rework reasons parsed from active DB alerts.
 
-### 2. Worker Floor Dashboard Updates
-*   Applied identical localized lifecycle badges, detailed rework reason pills, and quantity fractions (`(1/3 pcs)`) to the worker task cards on the floor view.
+### 2. Pro-Grade Mobile UI/UX & Responsiveness Overhaul
+*   **Tab Navigation Grid**: Replaced horizontal side-scrolling dashboard tabs with a responsive 3-column grid layout using short labels (`Alerts`, `Active`, `Done`, `Matrix`, `Team`) on mobile viewports.
+*   **Wrap-Around PO Filters**: Refactored the PO Filter Bar on mobile to run a clean 2-column flex-wrap layout using short filter labels (`Semua`, `Ditandai`, `Terlambat`, `Tepat Waktu`, `Mendekati`), eliminating horizontal side-scrolling.
+*   **Production Pipeline Grid Layout**: Refactored the stage timeline visualization in the Performance Matrix tab on mobile into a 2-column grid layout with arrows hidden, keeping stages fully visible on any screen width without side-scrolling.
+*   **Interactive Summary Bar Pills**: Converted the static text summary pills (Issues, Delayed, Closing, Rework, Stuck) into interactive button elements. Clicking any pill switches to the corresponding tab and applies filters automatically (e.g., clicking "Rework" opens the Active tab and applies the "Marked" filter).
+*   **Compact Single-Row Header**: Redesigned the main Owner header on mobile into a grid row, shrinking buttons and hiding the date/time display to save 50px of vertical viewport height.
+*   **Truncated Terminal URL Chip**: Clamped the floor terminal URL element to truncate with ellipsis (`text-overflow: ellipsis`) and flex-shrink properly so the page does not overflow horizontally.
+
+### 3. Worker Floor Dashboard Updates
+*   **Tactile Stepper Controls**: Redesigned completed quantity controls by splitting display text from action buttons and standardizing on a robust `44px` finger-friendly touch target with both increment (`+`) and decrement (`−`) step controls.
+*   **Greeting Post Titles**: Modified the header greeting to show the active worker's specific post name next to their name (e.g., `Halo, Hendra Gunawan (CNC)` or `Halo, Bambang Supriyadi (Welder)`).
+*   **Compact Rework Badges**: Compressed verbose rework status alerts into a concise `Rework (X pcs)` badge dynamically parsed using regex, saving critical horizontal screen real estate.
+*   **Eliminated Sticky Mobile Hover**: Restructured card transitions to use touch-down scaling (`transform: scale(0.985)`) on mobile tap and restricted translate hover elevations strictly to desktop hover-supporting devices.
+*   *   Applied identical localized lifecycle badges, detailed rework reason pills, and quantity fractions (`(1/3 pcs)`) to the worker task cards on the floor view.
+*   *   Fixed mobile layouts to utilize dynamic viewport heights (`100dvh`) and scrollable panel wrappers, ensuring zero container clipping.
+
+### 4. Auth & Onboarding UI Makeover
+*   Overhauled onboarding registration (`Register.tsx`), password recovery (`ForgotPassword.tsx`), and resetting (`ResetPassword.tsx`) views.
+*   Modernized elements using Zinc-Indigo branding palettes (`#09090b` and `#6366f1`), rounded input borders (`10px`), and standard entry transition animations (`animate-in`).
+
+### 5. Core Architecture & Layout Stability
+*   **Global Layout Refactor**: Resolved an app-wide bug in [app.tsx](file:///home/tito/pogrid/resources/js/app.tsx) where the global default layout was defined as an inline anonymous wrapper, causing React to completely unmount and remount the entire page component tree on every Inertia props update. Defined a constant layout reference (`defaultLayout`) to keep components mounted, preserving state correctly.
+*   **Preserved State across Operations**: Standardized Inertia AJAX requests on the worker floor dashboard to use `preserveState: true`, preventing card drawers from auto-collapsing when updating progress.
+*   **Global Item Name Cleanup**: Implemented an Eloquent model accessor (`getItemNameAttribute`) in [Item.php](file:///home/tito/pogrid/app/Models/Item.php) to automatically strip stage suffixes (e.g. `(CNC)`, `(CNC + Fabrication)`) globally, updating all directories, summaries, and lists cleanly while preserving database integrity. Seeders were also cleaned.
 
 ---
 
