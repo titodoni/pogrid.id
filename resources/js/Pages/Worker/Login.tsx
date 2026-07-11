@@ -136,18 +136,18 @@ export default function WorkerLogin({ tenant, workers }: Props) {
     return (
         <div style={{
             minHeight: '100dvh',
-            backgroundColor: '#090d16',
+            backgroundColor: '#09090b',
             fontFamily: 'Inter, sans-serif',
-            color: '#f8fafc',
+            color: '#fafafa',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             padding: '16px',
         }}>
-            <div className="login-card w-full max-w-[420px] bg-slate-900/80 backdrop-blur-xl border border-white/8 rounded-2xl p-6 shadow-2xl">
+            <div className="login-card animate-in w-full max-w-[420px] bg-zinc-900/80 backdrop-blur-xl border border-white/8 rounded-2xl p-6 shadow-2xl">
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                    <h2 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#3b82f6', fontWeight: 700, letterSpacing: '0.1em', margin: 0 }}>
+                    <h2 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#818cf8', fontWeight: 700, letterSpacing: '0.1em', margin: 0 }}>
                         {tenant.company_name}
                     </h2>
                     <h1 style={{ fontSize: '24px', fontWeight: 800, margin: '4px 0 0 0', letterSpacing: '-0.02em' }}>
@@ -157,7 +157,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
 
                 {/* Worker Selector Dropdown */}
                 <div style={{ marginBottom: '16px' }}>
-                    <label style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600, display: 'block' }}>
+                    <label style={{ fontSize: '12px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600, display: 'block' }}>
                         {t.select_name}
                     </label>
                     <select
@@ -169,17 +169,17 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         style={{
                             width: '100%',
                             padding: '12px 14px',
-                            backgroundColor: '#090d16',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            backgroundColor: '#0a0a0c',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
                             borderRadius: '10px',
-                            color: '#f8fafc',
+                            color: '#fafafa',
                             fontSize: '15px',
                             fontWeight: 600,
                             outline: 'none',
                             appearance: 'none',
                             WebkitAppearance: 'none',
                             cursor: 'pointer',
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
                             backgroundRepeat: 'no-repeat',
                             backgroundPosition: 'right 12px center',
                             backgroundSize: '16px',
@@ -196,14 +196,14 @@ export default function WorkerLogin({ tenant, workers }: Props) {
 
                 {/* PIN Input */}
                 <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-                    <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: 600 }}>
+                    <div style={{ fontSize: '12px', color: '#a1a1aa', marginBottom: '8px', fontWeight: 600 }}>
                         {selectedWorker ? t.entering_pin.replace('{name}', selectedWorker.name) : t.select_worker}
                     </div>
                     <div style={{
                         height: '44px',
                         maxWidth: '200px',
                         margin: '0 auto',
-                        backgroundColor: '#090d16',
+                        backgroundColor: '#0a0a0c',
                         borderRadius: '10px',
                         border: '1px solid rgba(255, 255, 255, 0.08)',
                         display: 'flex',
@@ -211,7 +211,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         justifyContent: 'center',
                         fontSize: '22px',
                         letterSpacing: '8px',
-                        color: '#38bdf8',
+                        color: '#a5b4fc',
                     }}>
                         {'•'.repeat(pin.length)}
                     </div>
@@ -243,7 +243,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                                 borderRadius: '10px',
                                 border: '1px solid rgba(255, 255, 255, 0.05)',
                                 backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                                color: selectedWorker ? '#f8fafc' : '#475569',
+                                color: selectedWorker ? '#fafafa' : '#52525b',
                                 cursor: selectedWorker ? 'pointer' : 'not-allowed',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -264,8 +264,8 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             fontWeight: 700,
                             borderRadius: '10px',
                             border: 'none',
-                            backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                            color: '#ef4444',
+                            backgroundColor: 'rgba(248, 113, 113, 0.12)',
+                            color: '#f87171',
                             cursor: (selectedWorker && pin.length > 0) ? 'pointer' : 'not-allowed',
                             display: 'flex',
                             alignItems: 'center',
@@ -285,7 +285,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             borderRadius: '10px',
                             border: '1px solid rgba(255, 255, 255, 0.05)',
                             backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                            color: selectedWorker ? '#f8fafc' : '#475569',
+                            color: selectedWorker ? '#fafafa' : '#52525b',
                             cursor: selectedWorker ? 'pointer' : 'not-allowed',
                             display: 'flex',
                             alignItems: 'center',
@@ -305,7 +305,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             borderRadius: '10px',
                             border: 'none',
                             backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                            color: '#f8fafc',
+                            color: '#fafafa',
                             cursor: (selectedWorker && pin.length > 0) ? 'pointer' : 'not-allowed',
                             display: 'flex',
                             alignItems: 'center',
@@ -326,8 +326,8 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         display: 'block',
                         margin: '16px auto 0',
                         padding: '12px',
-                        backgroundColor: (selectedWorker && pin.length >= 4) ? '#10b981' : '#1e293b',
-                        color: (selectedWorker && pin.length >= 4) ? '#ffffff' : '#64748b',
+                        backgroundColor: (selectedWorker && pin.length >= 4) ? '#34d399' : '#27272a',
+                        color: (selectedWorker && pin.length >= 4) ? '#ffffff' : '#71717a',
                         fontWeight: 700,
                         borderRadius: '10px',
                         border: 'none',
@@ -350,7 +350,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             margin: '8px auto 0',
                             padding: '10px',
                             backgroundColor: 'transparent',
-                            color: '#64748b',
+                            color: '#71717a',
                             border: '1px solid rgba(255,255,255,0.08)',
                             borderRadius: '10px',
                             fontSize: '12px',
@@ -385,8 +385,8 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             }
                         });
                     }} style={{
-                        backgroundColor: '#0f172a',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        backgroundColor: '#18181b',
+                        border: '1px solid rgba(255,255,255,0.08)',
                         borderRadius: '16px',
                         padding: '24px',
                         width: '100%',
@@ -394,7 +394,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         margin: '16px'
                     }}>
                         <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 8px 0' }}>{t.forgot_pin_title}</h3>
-                        <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 20px 0' }}>
+                        <p style={{ fontSize: '14px', color: '#a1a1aa', margin: '0 0 20px 0' }}>
                             {t.forgot_pin_desc.replace('{name}', selectedWorker.name)}
                         </p>
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
@@ -404,7 +404,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                                 style={{
                                     padding: '8px 16px',
                                     backgroundColor: 'transparent',
-                                    color: '#94a3b8',
+                                    color: '#a1a1aa',
                                     border: 'none',
                                     cursor: 'pointer'
                                 }}
@@ -416,7 +416,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                                 disabled={processing}
                                 style={{
                                     padding: '8px 16px',
-                                    backgroundColor: '#2563eb',
+                                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                                     color: '#fff',
                                     borderRadius: '8px',
                                     border: 'none',

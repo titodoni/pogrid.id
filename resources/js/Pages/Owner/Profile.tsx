@@ -97,59 +97,56 @@ export default function Profile({ tenant, auth_user }: Props) {
 
     return (
         <div className="dashboard-root" style={{
-            backgroundColor: '#090d16',
+            backgroundColor: '#09090b',
             fontFamily: 'Inter, sans-serif',
-            color: '#f8fafc'
+            color: '#fafafa'
         }}>
-            <header style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 20px',
+            <header className="responsive-header" style={{
+                padding: '12px 16px',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                backgroundColor: 'rgba(9, 13, 22, 0.3)',
+                backgroundColor: 'rgba(9, 9, 11, 0.6)',
                 backdropFilter: 'blur(8px)',
                 flexShrink: 0,
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                     <a
                         href={`/c/${tenant?.slug || ''}`}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px',
-                            color: '#60a5fa',
+                            color: '#818cf8',
                             fontSize: '14px',
                             fontWeight: 600,
                             textDecoration: 'none',
                             padding: '8px 14px',
-                            borderRadius: '8px',
-                            backgroundColor: 'rgba(96, 165, 250, 0.08)',
-                            border: '1px solid rgba(96, 165, 250, 0.15)',
+                            borderRadius: '10px',
+                            backgroundColor: 'rgba(99, 102, 241, 0.12)',
+                            border: '1px solid rgba(99, 102, 241, 0.2)',
                         }}
                     >
                         <ChevronLeft size={16} /> {t.back}
                     </a>
                     <div>
-                        <div className="greeting-name" style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 600, marginBottom: '2px' }}>
+                        <div className="greeting-name" style={{ fontSize: '11px', color: '#818cf8', fontWeight: 600, marginBottom: '2px' }}>
                             {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
                         </div>
                         <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.page_title}</h1>
-                        <p style={{ fontSize: '11px', color: '#64748b', margin: '1px 0 0 0' }}>
+                        <p style={{ fontSize: '11px', color: '#71717a', margin: '1px 0 0 0' }}>
                             {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                             {' · '}
                             {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '2px', borderRadius: '6px' }}>
+                <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '2px', borderRadius: '8px' }}>
                     <button
                         onClick={() => changeLanguage('en')}
                         style={{
                             padding: '6px 10px',
-                            backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
+                            backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
                             border: 'none',
-                            borderRadius: '4px',
+                            borderRadius: '6px',
                             color: '#fff',
                             fontWeight: 600,
                             fontSize: '11px',
@@ -162,9 +159,9 @@ export default function Profile({ tenant, auth_user }: Props) {
                         onClick={() => changeLanguage('id')}
                         style={{
                             padding: '6px 10px',
-                            backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
+                            backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
                             border: 'none',
-                            borderRadius: '4px',
+                            borderRadius: '6px',
                             color: '#fff',
                             fontWeight: 600,
                             fontSize: '11px',
@@ -181,32 +178,32 @@ export default function Profile({ tenant, auth_user }: Props) {
                     <h1 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 4px 0' }}>
                         {t.page_title}
                     </h1>
-                    <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 24px 0' }}>
+                    <p style={{ fontSize: '13px', color: '#71717a', margin: '0 0 24px 0' }}>
                         {t.greeting}, {auth_user?.name}
                     </p>
 
                     {/* User Info Card */}
                     <div style={{
-                        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                        backgroundColor: 'rgba(24, 24, 27, 0.7)',
                         border: '1px solid rgba(255, 255, 255, 0.06)',
-                        borderRadius: '12px',
+                        borderRadius: '14px',
                         padding: '16px',
                         marginBottom: '20px',
                     }}>
                         <div style={{ display: 'grid', gap: '12px' }}>
                             <div>
-                                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: '2px' }}>
+                                <div style={{ fontSize: '11px', color: '#71717a', fontWeight: 600, textTransform: 'uppercase', marginBottom: '2px' }}>
                                     {t.company}
                                 </div>
-                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa' }}>
                                     {tenant?.company_name || 'N/A'}
                                 </div>
                             </div>
                             <div>
-                                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: '2px' }}>
+                                <div style={{ fontSize: '11px', color: '#71717a', fontWeight: 600, textTransform: 'uppercase', marginBottom: '2px' }}>
                                     {t.role}
                                 </div>
-                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#60a5fa' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#818cf8' }}>
                                     {auth_user?.role_name}{auth_user?.post_name ? ` — ${auth_user.post_name}` : ''}
                                 </div>
                             </div>
@@ -215,9 +212,9 @@ export default function Profile({ tenant, auth_user }: Props) {
 
                     {/* Change Password Form */}
                     <div style={{
-                        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                        backgroundColor: 'rgba(24, 24, 27, 0.7)',
                         border: '1px solid rgba(255, 255, 255, 0.06)',
-                        borderRadius: '12px',
+                        borderRadius: '14px',
                         padding: '20px',
                     }}>
                         <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -226,7 +223,7 @@ export default function Profile({ tenant, auth_user }: Props) {
 
                         <form onSubmit={submitChangePassword}>
                             <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px', fontWeight: 600 }}>
                                     {t.current_password}
                                 </label>
                                 <input
@@ -237,9 +234,9 @@ export default function Profile({ tenant, auth_user }: Props) {
                                     style={{
                                         width: '100%',
                                         padding: '10px 12px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#0a0a0c',
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
+                                        borderRadius: '10px',
                                         color: '#fff',
                                         fontSize: '14px',
                                         outline: 'none'
@@ -248,7 +245,7 @@ export default function Profile({ tenant, auth_user }: Props) {
                             </div>
 
                             <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px', fontWeight: 600 }}>
                                     {t.new_password}
                                 </label>
                                 <input
@@ -260,9 +257,9 @@ export default function Profile({ tenant, auth_user }: Props) {
                                     style={{
                                         width: '100%',
                                         padding: '10px 12px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#0a0a0c',
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
+                                        borderRadius: '10px',
                                         color: '#fff',
                                         fontSize: '14px',
                                         outline: 'none'
@@ -271,7 +268,7 @@ export default function Profile({ tenant, auth_user }: Props) {
                             </div>
 
                             <div style={{ marginBottom: '20px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px', fontWeight: 600 }}>
                                     {t.confirm_password}
                                 </label>
                                 <input
@@ -282,9 +279,9 @@ export default function Profile({ tenant, auth_user }: Props) {
                                     style={{
                                         width: '100%',
                                         padding: '10px 12px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#0a0a0c',
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
+                                        borderRadius: '10px',
                                         color: '#fff',
                                         fontSize: '14px',
                                         outline: 'none'
@@ -296,13 +293,14 @@ export default function Profile({ tenant, auth_user }: Props) {
                                 type="submit"
                                 style={{
                                     padding: '10px 20px',
-                                    backgroundColor: '#2563eb',
+                                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                                     border: 'none',
                                     color: '#fff',
-                                    borderRadius: '8px',
+                                    borderRadius: '10px',
                                     fontWeight: 600,
                                     cursor: 'pointer',
                                     fontSize: '14px',
+                                    boxShadow: '0 4px 12px -2px rgba(99, 102, 241, 0.3)',
                                 }}
                             >
                                 {t.save_changes}

@@ -71,7 +71,7 @@ const renderWarningPill = (deadlineDateStr: string | undefined, reworkMessage: s
         return (
             <span className="badge" style={{
                 backgroundColor: 'rgba(249, 115, 22, 0.15)', // Orange background
-                color: '#f97316', // Orange text
+                color: '#fb923c', // Orange text
                 border: '1px solid rgba(249, 115, 22, 0.2)',
                 fontSize: '11px',
                 padding: '3px 8px',
@@ -81,7 +81,7 @@ const renderWarningPill = (deadlineDateStr: string | undefined, reworkMessage: s
                 alignItems: 'center',
                 gap: '4px'
             }}>
-                <span style={{ width: '6px', height: '6px', backgroundColor: '#f97316', borderRadius: '50%' }} />
+                <span style={{ width: '6px', height: '6px', backgroundColor: '#fb923c', borderRadius: '50%' }} />
                 {displayMsg}
             </span>
         );
@@ -131,7 +131,7 @@ const renderWarningPill = (deadlineDateStr: string | undefined, reworkMessage: s
         return (
             <span className="badge" style={{
                 backgroundColor: 'rgba(234, 179, 8, 0.15)', // Yellow background
-                color: '#eab308', // Yellow text
+                color: '#fbbf24', // Yellow text
                 border: '1px solid rgba(234, 179, 8, 0.2)',
                 fontSize: '11px',
                 padding: '3px 8px',
@@ -141,7 +141,7 @@ const renderWarningPill = (deadlineDateStr: string | undefined, reworkMessage: s
                 alignItems: 'center',
                 gap: '4px'
             }}>
-                <span style={{ width: '6px', height: '6px', backgroundColor: '#eab308', borderRadius: '50%' }} />
+                <span style={{ width: '6px', height: '6px', backgroundColor: '#fbbf24', borderRadius: '50%' }} />
                 {text}
             </span>
         );
@@ -150,7 +150,7 @@ const renderWarningPill = (deadlineDateStr: string | undefined, reworkMessage: s
         return (
             <span className="badge" style={{
                 backgroundColor: 'rgba(16, 185, 129, 0.15)', // Green background
-                color: '#10b981', // Green text
+                color: '#34d399', // Green text
                 border: '1px solid rgba(16, 185, 129, 0.2)',
                 fontSize: '11px',
                 padding: '3px 8px',
@@ -160,7 +160,7 @@ const renderWarningPill = (deadlineDateStr: string | undefined, reworkMessage: s
                 alignItems: 'center',
                 gap: '4px'
             }}>
-                <span style={{ width: '6px', height: '6px', backgroundColor: '#10b981', borderRadius: '50%' }} />
+                <span style={{ width: '6px', height: '6px', backgroundColor: '#34d399', borderRadius: '50%' }} />
                 {lang === 'id' ? 'Normal' : 'Normal'}
             </span>
         );
@@ -345,6 +345,11 @@ const translations = {
         add_user: "Add User",
         add_user_title: "New User",
         add_user_subtitle: "Create a new account for floor operator or office staff.",
+        tab_alerts: "Alerts",
+        tab_active: "Active",
+        tab_completed: "Done",
+        tab_matrix: "Matrix",
+        tab_team: "Team",
     },
     id: {
         owner_command_center: "Dasbor Utama",
@@ -429,6 +434,11 @@ const translations = {
         add_user: "Tambah Pengguna",
         add_user_title: "Pengguna Baru",
         add_user_subtitle: "Buat akun baru untuk operator lantai atau staf kantor.",
+        tab_alerts: "Kendala",
+        tab_active: "Aktif",
+        tab_completed: "Selesai",
+        tab_matrix: "Kinerja",
+        tab_team: "Tim",
     }
 };
 
@@ -910,9 +920,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
         const getStageHealth = (metric: any) => {
             if (metric.stuck_count > 0) return { border: 'rgba(239,68,68,0.6)', bg: 'rgba(239,68,68,0.12)', label: '#ef4444' };
-            if (metric.avg_cycle_time > 3) return { border: 'rgba(249,115,22,0.5)', bg: 'rgba(249,115,22,0.08)', label: '#f97316' };
-            if (metric.avg_cycle_time > 1) return { border: 'rgba(234,179,8,0.4)', bg: 'rgba(234,179,8,0.06)', label: '#eab308' };
-            return { border: 'rgba(16,185,129,0.35)', bg: 'rgba(16,185,129,0.06)', label: '#10b981' };
+            if (metric.avg_cycle_time > 3) return { border: 'rgba(249,115,22,0.5)', bg: 'rgba(249,115,22,0.08)', label: '#fb923c' };
+            if (metric.avg_cycle_time > 1) return { border: 'rgba(234,179,8,0.4)', bg: 'rgba(234,179,8,0.06)', label: '#fbbf24' };
+            return { border: 'rgba(16,185,129,0.35)', bg: 'rgba(16,185,129,0.06)', label: '#34d399' };
         };
 
         const pipelineStages = (telemetry.stage_metrics || [])
@@ -933,25 +943,25 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 margin: '0 auto',
                                 textAlign: 'center'
                             }}>
-                                <div style={{ fontSize: '12px', color: '#60a5fa', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
+                                <div style={{ fontSize: '12px', color: '#818cf8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
                                     {language === 'id' ? 'RINGKASAN OPERASIONAL' : 'OPERATIONAL SUMMARY'}
                                 </div>
-                                <p style={{ fontSize: '20px', color: '#e2e8f0', lineHeight: 1.8, margin: 0, fontWeight: 500 }}>
+                                <p style={{ fontSize: '20px', color: '#e4e4e7', lineHeight: 1.8, margin: 0, fontWeight: 500 }}>
                                     {narrativeText}
                                 </p>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
                                 {/* OTDR */}
                                 <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                    <div style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                         {t.on_time_delivery}
                                     </div>
-                                    <div style={{ fontSize: '48px', fontWeight: 900, color: telemetry.otdr >= 80 ? '#10b981' : telemetry.otdr >= 60 ? '#f59e0b' : '#ef4444' }}>
+                                    <div style={{ fontSize: '48px', fontWeight: 900, color: telemetry.otdr >= 80 ? '#34d399' : telemetry.otdr >= 60 ? '#fbbf24' : '#ef4444' }}>
                                         {telemetry.otdr}%
                                     </div>
                                     {otdrDelta != null && (
-                                        <div style={{ fontSize: '13px', fontWeight: 800, color: otdrDelta >= 0 ? '#10b981' : '#ef4444', marginTop: '6px' }}>
+                                        <div style={{ fontSize: '13px', fontWeight: 800, color: otdrDelta >= 0 ? '#34d399' : '#ef4444', marginTop: '6px' }}>
                                             {otdrDelta >= 0 ? '▲' : '▼'} {Math.abs(otdrDelta)}% vs prev
                                         </div>
                                     )}
@@ -959,14 +969,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                                 {/* Delivered */}
                                 <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                    <div style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                         {t.parts_manufactured}
                                     </div>
                                     <div style={{ fontSize: '38px', fontWeight: 900, color: '#3b82f6', marginTop: '10px' }}>
-                                        {deliveredCurr} <span style={{ fontSize: '18px', color: '#475569', fontWeight: 700 }}>/ {telemetry.manufacture?.target ?? 0}</span>
+                                        {deliveredCurr} <span style={{ fontSize: '18px', color: '#52525b', fontWeight: 700 }}>/ {telemetry.manufacture?.target ?? 0}</span>
                                     </div>
                                     {deliveredDelta != null && (
-                                        <div style={{ fontSize: '13px', fontWeight: 800, color: deliveredDelta >= 0 ? '#10b981' : '#ef4444', marginTop: '12px' }}>
+                                        <div style={{ fontSize: '13px', fontWeight: 800, color: deliveredDelta >= 0 ? '#34d399' : '#ef4444', marginTop: '12px' }}>
                                             {deliveredDelta >= 0 ? '▲' : '▼'} {Math.abs(deliveredDelta)}% vs prev
                                         </div>
                                     )}
@@ -974,14 +984,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                                 {/* Avg Delay */}
                                 <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                    <div style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                         {t.avg_delay}
                                     </div>
-                                    <div style={{ fontSize: '38px', fontWeight: 900, color: telemetry.avg_delay_days === 0 ? '#10b981' : telemetry.avg_delay_days <= 3 ? '#f59e0b' : '#ef4444', marginTop: '10px' }}>
-                                        {telemetry.avg_delay_days} <span style={{ fontSize: '18px', color: '#475569', fontWeight: 700 }}>{language === 'id' ? 'Hari' : 'Days'}</span>
+                                    <div style={{ fontSize: '38px', fontWeight: 900, color: telemetry.avg_delay_days === 0 ? '#34d399' : telemetry.avg_delay_days <= 3 ? '#fbbf24' : '#ef4444', marginTop: '10px' }}>
+                                        {telemetry.avg_delay_days} <span style={{ fontSize: '18px', color: '#52525b', fontWeight: 700 }}>{language === 'id' ? 'Hari' : 'Days'}</span>
                                     </div>
                                     {delayDelta != null && (
-                                        <div style={{ fontSize: '13px', fontWeight: 800, color: delayDelta <= 0 ? '#10b981' : '#ef4444', marginTop: '12px' }}>
+                                        <div style={{ fontSize: '13px', fontWeight: 800, color: delayDelta <= 0 ? '#34d399' : '#ef4444', marginTop: '12px' }}>
                                             {delayDelta >= 0 ? '▲' : '▼'} {Math.abs(delayDelta)} vs prev
                                         </div>
                                     )}
@@ -989,13 +999,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                                 {/* Urgent Active POs */}
                                 <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: `1px solid ${(telemetry.urgent_active || 0) > 0 ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.08)'}`, borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                    <div style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                         {language === 'id' ? 'PO Mendesak' : 'Urgent Active POs'}
                                     </div>
-                                    <div style={{ fontSize: '48px', fontWeight: 900, color: (telemetry.urgent_active || 0) > 0 ? '#ef4444' : '#10b981' }}>
+                                    <div style={{ fontSize: '48px', fontWeight: 900, color: (telemetry.urgent_active || 0) > 0 ? '#ef4444' : '#34d399' }}>
                                         {telemetry.urgent_active || 0}
                                     </div>
-                                    <div style={{ fontSize: '12px', color: '#475569', marginTop: '6px', fontWeight: 600 }}>
+                                    <div style={{ fontSize: '12px', color: '#52525b', marginTop: '6px', fontWeight: 600 }}>
                                         {(telemetry.urgent_active || 0) > 0 ? (language === 'id' ? 'Tindakan segera' : 'Action required') : (language === 'id' ? 'Kondisi Aman' : 'Healthy')}
                                     </div>
                                 </div>
@@ -1034,16 +1044,16 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        border: '2px solid #090d16',
+                                                        border: '2px solid #09090b',
                                                     }}>{metric.stuck_count}</span>
                                                 )}
-                                                <div style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+                                                <div style={{ fontSize: '11px', fontWeight: 800, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
                                                     {metric.stage}
                                                 </div>
                                                 <div style={{ fontSize: '32px', fontWeight: 900, color: health.label, lineHeight: 1 }}>
                                                     {metric.active_items}
                                                 </div>
-                                                <div style={{ fontSize: '11px', color: '#475569', marginTop: '4px' }}>
+                                                <div style={{ fontSize: '11px', color: '#52525b', marginTop: '4px' }}>
                                                     {language === 'id' ? 'item aktif' : 'active items'}
                                                 </div>
                                                 {metric.avg_cycle_time > 0 && (
@@ -1053,41 +1063,42 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 )}
                                             </div>
                                             {idx < pipelineStages.length - 1 && (
-                                                <div style={{ color: '#1e293b', fontSize: '36px', userSelect: 'none' }}>→</div>
+                                                <div style={{ color: '#27272a', fontSize: '36px', userSelect: 'none' }}>→</div>
                                             )}
                                         </React.Fragment>
                                     );
                                 })}
                             </div>
 
-                            {/* Stage Details */}
                             <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                                <div style={{ width: '100%', overflowX: 'auto' }}>
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                                     <thead>
                                         <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#64748b' }}>{t.stage}</th>
-                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#64748b' }}>{t.active_items}</th>
-                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#64748b' }}>{t.stuck_incidents}</th>
-                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#64748b' }}>{t.rework_count}</th>
-                                            <th style={{ textAlign: 'right', padding: '12px 16px', color: '#64748b' }}>{t.avg_cycle_time}</th>
+                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a' }}>{t.stage}</th>
+                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a' }}>{t.active_items}</th>
+                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a' }}>{t.stuck_incidents}</th>
+                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a' }}>{t.rework_count}</th>
+                                            <th style={{ textAlign: 'right', padding: '12px 16px', color: '#71717a' }}>{t.avg_cycle_time}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {telemetry.stage_metrics?.map((metric: any, idx: number) => (
-                                            <tr key={`slide-detail-stage-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#e2e8f0' }}>
+                                            <tr key={`slide-detail-stage-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#e4e4e7' }}>
                                                 <td style={{ padding: '10px 16px', fontWeight: 800 }}>{metric.stage.toUpperCase()}</td>
                                                 <td style={{ padding: '10px 16px', textAlign: 'center' }}>{metric.active_items}</td>
                                                 <td style={{ padding: '10px 16px', textAlign: 'center' }}>
                                                     {metric.stuck_count > 0 ? <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>{metric.stuck_count} stuck</span> : '0'}
                                                 </td>
                                                 <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                                                    {metric.rework_count > 0 ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#eab308', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>{metric.rework_count} rework</span> : '0'}
+                                                    {metric.rework_count > 0 ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>{metric.rework_count} rework</span> : '0'}
                                                 </td>
                                                 <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 800, color: '#3b82f6' }}>{metric.avg_cycle_time.toFixed(2)}d</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
+                                </div>
                             </div>
                         </div>
                     );
@@ -1095,41 +1106,43 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     return (
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '20px', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
                             <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '24px' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                                <div style={{ width: '100%', overflowX: 'auto' }}>
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                                     <thead>
                                         <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                                            <th style={{ textAlign: 'left', padding: '14px 16px', color: '#64748b' }}>{language === 'id' ? 'Klien' : 'Client'}</th>
-                                            <th style={{ textAlign: 'center', padding: '14px 16px', color: '#64748b' }}>{language === 'id' ? 'PO Aktif' : 'Active POs'}</th>
-                                            <th style={{ textAlign: 'center', padding: '14px 16px', color: '#64748b' }}>{language === 'id' ? 'Ketepatan Waktu' : 'On-Time Rate'}</th>
-                                            <th style={{ textAlign: 'center', padding: '14px 16px', color: '#64748b' }}>{language === 'id' ? 'Item Terlambat' : 'Overdue Items'}</th>
-                                            <th style={{ textAlign: 'center', padding: '14px 16px', color: '#64748b' }}>{language === 'id' ? 'Belum Faktur' : 'Uninvoiced'}</th>
-                                            <th style={{ textAlign: 'center', padding: '14px 16px', color: '#64748b' }}>{language === 'id' ? 'Belum Bayar' : 'Unpaid'}</th>
+                                            <th style={{ textAlign: 'left', padding: '14px 16px', color: '#71717a' }}>{language === 'id' ? 'Klien' : 'Client'}</th>
+                                            <th style={{ textAlign: 'center', padding: '14px 16px', color: '#71717a' }}>{language === 'id' ? 'PO Aktif' : 'Active POs'}</th>
+                                            <th style={{ textAlign: 'center', padding: '14px 16px', color: '#71717a' }}>{language === 'id' ? 'Ketepatan Waktu' : 'On-Time Rate'}</th>
+                                            <th style={{ textAlign: 'center', padding: '14px 16px', color: '#71717a' }}>{language === 'id' ? 'Item Terlambat' : 'Overdue Items'}</th>
+                                            <th style={{ textAlign: 'center', padding: '14px 16px', color: '#71717a' }}>{language === 'id' ? 'Belum Faktur' : 'Uninvoiced'}</th>
+                                            <th style={{ textAlign: 'center', padding: '14px 16px', color: '#71717a' }}>{language === 'id' ? 'Belum Bayar' : 'Unpaid'}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {telemetry.client_health?.map((client: any, idx: number) => {
-                                            const otdrColor = client.on_time_rate == null ? '#64748b' : client.on_time_rate >= 80 ? '#10b981' : client.on_time_rate >= 60 ? '#f59e0b' : '#ef4444';
+                                            const otdrColor = client.on_time_rate == null ? '#71717a' : client.on_time_rate >= 80 ? '#34d399' : client.on_time_rate >= 60 ? '#fbbf24' : '#ef4444';
                                             return (
-                                                <tr key={`slide-client-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#e2e8f0' }}>
+                                                <tr key={`slide-client-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#e4e4e7' }}>
                                                     <td style={{ padding: '12px 16px', fontWeight: 800, fontSize: '15px' }}>{client.client_name}</td>
-                                                    <td style={{ padding: '12px 16px', textAlign: 'center', color: '#94a3b8' }}>{client.active_pos}</td>
+                                                    <td style={{ padding: '12px 16px', textAlign: 'center', color: '#a1a1aa' }}>{client.active_pos}</td>
                                                     <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 800, color: otdrColor }}>
                                                         {client.on_time_rate != null ? `${client.on_time_rate}%` : 'N/A'}
                                                     </td>
                                                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                                        {client.overdue_items > 0 ? <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444', padding: '4px 8px', borderRadius: '4px', fontWeight: 800 }}>{client.overdue_items}</span> : <span style={{ color: '#10b981', fontWeight: 800 }}>✓</span>}
+                                                        {client.overdue_items > 0 ? <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444', padding: '4px 8px', borderRadius: '4px', fontWeight: 800 }}>{client.overdue_items}</span> : <span style={{ color: '#34d399', fontWeight: 800 }}>✓</span>}
                                                     </td>
                                                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                                        {client.uninvoiced_count > 0 ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#eab308', padding: '4px 8px', borderRadius: '4px', fontWeight: 800 }}>{client.uninvoiced_count}</span> : <span style={{ color: '#10b981', fontWeight: 800 }}>✓</span>}
+                                                        {client.uninvoiced_count > 0 ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24', padding: '4px 8px', borderRadius: '4px', fontWeight: 800 }}>{client.uninvoiced_count}</span> : <span style={{ color: '#34d399', fontWeight: 800 }}>✓</span>}
                                                     </td>
                                                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                                        {client.unpaid_count > 0 ? <span className="badge" style={{ backgroundColor: 'rgba(249,115,22,0.15)', color: '#f97316', padding: '4px 8px', borderRadius: '4px', fontWeight: 800 }}>{client.unpaid_count}</span> : <span style={{ color: '#10b981', fontWeight: 800 }}>✓</span>}
+                                                        {client.unpaid_count > 0 ? <span className="badge" style={{ backgroundColor: 'rgba(249,115,22,0.15)', color: '#fb923c', padding: '4px 8px', borderRadius: '4px', fontWeight: 800 }}>{client.unpaid_count}</span> : <span style={{ color: '#34d399', fontWeight: 800 }}>✓</span>}
                                                     </td>
                                                 </tr>
                                             );
                                         })}
                                     </tbody>
                                 </table>
+                                </div>
                             </div>
                         </div>
                     );
@@ -1144,14 +1157,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 </h4>
                                 <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px' }}>
                                     {stuckItems.length === 0 ? (
-                                        <div style={{ color: '#64748b', fontSize: '13px', padding: '40px 0', textAlign: 'center' }}>{language === 'id' ? 'Tidak ada hambatan aktif.' : 'No active delays.'}</div>
+                                        <div style={{ color: '#71717a', fontSize: '13px', padding: '40px 0', textAlign: 'center' }}>{language === 'id' ? 'Tidak ada hambatan aktif.' : 'No active delays.'}</div>
                                     ) : stuckItems.map((item: any, idx: number) => (
                                         <div key={`slide-action-stuck-${idx}`} style={{ backgroundColor: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '10px', padding: '12px 14px' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                                <span style={{ fontWeight: 800, color: '#f8fafc', fontSize: '13px' }}>{item.po_number} · {item.client_name}</span>
+                                                <span style={{ fontWeight: 800, color: '#fafafa', fontSize: '13px' }}>{item.po_number} · {item.client_name}</span>
                                                 <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444', fontSize: '10px', padding: '2px 6px', borderRadius: '4px' }}>{item.days_overdue}d delay</span>
                                             </div>
-                                            <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>{item.item_name} ({Math.round(item.progress_percent)}%)</div>
+                                            <div style={{ fontSize: '12px', color: '#a1a1aa', fontWeight: 600 }}>{item.item_name} ({Math.round(item.progress_percent)}%)</div>
                                             <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '6px', fontStyle: 'italic', fontWeight: 500 }}>{item.reason}</div>
                                         </div>
                                     ))}
@@ -1160,16 +1173,16 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                             {/* Right Column: Uninvoiced */}
                             <div style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column' }}>
-                                <h4 style={{ fontSize: '15px', fontWeight: 800, color: '#eab308', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <h4 style={{ fontSize: '15px', fontWeight: 800, color: '#fbbf24', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <span>💼</span> {language === 'id' ? 'Pekerjaan Selesai Belum Difakturkan' : 'Finished Items Not Yet Invoiced'}
                                 </h4>
                                 <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px' }}>
                                     {((telemetry.finance_health?.uninvoiced_count || 0) === 0) ? (
-                                        <div style={{ color: '#64748b', fontSize: '13px', padding: '40px 0', textAlign: 'center' }}>
+                                        <div style={{ color: '#71717a', fontSize: '13px', padding: '40px 0', textAlign: 'center' }}>
                                             {language === 'id' ? 'Semua pekerjaan selesai sudah difakturkan.' : 'All finished items have been invoiced.'}
                                         </div>
                                     ) : (
-                                        <div style={{ color: '#94a3b8', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>
+                                        <div style={{ color: '#a1a1aa', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>
                                             {language === 'id' ? (
                                                 <p>Terdapat <strong>{telemetry.finance_health.uninvoiced_count}</strong> item pesanan selesai yang perlu diterbitkan invoice oleh bagian Keuangan.</p>
                                             ) : (
@@ -1177,7 +1190,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             )}
                                             <button
                                                 onClick={() => { togglePresentationMode(); changeTab('completed'); }}
-                                                style={{ marginTop: '12px', backgroundColor: '#eab308', color: '#090d16', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                                                style={{ marginTop: '12px', backgroundColor: '#fbbf24', color: '#09090b', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
                                             >
                                                 {language === 'id' ? 'Buka Status Keuangan' : 'Open Finance Status'}
                                             </button>
@@ -1199,9 +1212,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: '#090d16',
+                backgroundColor: '#09090b',
                 zIndex: 99999,
-                color: '#f8fafc',
+                color: '#fafafa',
                 padding: '40px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1213,11 +1226,11 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <span style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em', color: '#fff' }}>POgrid.id</span>
-                            <span style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', borderRadius: '6px', padding: '3px 8px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>
+                            <span style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#a1a1aa', borderRadius: '6px', padding: '3px 8px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>
                                 {rangeLabel}
                             </span>
                         </div>
-                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontWeight: 500 }}>
+                        <div style={{ fontSize: '12px', color: '#71717a', marginTop: '4px', fontWeight: 500 }}>
                             {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                             {' · '}
                             {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -1226,7 +1239,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                         {/* Slide Title */}
-                        <div style={{ fontSize: '18px', fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <div style={{ fontSize: '18px', fontWeight: 800, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                             {presentationSlide === 0 ? (language === 'id' ? 'Ringkasan Kinerja' : 'Performance Summary') :
                              presentationSlide === 1 ? (language === 'id' ? 'Alur Produksi' : 'Production Pipeline') :
                              presentationSlide === 2 ? (language === 'id' ? 'Kinerja Klien' : 'Client Board') :
@@ -1238,7 +1251,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             onClick={togglePresentationMode}
                             style={{
                                 background: 'rgba(255,255,255,0.05)',
-                                color: '#94a3b8',
+                                color: '#a1a1aa',
                                 border: '1px solid rgba(255,255,255,0.08)',
                                 borderRadius: '8px',
                                 padding: '8px 16px',
@@ -1277,7 +1290,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             onClick={() => setPresentationAutoPlay(prev => !prev)}
                             style={{
                                 background: presentationAutoPlay ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)',
-                                color: presentationAutoPlay ? '#10b981' : '#94a3b8',
+                                color: presentationAutoPlay ? '#34d399' : '#a1a1aa',
                                 border: presentationAutoPlay ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(255,255,255,0.08)',
                                 borderRadius: '6px',
                                 padding: '6px 12px',
@@ -1289,7 +1302,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 gap: '6px'
                             }}
                         >
-                            <span style={{ width: '8px', height: '8px', backgroundColor: presentationAutoPlay ? '#10b981' : '#64748b', borderRadius: '50%', display: 'inline-block' }} />
+                            <span style={{ width: '8px', height: '8px', backgroundColor: presentationAutoPlay ? '#34d399' : '#71717a', borderRadius: '50%', display: 'inline-block' }} />
                             Auto-Play (10s)
                         </button>
                     </div>
@@ -1314,7 +1327,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     </div>
 
                     {/* App info */}
-                    <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>
+                    <div style={{ fontSize: '12px', color: '#71717a', fontWeight: 500 }}>
                         {language === 'id' ? 'Gunakan tombol panah untuk navigasi' : 'Use controls or slide indicators to navigate'}
                     </div>
                 </div>
@@ -1323,30 +1336,30 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
     }
 
     return (
-        <div style={{
-            minHeight: '100dvh',
-            backgroundColor: '#090d16',
+        <div className="dashboard-root" style={{
+            backgroundColor: '#09090b',
             fontFamily: 'Inter, sans-serif',
-            color: '#f8fafc',
+            color: '#fafafa',
         }}>
-            <header className="responsive-header" style={{
+            <div className="dashboard-above-scroll">
+            <header className="responsive-header owner-dashboard-header" style={{
                 padding: '10px 16px 8px',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
             }}>
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="owner-header-title">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.owner_command_center}</h1>
-                        <span style={{ fontSize: '11px', color: '#64748b' }}>
+                        <span className="owner-header-datetime" style={{ fontSize: '11px', color: '#71717a' }}>
                             {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                             {' · '}
                             {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                     </div>
-                    <div style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 600, marginTop: '1px' }}>
+                    <div className="owner-greeting" style={{ fontSize: '11px', color: '#818cf8', fontWeight: 600, marginTop: '1px' }}>
                         {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }} className="owner-header-actions">
                     {/* Profile - visible to all roles */}
                     <a
                         href={'/c/' + (tenant?.slug || '') + '/profile'}
@@ -1354,7 +1367,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         style={{
                             padding: '8px',
                             backgroundColor: 'rgba(255,255,255,0.05)',
-                            color: '#94a3b8',
+                            color: '#a1a1aa',
                             border: '1px solid rgba(255,255,255,0.08)',
                             borderRadius: '8px',
                             cursor: 'pointer',
@@ -1374,7 +1387,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             style={{
                                 padding: '8px 12px',
                                 backgroundColor: 'rgba(255,255,255,0.05)',
-                                color: '#94a3b8',
+                                color: '#a1a1aa',
                                 border: '1px solid rgba(255,255,255,0.08)',
                                 borderRadius: '8px',
                                 fontWeight: 600,
@@ -1430,27 +1443,30 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
             {/* Floor Terminal URL — compact chip */}
             {tenant && (
-                <div style={{
+                <div className="floor-terminal-row" style={{
                     marginBottom: '8px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
                     fontSize: '11px',
-                    color: '#64748b',
+                    color: '#71717a',
+                    flexWrap: 'nowrap',
+                    minWidth: 0,
                 }}>
-                    <span style={{ fontWeight: 600, color: '#60a5fa' }}>{t.floor_terminal_url}</span>
-                    <code style={{
+                    <span style={{ fontWeight: 600, color: '#818cf8' }}>{t.floor_terminal_url}</span>
+                    <code className="floor-terminal-chip" style={{
                         backgroundColor: 'rgba(37,99,235,0.08)',
                         padding: '2px 8px',
                         borderRadius: '4px',
                         border: '1px solid rgba(37,99,235,0.15)',
-                        color: '#38bdf8',
+                        color: '#a5b4fc',
                         fontSize: '11px',
                         fontWeight: 600,
                     }}>
                         {typeof window !== 'undefined' ? `${window.location.origin}/c/${tenant.slug}` : `/c/${tenant.slug}`}
                     </code>
                     <button
+                        className="floor-terminal-copy-btn"
                         onClick={() => {
                             const url = typeof window !== 'undefined' ? `${window.location.origin}/c/${tenant.slug}` : `/c/${tenant.slug}`;
                             navigator.clipboard.writeText(url);
@@ -1459,7 +1475,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         style={{
                             padding: '1px 6px',
                             backgroundColor: 'rgba(37,99,235,0.15)',
-                            color: '#60a5fa',
+                            color: '#818cf8',
                             fontWeight: 600,
                             border: '1px solid rgba(37,99,235,0.2)',
                             borderRadius: '4px',
@@ -1476,14 +1492,15 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
             {/* Tab Navigation */}
             <div className="tab-bar">
                 <button className={`tab ${activeTab === 'alerts' ? 'tab-active' : ''}`} onClick={() => changeTab('alerts')}>
-                    {t.unresolved_alerts}
+                    <span className="tab-label-full">{t.unresolved_alerts}</span>
+                    <span className="tab-label-short">{t.tab_alerts}</span>
                     {alerts.length > 0 && (
                         <span style={{
-                            marginLeft: '6px',
+                            marginLeft: '4px',
                             fontSize: '10px',
                             backgroundColor: '#ef4444',
                             color: '#fff',
-                            padding: '1px 6px',
+                            padding: '1px 5px',
                             borderRadius: '8px'
                         }}>
                             {alerts.length}
@@ -1491,22 +1508,26 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     )}
                 </button>
                 <button className={`tab ${activeTab === 'active' ? 'tab-active' : ''}`} onClick={() => changeTab('active')}>
-                    Active POs
+                    <span className="tab-label-full">Active POs</span>
+                    <span className="tab-label-short">{t.tab_active}</span>
                 </button>
                 <button className={`tab ${activeTab === 'completed' ? 'tab-active' : ''}`} onClick={() => changeTab('completed')}>
-                    Completed
+                    <span className="tab-label-full">Completed</span>
+                    <span className="tab-label-short">{t.tab_completed}</span>
                 </button>
                 <button className={`tab ${activeTab === 'matrix' ? 'tab-active' : ''}`} onClick={() => changeTab('matrix')}>
-                    {t.performance_matrix}
+                    <span className="tab-label-full">{t.performance_matrix}</span>
+                    <span className="tab-label-short">{t.tab_matrix}</span>
                 </button>
                 <button className={`tab ${activeTab === 'team' ? 'tab-active' : ''}`} onClick={() => changeTab('team')}>
-                    {t.team_tab}
+                    <span className="tab-label-full">{t.team_tab}</span>
+                    <span className="tab-label-short">{t.tab_team}</span>
                     <span style={{
-                        marginLeft: '6px',
+                        marginLeft: '4px',
                         fontSize: '10px',
                         backgroundColor: 'rgba(255,255,255,0.1)',
-                        color: '#94a3b8',
-                        padding: '1px 6px',
+                        color: '#a1a1aa',
+                        padding: '1px 5px',
                         borderRadius: '8px'
                     }}>
                         {users.length}
@@ -1530,36 +1551,61 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     const total = issues.length;
                     return (
                         <>
-                            <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', padding: '2px 8px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            <button
+                                onClick={() => changeTab('alerts')}
+                                className="summary-pill summary-pill-gray"
+                            >
                                 {total} {language === 'en' ? 'Issues' : 'Isu'}
-                            </span>
+                            </button>
                             {delayed > 0 && (
-                                <span style={{ fontSize: '10px', fontWeight: 700, color: '#ef4444', padding: '2px 8px', backgroundColor: 'rgba(239,68,68,0.08)', borderRadius: '4px', border: '1px solid rgba(239,68,68,0.15)' }}>
+                                <button
+                                    onClick={() => {
+                                        changeTab('active');
+                                        setActivePoFilter('delayed');
+                                    }}
+                                    className="summary-pill summary-pill-red"
+                                >
                                     {delayed} {language === 'en' ? 'Delayed' : 'Terlambat'}
-                                </span>
+                                </button>
                             )}
                             {close > 0 && (
-                                <span style={{ fontSize: '10px', fontWeight: 700, color: '#f97316', padding: '2px 8px', backgroundColor: 'rgba(249,115,22,0.08)', borderRadius: '4px', border: '1px solid rgba(249,115,22,0.15)' }}>
+                                <button
+                                    onClick={() => {
+                                        changeTab('active');
+                                        setActivePoFilter('close_due');
+                                    }}
+                                    className="summary-pill summary-pill-orange"
+                                >
                                     {close} {language === 'en' ? 'Closing' : 'Dekat'}
-                                </span>
+                                </button>
                             )}
                             {reworks > 0 && (
-                                <span style={{ fontSize: '10px', fontWeight: 700, color: '#f97316', padding: '2px 8px', backgroundColor: 'rgba(249,115,22,0.08)', borderRadius: '4px', border: '1px solid rgba(249,115,22,0.15)' }}>
+                                <button
+                                    onClick={() => {
+                                        changeTab('active');
+                                        setActivePoFilter('marked');
+                                    }}
+                                    className="summary-pill summary-pill-orange"
+                                >
                                     {reworks} Rework
-                                </span>
+                                </button>
                             )}
                             {troubles > 0 && (
-                                <span style={{ fontSize: '10px', fontWeight: 700, color: '#ef4444', padding: '2px 8px', backgroundColor: 'rgba(239,68,68,0.08)', borderRadius: '4px', border: '1px solid rgba(239,68,68,0.15)' }}>
+                                <button
+                                    onClick={() => changeTab('alerts')}
+                                    className="summary-pill summary-pill-red"
+                                >
                                     {troubles} {language === 'en' ? 'Stuck' : 'Macet'}
-                                </span>
+                                </button>
                             )}
                         </>
                     );
                 })()}
             </div>
             </div>
+            </div>
 
-            <div style={{ padding: '0 16px' }}>
+            <div className="dashboard-scroll" style={{ padding: '16px' }}>
             {/* Alert Matrix Panel */}
             {activeTab === 'alerts' && (() => {
                 const unifiedIssues = getUnifiedIssuesList();
@@ -1569,7 +1615,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             <span>{t.unresolved_alerts}</span>
                             <span style={{
                                 fontSize: '12px',
-                                backgroundColor: unifiedIssues.length > 0 ? '#ef4444' : '#10b981',
+                                backgroundColor: unifiedIssues.length > 0 ? '#ef4444' : '#34d399',
                                 color: '#fff',
                                 padding: '2px 8px',
                                 borderRadius: '12px'
@@ -1584,7 +1630,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 border: '1px solid rgba(16, 185, 129, 0.15)',
                                 borderRadius: '12px',
                                 padding: '16px',
-                                color: '#10b981',
+                                color: '#34d399',
                                 fontSize: '14px',
                                 fontWeight: 500
                             }}>
@@ -1603,8 +1649,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         : 'rgba(234, 179, 8, 0.2)';
                                     const badgeBg = issue.severity === 'RED' ? '#ef4444' 
                                         : issue.severity === 'BLUE' ? '#3b82f6' 
-                                        : issue.severity === 'ORANGE' ? '#f97316'
-                                        : '#eab308';
+                                        : issue.severity === 'ORANGE' ? '#fb923c'
+                                        : '#fbbf24';
                                     const badgeText = issue.title;
 
                                     return (
@@ -1625,6 +1671,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: '12px',
+                                                flexWrap: 'wrap',
                                                 cursor: issue.po_id ? 'pointer' : 'default',
                                                 transition: 'all 0.2s',
                                             }}
@@ -1641,7 +1688,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             }}>
                                                 {badgeText}
                                             </span>
-                                            <div style={{ fontSize: '14px', color: '#e2e8f0', flexGrow: 1 }}>
+                                            <div style={{ fontSize: '14px', color: '#e4e4e7', flexGrow: 1 }}>
                                                 {issue.message}
                                             </div>
                                             {issue.action && (
@@ -1682,10 +1729,11 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{t.po_directory}</h2>
                         {canBroadcastPo && (
                             <button
+                                className="new-po-btn"
                                 onClick={() => router.get('/pos/create')}
                                 style={{
                                     padding: '10px 18px',
-                                    backgroundColor: '#2563eb',
+                                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                                     color: '#fff',
                                     fontWeight: 600,
                                     border: 'none',
@@ -1696,15 +1744,15 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     alignItems: 'center',
                                     gap: '6px'
                                 }}
-                                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
-                                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+                                onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)')}
+                                onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)')}
                             >
                                 <Broadcast size={16} /> {t.broadcast_new_po}
                             </button>
                         )}
                     </div>
                     {activeTab === 'active' && (
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                        <div className="po-filter-row" style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap', marginBottom: '16px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
                             <button
                                 onClick={() => setActivePoFilter('all')}
                                 style={{
@@ -1713,13 +1761,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'all' ? '#2563eb' : 'rgba(255,255,255,0.05)',
-                                    color: activePoFilter === 'all' ? '#ffffff' : '#94a3b8',
+                                    backgroundColor: activePoFilter === 'all' ? '#6366f1' : 'rgba(255,255,255,0.05)',
+                                    color: activePoFilter === 'all' ? '#ffffff' : '#a1a1aa',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                {language === 'id' ? 'Semua PO (Default)' : 'All POs (Default)'}
+                                <span className="filter-label-full">{language === 'id' ? 'Semua PO (Default)' : 'All POs (Default)'}</span>
+                                <span className="filter-label-short">{language === 'id' ? 'Semua' : 'All'}</span>
                             </button>
                             <button
                                 onClick={() => setActivePoFilter('marked')}
@@ -1729,13 +1778,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'marked' ? '#2563eb' : 'rgba(255,255,255,0.05)',
-                                    color: activePoFilter === 'marked' ? '#ffffff' : '#94a3b8',
+                                    backgroundColor: activePoFilter === 'marked' ? '#6366f1' : 'rgba(255,255,255,0.05)',
+                                    color: activePoFilter === 'marked' ? '#ffffff' : '#a1a1aa',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                {language === 'id' ? 'Ditandai (Rework/Kendala)' : 'Marked (Rework / Trouble)'}
+                                <span className="filter-label-full">{language === 'id' ? 'Ditandai (Rework/Kendala)' : 'Marked (Rework / Trouble)'}</span>
+                                <span className="filter-label-short">{language === 'id' ? 'Ditandai' : 'Marked'}</span>
                             </button>
                             <button
                                 onClick={() => setActivePoFilter('delayed')}
@@ -1745,13 +1795,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'delayed' ? '#2563eb' : 'rgba(255,255,255,0.05)',
-                                    color: activePoFilter === 'delayed' ? '#ffffff' : '#94a3b8',
+                                    backgroundColor: activePoFilter === 'delayed' ? '#6366f1' : 'rgba(255,255,255,0.05)',
+                                    color: activePoFilter === 'delayed' ? '#ffffff' : '#a1a1aa',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                {language === 'id' ? 'Terlambat' : 'Delayed'}
+                                <span className="filter-label-full">{language === 'id' ? 'Terlambat' : 'Delayed'}</span>
+                                <span className="filter-label-short">{language === 'id' ? 'Terlambat' : 'Delayed'}</span>
                             </button>
                             <button
                                 onClick={() => setActivePoFilter('ontime')}
@@ -1761,13 +1812,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'ontime' ? '#2563eb' : 'rgba(255,255,255,0.05)',
-                                    color: activePoFilter === 'ontime' ? '#ffffff' : '#94a3b8',
+                                    backgroundColor: activePoFilter === 'ontime' ? '#6366f1' : 'rgba(255,255,255,0.05)',
+                                    color: activePoFilter === 'ontime' ? '#ffffff' : '#a1a1aa',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                {language === 'id' ? 'Tepat Waktu' : 'On Time'}
+                                <span className="filter-label-full">{language === 'id' ? 'Tepat Waktu' : 'On Time'}</span>
+                                <span className="filter-label-short">{language === 'id' ? 'Tepat Waktu' : 'On Time'}</span>
                             </button>
                             <button
                                 onClick={() => setActivePoFilter('close_due')}
@@ -1777,24 +1829,25 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'close_due' ? '#2563eb' : 'rgba(255,255,255,0.05)',
-                                    color: activePoFilter === 'close_due' ? '#ffffff' : '#94a3b8',
+                                    backgroundColor: activePoFilter === 'close_due' ? '#6366f1' : 'rgba(255,255,255,0.05)',
+                                    color: activePoFilter === 'close_due' ? '#ffffff' : '#a1a1aa',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                {language === 'id' ? 'Mendekati Deadline' : 'Close Due Date'}
+                                <span className="filter-label-full">{language === 'id' ? 'Mendekati Deadline' : 'Close Due Date'}</span>
+                                <span className="filter-label-short">{language === 'id' ? 'Mendekati' : 'Near Due'}</span>
                             </button>
                         </div>
                     )}
                     {filteredPos.length === 0 ? (
-                        <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                        <div style={{ padding: '40px', textAlign: 'center', color: '#71717a' }}>
                             {activeTab === 'completed' ? 'No completed POs yet.' : t.no_pos}
                         </div>
                     ) : (
                         <div>
                             {/* Compact summary strip for mobile */}
-                            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px', padding: '0 4px' }}>
+                            <div style={{ fontSize: '12px', color: '#71717a', marginBottom: '12px', padding: '0 4px' }}>
                                 {filteredPos.length} PO{filteredPos.length > 1 ? 's' : ''} &middot; {filteredPos.reduce((sum, po) => sum + po.items.length, 0)} items
                             </div>
                             {filteredPos.map((po) => {
@@ -1811,7 +1864,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                     <span style={{ fontSize: '16px', fontWeight: 800 }}>{po.po_number}</span>
                                                     <span className="badge" style={{
                                                         backgroundColor: po.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(234, 179, 8, 0.15)',
-                                                        color: po.status === 'COMPLETED' ? '#10b981' : '#eab308'
+                                                        color: po.status === 'COMPLETED' ? '#34d399' : '#fbbf24'
                                                     }}>
                                                         {po.status}
                                                     </span>
@@ -1831,7 +1884,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         return renderWarningPill(po.global_deadline, hasRework, language);
                                                     })()}
                                                 </div>
-                                                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
+                                                <div style={{ fontSize: '12px', color: '#a1a1aa', marginTop: '2px' }}>
                                                     {po.client_name} &middot; {formatDeadline(po.global_deadline, language)}
                                                     {!isExpanded && po.items.length > 0 && (
                                                         <span style={{ marginLeft: '8px', color: '#3b82f6' }}>
@@ -1845,7 +1898,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         {isExpanded && (
                                             <div className="po-accordion-body">
                                                 {po.items.length === 0 ? (
-                                                    <div style={{ fontSize: '14px', color: '#64748b', padding: '12px 0' }}>No items in this PO.</div>
+                                                    <div style={{ fontSize: '14px', color: '#71717a', padding: '12px 0' }}>No items in this PO.</div>
                                                 ) : (
                                                     po.items.map((item) => {
                                                         const progress = parseFloat(item.progress_percent);
@@ -1871,8 +1924,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                 <button className="item-compact-summary" onClick={() => toggleItem(item.id)}>
                                                                     <div style={{ flex: 1, minWidth: 0 }}>
                                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                                                            <span style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc' }}>{item.item_name}</span>
-                                                                        <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.06)', color: '#94a3b8' }}>
+                                                                            <span style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa' }}>{item.item_name}</span>
+                                                                        <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.06)', color: '#a1a1aa' }}>
                                                                             {item.item_type === 'MANUFACTURE' 
                                                                                 ? (language === 'id' ? 'Produksi Internal' : 'Manufactured') 
                                                                                 : (language === 'id' ? 'Beli Jadi (Buyout)' : 'Buyout')}
@@ -1880,7 +1933,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                         {item.drafter_status && (
                                                                             <span className="badge" style={{
                                                                                 backgroundColor: item.drafter_status === 'APPROVED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(139, 92, 246, 0.15)',
-                                                                                color: item.drafter_status === 'APPROVED' ? '#10b981' : '#a78bfa',
+                                                                                color: item.drafter_status === 'APPROVED' ? '#34d399' : '#a78bfa',
                                                                             }}>
                                                                                 {item.drafter_status === 'APPROVED' 
                                                                                     ? (language === 'id' ? 'Gambar Disetujui' : 'Drawing Approved')
@@ -1892,8 +1945,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 backgroundColor: item.purchasing_status === 'READY' ? 'rgba(16, 185, 129, 0.15)' :
                                                                                     item.purchasing_status === 'PROSES' ? 'rgba(234, 179, 8, 0.15)' :
                                                                                     'rgba(59, 130, 246, 0.1)',
-                                                                                color: item.purchasing_status === 'READY' ? '#10b981' :
-                                                                                    item.purchasing_status === 'PROSES' ? '#eab308' :
+                                                                                color: item.purchasing_status === 'READY' ? '#34d399' :
+                                                                                    item.purchasing_status === 'PROSES' ? '#fbbf24' :
                                                                                     '#3b82f6',
                                                                             }}>
                                                                                 {item.purchasing_status === 'READY'
@@ -1909,7 +1962,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 : progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
                                                                             color: isCancelled ? '#ef4444'
                                                                                 : isTerminated ? '#ef4444'
-                                                                                : progress >= 100 ? '#10b981' : '#3b82f6'
+                                                                                : progress >= 100 ? '#34d399' : '#3b82f6'
                                                                         }}>
                                                                             {(() => {
                                                                                 switch (item.status) {
@@ -1933,22 +1986,20 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                     <div className="progress-bar-mini" style={{ maxWidth: '100px' }}>
                                                                         <div className="progress-bar-mini-fill" style={{
                                                                             width: `${progress}%`,
-                                                                            backgroundColor: isCancelled ? '#ef4444' : '#2563eb'
+                                                                            backgroundColor: isCancelled ? '#f87171' : '#6366f1'
                                                                         }} />
                                                                     </div>
-                                                                    <span style={{ 
+                                                                    <span className="item-pct-label" style={{ 
                                                                         fontSize: '12px', 
                                                                         fontWeight: 700, 
-                                                                        width: '100px', 
-                                                                        textAlign: 'right', 
-                                                                        color: '#3b82f6',
+                                                                        color: '#818cf8',
                                                                         display: 'flex',
                                                                         flexDirection: 'column',
                                                                         gap: '2px',
                                                                         alignItems: 'flex-end'
                                                                     }}>
                                                                         <span>{progress.toFixed(0)}%</span>
-                                                                        <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 'normal' }}>
+                                                                        <span style={{ fontSize: '10px', color: '#71717a', fontWeight: 'normal' }}>
                                                                             ({item.delivered_qty || 0} / {item.target_qty || 0} pcs)
                                                                         </span>
                                                                     </span>
@@ -1959,27 +2010,27 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                     <div className="item-compact-detail">
                                                                         <div className="responsive-split" style={{ marginBottom: '12px', gap: '8px' }}>
                                                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                                                <div style={{ fontSize: '13px', fontWeight: 600, color: '#60a5fa' }}>
+                                                                                <div style={{ fontSize: '13px', fontWeight: 600, color: '#818cf8' }}>
                                                                                     Client: {po.client_name}
                                                                                 </div>
-                                                                                <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                                                                                <div style={{ fontSize: '12px', color: '#a1a1aa' }}>
                                                                                     Deadline: {formatDeadline(po.global_deadline, language)}
                                                                                 </div>
-                                                                                <div style={{ fontSize: '12px', fontWeight: 600, color: '#38bdf8' }}>
+                                                                                <div style={{ fontSize: '12px', fontWeight: 600, color: '#a5b4fc' }}>
                                                                                     Qty: {item.target_qty} pcs {item.delivered_qty > 0 ? `| Delivered: ${item.delivered_qty} pcs` : ''}
                                                                                 </div>
                                                                                 {item.drafter_status && (
-                                                                                    <div style={{ fontSize: '11px', color: item.drafter_status === 'APPROVED' ? '#10b981' : '#a78bfa' }}>
+                                                                                    <div style={{ fontSize: '11px', color: item.drafter_status === 'APPROVED' ? '#34d399' : '#a78bfa' }}>
                                                                                         {language === 'en' ? 'Drafter' : 'Drafter'}: {item.drafter_status}
                                                                                     </div>
                                                                                 )}
                                                                                 {item.purchasing_status && (
-                                                                                    <div style={{ fontSize: '11px', color: item.purchasing_status === 'READY' ? '#10b981' : item.purchasing_status === 'PROSES' ? '#eab308' : '#3b82f6' }}>
+                                                                                    <div style={{ fontSize: '11px', color: item.purchasing_status === 'READY' ? '#34d399' : item.purchasing_status === 'PROSES' ? '#fbbf24' : '#3b82f6' }}>
                                                                                         {language === 'en' ? 'Purchasing' : 'Pembelian'}: {item.purchasing_status}
                                                                                     </div>
                                                                                 )}
                                                                                 {item.vendor_name && (
-                                                                                    <div style={{ fontSize: '11px', color: '#10b981' }}>
+                                                                                    <div style={{ fontSize: '11px', color: '#34d399' }}>
                                                                                         Vendor: {item.vendor_name} ({item.vendor_phone})
                                                                                     </div>
                                                                                 )}
@@ -1993,8 +2044,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                         title={hasProgress ? "Cannot cancel. Progress has started. Use Terminate Midway instead." : ""}
                                                                                         style={{
                                                                                             padding: '5px 10px',
-                                                                                            backgroundColor: hasProgress ? '#1e293b' : 'rgba(239, 68, 68, 0.1)',
-                                                                                            color: hasProgress ? '#475569' : '#ef4444',
+                                                                                            backgroundColor: hasProgress ? '#27272a' : 'rgba(239, 68, 68, 0.1)',
+                                                                                            color: hasProgress ? '#52525b' : '#ef4444',
                                                                                             border: 'none',
                                                                                             borderRadius: '6px',
                                                                                             cursor: hasProgress ? 'not-allowed' : 'pointer',
@@ -2031,14 +2082,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                             <div style={{
                                                                                 flexGrow: 1,
                                                                                 height: '6px',
-                                                                                backgroundColor: '#090d16',
+                                                                                backgroundColor: '#09090b',
                                                                                 borderRadius: '3px',
                                                                                 overflow: 'hidden'
                                                                             }}>
                                                                                 <div style={{
                                                                                     width: `${progress}%`,
                                                                                     height: '100%',
-                                                                                    backgroundColor: isCancelled ? '#ef4444' : '#2563eb',
+                                                                                    backgroundColor: isCancelled ? '#f87171' : '#6366f1',
                                                                                     borderRadius: '3px',
                                                                                     transition: 'width 0.3s ease'
                                                                                 }} />
@@ -2051,7 +2102,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                         {/* Stages display */}
                                                                         {item.item_progresses && item.item_progresses.length > 0 && (
                                                                             <div style={{ marginTop: '10px' }}>
-                                                                                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                                <div style={{ fontSize: '11px', color: '#71717a', marginBottom: '6px' }}>
                                                                                     Stages
                                                                                 </div>
                                                                                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -2059,8 +2110,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                         <span key={stage.id} className="badge" style={{
                                                                                             backgroundColor: stage.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.1)'
                                                                                                 : stage.status === 'STUCK' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255,255,255,0.05)',
-                                                                                            color: stage.status === 'COMPLETED' ? '#10b981'
-                                                                                                : stage.status === 'STUCK' ? '#ef4444' : '#94a3b8',
+                                                                                            color: stage.status === 'COMPLETED' ? '#34d399'
+                                                                                                : stage.status === 'STUCK' ? '#ef4444' : '#a1a1aa',
                                                                                             border: '1px solid rgba(255,255,255,0.05)',
                                                                                             fontSize: '11px',
                                                                                             padding: '3px 8px'
@@ -2187,9 +2238,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                 // Pipeline stage health color
                 const getStageHealth = (metric: any) => {
                     if (metric.stuck_count > 0) return { border: 'rgba(239,68,68,0.6)', bg: 'rgba(239,68,68,0.08)', label: '#ef4444' };
-                    if (metric.avg_cycle_time > 3) return { border: 'rgba(249,115,22,0.5)', bg: 'rgba(249,115,22,0.07)', label: '#f97316' };
-                    if (metric.avg_cycle_time > 1) return { border: 'rgba(234,179,8,0.4)', bg: 'rgba(234,179,8,0.05)', label: '#eab308' };
-                    return { border: 'rgba(16,185,129,0.35)', bg: 'rgba(16,185,129,0.05)', label: '#10b981' };
+                    if (metric.avg_cycle_time > 3) return { border: 'rgba(249,115,22,0.5)', bg: 'rgba(249,115,22,0.07)', label: '#fb923c' };
+                    if (metric.avg_cycle_time > 1) return { border: 'rgba(234,179,8,0.4)', bg: 'rgba(234,179,8,0.05)', label: '#fbbf24' };
+                    return { border: 'rgba(16,185,129,0.35)', bg: 'rgba(16,185,129,0.05)', label: '#34d399' };
                 };
 
                 const pipelineStages = (telemetry.stage_metrics || [])
@@ -2207,8 +2258,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         onClick={() => handleRangeChange(r)}
                                         style={{
                                             padding: '6px 12px',
-                                            backgroundColor: selected_range === r ? '#2563eb' : 'transparent',
-                                            color: selected_range === r ? '#fff' : '#94a3b8',
+                                            backgroundColor: selected_range === r ? '#6366f1' : 'transparent',
+                                            color: selected_range === r ? '#fff' : '#a1a1aa',
                                             border: 'none',
                                             borderRadius: '6px',
                                             fontWeight: 600,
@@ -2226,7 +2277,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     style={{
                                         padding: '8px 16px',
                                         backgroundColor: 'rgba(255,255,255,0.05)',
-                                        color: '#e2e8f0',
+                                        color: '#e4e4e7',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
                                         fontWeight: 600,
@@ -2241,7 +2292,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     target="_blank"
                                     style={{
                                         padding: '8px 16px',
-                                        backgroundColor: '#2563eb',
+                                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                                         color: '#fff',
                                         border: 'none',
                                         borderRadius: '8px',
@@ -2270,10 +2321,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         }}>
                             <span style={{ fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>📊</span>
                             <div>
-                                <div style={{ fontSize: '10px', color: '#60a5fa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+                                <div style={{ fontSize: '10px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
                                     {language === 'id' ? 'Ringkasan Kinerja' : 'Performance Summary'} · {rangeLabel}
                                 </div>
-                                <p style={{ margin: 0, fontSize: '13px', color: '#e2e8f0', lineHeight: 1.65 }}>{narrative}</p>
+                                <p style={{ margin: 0, fontSize: '13px', color: '#e4e4e7', lineHeight: 1.65 }}>{narrative}</p>
                             </div>
                         </div>
 
@@ -2299,14 +2350,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.on_time_delivery}</span>
-                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: telemetry.otdr >= 80 ? '#10b981' : telemetry.otdr >= 60 ? '#f59e0b' : '#ef4444' }}>
+                                <span style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.on_time_delivery}</span>
+                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: telemetry.otdr >= 80 ? '#34d399' : telemetry.otdr >= 60 ? '#fbbf24' : '#ef4444' }}>
                                     {telemetry.otdr}%
                                 </span>
                                 {otdrDelta != null && (
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: otdrDelta >= 0 ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: otdrDelta >= 0 ? '#34d399' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
                                         {otdrDelta >= 0 ? '▲' : '▼'} {Math.abs(otdrDelta)}%{' '}
-                                        <span style={{ color: '#475569', fontWeight: 400 }}>vs {rangeLabel}</span>
+                                        <span style={{ color: '#52525b', fontWeight: 400 }}>vs {rangeLabel}</span>
                                     </span>
                                 )}
                             </div>
@@ -2330,14 +2381,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.parts_manufactured}</span>
+                                <span style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.parts_manufactured}</span>
                                 <span style={{ fontSize: '24px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: '#3b82f6' }}>
-                                    {deliveredCurr} <span style={{ fontSize: '15px', color: '#475569', fontWeight: 500 }}>/ {telemetry.manufacture?.target ?? 0} Pcs</span>
+                                    {deliveredCurr} <span style={{ fontSize: '15px', color: '#52525b', fontWeight: 500 }}>/ {telemetry.manufacture?.target ?? 0} Pcs</span>
                                 </span>
                                 {deliveredDelta != null && (
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: deliveredDelta >= 0 ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: deliveredDelta >= 0 ? '#34d399' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
                                         {deliveredDelta >= 0 ? '▲' : '▼'} {Math.abs(deliveredDelta)}%{' '}
-                                        <span style={{ color: '#475569', fontWeight: 400 }}>vs {rangeLabel}</span>
+                                        <span style={{ color: '#52525b', fontWeight: 400 }}>vs {rangeLabel}</span>
                                     </span>
                                 )}
                             </div>
@@ -2361,14 +2412,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.avg_delay}</span>
-                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: telemetry.avg_delay_days === 0 ? '#10b981' : telemetry.avg_delay_days <= 3 ? '#f59e0b' : '#ef4444' }}>
-                                    {telemetry.avg_delay_days} <span style={{ fontSize: '15px', fontWeight: 500, color: '#475569' }}>{language === 'id' ? 'Hari' : 'Days'}</span>
+                                <span style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.avg_delay}</span>
+                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: telemetry.avg_delay_days === 0 ? '#34d399' : telemetry.avg_delay_days <= 3 ? '#fbbf24' : '#ef4444' }}>
+                                    {telemetry.avg_delay_days} <span style={{ fontSize: '15px', fontWeight: 500, color: '#52525b' }}>{language === 'id' ? 'Hari' : 'Days'}</span>
                                 </span>
                                 {delayDelta != null && (
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: delayDelta <= 0 ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: delayDelta <= 0 ? '#34d399' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
                                         {delayDelta >= 0 ? '▲' : '▼'} {Math.abs(delayDelta)}{' '}
-                                        <span style={{ color: '#475569', fontWeight: 400 }}>vs {rangeLabel}</span>
+                                        <span style={{ color: '#52525b', fontWeight: 400 }}>vs {rangeLabel}</span>
                                     </span>
                                 )}
                             </div>
@@ -2392,13 +2443,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>
+                                <span style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>
                                     {language === 'id' ? 'PO Mendesak Aktif' : 'Urgent Active POs'}
                                 </span>
-                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: (telemetry.urgent_active || 0) > 0 ? '#ef4444' : '#10b981' }}>
+                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: (telemetry.urgent_active || 0) > 0 ? '#ef4444' : '#34d399' }}>
                                     {telemetry.urgent_active || 0}
                                 </span>
-                                <span style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>
+                                <span style={{ fontSize: '11px', color: '#52525b', marginTop: '2px' }}>
                                     {(telemetry.urgent_active || 0) > 0
                                         ? (language === 'id' ? 'Butuh perhatian segera' : 'Needs immediate attention')
                                         : (language === 'id' ? 'Tidak ada PO mendesak' : 'No urgent POs')}
@@ -2409,18 +2460,18 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         {/* ── Section 2: Pipeline Flow Visualization ───────────── */}
                         <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', marginBottom: '22px' }}>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '16px' }}>
-                                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa', margin: 0 }}>
                                     {language === 'id' ? 'Alur Produksi' : 'Production Pipeline'}
                                 </h3>
-                                <span style={{ fontSize: '11px', color: '#475569' }}>
+                                <span className="pipeline-legend" style={{ fontSize: '11px', color: '#52525b' }}>
                                     {language === 'id'
                                         ? '🔴 macet · 🟠 lambat (>3 hari) · 🟡 pantau (>1 hari) · 🟢 normal'
                                         : '🔴 stuck · 🟠 slow (>3d) · 🟡 watch (>1d) · 🟢 normal'}
                                 </span>
                             </div>
-                            <div style={{ display: 'flex', overflowX: 'auto', alignItems: 'center', gap: '0', paddingBottom: '4px' }}>
+                            <div className="pipeline-scroll-container" style={{ display: 'flex', overflowX: 'auto', alignItems: 'center', gap: '0', paddingBottom: '8px', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
                                 {pipelineStages.length === 0 ? (
-                                    <span style={{ color: '#475569', fontSize: '13px' }}>
+                                    <span style={{ color: '#52525b', fontSize: '13px' }}>
                                         {language === 'id' ? 'Belum ada data tahap produksi.' : 'No stage data yet.'}
                                     </span>
                                 ) : pipelineStages.map((metric: any, idx: number) => {
@@ -2447,6 +2498,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                     position: 'relative',
                                                     cursor: 'pointer',
                                                     transition: 'all 0.2s ease',
+                                                    scrollSnapAlign: 'start',
                                                 }}
                                             >
                                                 {metric.stuck_count > 0 && (
@@ -2464,16 +2516,16 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        border: '2px solid #090d16',
+                                                        border: '2px solid #09090b',
                                                     }}>{metric.stuck_count}</span>
                                                 )}
-                                                <div style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                                                <div style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                                                     {metric.stage}
                                                 </div>
                                                 <div style={{ fontSize: '20px', fontWeight: 800, color: health.label, lineHeight: 1 }}>
                                                     {metric.active_items}
                                                 </div>
-                                                <div style={{ fontSize: '10px', color: '#475569', marginTop: '2px' }}>
+                                                <div style={{ fontSize: '10px', color: '#52525b', marginTop: '2px' }}>
                                                     {language === 'id' ? 'item aktif' : 'active'}
                                                 </div>
                                                 {metric.avg_cycle_time > 0 && (
@@ -2483,7 +2535,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 )}
                                             </div>
                                             {idx < pipelineStages.length - 1 && (
-                                                <div style={{ color: '#1e293b', fontSize: '22px', padding: '0 3px', flexShrink: 0, userSelect: 'none' }}>→</div>
+                                                <div className="pipeline-arrow" style={{ color: '#27272a', fontSize: '22px', padding: '0 3px', flexShrink: 0, userSelect: 'none' }}>→</div>
                                             )}
                                         </React.Fragment>
                                     );
@@ -2495,12 +2547,12 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', marginBottom: '22px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fafafa', margin: 0 }}>
                                         {matrixFilter ? (language === 'id' ? 'Hasil Filter Data' : 'Filtered Data Directory') : (language === 'id' ? 'Direktori PO & Item' : 'PO & Item Directory')}
                                     </h3>
                                     {matrixFilter && (
                                         <span style={{
-                                            backgroundColor: '#2563eb',
+                                            backgroundColor: '#6366f1',
                                             color: '#fff',
                                             padding: '4px 10px',
                                             borderRadius: '6px',
@@ -2532,8 +2584,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'client' ? '#2563eb' : 'rgba(255,255,255,0.05)',
-                                        color: directoryFilter === 'client' ? '#ffffff' : '#94a3b8',
+                                        backgroundColor: directoryFilter === 'client' ? '#6366f1' : 'rgba(255,255,255,0.05)',
+                                        color: directoryFilter === 'client' ? '#ffffff' : '#a1a1aa',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s ease',
                                     }}
@@ -2548,8 +2600,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'marked' ? '#2563eb' : 'rgba(255,255,255,0.05)',
-                                        color: directoryFilter === 'marked' ? '#ffffff' : '#94a3b8',
+                                        backgroundColor: directoryFilter === 'marked' ? '#6366f1' : 'rgba(255,255,255,0.05)',
+                                        color: directoryFilter === 'marked' ? '#ffffff' : '#a1a1aa',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s ease',
                                     }}
@@ -2564,8 +2616,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'delayed' ? '#2563eb' : 'rgba(255,255,255,0.05)',
-                                        color: directoryFilter === 'delayed' ? '#ffffff' : '#94a3b8',
+                                        backgroundColor: directoryFilter === 'delayed' ? '#6366f1' : 'rgba(255,255,255,0.05)',
+                                        color: directoryFilter === 'delayed' ? '#ffffff' : '#a1a1aa',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s ease',
                                     }}
@@ -2580,8 +2632,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'ontime' ? '#2563eb' : 'rgba(255,255,255,0.05)',
-                                        color: directoryFilter === 'ontime' ? '#ffffff' : '#94a3b8',
+                                        backgroundColor: directoryFilter === 'ontime' ? '#6366f1' : 'rgba(255,255,255,0.05)',
+                                        color: directoryFilter === 'ontime' ? '#ffffff' : '#a1a1aa',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s ease',
                                     }}
@@ -2596,8 +2648,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'close_due' ? '#2563eb' : 'rgba(255,255,255,0.05)',
-                                        color: directoryFilter === 'close_due' ? '#ffffff' : '#94a3b8',
+                                        backgroundColor: directoryFilter === 'close_due' ? '#6366f1' : 'rgba(255,255,255,0.05)',
+                                        color: directoryFilter === 'close_due' ? '#ffffff' : '#a1a1aa',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s ease',
                                     }}
@@ -2716,7 +2768,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                                     if (filteredItems.length === 0) {
                                         return (
-                                            <div style={{ color: '#64748b', fontSize: '13px', padding: '24px 0', textAlign: 'center' }}>
+                                            <div style={{ color: '#71717a', fontSize: '13px', padding: '24px 0', textAlign: 'center' }}>
                                                 {matrixFilter ? (language === 'id' ? `Tidak ada data untuk filter "${matrixFilter.label}: ${matrixFilter.value}".` : `No data found for filter "${matrixFilter.label}: ${matrixFilter.value}".`) : (language === 'id' ? 'Tidak ada data item PO.' : 'No PO items found.')}
                                             </div>
                                         );
@@ -2736,14 +2788,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                                             <thead>
                                                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                                    <th style={{ textAlign: 'left', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.po_number_label}</th>
-                                                    <th style={{ textAlign: 'left', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.client_label}</th>
-                                                    <th style={{ textAlign: 'left', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.item_name_label}</th>
-                                                    <th style={{ textAlign: 'center', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.progress_label}</th>
-                                                    <th style={{ textAlign: 'center', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{language === 'id' ? 'Status' : 'Status'}</th>
-                                                    <th style={{ textAlign: 'center', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.deadline_label}</th>
-                                                    <th style={{ textAlign: 'center', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.days_overdue_label}</th>
-                                                    <th style={{ textAlign: 'left', padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>{t.delay_reason_label}</th>
+                                                    <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.po_number_label}</th>
+                                                    <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.client_label}</th>
+                                                    <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.item_name_label}</th>
+                                                    <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.progress_label}</th>
+                                                    <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{language === 'id' ? 'Status' : 'Status'}</th>
+                                                    <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.deadline_label}</th>
+                                                    <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.days_overdue_label}</th>
+                                                    <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.delay_reason_label}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -2752,7 +2804,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                     return (
                                                         <React.Fragment key={`group-${cName}`}>
                                                             <tr style={{ backgroundColor: 'rgba(59,130,246,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                                                                <td colSpan={8} style={{ padding: '8px 16px', fontWeight: 700, color: '#60a5fa', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                <td colSpan={8} style={{ padding: '8px 16px', fontWeight: 700, color: '#818cf8', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                                                     🏢 CLIENT: {cName} ({clientItems.length} item{clientItems.length > 1 ? 's' : ''})
                                                                 </td>
                                                             </tr>
@@ -2761,21 +2813,21 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                 
                                                                 // Determine status badge
                                                                 let displayStatus = item.current_stage || '-';
-                                                                let statusColor = '#94a3b8';
+                                                                let statusColor = '#a1a1aa';
                                                                 let statusBg = 'rgba(255,255,255,0.03)';
                                                                 
                                                                 if (item.po_status === 'COMPLETED') {
                                                                     if (item.invoice_status === 'UNINVOICED') {
                                                                         displayStatus = language === 'id' ? 'Belum Difakturkan' : 'Finance: Uninvoiced';
-                                                                        statusColor = '#eab308';
+                                                                        statusColor = '#fbbf24';
                                                                         statusBg = 'rgba(234,179,8,0.1)';
                                                                     } else if (item.payment_status === 'UNPAID') {
                                                                         displayStatus = language === 'id' ? 'Belum Dibayar' : 'Finance: Unpaid';
-                                                                        statusColor = '#f97316';
+                                                                        statusColor = '#fb923c';
                                                                         statusBg = 'rgba(249,115,22,0.1)';
                                                                     } else {
                                                                         displayStatus = language === 'id' ? 'Selesai & Lunas' : 'Closed / Settled';
-                                                                        statusColor = '#10b981';
+                                                                        statusColor = '#34d399';
                                                                         statusBg = 'rgba(16,185,129,0.1)';
                                                                     }
                                                                 } else {
@@ -2784,7 +2836,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                 }
 
                                                                 return (
-                                                                    <tr key={`delay-${cName}-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#e2e8f0' }}>
+                                                                    <tr key={`delay-${cName}-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#e4e4e7' }}>
                                                                         <td style={{ padding: '12px 16px', fontWeight: 700 }}>
                                                                             <button
                                                                                 onClick={() => {
@@ -2811,12 +2863,12 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
                                                                                 <span className="badge" style={{
                                                                                     backgroundColor: progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                                                                                    color: progress >= 100 ? '#10b981' : '#3b82f6',
+                                                                                    color: progress >= 100 ? '#34d399' : '#3b82f6',
                                                                                 }}>
                                                                                     {progress.toFixed(0)}%
                                                                                 </span>
                                                                                 {item.target_qty !== undefined && (
-                                                                                    <span style={{ fontSize: '10px', color: '#64748b' }}>
+                                                                                    <span style={{ fontSize: '10px', color: '#71717a' }}>
                                                                                         ({item.total_delivered_qty || 0} / {item.target_qty} pcs)
                                                                                     </span>
                                                                                 )}
@@ -2831,14 +2883,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 {displayStatus}
                                                                             </span>
                                                                         </td>
-                                                                        <td style={{ padding: '12px 16px', textAlign: 'center', color: '#94a3b8' }}>{item.global_deadline}</td>
+                                                                        <td style={{ padding: '12px 16px', textAlign: 'center', color: '#a1a1aa' }}>{item.global_deadline}</td>
                                                                         <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                                                                             {item.days_overdue > 0 ? (
                                                                                 <span className="badge" style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
                                                                                     {item.days_overdue} {t.days_suffix}
                                                                                 </span>
                                                                             ) : (
-                                                                                <span style={{ color: '#64748b' }}>-</span>
+                                                                                <span style={{ color: '#71717a' }}>-</span>
                                                                             )}
                                                                         </td>
                                                                         <td style={{ padding: '12px 16px', color: '#ef4444', fontStyle: 'italic' }}>
@@ -2878,10 +2930,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 >
                                     <span style={{ fontSize: '20px' }}>💼</span>
                                     <div>
-                                        <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>
+                                        <div style={{ fontSize: '10px', color: '#71717a', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>
                                             {language === 'id' ? 'Belum Difakturkan' : 'Uninvoiced Items'}
                                         </div>
-                                        <div style={{ fontSize: '22px', fontWeight: 800, color: telemetry.finance_health.uninvoiced_count > 0 ? '#eab308' : '#10b981', lineHeight: 1 }}>
+                                        <div style={{ fontSize: '22px', fontWeight: 800, color: telemetry.finance_health.uninvoiced_count > 0 ? '#fbbf24' : '#34d399', lineHeight: 1 }}>
                                             {telemetry.finance_health.uninvoiced_count}
                                         </div>
                                     </div>
@@ -2903,10 +2955,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 >
                                     <span style={{ fontSize: '20px' }}>💰</span>
                                     <div>
-                                        <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>
+                                        <div style={{ fontSize: '10px', color: '#71717a', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>
                                             {language === 'id' ? 'Belum Dibayar' : 'Unpaid Items'}
                                         </div>
-                                        <div style={{ fontSize: '22px', fontWeight: 800, color: telemetry.finance_health.unpaid_count > 0 ? '#f97316' : '#10b981', lineHeight: 1 }}>
+                                        <div style={{ fontSize: '22px', fontWeight: 800, color: telemetry.finance_health.unpaid_count > 0 ? '#fb923c' : '#34d399', lineHeight: 1 }}>
                                             {telemetry.finance_health.unpaid_count}
                                         </div>
                                     </div>
@@ -2915,10 +2967,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         )}
 
                         {/* ── Chart Row ─────────────────────────────────────────── */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '22px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '22px' }}>
                             {/* Output and Overdue Trends */}
                             <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px' }}>
-                                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', marginBottom: '16px' }}>{t.production_overdue_trends}</h3>
+                                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa', marginBottom: '16px' }}>{t.production_overdue_trends}</h3>
                                 <div style={{ width: '100%', overflowX: 'auto' }}>
                                     <svg width="100%" height="200" viewBox="0 0 500 200" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
                                         <line x1="40" y1="20" x2="480" y2="20" stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
@@ -2961,7 +3013,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                     {pathD && <path d={pathD} fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />}
                                                     {linePoints.map((p: any, idx: number) => (
                                                         <g key={`pt-${idx}`}>
-                                                            <circle cx={p.x} cy={p.y} r="4" fill="#ef4444" stroke="#090d16" strokeWidth="1" />
+                                                            <circle cx={p.x} cy={p.y} r="4" fill="#ef4444" stroke="#09090b" strokeWidth="1" />
                                                             <text x={p.x} y={p.y - 6} textAnchor="middle" fill="#ef4444" fontSize="8" fontWeight="600">{p.val}</text>
                                                         </g>
                                                     ))}
@@ -2989,26 +3041,26 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 <div style={{ display: 'flex', gap: '16px', marginTop: '16px', justifyContent: 'center', fontSize: '11px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <span style={{ display: 'inline-block', width: '12px', height: '12px', backgroundColor: '#3b82f6', borderRadius: '3px' }} />
-                                        <span style={{ color: '#94a3b8' }}>{t.legend_completed}</span>
+                                        <span style={{ color: '#a1a1aa' }}>{t.legend_completed}</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <span style={{ display: 'inline-block', width: '12px', height: '2px', backgroundColor: '#ef4444' }} />
-                                        <span style={{ color: '#94a3b8' }}>{t.legend_overdue}</span>
+                                        <span style={{ color: '#a1a1aa' }}>{t.legend_overdue}</span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Why Delayed Pie */}
                             <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px' }}>
-                                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', marginBottom: '16px' }}>{t.why_delayed_reasons}</h3>
+                                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa', marginBottom: '16px' }}>{t.why_delayed_reasons}</h3>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px', flexWrap: 'wrap' }}>
                                     {(() => {
                                         const reasons = telemetry.delay_reasons || {};
                                         const total = Object.values(reasons).reduce((a: any, b: any) => a + b, 0) as number;
-                                        const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#a855f7', '#f97316', '#64748b'];
+                                        const colors = ['#ef4444', '#fbbf24', '#3b82f6', '#34d399', '#a855f7', '#fb923c', '#71717a'];
                                         if (total === 0) {
                                             return (
-                                                <div style={{ color: '#64748b', fontSize: '13px', padding: '40px 0' }}>
+                                                <div style={{ color: '#71717a', fontSize: '13px', padding: '40px 0' }}>
                                                     {t.no_incidents}
                                                 </div>
                                             );
@@ -3067,7 +3119,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                 }}
                                                             >
                                                                 <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: colors[idx % colors.length], borderRadius: '50%' }} />
-                                                                <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{key}: {val}</span>
+                                                                <span style={{ color: '#e4e4e7', fontWeight: 600 }}>{key}: {val}</span>
                                                             </div>
                                                         );
                                                     })}
@@ -3081,16 +3133,16 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                         {/* ── Bottleneck Detail Table ───────────────────────────── */}
                         <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', marginBottom: '22px' }}>
-                            <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', marginBottom: '16px' }}>{t.bottleneck_analyzer}</h3>
+                            <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa', marginBottom: '16px' }}>{t.bottleneck_analyzer}</h3>
                             <div style={{ width: '100%', overflowX: 'auto' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                                     <thead>
                                         <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                            <th style={{ textAlign: 'left', padding: '10px 16px', color: '#64748b', fontWeight: 600 }}>{t.stage}</th>
-                                            <th style={{ textAlign: 'center', padding: '10px 16px', color: '#64748b', fontWeight: 600 }}>{t.active_items}</th>
-                                            <th style={{ textAlign: 'center', padding: '10px 16px', color: '#64748b', fontWeight: 600 }}>{t.stuck_incidents}</th>
-                                            <th style={{ textAlign: 'center', padding: '10px 16px', color: '#64748b', fontWeight: 600 }}>{t.rework_count}</th>
-                                            <th style={{ textAlign: 'right', padding: '10px 16px', color: '#64748b', fontWeight: 600 }}>{t.avg_cycle_time}</th>
+                                            <th style={{ textAlign: 'left', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.stage}</th>
+                                            <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.active_items}</th>
+                                            <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.stuck_incidents}</th>
+                                            <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.rework_count}</th>
+                                            <th style={{ textAlign: 'right', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.avg_cycle_time}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -3104,7 +3156,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 )}
                                                 style={{
                                                     borderBottom: '1px solid rgba(255,255,255,0.04)',
-                                                    color: '#e2e8f0',
+                                                    color: '#e4e4e7',
                                                     cursor: 'pointer',
                                                     backgroundColor: matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage ? 'rgba(37,99,235,0.1)' : 'transparent',
                                                     transition: 'all 0.2s ease',
@@ -3123,7 +3175,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 </td>
                                                 <td style={{ padding: '10px 16px', textAlign: 'center' }}>
                                                     {metric.rework_count > 0
-                                                        ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#eab308' }}>{metric.rework_count} rework</span>
+                                                        ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24' }}>{metric.rework_count} rework</span>
                                                         : '0'}
                                                 </td>
                                                 <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 700, color: '#3b82f6' }}>{metric.avg_cycle_time.toFixed(2)}</td>
@@ -3140,10 +3192,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         {telemetry.client_health && telemetry.client_health.length > 0 && (
                             <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
                                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '16px' }}>
-                                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
+                                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fafafa', margin: 0 }}>
                                         {language === 'id' ? 'Papan Kinerja Klien' : 'Client Performance Board'}
                                     </h3>
-                                    <span style={{ fontSize: '11px', color: '#475569' }}>
+                                    <span style={{ fontSize: '11px', color: '#52525b' }}>
                                         {language === 'id' ? 'diurutkan berdasarkan risiko tertinggi' : 'sorted by highest risk'}
                                     </span>
                                 </div>
@@ -3151,22 +3203,22 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                                         <thead>
                                             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                                <th style={{ textAlign: 'left', padding: '10px 16px', color: '#64748b', fontWeight: 600 }}>
+                                                <th style={{ textAlign: 'left', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
                                                     {language === 'id' ? 'Klien' : 'Client'}
                                                 </th>
-                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#64748b', fontWeight: 600 }}>
+                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
                                                     {language === 'id' ? 'PO Aktif' : 'Active POs'}
                                                 </th>
-                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#64748b', fontWeight: 600 }}>
+                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
                                                     {language === 'id' ? 'Ketepatan Waktu' : 'On-Time Rate'}
                                                 </th>
-                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#64748b', fontWeight: 600 }}>
+                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
                                                     {language === 'id' ? 'Item Terlambat' : 'Overdue Items'}
                                                 </th>
-                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#64748b', fontWeight: 600 }}>
+                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
                                                     {language === 'id' ? 'Belum Faktur' : 'Uninvoiced'}
                                                 </th>
-                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#64748b', fontWeight: 600 }}>
+                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
                                                     {language === 'id' ? 'Belum Bayar' : 'Unpaid'}
                                                 </th>
                                             </tr>
@@ -3174,24 +3226,24 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         <tbody>
                                             {telemetry.client_health.map((client: any, idx: number) => {
                                                 const otdrColor = client.on_time_rate == null
-                                                    ? '#64748b'
-                                                    : client.on_time_rate >= 80 ? '#10b981'
-                                                    : client.on_time_rate >= 60 ? '#f59e0b'
+                                                    ? '#71717a'
+                                                    : client.on_time_rate >= 80 ? '#34d399'
+                                                    : client.on_time_rate >= 60 ? '#fbbf24'
                                                     : '#ef4444';
                                                 const hasRisk = client.overdue_items > 0 || client.uninvoiced_count > 0 || client.unpaid_count > 0;
                                                 return (
-                                                    <tr key={`client-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#e2e8f0', backgroundColor: hasRisk ? 'rgba(239,68,68,0.015)' : 'transparent' }}>
+                                                    <tr key={`client-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#e4e4e7', backgroundColor: hasRisk ? 'rgba(239,68,68,0.015)' : 'transparent' }}>
                                                         <td
                                                             onClick={() => setMatrixFilter({ type: 'client', value: client.client_name, label: language === 'id' ? 'Klien' : 'Client' })}
-                                                            style={{ padding: '11px 16px', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', color: '#60a5fa' }}
+                                                            style={{ padding: '11px 16px', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', color: '#818cf8' }}
                                                         >
                                                             {client.client_name}
                                                         </td>
-                                                        <td style={{ padding: '11px 16px', textAlign: 'center', color: '#94a3b8' }}>{client.active_pos}</td>
+                                                        <td style={{ padding: '11px 16px', textAlign: 'center', color: '#a1a1aa' }}>{client.active_pos}</td>
                                                         <td style={{ padding: '11px 16px', textAlign: 'center' }}>
                                                             {client.on_time_rate != null
                                                                 ? <span style={{ fontWeight: 700, color: otdrColor }}>{client.on_time_rate}%</span>
-                                                                : <span style={{ color: '#475569', fontSize: '11px' }}>N/A</span>}
+                                                                : <span style={{ color: '#52525b', fontSize: '11px' }}>N/A</span>}
                                                         </td>
                                                         <td
                                                             onClick={() => client.overdue_items > 0 && setMatrixFilter({ type: 'client_overdue', value: client.client_name, label: language === 'id' ? 'Overdue Klien' : 'Client Overdue' })}
@@ -3199,23 +3251,23 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         >
                                                             {client.overdue_items > 0
                                                                 ? <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444' }}>{client.overdue_items}</span>
-                                                                : <span style={{ color: '#10b981', fontSize: '14px' }}>✓</span>}
+                                                                : <span style={{ color: '#34d399', fontSize: '14px' }}>✓</span>}
                                                         </td>
                                                         <td
                                                             onClick={() => client.uninvoiced_count > 0 && setMatrixFilter({ type: 'client_uninvoiced', value: client.client_name, label: language === 'id' ? 'Belum Difakturkan Klien' : 'Client Uninvoiced' })}
                                                             style={{ padding: '11px 16px', textAlign: 'center', cursor: client.uninvoiced_count > 0 ? 'pointer' : 'default' }}
                                                         >
                                                             {client.uninvoiced_count > 0
-                                                                ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#eab308' }}>{client.uninvoiced_count}</span>
-                                                                : <span style={{ color: '#10b981', fontSize: '14px' }}>✓</span>}
+                                                                ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24' }}>{client.uninvoiced_count}</span>
+                                                                : <span style={{ color: '#34d399', fontSize: '14px' }}>✓</span>}
                                                         </td>
                                                         <td
                                                             onClick={() => client.unpaid_count > 0 && setMatrixFilter({ type: 'client_unpaid', value: client.client_name, label: language === 'id' ? 'Belum Dibayar Klien' : 'Client Unpaid' })}
                                                             style={{ padding: '11px 16px', textAlign: 'center', cursor: client.unpaid_count > 0 ? 'pointer' : 'default' }}
                                                         >
                                                             {client.unpaid_count > 0
-                                                                ? <span className="badge" style={{ backgroundColor: 'rgba(249,115,22,0.15)', color: '#f97316' }}>{client.unpaid_count}</span>
-                                                                : <span style={{ color: '#10b981', fontSize: '14px' }}>✓</span>}
+                                                                ? <span className="badge" style={{ backgroundColor: 'rgba(249,115,22,0.15)', color: '#fb923c' }}>{client.unpaid_count}</span>
+                                                                : <span style={{ color: '#34d399', fontSize: '14px' }}>✓</span>}
                                                         </td>
                                                     </tr>
                                                 );
@@ -3244,13 +3296,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                 const roleColorMap: Record<string, { bg: string; color: string }> = {
                     DRAFTER:      { bg: 'rgba(168,85,247,0.12)',   color: '#a855f7' },
-                    PURCHASING:   { bg: 'rgba(249,115,22,0.12)',   color: '#f97316' },
+                    PURCHASING:   { bg: 'rgba(249,115,22,0.12)',   color: '#fb923c' },
                     MACHINING:    { bg: 'rgba(20,184,166,0.12)',   color: '#14b8a6' },
                     FABRICATION:  { bg: 'rgba(99,102,241,0.12)',   color: '#6366f1' },
-                    PRODUCTION:   { bg: 'rgba(100,116,139,0.12)',  color: '#64748b' },
-                    QC:           { bg: 'rgba(239,68,68,0.12)',    color: '#ef4444' },
-                    DELIVERY:     { bg: 'rgba(16,185,129,0.12)',   color: '#10b981' },
-                    STAFF:        { bg: 'rgba(59,130,246,0.12)',   color: '#3b82f6' },
+                    PRODUCTION:   { bg: 'rgba(100,116,139,0.12)',  color: '#71717a' },
+                    QC:           { bg: 'rgba(248,113,113,0.12)',    color: '#f87171' },
+                    DELIVERY:     { bg: 'rgba(16,185,129,0.12)',   color: '#34d399' },
+                    STAFF:        { bg: 'rgba(99,102,241,0.12)',   color: '#818cf8' },
                 };
 
                 return (
@@ -3259,7 +3311,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                             <div>
                                 <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 2px 0' }}>{t.team_title}</h2>
-                                <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>{t.team_subtitle}</p>
+                                <p style={{ fontSize: '12px', color: '#71717a', margin: 0 }}>{t.team_subtitle}</p>
                             </div>
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
                                 <button
@@ -3269,7 +3321,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         borderRadius: '6px',
                                         border: '1px solid rgba(16,185,129,0.3)',
                                         backgroundColor: 'rgba(16,185,129,0.1)',
-                                        color: '#10b981',
+                                        color: '#34d399',
                                         fontSize: '11px',
                                         fontWeight: 700,
                                         cursor: 'pointer',
@@ -3286,9 +3338,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         padding: '5px 12px',
                                         borderRadius: '6px',
                                         border: '1px solid',
-                                        borderColor: userRoleFilter === 'ALL' ? '#3b82f6' : 'rgba(255,255,255,0.08)',
-                                        backgroundColor: userRoleFilter === 'ALL' ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.03)',
-                                        color: userRoleFilter === 'ALL' ? '#3b82f6' : '#64748b',
+                                        borderColor: userRoleFilter === 'ALL' ? '#6366f1' : 'rgba(255,255,255,0.08)',
+                                        backgroundColor: userRoleFilter === 'ALL' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255,255,255,0.03)',
+                                        color: userRoleFilter === 'ALL' ? '#818cf8' : '#71717a',
                                         fontSize: '11px',
                                         fontWeight: 700,
                                         cursor: 'pointer',
@@ -3306,14 +3358,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 borderRadius: '6px',
                                                 border: '1px solid',
                                                 borderColor: userRoleFilter === role
-                                                    ? (roleColorMap[role]?.color || '#64748b')
+                                                    ? (roleColorMap[role]?.color || '#71717a')
                                                     : 'rgba(255,255,255,0.08)',
                                                 backgroundColor: userRoleFilter === role
                                                     ? (roleColorMap[role]?.bg || 'rgba(255,255,255,0.06)')
                                                     : 'rgba(255,255,255,0.03)',
                                                 color: userRoleFilter === role
-                                                    ? (roleColorMap[role]?.color || '#64748b')
-                                                    : '#64748b',
+                                                    ? (roleColorMap[role]?.color || '#71717a')
+                                                    : '#71717a',
                                                 fontSize: '11px',
                                                 fontWeight: 700,
                                                 cursor: 'pointer',
@@ -3328,7 +3380,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                         {/* User cards grid */}
                         {filteredUsers.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '40px', color: '#64748b', fontSize: '14px' }}>
+                            <div style={{ textAlign: 'center', padding: '40px', color: '#71717a', fontSize: '14px' }}>
                                 {t.no_users}
                             </div>
                         ) : (
@@ -3340,7 +3392,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     {filteredUsers.map(user => {
                                         const isSelf = user.id === auth_user?.id;
                                         const loginMethod = user.username ? 'PASSWORD' : 'PIN';
-                                        const roleStyle = roleColorMap[user.role_name] || { bg: 'rgba(100,116,139,0.12)', color: '#64748b' };
+                                        const roleStyle = roleColorMap[user.role_name] || { bg: 'rgba(100,116,139,0.12)', color: '#71717a' };
                                         return (
                                             <div
                                                 key={user.id}
@@ -3373,7 +3425,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                     </div>
                                                     <div style={{ flex: 1, minWidth: 0 }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                                            <span style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc' }}>
+                                                            <span style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa' }}>
                                                                 {user.name}
                                                             </span>
                                                             {isSelf && (
@@ -3390,7 +3442,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                             )}
                                                         </div>
                                                         {user.username && (
-                                                            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '1px' }}>@{user.username}</div>
+                                                            <div style={{ fontSize: '11px', color: '#71717a', marginTop: '1px' }}>@{user.username}</div>
                                                         )}
                                                     </div>
                                                 </div>
@@ -3412,9 +3464,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         padding: '3px 8px',
                                                         borderRadius: '5px',
                                                         backgroundColor: loginMethod === 'PASSWORD'
-                                                            ? 'rgba(59,130,246,0.1)'
+                                                            ? 'rgba(99,102,241,0.12)'
                                                             : 'rgba(16,185,129,0.1)',
-                                                        color: loginMethod === 'PASSWORD' ? '#3b82f6' : '#10b981',
+                                                        color: loginMethod === 'PASSWORD' ? '#818cf8' : '#34d399',
                                                     }}>
                                                         {loginMethod === 'PASSWORD' ? '🔑 ' + t.login_method_password : '🔢 ' + t.login_method_pin}
                                                     </span>
@@ -3429,7 +3481,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                             backgroundColor: 'rgba(255,255,255,0.04)',
                                                             border: '1px solid rgba(255,255,255,0.08)',
                                                             borderRadius: '8px',
-                                                            color: '#94a3b8',
+                                                            color: '#a1a1aa',
                                                             fontSize: '12px',
                                                             fontWeight: 600,
                                                             cursor: 'pointer',
@@ -3437,14 +3489,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                             textAlign: 'center',
                                                         }}
                                                         onMouseOver={e => {
-                                                            e.currentTarget.style.backgroundColor = 'rgba(59,130,246,0.1)';
-                                                            e.currentTarget.style.borderColor = 'rgba(59,130,246,0.25)';
-                                                            e.currentTarget.style.color = '#3b82f6';
+                                                            e.currentTarget.style.backgroundColor = 'rgba(99,102,241,0.12)';
+                                                            e.currentTarget.style.borderColor = 'rgba(99,102,241,0.25)';
+                                                            e.currentTarget.style.color = '#818cf8';
                                                         }}
                                                         onMouseOut={e => {
                                                             e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)';
                                                             e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-                                                            e.currentTarget.style.color = '#94a3b8';
+                                                            e.currentTarget.style.color = '#a1a1aa';
                                                         }}
                                                     >
                                                         ✏️ {t.edit_user}
@@ -3477,7 +3529,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     onClick={e => { if (e.target === e.currentTarget) closeEditUser(); }}
                 >
                     <div style={{
-                        backgroundColor: '#0f172a',
+                        backgroundColor: '#18181b',
                         border: '1px solid rgba(255,255,255,0.08)',
                         borderRadius: '16px',
                         padding: '24px',
@@ -3491,14 +3543,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                             <div>
                                 <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0' }}>{t.edit_user}</h2>
-                                <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>{editingUser.name}</p>
+                                <p style={{ fontSize: '12px', color: '#71717a', margin: 0 }}>{editingUser.name}</p>
                             </div>
                             <button
                                 onClick={closeEditUser}
                                 style={{
                                     background: 'none',
                                     border: 'none',
-                                    color: '#64748b',
+                                    color: '#71717a',
                                     fontSize: '20px',
                                     cursor: 'pointer',
                                     lineHeight: 1,
@@ -3510,7 +3562,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         <form onSubmit={submitEditUser}>
                             {/* Name */}
                             <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                     {t.user_name_label}
                                 </label>
                                 <input
@@ -3522,7 +3574,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     style={{
                                         width: '100%',
                                         padding: '10px 12px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#09090b',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
                                         color: '#fff',
@@ -3535,7 +3587,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                             {/* Role */}
                             <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                     {t.user_role_label}
                                 </label>
                                 <select
@@ -3546,10 +3598,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     style={{
                                         width: '100%',
                                         padding: '10px 12px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#09090b',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
-                                        color: editingUser.is_owner ? '#64748b' : '#fff',
+                                        color: editingUser.is_owner ? '#71717a' : '#fff',
                                         fontSize: '14px',
                                         outline: 'none',
                                         boxSizing: 'border-box',
@@ -3560,13 +3612,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     ))}
                                 </select>
                                 {editingUser.is_owner && (
-                                    <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0 0' }}>Owner role cannot be changed.</p>
+                                    <p style={{ fontSize: '11px', color: '#71717a', margin: '4px 0 0 0' }}>Owner role cannot be changed.</p>
                                 )}
                             </div>
 
                             {/* Post */}
                             <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                     Post
                                 </label>
                                 <select
@@ -3577,10 +3629,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     style={{
                                         width: '100%',
                                         padding: '10px 12px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#09090b',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
-                                        color: editingUser.is_owner ? '#64748b' : '#fff',
+                                        color: editingUser.is_owner ? '#71717a' : '#fff',
                                         fontSize: '14px',
                                         outline: 'none',
                                         boxSizing: 'border-box',
@@ -3595,7 +3647,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                             {/* Login Method toggle */}
                             <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '8px', fontWeight: 600 }}>
                                     {t.user_login_label}
                                 </label>
                                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -3611,7 +3663,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 border: '1px solid',
                                                 borderColor: editLoginMethod === method ? '#3b82f6' : 'rgba(255,255,255,0.08)',
                                                 backgroundColor: editLoginMethod === method ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.03)',
-                                                color: editLoginMethod === method ? '#3b82f6' : '#94a3b8',
+                                                color: editLoginMethod === method ? '#3b82f6' : '#a1a1aa',
                                                 fontSize: '12px',
                                                 fontWeight: 700,
                                                 cursor: 'pointer',
@@ -3627,7 +3679,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             {editLoginMethod === 'PASSWORD' && (
                                 <>
                                     <div style={{ marginBottom: '14px' }}>
-                                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                        <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                             {t.admin_username}
                                         </label>
                                         <input
@@ -3639,7 +3691,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             style={{
                                                 width: '100%',
                                                 padding: '10px 12px',
-                                                backgroundColor: '#090d16',
+                                                backgroundColor: '#09090b',
                                                 border: '1px solid rgba(255,255,255,0.08)',
                                                 borderRadius: '8px',
                                                 color: '#fff',
@@ -3650,7 +3702,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         />
                                     </div>
                                     <div style={{ marginBottom: '14px' }}>
-                                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                        <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                             {t.new_password_label}
                                         </label>
                                         <input
@@ -3663,7 +3715,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             style={{
                                                 width: '100%',
                                                 padding: '10px 12px',
-                                                backgroundColor: '#090d16',
+                                                backgroundColor: '#09090b',
                                                 border: '1px solid rgba(255,255,255,0.08)',
                                                 borderRadius: '8px',
                                                 color: '#fff',
@@ -3679,7 +3731,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             {/* PIN field */}
                             {editLoginMethod === 'PIN' && (
                                 <div style={{ marginBottom: '14px' }}>
-                                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                    <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                         {t.new_pin_label}
                                     </label>
                                     <input
@@ -3695,7 +3747,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         style={{
                                             width: '100%',
                                             padding: '10px 12px',
-                                            backgroundColor: '#090d16',
+                                            backgroundColor: '#09090b',
                                             border: '1px solid rgba(255,255,255,0.08)',
                                             borderRadius: '8px',
                                             color: '#fff',
@@ -3738,7 +3790,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         padding: '10px 16px',
                                         backgroundColor: 'rgba(255,255,255,0.05)',
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        color: '#e2e8f0',
+                                        color: '#e4e4e7',
                                         borderRadius: '8px',
                                         fontWeight: 600,
                                         fontSize: '13px',
@@ -3753,10 +3805,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     disabled={editSubmitting}
                                     style={{
                                         padding: '10px 20px',
-                                        backgroundColor: editSubmitting ? '#1d4ed8' : '#2563eb',
+                                        background: editSubmitting ? '#4f46e5' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                                         border: 'none',
                                         color: '#fff',
-                                        borderRadius: '8px',
+                                        borderRadius: '10px',
                                         fontWeight: 600,
                                         fontSize: '13px',
                                         cursor: editSubmitting ? 'not-allowed' : 'pointer',
@@ -3785,7 +3837,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     padding: '20px',
                 }}>
                     <div style={{
-                        backgroundColor: '#0f172a',
+                        backgroundColor: '#18181b',
                         border: '1px solid rgba(255, 255, 255, 0.08)',
                         borderRadius: '16px',
                         padding: '24px',
@@ -3798,13 +3850,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 8px 0' }}>
                             {t.add_user_title}
                         </h2>
-                        <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 24px 0' }}>
+                        <p style={{ fontSize: '13px', color: '#71717a', margin: '0 0 24px 0' }}>
                             {t.add_user_subtitle}
                         </p>
 
                         <form onSubmit={submitAddUser}>
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                     {t.user_name_label}
                                 </label>
                                 <input
@@ -3816,7 +3868,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     style={{
                                         width: '100%',
                                         padding: '10px 14px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#09090b',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
                                         color: '#fff',
@@ -3828,7 +3880,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             </div>
 
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                     {t.user_role_label}
                                 </label>
                                 <select
@@ -3837,7 +3889,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     style={{
                                         width: '100%',
                                         padding: '10px 14px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#09090b',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
                                         color: '#fff',
@@ -3853,7 +3905,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             </div>
 
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                     Post
                                 </label>
                                 <select
@@ -3862,7 +3914,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     style={{
                                         width: '100%',
                                         padding: '10px 14px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#09090b',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
                                         color: '#fff',
@@ -3878,7 +3930,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             </div>
 
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '8px', fontWeight: 600 }}>
                                     {t.user_login_label}
                                 </label>
                                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -3894,7 +3946,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 border: '1px solid',
                                                 borderColor: newUserLoginMethod === method ? '#3b82f6' : 'rgba(255,255,255,0.08)',
                                                 backgroundColor: newUserLoginMethod === method ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.03)',
-                                                color: newUserLoginMethod === method ? '#3b82f6' : '#94a3b8',
+                                                color: newUserLoginMethod === method ? '#3b82f6' : '#a1a1aa',
                                                 fontSize: '12px',
                                                 fontWeight: 700,
                                                 cursor: 'pointer',
@@ -3909,7 +3961,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             {newUserLoginMethod === 'PASSWORD' && (
                                 <>
                                     <div style={{ marginBottom: '16px' }}>
-                                        <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                        <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                             {t.admin_username}
                                         </label>
                                         <input
@@ -3921,7 +3973,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             style={{
                                                 width: '100%',
                                                 padding: '10px 14px',
-                                                backgroundColor: '#090d16',
+                                                backgroundColor: '#09090b',
                                                 border: '1px solid rgba(255,255,255,0.08)',
                                                 borderRadius: '8px',
                                                 color: '#fff',
@@ -3932,7 +3984,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         />
                                     </div>
                                     <div style={{ marginBottom: '24px' }}>
-                                        <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                        <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                             {t.admin_password}
                                         </label>
                                         <input
@@ -3945,7 +3997,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             style={{
                                                 width: '100%',
                                                 padding: '10px 14px',
-                                                backgroundColor: '#090d16',
+                                                backgroundColor: '#09090b',
                                                 border: '1px solid rgba(255,255,255,0.08)',
                                                 borderRadius: '8px',
                                                 color: '#fff',
@@ -3960,7 +4012,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                             {newUserLoginMethod === 'PIN' && (
                                 <div style={{ marginBottom: '24px' }}>
-                                    <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                    <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                         {t.new_pin_label}
                                     </label>
                                     <input
@@ -3976,7 +4028,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         style={{
                                             width: '100%',
                                             padding: '10px 14px',
-                                            backgroundColor: '#090d16',
+                                            backgroundColor: '#09090b',
                                             border: '1px solid rgba(255,255,255,0.08)',
                                             borderRadius: '8px',
                                             color: '#fff',
@@ -3997,7 +4049,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         padding: '10px 16px',
                                         backgroundColor: 'rgba(255, 255, 255, 0.05)',
                                         border: '1px solid rgba(255, 255, 255, 0.08)',
-                                        color: '#e2e8f0',
+                                        color: '#e4e4e7',
                                         borderRadius: '8px',
                                         fontWeight: 600,
                                         cursor: 'pointer'
@@ -4009,10 +4061,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     type="submit"
                                     style={{
                                         padding: '10px 20px',
-                                        backgroundColor: '#2563eb',
+                                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                                         border: 'none',
                                         color: '#fff',
-                                        borderRadius: '8px',
+                                        borderRadius: '10px',
                                         fontWeight: 600,
                                         cursor: 'pointer'
                                     }}
@@ -4039,7 +4091,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     padding: '20px',
                 }}>
                     <div style={{
-                        backgroundColor: '#0f172a',
+                        backgroundColor: '#18181b',
                         border: '1px solid rgba(255, 255, 255, 0.08)',
                         borderRadius: '16px',
                         padding: '24px',
@@ -4050,13 +4102,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 8px 0' }}>
                             {t.create_admin}
                         </h2>
-                        <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 24px 0' }}>
+                        <p style={{ fontSize: '13px', color: '#71717a', margin: '0 0 24px 0' }}>
                             {t.admin_subtitle}
                         </p>
 
                         <form onSubmit={submitAddAdmin}>
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                     {t.admin_name}
                                 </label>
                                 <input
@@ -4068,7 +4120,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     style={{
                                         width: '100%',
                                         padding: '10px 14px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#09090b',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
                                         color: '#fff',
@@ -4079,7 +4131,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             </div>
 
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                     Role
                                 </label>
                                 <select
@@ -4088,7 +4140,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     style={{
                                         width: '100%',
                                         padding: '10px 14px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#09090b',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
                                         color: '#fff',
@@ -4104,7 +4156,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             </div>
 
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                     Post
                                 </label>
                                 <select
@@ -4114,7 +4166,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     style={{
                                         width: '100%',
                                         padding: '10px 14px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#09090b',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
                                         color: '#fff',
@@ -4130,7 +4182,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             </div>
 
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                     {t.admin_username}
                                 </label>
                                 <input
@@ -4142,7 +4194,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     style={{
                                         width: '100%',
                                         padding: '10px 14px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#09090b',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
                                         color: '#fff',
@@ -4153,7 +4205,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             </div>
 
                             <div style={{ marginBottom: '24px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
                                     {t.admin_password}
                                 </label>
                                 <input
@@ -4166,7 +4218,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     style={{
                                         width: '100%',
                                         padding: '10px 14px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#09090b',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
                                         color: '#fff',
@@ -4184,7 +4236,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         padding: '10px 16px',
                                         backgroundColor: 'rgba(255, 255, 255, 0.05)',
                                         border: '1px solid rgba(255, 255, 255, 0.08)',
-                                        color: '#e2e8f0',
+                                        color: '#e4e4e7',
                                         borderRadius: '8px',
                                         fontWeight: 600,
                                         cursor: 'pointer'
@@ -4196,10 +4248,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     type="submit"
                                     style={{
                                         padding: '10px 20px',
-                                        backgroundColor: '#2563eb',
+                                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                                         border: 'none',
                                         color: '#fff',
-                                        borderRadius: '8px',
+                                        borderRadius: '10px',
                                         fontWeight: 600,
                                         cursor: 'pointer'
                                     }}

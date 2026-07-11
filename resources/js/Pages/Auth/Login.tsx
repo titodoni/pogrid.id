@@ -72,9 +72,9 @@ export default function Login() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#090d16',
+            backgroundColor: '#09090b',
             fontFamily: 'Inter, sans-serif',
-            color: '#f8fafc',
+            color: '#fafafa',
             padding: '16px',
             position: 'relative'
         }}>
@@ -87,7 +87,7 @@ export default function Login() {
                 borderRadius: '8px',
                 overflow: 'hidden',
                 border: '1px solid rgba(255,255,255,0.08)',
-                backgroundColor: 'rgba(255,255,255,0.02)',
+                backgroundColor: 'rgba(255,255,255,0.04)',
                 zIndex: 10
             }}>
                 <button
@@ -95,7 +95,7 @@ export default function Login() {
                     onClick={() => changeLanguage('en')}
                     style={{
                         padding: '6px 12px',
-                        backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
+                        backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
                         border: 'none',
                         color: '#fff',
                         fontWeight: 600,
@@ -110,7 +110,7 @@ export default function Login() {
                     onClick={() => changeLanguage('id')}
                     style={{
                         padding: '6px 12px',
-                        backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
+                        backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
                         border: 'none',
                         color: '#fff',
                         fontWeight: 600,
@@ -122,20 +122,20 @@ export default function Login() {
                 </button>
             </div>
 
-            <div className="login-card w-full max-w-[420px] bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/8 p-6 sm:p-10 shadow-2xl">
+            <div className="login-card animate-in w-full max-w-[420px] bg-zinc-900/80 backdrop-blur-xl rounded-2xl border border-white/8 p-6 sm:p-10 shadow-2xl">
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <h1 style={{
                         fontSize: '32px',
                         fontWeight: 800,
                         letterSpacing: '-0.025em',
-                        background: 'linear-gradient(to right, #60a5fa, #3b82f6)',
+                        background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         marginBottom: '8px'
                     }}>
                         {t.title}
                     </h1>
-                    <p style={{ color: '#94a3b8', fontSize: '14px' }}>
+                    <p style={{ color: '#a1a1aa', fontSize: '14px' }}>
                         {t.subtitle}
                     </p>
                 </div>
@@ -146,10 +146,8 @@ export default function Login() {
                             display: 'block',
                             fontSize: '13px',
                             fontWeight: 600,
-                            color: '#94a3b8',
-                            marginBottom: '6px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em'
+                            color: '#a1a1aa',
+                            marginBottom: '6px'
                         }}>
                             {t.username_label}
                         </label>
@@ -161,10 +159,10 @@ export default function Login() {
                             style={{
                                 width: '100%',
                                 padding: '12px 16px',
-                                backgroundColor: '#090d16',
+                                backgroundColor: '#0a0a0c',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
-                                borderRadius: '8px',
-                                color: '#f8fafc',
+                                borderRadius: '10px',
+                                color: '#fafafa',
                                 fontSize: '15px',
                                 outline: 'none',
                                 transition: 'border-color 0.2s'
@@ -184,10 +182,8 @@ export default function Login() {
                             display: 'block',
                             fontSize: '13px',
                             fontWeight: 600,
-                            color: '#94a3b8',
-                            marginBottom: '6px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em'
+                            color: '#a1a1aa',
+                            marginBottom: '6px'
                         }}>
                             {t.password_label}
                         </label>
@@ -199,10 +195,10 @@ export default function Login() {
                             style={{
                                 width: '100%',
                                 padding: '12px 16px',
-                                backgroundColor: '#090d16',
+                                backgroundColor: '#0a0a0c',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
-                                borderRadius: '8px',
-                                color: '#f8fafc',
+                                borderRadius: '10px',
+                                color: '#fafafa',
                                 fontSize: '15px',
                                 outline: 'none',
                                 transition: 'border-color 0.2s'
@@ -223,19 +219,20 @@ export default function Login() {
                         style={{
                             width: '100%',
                             padding: '14px',
-                            backgroundColor: '#2563eb',
+                            backgroundColor: '#6366f1',
+                            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                             color: '#ffffff',
                             fontWeight: 600,
-                            borderRadius: '8px',
+                            borderRadius: '10px',
                             border: 'none',
                             fontSize: '16px',
                             cursor: 'pointer',
-                            transition: 'background-color 0.2s, transform 0.1s',
-                            boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)',
+                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            boxShadow: '0 4px 12px -2px rgba(99, 102, 241, 0.3)',
                             marginBottom: '20px'
                         }}
-                        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
-                        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+                        onMouseOver={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)'; e.currentTarget.style.transform = 'scale(0.98)'; e.currentTarget.style.boxShadow = '0 6px 16px -2px rgba(99, 102, 241, 0.4)'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 12px -2px rgba(99, 102, 241, 0.3)'; }}
                     >
                         {processing ? t.logging_in : t.submit_btn}
                     </button>
@@ -243,12 +240,12 @@ export default function Login() {
 
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between items-center text-sm">
                     <div>
-                        <span style={{ color: '#94a3b8' }}>{t.new_company} </span>
-                        <Link href="/register" style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
+                        <span style={{ color: '#a1a1aa' }}>{t.new_company} </span>
+                        <Link href="/register" style={{ color: '#818cf8', textDecoration: 'none', fontWeight: 600 }}>
                             {t.register}
                         </Link>
                     </div>
-                    <Link href="/forgot-password" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '13px' }}>
+                    <Link href="/forgot-password" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '13px' }}>
                         {t.forgot_password}
                     </Link>
                 </div>

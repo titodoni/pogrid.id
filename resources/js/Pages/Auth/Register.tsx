@@ -107,11 +107,12 @@ export default function Register() {
         <div style={{
             minHeight: '100vh',
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#090d16',
+            backgroundColor: '#09090b',
             fontFamily: 'Inter, sans-serif',
-            color: '#f8fafc',
+            color: '#fafafa',
             padding: '16px',
             position: 'relative'
         }}>
@@ -132,7 +133,7 @@ export default function Register() {
                     onClick={() => changeLanguage('en')}
                     style={{
                         padding: '6px 12px',
-                        backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
+                        backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
                         border: 'none',
                         color: '#fff',
                         fontWeight: 600,
@@ -147,7 +148,7 @@ export default function Register() {
                     onClick={() => changeLanguage('id')}
                     style={{
                         padding: '6px 12px',
-                        backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
+                        backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
                         border: 'none',
                         color: '#fff',
                         fontWeight: 600,
@@ -159,20 +160,20 @@ export default function Register() {
                 </button>
             </div>
 
-            <div className="login-card w-full max-w-[480px] bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/8 p-6 sm:p-10 shadow-2xl">
+            <div className="login-card animate-in w-full max-w-[480px] bg-zinc-900/80 backdrop-blur-xl rounded-2xl border border-white/8 p-6 sm:p-10 shadow-2xl">
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <h1 style={{
                         fontSize: '32px',
                         fontWeight: 800,
                         letterSpacing: '-0.025em',
-                        background: 'linear-gradient(to right, #60a5fa, #3b82f6)',
+                        background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         marginBottom: '8px'
                     }}>
                         {t.title}
                     </h1>
-                    <p style={{ color: '#94a3b8', fontSize: '14px' }}>
+                    <p style={{ color: '#a1a1aa', fontSize: '14px' }}>
                         {t.subtitle}
                     </p>
                 </div>
@@ -180,7 +181,7 @@ export default function Register() {
                 <form onSubmit={handleSubmit}>
                     {/* Section: Company Details */}
                     <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                        <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#60a5fa', margin: '0 0 12px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#818cf8', margin: '0 0 12px 0' }}>
                             {t.company_details}
                         </h3>
                         <div>
@@ -188,10 +189,8 @@ export default function Register() {
                                 display: 'block',
                                 fontSize: '13px',
                                 fontWeight: 600,
-                                color: '#94a3b8',
-                                marginBottom: '6px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.05em'
+                                color: '#a1a1aa',
+                                marginBottom: '6px'
                             }}>
                                 {t.company_name_label}
                             </label>
@@ -210,10 +209,10 @@ export default function Register() {
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px',
-                                    backgroundColor: '#090d16',
+                                    backgroundColor: '#0a0a0c',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    borderRadius: '8px',
-                                    color: '#f8fafc',
+                                    borderRadius: '10px',
+                                    color: '#fafafa',
                                     fontSize: '15px',
                                     outline: 'none',
                                     transition: 'border-color 0.2s'
@@ -233,10 +232,8 @@ export default function Register() {
                                 display: 'block',
                                 fontSize: '13px',
                                 fontWeight: 600,
-                                color: '#94a3b8',
-                                marginBottom: '6px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.05em'
+                                color: '#a1a1aa',
+                                marginBottom: '6px'
                             }}>
                                 {t.slug_label}
                             </label>
@@ -252,10 +249,10 @@ export default function Register() {
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px',
-                                    backgroundColor: '#090d16',
+                                    backgroundColor: '#0a0a0c',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    borderRadius: '8px',
-                                    color: '#f8fafc',
+                                    borderRadius: '10px',
+                                    color: '#fafafa',
                                     fontSize: '15px',
                                     outline: 'none',
                                     transition: 'border-color 0.2s'
@@ -263,7 +260,7 @@ export default function Register() {
                                 placeholder={t.slug_placeholder}
                                 required
                             />
-                            <span style={{ fontSize: '11px', color: '#64748b', marginTop: '6px', display: 'block' }}>
+                             <span style={{ fontSize: '11px', color: '#71717a', marginTop: '6px', display: 'block' }}>
                                 {t.slug_desc}
                             </span>
                             {errors.slug && (
@@ -276,7 +273,7 @@ export default function Register() {
 
                     {/* Section: Admin Administrator Details */}
                     <div style={{ marginBottom: '32px' }}>
-                        <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#60a5fa', margin: '0 0 12px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#818cf8', margin: '0 0 12px 0' }}>
                             {t.admin_account}
                         </h3>
                         
@@ -285,10 +282,8 @@ export default function Register() {
                                 display: 'block',
                                 fontSize: '13px',
                                 fontWeight: 600,
-                                color: '#94a3b8',
-                                marginBottom: '6px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.05em'
+                                color: '#a1a1aa',
+                                marginBottom: '6px'
                             }}>
                                 {t.full_name_label}
                             </label>
@@ -300,10 +295,10 @@ export default function Register() {
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px',
-                                    backgroundColor: '#090d16',
+                                    backgroundColor: '#0a0a0c',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    borderRadius: '8px',
-                                    color: '#f8fafc',
+                                    borderRadius: '10px',
+                                    color: '#fafafa',
                                     fontSize: '15px',
                                     outline: 'none',
                                     transition: 'border-color 0.2s'
@@ -323,10 +318,8 @@ export default function Register() {
                                 display: 'block',
                                 fontSize: '13px',
                                 fontWeight: 600,
-                                color: '#94a3b8',
-                                marginBottom: '6px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.05em'
+                                color: '#a1a1aa',
+                                marginBottom: '6px'
                             }}>
                                 {t.email_label}
                             </label>
@@ -338,10 +331,10 @@ export default function Register() {
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px',
-                                    backgroundColor: '#090d16',
+                                    backgroundColor: '#0a0a0c',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    borderRadius: '8px',
-                                    color: '#f8fafc',
+                                    borderRadius: '10px',
+                                    color: '#fafafa',
                                     fontSize: '15px',
                                     outline: 'none',
                                     transition: 'border-color 0.2s'
@@ -361,10 +354,8 @@ export default function Register() {
                                 display: 'block',
                                 fontSize: '13px',
                                 fontWeight: 600,
-                                color: '#94a3b8',
-                                marginBottom: '6px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.05em'
+                                color: '#a1a1aa',
+                                marginBottom: '6px'
                             }}>
                                 {t.password_label}
                             </label>
@@ -376,10 +367,10 @@ export default function Register() {
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px',
-                                    backgroundColor: '#090d16',
+                                    backgroundColor: '#0a0a0c',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    borderRadius: '8px',
-                                    color: '#f8fafc',
+                                    borderRadius: '10px',
+                                    color: '#fafafa',
                                     fontSize: '15px',
                                     outline: 'none',
                                     transition: 'border-color 0.2s'
@@ -399,10 +390,8 @@ export default function Register() {
                                 display: 'block',
                                 fontSize: '13px',
                                 fontWeight: 600,
-                                color: '#94a3b8',
-                                marginBottom: '6px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.05em'
+                                color: '#a1a1aa',
+                                marginBottom: '6px'
                             }}>
                                 {t.confirm_password_label}
                             </label>
@@ -414,10 +403,10 @@ export default function Register() {
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px',
-                                    backgroundColor: '#090d16',
+                                    backgroundColor: '#0a0a0c',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    borderRadius: '8px',
-                                    color: '#f8fafc',
+                                    borderRadius: '10px',
+                                    color: '#fafafa',
                                     fontSize: '15px',
                                     outline: 'none',
                                     transition: 'border-color 0.2s'
@@ -434,27 +423,27 @@ export default function Register() {
                         style={{
                             width: '100%',
                             padding: '14px',
-                            backgroundColor: '#2563eb',
+                            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                             color: '#ffffff',
                             fontWeight: 600,
-                            borderRadius: '8px',
+                            borderRadius: '10px',
                             border: 'none',
                             fontSize: '16px',
                             cursor: 'pointer',
                             transition: 'background-color 0.2s, transform 0.1s',
-                            boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)',
+                            boxShadow: '0 4px 12px -2px rgba(99, 102, 241, 0.3)',
                             marginBottom: '20px'
                         }}
-                        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
-                        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+                        onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)')}
+                        onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)')}
                     >
                         {processing ? t.registering : t.submit_btn}
                     </button>
                 </form>
 
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between items-center text-sm">
-                    <span style={{ color: '#94a3b8' }}>{t.already_have_account} </span>
-                    <Link href="/login" style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
+                    <span style={{ color: '#a1a1aa' }}>{t.already_have_account} </span>
+                    <Link href="/login" style={{ color: '#818cf8', textDecoration: 'none', fontWeight: 600 }}>
                         {t.sign_in}
                     </Link>
                 </div>

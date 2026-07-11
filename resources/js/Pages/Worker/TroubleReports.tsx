@@ -91,45 +91,39 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
     const t = translations[language];
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            backgroundColor: '#090d16',
+        <div className="dashboard-root" style={{
+            backgroundColor: '#09090b',
             fontFamily: 'Inter, sans-serif',
-            color: '#f8fafc',
-            display: 'flex',
-            flexDirection: 'column',
+            color: '#fafafa',
         }}>
             {/* Header matching all user screens */}
-            <header style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '16px 20px',
+            <header className="responsive-header" style={{
+                padding: '12px 16px',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                backgroundColor: 'rgba(9, 13, 22, 0.3)',
+                backgroundColor: 'rgba(9, 9, 11, 0.6)',
                 backdropFilter: 'blur(8px)',
                 flexShrink: 0,
             }}>
                 <div>
-                    <div className="greeting-name" style={{ fontSize: '13px', color: '#60a5fa', fontWeight: 600, marginBottom: '2px' }}>
+                    <div className="greeting-name" style={{ fontSize: '13px', color: '#818cf8', fontWeight: 600, marginBottom: '2px' }}>
                         {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
                     </div>
                     <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.title}</h1>
-                    <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0 0' }}>
+                    <p style={{ fontSize: '12px', color: '#71717a', margin: '2px 0 0 0' }}>
                         {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         {' · '}
                         {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '2px', borderRadius: '6px', marginRight: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '2px', borderRadius: '8px', marginRight: '8px' }}>
                         <button
                             onClick={() => changeLanguage('en')}
                             style={{
                                 padding: '4px 8px',
-                                backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
+                                backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
                                 border: 'none',
-                                borderRadius: '4px',
+                                borderRadius: '6px',
                                 color: '#fff',
                                 fontWeight: 600,
                                 fontSize: '10px',
@@ -142,9 +136,9 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                             onClick={() => changeLanguage('id')}
                             style={{
                                 padding: '4px 8px',
-                                backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
+                                backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
                                 border: 'none',
-                                borderRadius: '4px',
+                                borderRadius: '6px',
                                 color: '#fff',
                                 fontWeight: 600,
                                 fontSize: '10px',
@@ -159,9 +153,9 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                         href={`/c/${slug}/profile`}
                         style={{
                             padding: '8px',
-                            backgroundColor: 'rgba(255,255,255,0.05)',
-                            color: '#94a3b8',
-                            border: '1px solid rgba(255,255,255,0.08)',
+                            backgroundColor: 'rgba(255,255,255,0.04)',
+                            color: '#a1a1aa',
+                            border: '1px solid rgba(255,255,255,0.06)',
                             borderRadius: '8px',
                             cursor: 'pointer',
                             fontSize: '16px',
@@ -178,11 +172,11 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                         onClick={() => router.post('/logout')}
                         style={{
                             padding: '8px 14px',
-                            backgroundColor: '#ef4444',
+                            backgroundColor: '#f87171',
                             color: '#fff',
                             fontWeight: 600,
                             border: 'none',
-                            borderRadius: '8px',
+                            borderRadius: '10px',
                             cursor: 'pointer',
                             fontSize: '12px',
                         }}
@@ -193,14 +187,11 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
             </header>
 
             {/* Back to Dashboard and Content Area */}
-            <div style={{
-                flex: 1,
+            <div className="dashboard-scroll" style={{
                 padding: '24px',
-                maxWidth: '1200px',
-                width: '100%',
-                margin: '0 auto',
                 boxSizing: 'border-box',
             }}>
+                <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
                 <div style={{ marginBottom: '16px' }}>
                     <a
                         href={`/c/${slug}`}
@@ -208,14 +199,14 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '6px',
-                            color: '#60a5fa',
+                            color: '#818cf8',
                             fontSize: '13px',
                             fontWeight: 600,
                             textDecoration: 'none',
                             padding: '8px 16px',
-                            borderRadius: '8px',
-                            backgroundColor: 'rgba(96, 165, 250, 0.08)',
-                            border: '1px solid rgba(96, 165, 250, 0.15)',
+                            borderRadius: '10px',
+                            backgroundColor: 'rgba(99, 102, 241, 0.12)',
+                            border: '1px solid rgba(99, 102, 241, 0.2)',
                         }}
                     >
                         <ChevronLeft size={16} /> {t.back}
@@ -223,23 +214,23 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                 </div>
 
                 <div style={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                    backgroundColor: 'rgba(24, 24, 27, 0.7)',
                     border: '1px solid rgba(255, 255, 255, 0.06)',
-                    borderRadius: '12px',
+                    borderRadius: '14px',
                     padding: '20px',
                     boxShadow: '0 4px 30px rgba(0, 0, 0, 0.5)',
                 }}>
                     <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px 0' }}>{t.title}</h2>
-                    <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 20px 0' }}>{t.subtitle}</p>
+                    <p style={{ fontSize: '13px', color: '#71717a', margin: '0 0 20px 0' }}>{t.subtitle}</p>
 
                     {alerts.length === 0 ? (
                         <div style={{
                             textAlign: 'center',
                             padding: '40px 20px',
-                            color: '#64748b',
+                            color: '#71717a',
                             fontSize: '14px',
-                            border: '1px dashed rgba(255, 255, 255, 0.1)',
-                            borderRadius: '8px',
+                            border: '1px dashed rgba(255, 255, 255, 0.08)',
+                            borderRadius: '10px',
                         }}>
                             {t.no_reports}
                         </div>
@@ -253,10 +244,10 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                             }}>
                                 <thead>
                                     <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                        <th style={{ padding: '12px 8px', color: '#94a3b8', fontWeight: 600 }}>{t.date}</th>
-                                        <th style={{ padding: '12px 8px', color: '#94a3b8', fontWeight: 600 }}>{t.severity}</th>
-                                        <th style={{ padding: '12px 8px', color: '#94a3b8', fontWeight: 600 }}>{t.message}</th>
-                                        <th style={{ padding: '12px 8px', color: '#94a3b8', fontWeight: 600 }}>{t.status}</th>
+                                        <th style={{ padding: '12px 8px', color: '#a1a1aa', fontWeight: 600 }}>{t.date}</th>
+                                        <th style={{ padding: '12px 8px', color: '#a1a1aa', fontWeight: 600 }}>{t.severity}</th>
+                                        <th style={{ padding: '12px 8px', color: '#a1a1aa', fontWeight: 600 }}>{t.message}</th>
+                                        <th style={{ padding: '12px 8px', color: '#a1a1aa', fontWeight: 600 }}>{t.status}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -270,17 +261,17 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                                             minute: '2-digit'
                                         });
 
-                                        const sevColor = alert.severity === 'RED' ? '#ef4444'
-                                            : alert.severity === 'YELLOW' ? '#eab308'
-                                            : alert.severity === 'BLUE' ? '#3b82f6'
-                                            : '#f97316';
+                                        const sevColor = alert.severity === 'RED' ? '#f87171'
+                                            : alert.severity === 'YELLOW' ? '#fbbf24'
+                                            : alert.severity === 'BLUE' ? '#6366f1'
+                                            : '#fb923c';
 
                                         return (
                                             <tr key={alert.id} style={{
                                                 borderBottom: '1px solid rgba(255,255,255,0.04)',
                                                 backgroundColor: alert.is_resolved ? 'transparent' : 'rgba(239, 68, 68, 0.02)',
                                             }}>
-                                                <td style={{ padding: '14px 8px', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
+                                                <td style={{ padding: '14px 8px', color: '#e4e4e7', whiteSpace: 'nowrap' }}>
                                                     {dateStr}
                                                 </td>
                                                 <td style={{ padding: '14px 8px' }}>
@@ -297,7 +288,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                                                         {alert.severity}
                                                     </span>
                                                 </td>
-                                                <td style={{ padding: '14px 8px', color: '#f1f5f9', lineHeight: '1.4' }}>
+                                                <td style={{ padding: '14px 8px', color: '#fafafa', lineHeight: '1.4' }}>
                                                     {alert.message}
                                                 </td>
                                                 <td style={{ padding: '14px 8px' }}>
@@ -306,7 +297,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                                                             display: 'inline-flex',
                                                             alignItems: 'center',
                                                             gap: '4px',
-                                                            color: '#10b981',
+                                                            color: '#34d399',
                                                             fontWeight: 600,
                                                             fontSize: '12px'
                                                         }}>
@@ -317,7 +308,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                                                             display: 'inline-flex',
                                                             alignItems: 'center',
                                                             gap: '4px',
-                                                            color: '#ef4444',
+                                                            color: '#f87171',
                                                             fontWeight: 600,
                                                             fontSize: '12px'
                                                         }}>
@@ -333,6 +324,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                         </div>
                     )}
                 </div>
+            </div>
             </div>
         </div>
     );

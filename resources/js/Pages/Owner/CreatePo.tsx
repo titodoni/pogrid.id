@@ -114,10 +114,10 @@ interface PoItem {
 const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '10px 14px',
-    backgroundColor: '#090d16',
+    backgroundColor: '#0a0a0c',
     border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: '8px',
-    color: '#fff',
+    borderRadius: '10px',
+    color: '#fafafa',
     fontSize: '14px',
     outline: 'none',
     boxSizing: 'border-box',
@@ -127,7 +127,7 @@ const inputStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
     display: 'block',
     fontSize: '13px',
-    color: '#94a3b8',
+    color: '#a1a1aa',
     marginBottom: '6px',
     fontWeight: 600,
 };
@@ -220,13 +220,13 @@ export default function CreatePo({ tenant, auth_user }: Props) {
 
     if (auth_user?.is_owner) {
         return (
-            <div style={{ minHeight: '100vh', backgroundColor: '#090d16', color: '#f8fafc', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#fafafa', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ textAlign: 'center', maxWidth: '420px', padding: '40px 20px' }}>
                     <h1 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 12px 0' }}>{t.access_restricted}</h1>
-                    <p style={{ fontSize: '14px', color: '#64748b', margin: '0 0 24px 0' }}>
+                    <p style={{ fontSize: '14px', color: '#71717a', margin: '0 0 24px 0' }}>
                         {t.owner_restrict_desc}
                     </p>
-                    <button onClick={goBack} style={{ padding: '10px 20px', backgroundColor: '#2563eb', border: 'none', color: '#fff', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontSize: '14px' }}>
+                    <button onClick={goBack} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', border: 'none', color: '#fff', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 12px -2px rgba(99, 102, 241, 0.3)' }}>
                         {t.back}
                     </button>
                 </div>
@@ -235,17 +235,12 @@ export default function CreatePo({ tenant, auth_user }: Props) {
     }
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#090d16', color: '#f8fafc', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#fafafa', fontFamily: 'Inter, sans-serif' }}>
             {/* Header */}
-            <header style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '16px',
+            <header className="responsive-header" style={{
+                padding: '12px 16px',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                position: 'sticky',
-                top: 0,
-                backgroundColor: '#090d16',
+                backgroundColor: '#09090b',
                 zIndex: 40,
             }}>
                 <button onClick={goBack} style={{
@@ -255,8 +250,8 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                     padding: '8px 12px',
                     backgroundColor: 'rgba(255,255,255,0.05)',
                     border: '1px solid rgba(255,255,255,0.08)',
-                    color: '#94a3b8',
-                    borderRadius: '8px',
+                    color: '#a1a1aa',
+                    borderRadius: '10px',
                     fontWeight: 600,
                     cursor: 'pointer',
                     fontSize: '13px',
@@ -269,16 +264,17 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                     alignItems: 'center',
                     gap: '6px',
                     padding: '10px 18px',
-                    backgroundColor: '#2563eb',
+                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                     border: 'none',
                     color: '#fff',
-                    borderRadius: '8px',
+                    borderRadius: '10px',
                     fontWeight: 600,
                     cursor: 'pointer',
                     fontSize: '14px',
+                    boxShadow: '0 4px 12px -2px rgba(99, 102, 241, 0.3)',
                 }}
-                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
-                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+                    onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)')}
+                    onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)')}
                 >
                     <Broadcast size={16} />
                     {t.submit}
@@ -294,18 +290,18 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                 {/* Title */}
                 <div style={{ marginBottom: '28px' }}>
                     <h1 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>{t.title}</h1>
-                    <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>{t.subtitle}</p>
+                    <p style={{ fontSize: '14px', color: '#71717a', margin: 0 }}>{t.subtitle}</p>
                 </div>
 
                 {/* Validation errors */}
                 {errors && Object.keys(errors).length > 0 && (
                     <div style={{
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        border: '1px solid rgba(239, 68, 68, 0.25)',
+                        backgroundColor: 'rgba(248, 113, 113, 0.12)',
+                        border: '1px solid rgba(248, 113, 113, 0.25)',
                         borderRadius: '12px',
                         padding: '16px',
                         marginBottom: '24px',
-                        color: '#ef4444',
+                        color: '#f87171',
                     }}>
                         <h4 style={{ margin: '0 0 8px 0', fontWeight: 700 }}>Validation Error</h4>
                         <ul style={{ margin: 0, paddingLeft: '20px' }}>
@@ -424,11 +420,11 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px',
-                            padding: '8px 14px',
-                            backgroundColor: 'rgba(96, 165, 250, 0.1)',
-                            border: '1px solid rgba(96, 165, 250, 0.2)',
-                            color: '#60a5fa',
-                            borderRadius: '8px',
+                            padding: '8px 16px',
+                            backgroundColor: 'rgba(99, 102, 241, 0.12)',
+                            border: '1px solid rgba(99, 102, 241, 0.2)',
+                            color: '#818cf8',
+                            borderRadius: '10px',
                             fontSize: '13px',
                             fontWeight: 600,
                             cursor: 'pointer',
@@ -439,9 +435,9 @@ export default function CreatePo({ tenant, auth_user }: Props) {
 
                     {items.map((item, index) => (
                         <div key={index} style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                            border: '1px solid rgba(255, 255, 255, 0.05)',
-                            borderRadius: '12px',
+                            backgroundColor: 'rgba(24, 24, 27, 0.7)',
+                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                            borderRadius: '14px',
                             padding: '20px',
                             marginBottom: '12px',
                             position: 'relative',
@@ -453,7 +449,7 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                                     right: '12px',
                                     backgroundColor: 'transparent',
                                     border: 'none',
-                                    color: '#ef4444',
+                                    color: '#f87171',
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     cursor: 'pointer',
@@ -472,14 +468,14 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                                 marginBottom: '16px',
                             }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.item_name}</label>
+                                    <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px' }}>{t.item_name}</label>
                                     <input type="text" value={item.item_name} onChange={(e) => updateItem(index, 'item_name', e.target.value)} required placeholder="e.g. Shaft Steel" style={{
                                         width: '100%',
                                         padding: '8px 12px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#0a0a0c',
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '6px',
-                                        color: '#fff',
+                                        borderRadius: '10px',
+                                        color: '#fafafa',
                                         fontSize: '13px',
                                         outline: 'none',
                                         boxSizing: 'border-box',
@@ -487,14 +483,14 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                                     }} />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.item_type}</label>
+                                    <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px' }}>{t.item_type}</label>
                                     <select value={item.item_type} onChange={(e) => updateItem(index, 'item_type', e.target.value)} style={{
                                         width: '100%',
                                         padding: '8px 12px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#0a0a0c',
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '6px',
-                                        color: '#fff',
+                                        borderRadius: '10px',
+                                        color: '#fafafa',
                                         fontSize: '13px',
                                         outline: 'none',
                                         minHeight: '40px',
@@ -505,14 +501,14 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                                     </select>
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.quantity}</label>
+                                    <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px' }}>{t.quantity}</label>
                                     <input type="number" min={1} value={item.target_qty} onChange={(e) => updateItem(index, 'target_qty', parseInt(e.target.value) || 1)} style={{
                                         width: '100%',
                                         padding: '8px 12px',
-                                        backgroundColor: '#090d16',
+                                        backgroundColor: '#0a0a0c',
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '6px',
-                                        color: '#fff',
+                                        borderRadius: '10px',
+                                        color: '#fafafa',
                                         fontSize: '13px',
                                         outline: 'none',
                                         boxSizing: 'border-box',
@@ -520,7 +516,7 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                                     }} />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.stages}</label>
+                                    <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px' }}>{t.stages}</label>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
                                         {['Design', 'Material', 'Machining', 'Fabrication', 'Vendor'].map(stage => {
                                             const stageKey = stage.toLowerCase();
@@ -549,14 +545,14 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                                     borderTop: '1px solid rgba(255,255,255,0.05)',
                                 }}>
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.vendor_name}</label>
+                                        <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px' }}>{t.vendor_name}</label>
                                         <input type="text" value={item.vendor_name || ''} onChange={(e) => updateItem(index, 'vendor_name', e.target.value)} placeholder={t.vendor_name} style={{
                                             width: '100%',
                                             padding: '8px 12px',
-                                            backgroundColor: '#090d16',
+                                            backgroundColor: '#0a0a0c',
                                             border: '1px solid rgba(255,255,255,0.08)',
-                                            borderRadius: '6px',
-                                            color: '#fff',
+                                            borderRadius: '10px',
+                                            color: '#fafafa',
                                             fontSize: '13px',
                                             outline: 'none',
                                             boxSizing: 'border-box',
@@ -564,14 +560,14 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                                         }} />
                                     </div>
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{t.vendor_phone}</label>
+                                        <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px' }}>{t.vendor_phone}</label>
                                         <input type="text" value={item.vendor_phone || ''} onChange={(e) => updateItem(index, 'vendor_phone', e.target.value)} placeholder={t.vendor_phone} style={{
                                             width: '100%',
                                             padding: '8px 12px',
-                                            backgroundColor: '#090d16',
+                                            backgroundColor: '#0a0a0c',
                                             border: '1px solid rgba(255,255,255,0.08)',
-                                            borderRadius: '6px',
-                                            color: '#fff',
+                                            borderRadius: '10px',
+                                            color: '#fafafa',
                                             fontSize: '13px',
                                             outline: 'none',
                                             boxSizing: 'border-box',

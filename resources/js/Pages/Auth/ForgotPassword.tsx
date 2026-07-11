@@ -56,9 +56,9 @@ export default function ForgotPassword() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#090d16',
+            backgroundColor: '#09090b',
             fontFamily: 'Inter, sans-serif',
-            color: '#f8fafc',
+            color: '#fafafa',
             padding: '16px',
             position: 'relative'
         }}>
@@ -79,7 +79,7 @@ export default function ForgotPassword() {
                     onClick={() => changeLanguage('en')}
                     style={{
                         padding: '6px 12px',
-                        backgroundColor: language === 'en' ? '#2563eb' : 'transparent',
+                        backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
                         border: 'none',
                         color: '#fff',
                         fontWeight: 600,
@@ -94,7 +94,7 @@ export default function ForgotPassword() {
                     onClick={() => changeLanguage('id')}
                     style={{
                         padding: '6px 12px',
-                        backgroundColor: language === 'id' ? '#2563eb' : 'transparent',
+                        backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
                         border: 'none',
                         color: '#fff',
                         fontWeight: 600,
@@ -106,38 +106,38 @@ export default function ForgotPassword() {
                 </button>
             </div>
 
-            <div className="login-card w-full max-w-[420px] bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/8 p-6 sm:p-10 shadow-2xl">
+            <div className="login-card animate-in w-full max-w-[420px] bg-zinc-900/80 backdrop-blur-xl rounded-2xl border border-white/8 p-6 sm:p-10 shadow-2xl">
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <h1 style={{
                         fontSize: '32px',
                         fontWeight: 800,
                         letterSpacing: '-0.025em',
-                        background: 'linear-gradient(to right, #60a5fa, #3b82f6)',
+                        background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         marginBottom: '8px'
                     }}>
                         {t.title}
                     </h1>
-                    <p style={{ color: '#94a3b8', fontSize: '14px' }}>
+                    <p style={{ color: '#a1a1aa', fontSize: '14px' }}>
                         {t.subtitle}
                     </p>
                 </div>
 
                 <div style={{
-                    backgroundColor: 'rgba(37, 99, 235, 0.06)',
-                    border: '1px dashed rgba(37, 99, 235, 0.3)',
+                    backgroundColor: 'rgba(99, 102, 241, 0.06)',
+                    border: '1px dashed rgba(99, 102, 241, 0.25)',
                     borderRadius: '8px',
                     padding: '12px 16px',
                     marginBottom: '24px',
                     fontSize: '12px',
-                    color: '#60a5fa',
+                    color: '#818cf8',
                     lineHeight: '1.5'
                 }}>
                     {t.dev_mode_msg.split('storage/logs/laravel.log').map((part, index, arr) => (
                         <React.Fragment key={index}>
                             {part}
-                            {index < arr.length - 1 && <code style={{ color: '#38bdf8' }}>storage/logs/laravel.log</code>}
+                            {index < arr.length - 1 && <code style={{ color: '#a5b4fc' }}>storage/logs/laravel.log</code>}
                         </React.Fragment>
                     ))}
                 </div>
@@ -148,10 +148,8 @@ export default function ForgotPassword() {
                             display: 'block',
                             fontSize: '13px',
                             fontWeight: 600,
-                            color: '#94a3b8',
-                            marginBottom: '6px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em'
+                            color: '#a1a1aa',
+                            marginBottom: '6px'
                         }}>
                             {t.email_label}
                         </label>
@@ -163,10 +161,10 @@ export default function ForgotPassword() {
                             style={{
                                 width: '100%',
                                 padding: '12px 16px',
-                                backgroundColor: '#090d16',
+                                backgroundColor: '#0a0a0c',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
-                                borderRadius: '8px',
-                                color: '#f8fafc',
+                                borderRadius: '10px',
+                                color: '#fafafa',
                                 fontSize: '15px',
                                 outline: 'none',
                                 transition: 'border-color 0.2s'
@@ -187,27 +185,27 @@ export default function ForgotPassword() {
                         style={{
                             width: '100%',
                             padding: '14px',
-                            backgroundColor: '#2563eb',
+                            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                             color: '#ffffff',
                             fontWeight: 600,
-                            borderRadius: '8px',
+                            borderRadius: '10px',
                             border: 'none',
                             fontSize: '16px',
                             cursor: 'pointer',
                             transition: 'background-color 0.2s, transform 0.1s',
-                            boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)',
+                            boxShadow: '0 4px 12px -2px rgba(99, 102, 241, 0.3)',
                             marginBottom: '20px'
                         }}
-                        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
-                        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+                        onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)')}
+                        onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)')}
                     >
                         {processing ? t.sending : t.submit_btn}
                     </button>
                 </form>
 
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between items-center text-sm">
-                    <span style={{ color: '#94a3b8' }}>{t.remember_password} </span>
-                    <Link href="/login" style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
+                    <span style={{ color: '#a1a1aa' }}>{t.remember_password} </span>
+                    <Link href="/login" style={{ color: '#818cf8', textDecoration: 'none', fontWeight: 600 }}>
                         {t.sign_in}
                     </Link>
                 </div>

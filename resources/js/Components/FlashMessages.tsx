@@ -91,20 +91,20 @@ const icons = {
 
 const typeStyles = {
     success: {
-        bg: 'rgba(16, 185, 129, 0.95)',
-        border: '1px solid rgba(16, 185, 129, 0.3)',
+        bg: 'rgba(52, 211, 153, 0.95)',
+        border: '1px solid rgba(52, 211, 153, 0.3)',
     },
     error: {
-        bg: 'rgba(239, 68, 68, 0.95)',
-        border: '1px solid rgba(239, 68, 68, 0.3)',
+        bg: 'rgba(248, 113, 113, 0.95)',
+        border: '1px solid rgba(248, 113, 113, 0.3)',
     },
     warning: {
-        bg: 'rgba(245, 158, 11, 0.95)',
-        border: '1px solid rgba(245, 158, 11, 0.3)',
+        bg: 'rgba(251, 191, 36, 0.95)',
+        border: '1px solid rgba(251, 191, 36, 0.3)',
     },
     info: {
-        bg: 'rgba(59, 130, 246, 0.95)',
-        border: '1px solid rgba(59, 130, 246, 0.3)',
+        bg: 'rgba(99, 102, 241, 0.95)',
+        border: '1px solid rgba(99, 102, 241, 0.3)',
     },
 };
 
@@ -187,7 +187,7 @@ export default function FlashMessages() {
                             backgroundColor: style.bg,
                             color: '#fff',
                             padding: '14px 16px',
-                            borderRadius: '12px',
+                            borderRadius: '14px',
                             fontSize: '14px',
                             fontWeight: 500,
                             lineHeight: 1.5,
