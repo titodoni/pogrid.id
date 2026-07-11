@@ -2785,125 +2785,258 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     });
 
                                     return (
-                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                                            <thead>
-                                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                                    <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.po_number_label}</th>
-                                                    <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.client_label}</th>
-                                                    <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.item_name_label}</th>
-                                                    <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.progress_label}</th>
-                                                    <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{language === 'id' ? 'Status' : 'Status'}</th>
-                                                    <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.deadline_label}</th>
-                                                    <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.days_overdue_label}</th>
-                                                    <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.delay_reason_label}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
+                                        <>
+                                            <div className="directory-table-container">
+                                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                                    <thead>
+                                                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.po_number_label}</th>
+                                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.client_label}</th>
+                                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.item_name_label}</th>
+                                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.progress_label}</th>
+                                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{language === 'id' ? 'Status' : 'Status'}</th>
+                                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.deadline_label}</th>
+                                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.days_overdue_label}</th>
+                                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.delay_reason_label}</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {Object.keys(groupedByClient).map((cName) => {
+                                                            const clientItems = groupedByClient[cName];
+                                                            return (
+                                                                <React.Fragment key={`group-${cName}`}>
+                                                                    <tr style={{ backgroundColor: 'rgba(59,130,246,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                                                                        <td colSpan={8} style={{ padding: '8px 16px', fontWeight: 700, color: '#818cf8', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                            🏢 CLIENT: {cName} ({clientItems.length} item{clientItems.length > 1 ? 's' : ''})
+                                                                        </td>
+                                                                    </tr>
+                                                                    {clientItems.map((item: any, idx: number) => {
+                                                                        const progress = parseFloat(item.progress_percent);
+                                                                        
+                                                                        // Determine status badge
+                                                                        let displayStatus = item.current_stage || '-';
+                                                                        let statusColor = '#a1a1aa';
+                                                                        let statusBg = 'rgba(255,255,255,0.03)';
+                                                                        
+                                                                        if (item.po_status === 'COMPLETED') {
+                                                                            if (item.invoice_status === 'UNINVOICED') {
+                                                                                displayStatus = language === 'id' ? 'Belum Difakturkan' : 'Finance: Uninvoiced';
+                                                                                statusColor = '#fbbf24';
+                                                                                statusBg = 'rgba(234,179,8,0.1)';
+                                                                            } else if (item.payment_status === 'UNPAID') {
+                                                                                displayStatus = language === 'id' ? 'Belum Dibayar' : 'Finance: Unpaid';
+                                                                                statusColor = '#fb923c';
+                                                                                statusBg = 'rgba(249,115,22,0.1)';
+                                                                            } else {
+                                                                                displayStatus = language === 'id' ? 'Selesai & Lunas' : 'Closed / Settled';
+                                                                                statusColor = '#34d399';
+                                                                                statusBg = 'rgba(16,185,129,0.1)';
+                                                                            }
+                                                                        } else {
+                                                                            statusColor = '#3b82f6';
+                                                                            statusBg = 'rgba(59,130,246,0.1)';
+                                                                        }
+
+                                                                        return (
+                                                                            <tr key={`delay-${cName}-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#e4e4e7' }}>
+                                                                                <td style={{ padding: '12px 16px', fontWeight: 700 }}>
+                                                                                    <button
+                                                                                        onClick={() => {
+                                                                                            changeTab('active');
+                                                                                            togglePO(item.po_id);
+                                                                                        }}
+                                                                                        style={{
+                                                                                            background: 'none',
+                                                                                            border: 'none',
+                                                                                            color: '#3b82f6',
+                                                                                            fontWeight: 700,
+                                                                                            cursor: 'pointer',
+                                                                                            padding: 0,
+                                                                                            textAlign: 'left',
+                                                                                            textDecoration: 'underline',
+                                                                                        }}
+                                                                                    >
+                                                                                        {item.po_number}
+                                                                                    </button>
+                                                                                </td>
+                                                                                <td style={{ padding: '12px 16px' }}>{item.client_name}</td>
+                                                                                <td style={{ padding: '12px 16px', fontWeight: 600 }}>{item.item_name}</td>
+                                                                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                                                                        <span className="badge" style={{
+                                                                                            backgroundColor: progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                                                                            color: progress >= 100 ? '#34d399' : '#3b82f6',
+                                                                                        }}>
+                                                                                            {progress.toFixed(0)}%
+                                                                                        </span>
+                                                                                        {item.target_qty !== undefined && (
+                                                                                            <span style={{ fontSize: '10px', color: '#71717a' }}>
+                                                                                                ({item.total_delivered_qty || 0} / {item.target_qty} pcs)
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                                                                    <span className="badge" style={{
+                                                                                        backgroundColor: statusBg,
+                                                                                        color: statusColor,
+                                                                                        fontWeight: 600,
+                                                                                    }}>
+                                                                                        {displayStatus}
+                                                                                    </span>
+                                                                                </td>
+                                                                                <td style={{ padding: '12px 16px', textAlign: 'center', color: '#a1a1aa' }}>{item.global_deadline}</td>
+                                                                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                                                                    {item.days_overdue > 0 ? (
+                                                                                        <span className="badge" style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                                                                                            {item.days_overdue} {t.days_suffix}
+                                                                                        </span>
+                                                                                    ) : (
+                                                                                        <span style={{ color: '#71717a' }}>-</span>
+                                                                                    )}
+                                                                                </td>
+                                                                                <td style={{ padding: '12px 16px', color: '#ef4444', fontStyle: 'italic' }}>
+                                                                                    {item.reason}
+                                                                                </td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </React.Fragment>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <div className="directory-mobile-list">
                                                 {Object.keys(groupedByClient).map((cName) => {
                                                     const clientItems = groupedByClient[cName];
                                                     return (
-                                                        <React.Fragment key={`group-${cName}`}>
-                                                            <tr style={{ backgroundColor: 'rgba(59,130,246,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                                                                <td colSpan={8} style={{ padding: '8px 16px', fontWeight: 700, color: '#818cf8', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                                    🏢 CLIENT: {cName} ({clientItems.length} item{clientItems.length > 1 ? 's' : ''})
-                                                                </td>
-                                                            </tr>
-                                                            {clientItems.map((item: any, idx: number) => {
-                                                                const progress = parseFloat(item.progress_percent);
-                                                                
-                                                                // Determine status badge
-                                                                let displayStatus = item.current_stage || '-';
-                                                                let statusColor = '#a1a1aa';
-                                                                let statusBg = 'rgba(255,255,255,0.03)';
-                                                                
-                                                                if (item.po_status === 'COMPLETED') {
-                                                                    if (item.invoice_status === 'UNINVOICED') {
-                                                                        displayStatus = language === 'id' ? 'Belum Difakturkan' : 'Finance: Uninvoiced';
-                                                                        statusColor = '#fbbf24';
-                                                                        statusBg = 'rgba(234,179,8,0.1)';
-                                                                    } else if (item.payment_status === 'UNPAID') {
-                                                                        displayStatus = language === 'id' ? 'Belum Dibayar' : 'Finance: Unpaid';
-                                                                        statusColor = '#fb923c';
-                                                                        statusBg = 'rgba(249,115,22,0.1)';
+                                                        <div key={`mobile-group-${cName}`} style={{ marginBottom: '12px' }}>
+                                                            <div style={{
+                                                                backgroundColor: 'rgba(59,130,246,0.04)',
+                                                                border: '1px solid rgba(255,255,255,0.06)',
+                                                                borderRadius: '8px',
+                                                                padding: '8px 12px',
+                                                                fontWeight: 700,
+                                                                color: '#818cf8',
+                                                                fontSize: '11px',
+                                                                textTransform: 'uppercase',
+                                                                letterSpacing: '0.05em',
+                                                                marginBottom: '6px',
+                                                            }}>
+                                                                🏢 CLIENT: {cName} ({clientItems.length} item{clientItems.length > 1 ? 's' : ''})
+                                                            </div>
+                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                                {clientItems.map((item: any, idx: number) => {
+                                                                    const progress = parseFloat(item.progress_percent);
+                                                                    
+                                                                    // Determine status badge
+                                                                    let displayStatus = item.current_stage || '-';
+                                                                    let statusColor = '#a1a1aa';
+                                                                    let statusBg = 'rgba(255,255,255,0.03)';
+                                                                    
+                                                                    if (item.po_status === 'COMPLETED') {
+                                                                        if (item.invoice_status === 'UNINVOICED') {
+                                                                            displayStatus = language === 'id' ? 'Belum Difakturkan' : 'Finance: Uninvoiced';
+                                                                            statusColor = '#fbbf24';
+                                                                            statusBg = 'rgba(234,179,8,0.1)';
+                                                                        } else if (item.payment_status === 'UNPAID') {
+                                                                            displayStatus = language === 'id' ? 'Belum Dibayar' : 'Finance: Unpaid';
+                                                                            statusColor = '#fb923c';
+                                                                            statusBg = 'rgba(249,115,22,0.1)';
+                                                                        } else {
+                                                                            displayStatus = language === 'id' ? 'Selesai & Lunas' : 'Closed / Settled';
+                                                                            statusColor = '#34d399';
+                                                                            statusBg = 'rgba(16,185,129,0.1)';
+                                                                        }
                                                                     } else {
-                                                                        displayStatus = language === 'id' ? 'Selesai & Lunas' : 'Closed / Settled';
-                                                                        statusColor = '#34d399';
-                                                                        statusBg = 'rgba(16,185,129,0.1)';
+                                                                        statusColor = '#3b82f6';
+                                                                        statusBg = 'rgba(59,130,246,0.1)';
                                                                     }
-                                                                } else {
-                                                                    statusColor = '#3b82f6';
-                                                                    statusBg = 'rgba(59,130,246,0.1)';
-                                                                }
 
-                                                                return (
-                                                                    <tr key={`delay-${cName}-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#e4e4e7' }}>
-                                                                        <td style={{ padding: '12px 16px', fontWeight: 700 }}>
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    changeTab('active');
-                                                                                    togglePO(item.po_id);
-                                                                                }}
-                                                                                style={{
-                                                                                    background: 'none',
-                                                                                    border: 'none',
-                                                                                    color: '#3b82f6',
-                                                                                    fontWeight: 700,
-                                                                                    cursor: 'pointer',
-                                                                                    padding: 0,
-                                                                                    textAlign: 'left',
-                                                                                    textDecoration: 'underline',
-                                                                                }}
-                                                                            >
-                                                                                {item.po_number}
-                                                                            </button>
-                                                                        </td>
-                                                                        <td style={{ padding: '12px 16px' }}>{item.client_name}</td>
-                                                                        <td style={{ padding: '12px 16px', fontWeight: 600 }}>{item.item_name}</td>
-                                                                        <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                                                                                <span className="badge" style={{
-                                                                                    backgroundColor: progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                                                                                    color: progress >= 100 ? '#34d399' : '#3b82f6',
-                                                                                }}>
-                                                                                    {progress.toFixed(0)}%
-                                                                                </span>
-                                                                                {item.target_qty !== undefined && (
-                                                                                    <span style={{ fontSize: '10px', color: '#71717a' }}>
-                                                                                        ({item.total_delivered_qty || 0} / {item.target_qty} pcs)
+                                                                    return (
+                                                                        <div key={`mobile-item-${cName}-${idx}`} style={{
+                                                                            backgroundColor: '#18181b',
+                                                                            border: '1px solid rgba(255,255,255,0.06)',
+                                                                            borderRadius: '10px',
+                                                                            padding: '10px',
+                                                                            display: 'flex',
+                                                                            flexDirection: 'column',
+                                                                            gap: '6px',
+                                                                        }}>
+                                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        changeTab('active');
+                                                                                        togglePO(item.po_id);
+                                                                                    }}
+                                                                                    style={{
+                                                                                        background: 'none',
+                                                                                        border: 'none',
+                                                                                        color: '#3b82f6',
+                                                                                        fontWeight: 700,
+                                                                                        cursor: 'pointer',
+                                                                                        padding: 0,
+                                                                                        textAlign: 'left',
+                                                                                        textDecoration: 'underline',
+                                                                                        fontSize: '12px',
+                                                                                    }}
+                                                                                >
+                                                                                    {item.po_number}
+                                                                                </button>
+                                                                                <span style={{ fontWeight: 700, color: '#fafafa', fontSize: '12px' }}>{item.item_name}</span>
+                                                                            </div>
+                                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                                    <span className="badge" style={{
+                                                                                        backgroundColor: progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                                                                        color: progress >= 100 ? '#34d399' : '#3b82f6',
+                                                                                        fontSize: '10px',
+                                                                                        padding: '2px 6px',
+                                                                                    }}>
+                                                                                        {progress.toFixed(0)}%
                                                                                     </span>
+                                                                                    {item.target_qty !== undefined && (
+                                                                                        <span style={{ fontSize: '10px', color: '#71717a' }}>
+                                                                                            ({item.total_delivered_qty || 0} / {item.target_qty} pcs)
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                                <span className="badge" style={{
+                                                                                    backgroundColor: statusBg,
+                                                                                    color: statusColor,
+                                                                                    fontWeight: 600,
+                                                                                    fontSize: '10px',
+                                                                                    padding: '2px 6px',
+                                                                                }}>
+                                                                                    {displayStatus}
+                                                                                </span>
+                                                                            </div>
+                                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#a1a1aa', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '4px' }}>
+                                                                                <span>{t.deadline_label}: {item.global_deadline}</span>
+                                                                                {item.days_overdue > 0 ? (
+                                                                                    <span className="badge" style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', fontSize: '9px', padding: '1px 4px' }}>
+                                                                                        {item.days_overdue} {t.days_suffix}
+                                                                                    </span>
+                                                                                ) : (
+                                                                                    <span style={{ color: '#71717a' }}>-</span>
                                                                                 )}
                                                                             </div>
-                                                                        </td>
-                                                                        <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                                                            <span className="badge" style={{
-                                                                                backgroundColor: statusBg,
-                                                                                color: statusColor,
-                                                                                fontWeight: 600,
-                                                                            }}>
-                                                                                {displayStatus}
-                                                                            </span>
-                                                                        </td>
-                                                                        <td style={{ padding: '12px 16px', textAlign: 'center', color: '#a1a1aa' }}>{item.global_deadline}</td>
-                                                                        <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                                                            {item.days_overdue > 0 ? (
-                                                                                <span className="badge" style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
-                                                                                    {item.days_overdue} {t.days_suffix}
-                                                                                </span>
-                                                                            ) : (
-                                                                                <span style={{ color: '#71717a' }}>-</span>
+                                                                            {item.reason && (
+                                                                                <div style={{ fontSize: '10px', color: '#ef4444', fontStyle: 'italic', marginTop: '2px' }}>
+                                                                                    {item.reason}
+                                                                                </div>
                                                                             )}
-                                                                        </td>
-                                                                        <td style={{ padding: '12px 16px', color: '#ef4444', fontStyle: 'italic' }}>
-                                                                            {item.reason}
-                                                                        </td>
-                                                                    </tr>
-                                                                );
-                                                            })}
-                                                        </React.Fragment>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
                                                     );
                                                 })}
-                                            </tbody>
-                                        </table>
+                                            </div>
+                                        </>
                                     );
                                 })()}
                             </div>

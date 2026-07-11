@@ -832,3 +832,23 @@ input, select, textarea {
     border-color: rgba(249, 115, 22, 0.25);
     color: #ffb06e;
 }
+
+/* Responsive PO & Item Directory */
+@media (max-width: 768px) {
+    .directory-table-container {
+        display: none !important;
+    }
+    .directory-mobile-list {
+        display: flex !important;
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+@media (min-width: 769px) {
+    .directory-table-container {
+        display: block !important;
+    }
+    .directory-mobile-list {
+        display: none !important;
+    }
+}
