@@ -6,19 +6,19 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import FlashMessages from './Components/FlashMessages';
 
+const defaultLayout = (page: React.ReactNode) => (
+    <>
+        <FlashMessages />
+        {page}
+    </>
+);
+
 createInertiaApp({
     title: (title) => `${title} - POgrid.id`,
     resolve: async (name) => {
-        const page = await resolvePageComponent(`./Pages/${name}.tsx`, import.meta.glob('./Pages/**/*.tsx'));
-        const Page = page.default;
-        return {
-            default: (props: any) => (
-                <>
-                    <FlashMessages />
-                    <Page {...props} />
-                </>
-            ),
-        };
+        const page = (await resolvePageComponent(`./Pages/${name}.tsx`, import.meta.glob('./Pages/**/*.tsx'))) as any;
+        page.default.layout = page.default.layout || defaultLayout;
+        return page;
     },
     setup({ el, App, props }) {
         createRoot(el).render(<App {...props} />);

@@ -1713,7 +1713,9 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
             }}>
                 <div>
                     <div className="greeting-name" style={{ fontSize: '13px', color: '#818cf8', fontWeight: 600, marginBottom: '2px' }}>
-                        {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
+                        {language === 'en'
+                            ? `Hello, ${auth_user?.name}${auth_user?.post_name ? ` (${auth_user.post_name})` : ''}`
+                            : `Halo, ${auth_user?.name}${auth_user?.post_name ? ` (${auth_user.post_name})` : ''}`}
                     </div>
                     <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.floor_terminal}</h1>
                     <p style={{ fontSize: '12px', color: '#71717a', margin: '2px 0 0 0' }}>
