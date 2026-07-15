@@ -237,7 +237,7 @@ ALTER TABLE items ADD COLUMN invoiced_qty INTEGER DEFAULT 0;
 
 ---
 
-## 🟡 PRIORITY 3 — Worker Dashboard Overhaul
+## 🟡 PRIORITY 3 — Worker Dashboard Overhaul (DONE)
 
 ### 3.1 — Cross-Role Read-Only Visibility
 
@@ -245,21 +245,22 @@ ALTER TABLE items ADD COLUMN invoiced_qty INTEGER DEFAULT 0;
 **What**: Remove `whereHas` stage filter. ALL active items shown to ALL floor workers.
 Stage update controls only shown for the worker's matching role.
 
-- [ ] Remove `whereHas` role-based item filter from Worker Dashboard query
-- [ ] All active items (not COMPLETED/CANCELLED/TERMINATED) shown to all floor workers
-- [ ] Finance filter unchanged (they see active + completed-but-unpaid)
-- [ ] Frontend: stage update controls appear only for matched role's stage
-- [ ] Frontend: other stages shown as read-only status cards
-- [ ] Test: Fabrication worker sees Machining items but cannot update Machining stage
+- [x] Remove `whereHas` role-based item filter from Worker Dashboard query
+- [x] All active items (not COMPLETED/CANCELLED/TERMINATED) shown to all floor workers
+- [x] Finance filter unchanged (they see active + completed-but-unpaid)
+- [x] Frontend: stage update controls appear only for matched role's stage
+- [x] Frontend: other stages shown as read-only status cards
+- [x] Test: Fabrication worker sees Machining items but cannot update Machining stage
+- [x] **Complete**
 
 ---
 
 ### 3.2 — Stage Template Picker in CreatePo
 
 **File**: `resources/js/Pages/Owner/CreatePo.tsx`
-**What**: Add template picker before the stage checkbox list.
+**What**: Add 10-stage template picker before the stage checkbox list.
 
-Templates (9 total — see MAIN-IDEA.md §21):
+Templates (10 total):
 1. CNC Workshop
 2. Fabrication Workshop
 3. Engineering Workshop
@@ -271,11 +272,12 @@ Templates (9 total — see MAIN-IDEA.md §21):
 9. Service / Design Only
 10. Custom (blank)
 
-- [ ] Add template dropdown/card picker to CreatePo form
-- [ ] Selecting a template pre-fills the stage checkbox list
-- [ ] Admin can add/remove stages after template selection
-- [ ] Stage names must match STAGE_ROLE_MAP keywords for auto-role-assignment to work
-- [ ] Add free-text custom stage input (for Heat Treatment, Powder Coating, etc.)
+- [x] Add template card-picker to CreatePo form
+- [x] Selecting a template pre-fills the stage checkbox list
+- [x] Admin can add/remove stages after template selection
+- [x] Stage names match STAGE_ROLE_MAP keywords for auto-role-assignment
+- [x] Expanded stage checkboxes from 3 to 9 (Design, Material, Machining, Fabrication, Assembly, Surface Treatment, QC, Delivery, Vendor)
+- [x] **Complete**
 
 ---
 
@@ -298,11 +300,11 @@ Archive query per role:
 - PRODUCTION → items where any non-QC stage = COMPLETED (their generic)
 - STAFF/MANAGER/SUPERVISOR/DIRECTOR → POs where status = CLOSED or DELIVERED
 
-- [ ] Add `GET /c/{slug}/archive` route in `routes/web.php`
-- [ ] Implement `archive()` method in `WorkerDashboardController`
-- [ ] Build `Archive.tsx` page (read-only cards, date filter, search by item/PO/client)
-- [ ] Add Archive nav link in Worker Dashboard header
-- [ ] Add Archive nav link in Owner Dashboard tabs
+- [x] Add `GET /c/{slug}/archive` route in `routes/web.php`
+- [x] Implement `archive()` method in `WorkerDashboardController`
+- [x] Build `Archive.tsx` page (read-only cards, date filter, search by item/PO/client)
+- [x] Add Archive nav link in Worker Dashboard header
+- [x] Add Archive nav link in Owner Dashboard tabs
 
 ---
 
@@ -378,20 +380,20 @@ Already spec'd in `NEXT_BUILD.md`. Backend routes + controller exist.
 
 **File**: `tests/Feature/CoreLogicTest.php`
 
-- [ ] Test: additive progress (CNC + Milling on same stage)
-- [ ] Test: QC generic gate (Surface Treatment → QC flow)
-- [ ] Test: delivery additive total
-- [ ] Test: PO → COMPLETED → DELIVERED → CLOSED lifecycle
-- [ ] Test: item.delivery_status transitions
-- [ ] Test: invoice PARTIAL state
-- [ ] Test: SURFACE role can update Surface Treatment stage
-- [ ] Test: ASSEMBLY role can update Assembly stage
-- [ ] Test: no auto-injection when item created
+- [x] Test: additive progress (CNC + Milling on same stage)
+- [x] Test: QC generic gate (Surface Treatment → QC flow)
+- [x] Test: delivery additive total
+- [x] Test: PO → COMPLETED → DELIVERED → CLOSED lifecycle
+- [x] Test: item.delivery_status transitions
+- [x] Test: invoice PARTIAL state
+- [x] Test: SURFACE role can update Surface Treatment stage
+- [x] Test: ASSEMBLY role can update Assembly stage
+- [x] Test: no auto-injection when item created
 
 ### 6.2 — Update AdminManagementTest.php
 
-- [ ] Test: new roles (ASSEMBLY, SURFACE, PPIC, MAINTENANCE) create correctly
-- [ ] Test: archive query returns correct items per role
+- [x] Test: new roles (ASSEMBLY, SURFACE, PPIC, MAINTENANCE) create correctly
+- [x] Test: archive query returns correct items per role
 
 ---
 

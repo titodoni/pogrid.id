@@ -372,30 +372,32 @@ input, select, textarea {
         padding: 8px 12px !important;
         font-size: 12px !important;
     }
+}
 
 .worker-item-card {
-        background-color: #18181b;
-        background-image: linear-gradient(135deg, #18181b 0%, #111114 100%);
-        border: 1px solid rgba(255, 255, 255, 0.06) !important;
-        border-radius: 14px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+    background-color: #18181b;
+    background-image: linear-gradient(135deg, #18181b 0%, #111114 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-    @media (hover: hover) {
-        .worker-item-card:hover {
-            border-color: rgba(99, 102, 241, 0.25) !important;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(99, 102, 241, 0.1) !important;
-            transform: translateY(-2px);
-        }
+@media (hover: hover) {
+    .worker-item-card:hover {
+        border-color: rgba(99, 102, 241, 0.25) !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(99, 102, 241, 0.1) !important;
+        transform: translateY(-2px);
     }
+}
 
-    .worker-item-card:active {
-        transform: scale(0.985);
-        border-color: rgba(99, 102, 241, 0.4) !important;
-    }
+.worker-item-card:active {
+    transform: scale(0.985);
+    border-color: rgba(99, 102, 241, 0.4) !important;
+}
 
+@media (max-width: 640px) {
     .dashboard-above-scroll {
         padding-bottom: 8px !important;
     }

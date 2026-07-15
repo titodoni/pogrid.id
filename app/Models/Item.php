@@ -28,6 +28,8 @@ class Item extends Model
         'payment_status',
         'purchasing_status',
         'drafter_status',
+        'delivery_status',
+        'invoiced_qty',
     ];
 
     protected $casts = [
@@ -35,6 +37,7 @@ class Item extends Model
         'progress_percent' => 'decimal:2',
         'purchasing_status' => 'string',
         'drafter_status' => 'string',
+        'invoiced_qty' => 'integer',
     ];
 
     protected $appends = ['delivered_qty'];

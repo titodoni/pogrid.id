@@ -296,6 +296,7 @@ const translations = {
         tab_completed: "Done",
         tab_matrix: "Matrix",
         tab_team: "Team",
+        tab_archive: "Archive",
     },
     id: {
         owner_command_center: "Dasbor Utama",
@@ -385,6 +386,7 @@ const translations = {
         tab_completed: "Selesai",
         tab_matrix: "Kinerja",
         tab_team: "Tim",
+        tab_archive: "Arsip",
     }
 };
 
@@ -1723,6 +1725,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         </span>
                     </button>
                 )}
+                <a
+                    href={`/c/${tenant?.slug || ''}/archive`}
+                    className="tab"
+                    style={{ textDecoration: 'none' }}
+                >
+                    <span className="tab-label-full">{t.tab_archive}</span>
+                    <span className="tab-label-short">{t.tab_archive}</span>
+                </a>
             </div>
 
             {/* State Summary Bar — compact */}

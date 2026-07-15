@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { AlertTriangle, Settings } from '../../Components/Icons';
+import { formatDeadline } from '../../Utils/deadline';
+import { WarningPill } from '../../Components/WarningPill';
 
 interface Stage {
     id: number;
@@ -23,6 +25,9 @@ interface Item {
     drafter_status?: string | null;
     invoice_status?: string;
     payment_status?: string;
+    delivery_status?: string | null;
+    delivered_qty?: number;
+    invoiced_qty?: number;
     po?: {
         po_number: string;
         external_po_number?: string | null;
@@ -33,140 +38,7 @@ interface Item {
     item_progresses: Stage[];
 }
 
-const formatDeadline = (deadlineDateStr: string | undefined, lang: 'en' | 'id') => {
-    if (!deadlineDateStr) return '';
-    const deadline = new Date(deadlineDateStr);
-    const deadlineClean = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
-    const today = new Date();
-    const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    const diffTime = deadlineClean.getTime() - todayClean.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    const dateFormatted = deadlineClean.toLocaleDateString();
-
-    if (diffDays === 0) {
-        return lang === 'id' ? `${dateFormatted} (Hari Ini)` : `${dateFormatted} (Today)`;
-    } else if (diffDays > 0) {
-        if (diffDays === 7) return lang === 'id' ? `${dateFormatted} (1 minggu)` : `${dateFormatted} (1 week)`;
-        if (diffDays === 30) return lang === 'id' ? `${dateFormatted} (1 bulan)` : `${dateFormatted} (1 month)`;
-        return lang === 'id' ? `${dateFormatted} (${diffDays} hari)` : `${dateFormatted} (${diffDays} days)`;
-    } else {
-        return lang === 'id' ? `${dateFormatted} (terlambat ${Math.abs(diffDays)} hari)` : `${dateFormatted} (delayed ${Math.abs(diffDays)} days)`;
-    }
-};
-
-const renderWarningPill = (deadlineDateStr: string | undefined, reworkMessage: string | null | boolean, lang: 'en' | 'id') => {
-    if (!deadlineDateStr) return null;
-    
-    // Check Rework first (takes precedence or is a high priority status)
-    if (reworkMessage) {
-        const displayMsg = typeof reworkMessage === 'string'
-            ? reworkMessage
-            : (lang === 'id' ? 'Rework' : 'Rework');
-
-        return (
-            <span className="badge" style={{
-                backgroundColor: 'rgba(251, 146, 60, 0.12)', // Orange background
-                color: '#fb923c', // Orange text
-                border: '1px solid rgba(251, 146, 60, 0.2)',
-                fontSize: '10px',
-                padding: '1px 6px',
-                fontWeight: 700,
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px',
-                flexShrink: 0
-            }}>
-                <span style={{ width: '4px', height: '4px', backgroundColor: '#fb923c', borderRadius: '50%' }} />
-                {displayMsg}
-            </span>
-        );
-    }
-
-    const deadline = new Date(deadlineDateStr);
-    const deadlineClean = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
-    const today = new Date();
-    const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-    const diffTime = deadlineClean.getTime() - todayClean.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) {
-        // Red warning (delayed)
-        const days = Math.abs(diffDays);
-        const text = lang === 'id' 
-            ? `Terlambat ${days} hari` 
-            : `Delayed ${days} day${days > 1 ? 's' : ''}`;
-        return (
-            <span className="badge" style={{
-                backgroundColor: 'rgba(248, 113, 113, 0.12)', // Red background
-                color: '#f87171', // Red text
-                border: '1px solid rgba(248, 113, 113, 0.2)',
-                fontSize: '10px',
-                padding: '1px 6px',
-                fontWeight: 700,
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px',
-                flexShrink: 0
-            }}>
-                <span style={{ width: '4px', height: '4px', backgroundColor: '#f87171', borderRadius: '50%' }} />
-                {text}
-            </span>
-        );
-    } else if (diffDays <= 3) {
-        // Yellow warning (deadline close)
-        let text = '';
-        if (diffDays === 0) {
-            text = lang === 'id' ? 'Hari Ini' : 'Today';
-        } else {
-            text = lang === 'id' 
-                ? `${diffDays} hari lagi` 
-                : `${diffDays} more day${diffDays > 1 ? 's' : ''}`;
-        }
-        return (
-            <span className="badge" style={{
-                backgroundColor: 'rgba(251, 191, 36, 0.12)', // Yellow background
-                color: '#fbbf24', // Yellow text
-                border: '1px solid rgba(251, 191, 36, 0.2)',
-                fontSize: '10px',
-                padding: '1px 6px',
-                fontWeight: 700,
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px',
-                flexShrink: 0
-            }}>
-                <span style={{ width: '4px', height: '4px', backgroundColor: '#fbbf24', borderRadius: '50%' }} />
-                {text}
-            </span>
-        );
-    } else {
-        // Green warning (normal/on track)
-        return (
-            <span className="badge" style={{
-                backgroundColor: 'rgba(52, 211, 153, 0.12)', // Green background
-                color: '#34d399', // Green text
-                border: '1px solid rgba(52, 211, 153, 0.2)',
-                fontSize: '10px',
-                padding: '1px 6px',
-                fontWeight: 700,
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px',
-                flexShrink: 0
-            }}>
-                <span style={{ width: '4px', height: '4px', backgroundColor: '#34d399', borderRadius: '50%' }} />
-                {lang === 'id' ? 'Normal' : 'Normal'}
-            </span>
-        );
-    }
-};
 
 interface Props {
     items: Item[];
@@ -352,6 +224,7 @@ function ItemCard({
 }: ItemCardProps) {
     const t = translations[language];
     const [isHovered, setIsHovered] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const getAllStages = (item: Item): Stage[] => {
         const isVendor = item.item_progresses.some(s => s.stage_name === 'Vendor');
@@ -493,11 +366,21 @@ function ItemCard({
     const [kendalaType, setKendalaType] = useState('Machine Broken');
     const [kendalaNote, setKendalaNote] = useState('');
     const [rejectQty, setRejectQty] = useState('1');
-    const [manualQtyInput, setManualQtyInput] = useState<string>('');
+    const [localCompletedQty, setLocalCompletedQty] = useState<number>(activeStage ? activeStage.stage.completed_qty : 0);
+    const [localProgressPercent, setLocalProgressPercent] = useState<string>(activeStage ? activeStage.stage.progress_percent || '0' : '0');
+
+    useEffect(() => {
+        if (activeStage) {
+            setLocalCompletedQty(activeStage.stage.completed_qty);
+            setLocalProgressPercent(activeStage.stage.progress_percent || '0');
+        }
+    }, [activeStage]);
+
 
     // Finance form states
-    const [invoiceStatus, setInvoiceStatus] = useState<'UNINVOICED' | 'INVOICED'>(() => (item.invoice_status as any) || 'UNINVOICED');
-    const [paymentStatus, setPaymentStatus] = useState<'UNPAID' | 'PAID'>(() => (item.payment_status as any) || 'UNPAID');
+    const [invoiceStatus, setInvoiceStatus] = useState<'UNINVOICED' | 'PARTIAL' | 'INVOICED'>(() => (item.invoice_status as any) || 'UNINVOICED');
+    const [paymentStatus, setPaymentStatus] = useState<'UNPAID' | 'PARTIAL_PAID' | 'PAID'>(() => (item.payment_status as any) || 'UNPAID');
+    const [invoicedQty, setInvoicedQty] = useState<number>(() => item.invoiced_qty || 0);
 
     // Sync activeStage stage data when item updates from parent
     useEffect(() => {
@@ -535,11 +418,10 @@ function ItemCard({
     useEffect(() => {
         setInvoiceStatus((item.invoice_status as any) || 'UNINVOICED');
         setPaymentStatus((item.payment_status as any) || 'UNPAID');
-    }, [item.invoice_status, item.payment_status]);
+        setInvoicedQty(item.invoiced_qty || 0);
+    }, [item.invoice_status, item.payment_status, item.invoiced_qty]);
 
-    useEffect(() => {
-        setManualQtyInput('');
-    }, [activeStage]);
+
 
     const selectStage = (stage: Stage) => {
         if (isStageLocked(item, stage.stage_name, userRole)) return;
@@ -556,16 +438,21 @@ function ItemCard({
         if (stage.stage_name === 'Finance') {
             setInvoiceStatus((item.invoice_status as any) || 'UNINVOICED');
             setPaymentStatus((item.payment_status as any) || 'UNPAID');
+            setInvoicedQty(item.invoiced_qty || 0);
         }
     };
 
     const handleFinanceSubmit = () => {
+        if (loading) return;
         router.post(`/c/${slug}/items/${item.id}/finance`, {
             invoice_status: invoiceStatus,
             payment_status: paymentStatus,
+            invoiced_qty: invoicedQty,
         }, {
             preserveScroll: true,
             preserveState: true,
+            onStart: () => setLoading(true),
+            onFinish: () => setLoading(false),
             onSuccess: (page) => {
                 const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
                 if (updatedItem) {
@@ -586,57 +473,14 @@ function ItemCard({
         });
     };
 
-    const handleStep = (amount: number) => {
-        if (!activeStage) return;
-        const newQty = Math.max(0, Math.min(item.target_qty, activeStage.stage.completed_qty + amount));
-
-        router.post(`/c/${slug}/progress/${activeStage.stage.id}/update`, {
-            completed_qty: newQty
-        }, {
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: (page) => {
-                const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
-                if (updatedItem) {
-                    const updatedStage = updatedItem.item_progresses.find(s => s.id === activeStage.stage.id);
-                    if (updatedStage) {
-                        setActiveStage({ stage: updatedStage, item: updatedItem });
-                    }
-                }
-            }
-        });
-    };
-
-    const handleManualSubmit = () => {
-        if (!activeStage || manualQtyInput === '') return;
-        const qty = parseInt(manualQtyInput, 10);
-        if (isNaN(qty)) return;
-        const currentQty = activeStage.stage.completed_qty;
-        if (qty < currentQty) return;
-        const clampedQty = Math.min(item.target_qty, qty);
-
-        router.post(`/c/${slug}/progress/${activeStage.stage.id}/update`, {
-            completed_qty: clampedQty
-        }, {
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: (page) => {
-                const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
-                if (updatedItem) {
-                    const updatedStage = updatedItem.item_progresses.find(s => s.id === activeStage.stage.id);
-                    if (updatedStage) {
-                        setActiveStage({ stage: updatedStage, item: updatedItem });
-                    }
-                }
-            }
-        });
-    };
-
     const revertLastUpdate = () => {
-        if (!activeStage) return;
+        if (!activeStage || loading) return;
+        if (!confirm(language === 'id' ? 'Apakah Anda yakin ingin membatalkan progres terakhir?' : 'Are you sure you want to revert the last update?')) return;
         router.post(`/c/${slug}/progress/${activeStage.stage.id}/cancel-last-update`, {}, {
             preserveScroll: true,
             preserveState: true,
+            onStart: () => setLoading(true),
+            onFinish: () => setLoading(false),
             onSuccess: (page) => {
                 const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
                 if (updatedItem) {
@@ -649,13 +493,32 @@ function ItemCard({
         });
     };
 
-    const handlePercentSelect = (percent: number) => {
-        if (!activeStage) return;
-        router.post(`/c/${slug}/progress/${activeStage.stage.id}/update`, {
-            progress_percent: percent
-        }, {
+    const handleDoneSubmit = () => {
+        if (!activeStage || loading) return;
+
+        const initialQty = activeStage.stage.completed_qty;
+        const initialPercent = activeStage.stage.progress_percent || '0';
+
+        const isQtyChanged = item.target_qty > 1 && localCompletedQty !== initialQty;
+        const isPercentChanged = item.target_qty === 1 && localProgressPercent !== initialPercent;
+
+        if (!isQtyChanged && !isPercentChanged) {
+            setActiveStage(null);
+            setIsExpanded(false);
+            setShowKendala(false);
+            setShowQc(false);
+            return;
+        }
+
+        const payload = item.target_qty === 1
+            ? { progress_percent: parseFloat(localProgressPercent) }
+            : { completed_qty: localCompletedQty };
+
+        router.post(`/c/${slug}/progress/${activeStage.stage.id}/update`, payload, {
             preserveScroll: true,
             preserveState: true,
+            onStart: () => setLoading(true),
+            onFinish: () => setLoading(false),
             onSuccess: (page) => {
                 const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
                 if (updatedItem) {
@@ -664,19 +527,25 @@ function ItemCard({
                         setActiveStage({ stage: updatedStage, item: updatedItem });
                     }
                 }
+                setActiveStage(null);
+                setIsExpanded(false);
+                setShowKendala(false);
+                setShowQc(false);
             }
         });
     };
 
     const submitKendala = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!activeStage) return;
+        if (!activeStage || loading) return;
         router.post(`/c/${slug}/progress/${activeStage.stage.id}/kendala`, {
             kendala_type: kendalaType,
             note: kendalaNote,
         }, {
             preserveScroll: true,
             preserveState: true,
+            onStart: () => setLoading(true),
+            onFinish: () => setLoading(false),
             onSuccess: () => {
                 setShowKendala(false);
                 setKendalaNote('');
@@ -687,12 +556,14 @@ function ItemCard({
 
     const submitQcRework = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!activeStage) return;
+        if (!activeStage || loading) return;
         router.post(`/c/${slug}/progress/${activeStage.stage.id}/rework`, {
             reject_qty: parseInt(rejectQty, 10)
         }, {
             preserveScroll: true,
             preserveState: true,
+            onStart: () => setLoading(true),
+            onFinish: () => setLoading(false),
             onSuccess: () => {
                 setShowQc(false);
                 setActiveStage(null);
@@ -819,9 +690,9 @@ function ItemCard({
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px' }}>
                     {item.po?.is_urgent && (
                         <span style={{
-                            fontSize: '9px',
+                            fontSize: '11px',
                             fontWeight: 700,
-                            padding: '1px 5px',
+                            padding: '2px 6px',
                             borderRadius: '4px',
                             backgroundColor: 'rgba(248, 113, 113, 0.12)',
                             color: '#f87171',
@@ -832,9 +703,9 @@ function ItemCard({
                         </span>
                     )}
                     <span style={{
-                        fontSize: '9px',
+                        fontSize: '11px',
                         fontWeight: 700,
-                        padding: '1px 5px',
+                        padding: '2px 6px',
                         borderRadius: '4px',
                         backgroundColor: 'rgba(255,255,255,0.06)',
                         color: '#a1a1aa',
@@ -851,9 +722,9 @@ function ItemCard({
                         const label = isApproved ? 'Drafter: ✓' : `Drafter: ${language === 'id' ? 'Proses' : 'Processing'}`;
                         return (
                             <span style={{
-                                fontSize: '9px',
+                                fontSize: '11px',
                                 fontWeight: 700,
-                                padding: '1px 5px',
+                                padding: '2px 6px',
                                 borderRadius: '4px',
                                 backgroundColor: isApproved ? 'rgba(52, 211, 153, 0.12)' : 'rgba(139, 92, 246, 0.12)',
                                 color: isApproved ? '#34d399' : '#a78bfa',
@@ -870,9 +741,9 @@ function ItemCard({
                         const label = isReady ? 'Purchasing: ✓' : `Purchasing: ${language === 'id' ? 'Proses' : 'Processing'}`;
                         return (
                             <span style={{
-                                fontSize: '9px',
+                                fontSize: '11px',
                                 fontWeight: 700,
-                                padding: '1px 5px',
+                                padding: '2px 6px',
                                 borderRadius: '4px',
                                 backgroundColor: isReady ? 'rgba(52, 211, 153, 0.12)' : 'rgba(99, 102, 241, 0.12)',
                                 color: isReady ? '#34d399' : '#818cf8',
@@ -893,7 +764,7 @@ function ItemCard({
                                 reworkVal = 'Rework';
                             }
                         }
-                        return renderWarningPill(item.po?.global_deadline, reworkVal, language);
+                        return <WarningPill deadlineDateStr={item.po?.global_deadline} reworkMessage={reworkVal} lang={language} />;
                     })()}
                 </div>
             </div>
@@ -929,13 +800,14 @@ function ItemCard({
                                             <button
                                                 key={stage.id}
                                                 onClick={() => selectStage(stage)}
+                                                className="focus:outline-none focus:ring-1 focus:ring-indigo-500/50 hover:brightness-105 active:scale-95 transition-all duration-150"
                                                 style={{
-                                                    padding: '4px 10px',
-                                                    borderRadius: '6px',
+                                                    padding: '8px 12px',
+                                                    borderRadius: '8px',
                                                     border: isActive ? '1px solid ' + color : '1px solid rgba(255,255,255,0.08)',
                                                     backgroundColor: isActive ? color + '20' : 'transparent',
                                                     color: isActive ? color : '#a1a1aa',
-                                                    fontSize: '10px',
+                                                    fontSize: '12px',
                                                     fontWeight: 700,
                                                     cursor: isStageLocked(item, stage.stage_name, userRole) ? 'not-allowed' : 'pointer',
                                                     opacity: isStageLocked(item, stage.stage_name, userRole) ? 0.4 : 1,
@@ -987,15 +859,17 @@ function ItemCard({
                                                         <button
                                                             key={status}
                                                             onClick={() => {
-                                                                if (isActive) return;
+                                                                if (isActive || loading) return;
                                                                 router.post(`/c/${slug}/items/${item.id}/drafter-status`, {
                                                                     drafter_status: status,
                                                                 }, {
                                                                     preserveScroll: true,
                                                                     preserveState: true,
+                                                                    onStart: () => setLoading(true),
+                                                                    onFinish: () => setLoading(false),
                                                                 });
                                                             }}
-                                                            disabled={isDisabled}
+                                                            disabled={isDisabled || loading}
                                                             style={{
                                                                 flex: 1,
                                                                 padding: '12px 4px',
@@ -1049,15 +923,17 @@ function ItemCard({
                                                         <button
                                                             key={status}
                                                             onClick={() => {
-                                                                if (isActive) return;
+                                                                if (isActive || loading) return;
                                                                 router.post(`/c/${slug}/items/${item.id}/purchasing-status`, {
                                                                     purchasing_status: status,
                                                                 }, {
                                                                     preserveScroll: true,
                                                                     preserveState: true,
+                                                                    onStart: () => setLoading(true),
+                                                                    onFinish: () => setLoading(false),
                                                                 });
                                                             }}
-                                                            disabled={isDisabled}
+                                                            disabled={isDisabled || loading}
                                                             style={{
                                                                 flex: 1,
                                                                 padding: '12px 4px',
@@ -1087,6 +963,36 @@ function ItemCard({
 
                                     return (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {/* Delivery Status & Delivered Qty Display for Finance */}
+                                            <div style={{
+                                                padding: '12px',
+                                                backgroundColor: 'rgba(255,255,255,0.02)',
+                                                border: '1px solid rgba(255,255,255,0.06)',
+                                                borderRadius: '8px',
+                                                marginBottom: '8px',
+                                            }}>
+                                                <div style={{ fontSize: '11px', color: '#71717a', marginBottom: '2px' }}>
+                                                    {language === 'en' ? 'Item Delivery Status' : 'Status Pengiriman Barang'}
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                    <span style={{
+                                                        fontSize: '13px',
+                                                        fontWeight: 700,
+                                                        color: item.delivery_status === 'DELIVERED' ? '#34d399' :
+                                                            item.delivery_status === 'PARTIAL' ? '#fbbf24' : '#3b82f6'
+                                                    }}>
+                                                        {item.delivery_status === 'DELIVERED'
+                                                            ? (language === 'id' ? 'Terkirim' : 'Delivered')
+                                                            : item.delivery_status === 'PARTIAL'
+                                                            ? (language === 'id' ? 'Terkirim Sebagian' : 'Partially Delivered')
+                                                            : (language === 'id' ? 'Belum Dikirim' : 'Pending Delivery')}
+                                                    </span>
+                                                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#fafafa' }}>
+                                                        {item.delivered_qty ?? 0} / {item.target_qty} pcs
+                                                    </span>
+                                                </div>
+                                            </div>
+
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                 <span style={{
                                                     fontSize: '10px',
@@ -1112,150 +1018,148 @@ function ItemCard({
                                                 </span>
                                             </div>
 
-                                            {!isInvoiced ? (
-                                                <button
-                                                    onClick={() => {
-                                                        router.post(`/c/${slug}/items/${item.id}/finance`, {
-                                                            invoice_status: 'INVOICED',
-                                                            payment_status: 'UNPAID',
-                                                        }, {
-                                                            preserveScroll: true,
-                                                            preserveState: true,
-                                                            onSuccess: (page) => {
-                                                                const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
-                                                                if (updatedItem) {
-                                                                    setActiveStage({
-                                                                        stage: {
-                                                                            id: -updatedItem.id,
-                                                                            stage_name: 'Finance',
-                                                                            completed_qty: 0,
-                                                                            progress_percent: '0',
-                                                                            status: 'PENDING',
-                                                                        },
-                                                                        item: updatedItem,
-                                                                    });
-                                                                }
-                                                            }
-                                                        });
-                                                    }}
-                                                    style={{
-                                                        padding: '10px',
-                                                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                                                        color: '#fafafa',
-                                                        fontWeight: 700,
-                                                        border: 'none',
-                                                        borderRadius: '10px',
-                                                        fontSize: '12px',
-                                                        cursor: 'pointer',
-                                                        textAlign: 'center',
-                                                    }}
-                                                >
-                                                    {t.issue_invoice}
-                                                </button>
-                                            ) : isPaid ? (
-                                                <div style={{
-                                                    padding: '10px',
-                                                    backgroundColor: 'rgba(52, 211, 153, 0.12)',
-                                                    color: '#34d399',
-                                                    border: '1px solid rgba(52, 211, 153, 0.2)',
-                                                    borderRadius: '8px',
-                                                    fontSize: '12px',
-                                                    fontWeight: 700,
-                                                    textAlign: 'center',
-                                                }}>
-                                                    ✓ {t.finance_completed}
+                                            {/* Status selectors and qty input */}
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', marginTop: '12px' }}>
+                                                {/* Invoiced Status Selection */}
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a1a1aa', marginBottom: '6px', textTransform: 'uppercase' }}>
+                                                        {language === 'en' ? 'Invoice Status' : 'Status Invoice'}
+                                                    </label>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                                                        {(['UNINVOICED', 'PARTIAL', 'INVOICED'] as const).map(status => {
+                                                            const isSel = invoiceStatus === status;
+                                                            return (
+                                                                <button
+                                                                    key={status}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setInvoiceStatus(status);
+                                                                        if (status === 'INVOICED') setInvoicedQty(item.delivered_qty ?? 0);
+                                                                        if (status === 'UNINVOICED') setInvoicedQty(0);
+                                                                    }}
+                                                                    className="focus:outline-none transition-all duration-150"
+                                                                    style={{
+                                                                        padding: '10px 8px',
+                                                                        fontSize: '12px',
+                                                                        fontWeight: 700,
+                                                                        borderRadius: '8px',
+                                                                        border: '1px solid ' + (isSel ? '#6366f1' : 'rgba(255, 255, 255, 0.08)'),
+                                                                        backgroundColor: isSel ? 'rgba(99, 102, 241, 0.15)' : '#09090b',
+                                                                        color: isSel ? '#818cf8' : '#a1a1aa',
+                                                                        cursor: 'pointer',
+                                                                    }}
+                                                                >
+                                                                    {status === 'PARTIAL' ? (language === 'en' ? 'PARTIAL' : 'SEBAGIAN') : status}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
                                                 </div>
-                                            ) : (
+
+                                                {/* Invoiced Qty (Shown when PARTIAL) */}
+                                                {invoiceStatus === 'PARTIAL' && (
+                                                    <div style={{ animation: 'fadeIn 0.2s ease-in-out' }}>
+                                                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a1a1aa', marginBottom: '6px', textTransform: 'uppercase' }}>
+                                                            {language === 'en' ? 'Invoiced Quantity' : 'Jumlah Diinvoice'}
+                                                        </label>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                max={item.delivered_qty ?? 0}
+                                                                value={invoicedQty}
+                                                                onChange={e => {
+                                                                    const val = Math.min(item.delivered_qty ?? 0, Math.max(0, parseInt(e.target.value) || 0));
+                                                                    setInvoicedQty(val);
+                                                                }}
+                                                                style={{
+                                                                    flex: 1,
+                                                                    padding: '10px 12px',
+                                                                    fontSize: '14px',
+                                                                    backgroundColor: '#09090b',
+                                                                    border: '1px solid rgba(255,255,255,0.08)',
+                                                                    borderRadius: '8px',
+                                                                    color: '#fff',
+                                                                    outline: 'none',
+                                                                }}
+                                                            />
+                                                            <span style={{ fontSize: '13px', color: '#71717a' }}>
+                                                                / {item.delivered_qty ?? 0}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Payment Status Selection */}
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a1a1aa', marginBottom: '6px', textTransform: 'uppercase' }}>
+                                                        {language === 'en' ? 'Payment Status' : 'Status Pembayaran'}
+                                                    </label>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                                                        {(['UNPAID', 'PARTIAL_PAID', 'PAID'] as const).map(status => {
+                                                            const isSel = paymentStatus === status;
+                                                            return (
+                                                                <button
+                                                                    key={status}
+                                                                    type="button"
+                                                                    onClick={() => setPaymentStatus(status)}
+                                                                    className="focus:outline-none transition-all duration-150"
+                                                                    style={{
+                                                                        padding: '10px 8px',
+                                                                        fontSize: '12px',
+                                                                        fontWeight: 700,
+                                                                        borderRadius: '8px',
+                                                                        border: '1px solid ' + (isSel ? '#10b981' : 'rgba(255, 255, 255, 0.08)'),
+                                                                        backgroundColor: isSel ? 'rgba(16, 185, 129, 0.15)' : '#09090b',
+                                                                        color: isSel ? '#34d399' : '#a1a1aa',
+                                                                        cursor: 'pointer',
+                                                                    }}
+                                                                >
+                                                                    {status === 'PARTIAL_PAID' ? (language === 'en' ? 'PARTIAL' : 'SEBAGIAN') : status}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+
+                                                {/* Submit Button */}
                                                 <button
-                                                    onClick={() => {
-                                                        router.post(`/c/${slug}/items/${item.id}/finance`, {
-                                                            invoice_status: 'INVOICED',
-                                                            payment_status: 'PAID',
-                                                        }, {
-                                                            preserveScroll: true,
-                                                            preserveState: true,
-                                                            onSuccess: (page) => {
-                                                                const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
-                                                                if (updatedItem) {
-                                                                    setActiveStage({
-                                                                        stage: {
-                                                                            id: -updatedItem.id,
-                                                                            stage_name: 'Finance',
-                                                                            completed_qty: 0,
-                                                                            progress_percent: '100',
-                                                                            status: 'COMPLETED',
-                                                                        },
-                                                                        item: updatedItem,
-                                                                    });
-                                                                }
-                                                            }
-                                                        });
-                                                    }}
+                                                    type="button"
+                                                    disabled={loading}
+                                                    onClick={handleFinanceSubmit}
+                                                    className="focus:outline-none focus:ring-2 focus:ring-emerald-500/50 hover:brightness-105 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none transition-all duration-200"
                                                     style={{
-                                                        padding: '10px',
-                                                        backgroundColor: '#34d399',
+                                                        width: '100%',
+                                                        padding: '14px',
+                                                        backgroundColor: '#10b981',
                                                         color: '#fff',
                                                         fontWeight: 700,
                                                         border: 'none',
                                                         borderRadius: '10px',
-                                                        fontSize: '12px',
+                                                        fontSize: '14px',
                                                         cursor: 'pointer',
                                                         textAlign: 'center',
+                                                        marginTop: '8px',
                                                     }}
                                                 >
-                                                    {t.record_payment}
+                                                    {language === 'en' ? 'Save Status' : 'Simpan Status'}
                                                 </button>
-                                            )}
-
-                                            {(isInvoiced || isPaid) && (
-                                                <button
-                                                    onClick={() => {
-                                                        const newInvoice = isInvoiced && !isPaid ? 'UNINVOICED' : 'UNINVOICED';
-                                                        const newPayment = isPaid ? 'UNPAID' : 'UNPAID';
-                                                        router.post(`/c/${slug}/items/${item.id}/finance`, {
-                                                            invoice_status: newInvoice,
-                                                            payment_status: newPayment,
-                                                        }, {
-                                                            preserveScroll: true,
-                                                            preserveState: true,
-                                                            onSuccess: (page) => {
-                                                                const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
-                                                                if (updatedItem) {
-                                                                    setActiveStage({
-                                                                        stage: {
-                                                                            id: -updatedItem.id,
-                                                                            stage_name: 'Finance',
-                                                                            completed_qty: 0,
-                                                                            progress_percent: '0',
-                                                                            status: 'PENDING',
-                                                                        },
-                                                                        item: updatedItem,
-                                                                    });
-                                                                }
-                                                            }
-                                                        });
-                                                    }}
-                                                    style={{
-                                                        padding: '6px',
-                                                        backgroundColor: 'transparent',
-                                                        color: '#71717a',
-                                                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                                                        borderRadius: '8px',
-                                                        fontSize: '10px',
-                                                        fontWeight: 600,
-                                                        cursor: 'pointer',
-                                                        textAlign: 'center',
-                                                    }}
-                                                >
-                                                    {t.revoke}
-                                                </button>
-                                            )}
+                                            </div>
                                         </div>
                                     );
                                 }
 
                                 const stageNameLower = activeStage.stage.stage_name.toLowerCase();
                                 const isQcStage = stageNameLower === 'qc';
+
+                                // Determine the maximum allowed quantity for this stage
+                                let maxQty = item.target_qty;
+                                if (stageNameLower === 'delivery' || stageNameLower === 'pengiriman') {
+                                    const qcStage = item.item_progresses.find(s => s.stage_name.toLowerCase() === 'qc');
+                                    if (qcStage) {
+                                        maxQty = qcStage.completed_qty;
+                                    }
+                                }
 
                                 return (
                                     <>
@@ -1277,69 +1181,58 @@ function ItemCard({
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '2px' }}>
                                                         <span style={{ fontSize: '24px', fontWeight: 800, color: '#fafafa', lineHeight: '1' }}>
-                                                            {activeStage.stage.completed_qty}
+                                                            {localCompletedQty}
                                                         </span>
                                                         <span style={{ fontSize: '12px', color: '#71717a' }}>
-                                                            / {item.target_qty}
+                                                            / {maxQty}
                                                         </span>
                                                     </div>
                                                 </div>
                                                 
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleStep(-1)}
+                                                    <select
+                                                        value={localCompletedQty}
+                                                        disabled={loading || activeStage.stage.completed_qty >= maxQty}
+                                                        onChange={(e) => setLocalCompletedQty(parseInt(e.target.value, 10))}
+                                                        className="focus:outline-none focus:ring-2 focus:ring-indigo-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 appearance-none text-center"
                                                         style={{
-                                                            width: '44px',
-                                                            height: '44px',
-                                                            borderRadius: '12px',
-                                                            border: '1px solid rgba(248, 113, 113, 0.2)',
-                                                            backgroundColor: 'rgba(248, 113, 113, 0.08)',
-                                                            color: '#f87171',
-                                                            fontSize: '20px',
-                                                            fontWeight: 700,
-                                                            cursor: 'pointer',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                        }}
-                                                        title="Decrease"
-                                                    >
-                                                        −
-                                                    </button>
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        max={item.target_qty}
-                                                        value={manualQtyInput}
-                                                        onChange={(e) => setManualQtyInput(e.target.value)}
-                                                        onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
-                                                        placeholder={`Set`}
-                                                        style={{
-                                                            width: '56px',
-                                                            height: '44px',
-                                                            borderRadius: '12px',
+                                                            width: '70px',
+                                                            height: '56px',
+                                                            borderRadius: '14px',
                                                             border: '1px solid rgba(255,255,255,0.08)',
                                                             backgroundColor: '#0a0a0c',
                                                             color: '#fafafa',
-                                                            fontSize: '14px',
+                                                            fontSize: '16px',
                                                             fontWeight: 700,
-                                                            textAlign: 'center',
                                                             outline: 'none',
                                                             boxSizing: 'border-box',
+                                                            cursor: 'pointer',
+                                                            textAlignLast: 'center',
+                                                            padding: '0 8px',
                                                         }}
-                                                    />
+                                                    >
+                                                        {Array.from(
+                                                            { length: maxQty - activeStage.stage.completed_qty + 1 },
+                                                            (_, i) => activeStage.stage.completed_qty + i
+                                                        ).map((val) => (
+                                                            <option key={val} value={val} style={{ backgroundColor: '#0a0a0c', color: '#fafafa' }}>
+                                                                {val}
+                                                            </option>
+                                                        ))}
+                                                    </select>
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleStep(1)}
+                                                        onClick={() => setLocalCompletedQty(prev => Math.min(maxQty, prev + 1))}
+                                                        disabled={loading || localCompletedQty >= maxQty || activeStage.stage.completed_qty >= maxQty}
+                                                        className="focus:outline-none focus:ring-2 focus:ring-emerald-500/50 hover:brightness-105 active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none transition-all duration-150"
                                                         style={{
-                                                            width: '44px',
-                                                            height: '44px',
-                                                            borderRadius: '12px',
+                                                            width: '56px',
+                                                            height: '56px',
+                                                            borderRadius: '14px',
                                                             border: 'none',
                                                             backgroundColor: '#34d399',
                                                             color: '#18181b',
-                                                            fontSize: '20px',
+                                                            fontSize: '24px',
                                                             fontWeight: 700,
                                                             cursor: 'pointer',
                                                             display: 'flex',
@@ -1363,19 +1256,23 @@ function ItemCard({
                                                 marginBottom: '8px',
                                             }}>
                                                 <button
+                                                    disabled={loading}
                                                     onClick={() => {
-                                                        if (!activeStage) return;
+                                                        if (!activeStage || loading) return;
                                                         router.post(`/c/${slug}/progress/${activeStage.stage.id}/rework`, {
                                                             reject_qty: 1
                                                         }, {
                                                             preserveScroll: true,
                                                             preserveState: true,
+                                                            onStart: () => setLoading(true),
+                                                            onFinish: () => setLoading(false),
                                                             onSuccess: () => {
                                                                 setShowQc(false);
                                                                 setActiveStage(null);
                                                             }
                                                         });
                                                     }}
+                                                    className="focus:outline-none focus:ring-2 focus:ring-red-500/50 hover:brightness-105 active:scale-[0.98] disabled:opacity-50 transition-all duration-150"
                                                     style={{
                                                         padding: '16px 8px',
                                                         borderRadius: '8px',
@@ -1390,16 +1287,24 @@ function ItemCard({
                                                     NG
                                                 </button>
                                                 <button
-                                                    onClick={() => handlePercentSelect(100)}
+                                                    disabled={loading || activeStage.stage.completed_qty >= item.target_qty}
+                                                    onClick={() => {
+                                                        if (!loading) {
+                                                            setLocalProgressPercent('100');
+                                                            setLocalCompletedQty(1);
+                                                        }
+                                                    }}
+                                                    className="focus:outline-none focus:ring-2 focus:ring-emerald-500/50 hover:brightness-105 active:scale-[0.98] disabled:opacity-50 transition-all duration-150"
                                                     style={{
                                                         padding: '16px 8px',
                                                         borderRadius: '8px',
-                                                        border: 'none',
-                                                        backgroundColor: '#34d399',
+                                                        border: localProgressPercent === '100' ? '2px solid #ffffff' : 'none',
+                                                        backgroundColor: localProgressPercent === '100' ? '#10b981' : '#34d399',
                                                         color: '#ffffff',
                                                         fontSize: '14px',
                                                         fontWeight: 800,
-                                                        cursor: 'pointer',
+                                                        cursor: (loading || activeStage.stage.completed_qty >= item.target_qty) ? 'not-allowed' : 'pointer',
+                                                        boxShadow: localProgressPercent === '100' ? '0 0 12px rgba(16, 185, 129, 0.5)' : 'none',
                                                     }}
                                                 >
                                                     OK
@@ -1415,15 +1320,22 @@ function ItemCard({
                                                 marginBottom: '8px',
                                             }}>
                                                 {[0, 25, 50, 75, 100].map((pct) => {
-                                                    const currentPct = parseFloat(activeStage.stage.progress_percent);
-                                                    const isDisabled = pct < currentPct;
+                                                    const currentPct = parseFloat(localProgressPercent || '0');
+                                                    const savedPct = parseFloat(activeStage.stage.progress_percent || '0');
+                                                    const isDisabled = pct < savedPct;
                                                     return (
                                                         <button
                                                             key={pct}
-                                                            onClick={() => !isDisabled && handlePercentSelect(pct)}
-                                                            disabled={isDisabled}
+                                                            onClick={() => {
+                                                                if (!isDisabled && !loading) {
+                                                                    setLocalProgressPercent(pct.toString());
+                                                                    setLocalCompletedQty(pct === 100 ? 1 : 0);
+                                                                }
+                                                            }}
+                                                            disabled={isDisabled || loading}
+                                                            className="focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:brightness-110 active:scale-[0.95] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
                                                             style={{
-                                                                padding: '10px 4px',
+                                                                padding: '14px 4px',
                                                                 borderRadius: '6px',
                                                                 border: 'none',
                                                                 backgroundColor: currentPct === pct
@@ -1431,8 +1343,7 @@ function ItemCard({
                                                                 color: '#fff',
                                                                 fontSize: '12px',
                                                                 fontWeight: 700,
-                                                                cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                                                opacity: isDisabled ? 0.3 : 1,
+                                                                cursor: (isDisabled || loading) ? 'not-allowed' : 'pointer',
                                                             }}
                                                         >
                                                             {pct}%
@@ -1447,15 +1358,17 @@ function ItemCard({
                                           (activeStage.stage.previous_progress_percent !== null && activeStage.stage.previous_progress_percent !== undefined)) && (
                                             <div style={{ marginBottom: '8px' }}>
                                                 <button
+                                                    disabled={loading}
                                                     onClick={revertLastUpdate}
+                                                    className="focus:outline-none focus:ring-1 focus:ring-red-500/50 hover:bg-red-500/20 active:scale-[0.98] disabled:opacity-50 transition-all duration-150"
                                                     style={{
                                                         width: '100%',
-                                                        padding: '8px 12px',
+                                                        padding: '12px 16px',
                                                         backgroundColor: 'rgba(248, 113, 113, 0.12)',
                                                         color: '#f87171',
                                                         border: '1px solid rgba(248, 113, 113, 0.2)',
                                                         borderRadius: '8px',
-                                                        fontSize: '11px',
+                                                        fontSize: '12px',
                                                         fontWeight: 700,
                                                         cursor: 'pointer',
                                                         textAlign: 'center',
@@ -1467,15 +1380,17 @@ function ItemCard({
                                         )}
                                         <div style={{ display: 'flex', gap: '6px' }}>
                                             <button
-                                                onClick={() => setShowKendala(prev => !prev)}
+                                                disabled={loading}
+                                                onClick={() => !loading && setShowKendala(prev => !prev)}
+                                                className="focus:outline-none focus:ring-1 focus:ring-red-500/50 active:scale-[0.98] disabled:opacity-50 transition-all duration-150"
                                                 style={{
                                                     flex: 1,
-                                                    padding: '8px',
+                                                    padding: '12px 10px',
                                                     backgroundColor: showKendala ? 'rgba(248, 113, 113, 0.22)' : 'rgba(248, 113, 113, 0.1)',
                                                     color: '#f87171',
                                                     border: '1px solid rgba(248, 113, 113, 0.2)',
                                                     borderRadius: '8px',
-                                                    fontSize: '11px',
+                                                    fontSize: '12px',
                                                     fontWeight: 700,
                                                     cursor: 'pointer',
                                                     display: 'flex',
@@ -1484,19 +1399,21 @@ function ItemCard({
                                                     gap: '4px',
                                                 }}
                                             >
-                                                <AlertTriangle size={12} /> {t.report_failure}
+                                                <AlertTriangle size={14} /> {t.report_failure}
                                             </button>
                                             {(!isQcStage || item.target_qty > 1) && (
                                                 <button
-                                                    onClick={() => setShowQc(prev => !prev)}
+                                                    disabled={loading}
+                                                    onClick={() => !loading && setShowQc(prev => !prev)}
+                                                    className="focus:outline-none focus:ring-1 focus:ring-amber-500/50 active:scale-[0.98] disabled:opacity-50 transition-all duration-150"
                                                     style={{
                                                         flex: 1,
-                                                        padding: '8px',
+                                                        padding: '12px 10px',
                                                         backgroundColor: showQc ? 'rgba(251, 191, 36, 0.22)' : 'rgba(251, 191, 36, 0.1)',
                                                         color: '#fbbf24',
                                                         border: '1px solid rgba(251, 191, 36, 0.2)',
                                                         borderRadius: '8px',
-                                                        fontSize: '11px',
+                                                        fontSize: '12px',
                                                         fontWeight: 700,
                                                         cursor: 'pointer',
                                                         display: 'flex',
@@ -1570,12 +1487,15 @@ function ItemCard({
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowKendala(false)}
+                                                        disabled={loading}
+                                                        className="focus:outline-none focus:ring-1 focus:ring-white/25 hover:bg-white/5 active:scale-95 disabled:opacity-50 transition-all duration-150"
                                                         style={{
-                                                            padding: '6px 12px',
+                                                            padding: '10px 16px',
                                                             backgroundColor: 'transparent',
                                                             color: '#a1a1aa',
-                                                            border: 'none',
-                                                            fontSize: '11px',
+                                                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                                                            borderRadius: '8px',
+                                                            fontSize: '12px',
                                                             cursor: 'pointer',
                                                         }}
                                                     >
@@ -1583,14 +1503,16 @@ function ItemCard({
                                                     </button>
                                                     <button
                                                         type="submit"
+                                                        disabled={loading}
+                                                        className="focus:outline-none focus:ring-2 focus:ring-red-500/50 hover:brightness-105 active:scale-95 disabled:opacity-50 transition-all duration-150"
                                                         style={{
-                                                            padding: '6px 14px',
+                                                            padding: '10px 18px',
                                                             backgroundColor: '#f87171',
                                                             color: '#fff',
                                                             borderRadius: '8px',
                                                             border: 'none',
-                                                            fontWeight: 600,
-                                                            fontSize: '11px',
+                                                            fontWeight: 700,
+                                                            fontSize: '12px',
                                                             cursor: 'pointer',
                                                         }}
                                                     >
@@ -1614,15 +1536,17 @@ function ItemCard({
                                                     type="number"
                                                     min="1"
                                                     value={rejectQty}
+                                                    disabled={loading}
                                                     onChange={(e) => setRejectQty(e.target.value)}
+                                                    className="focus:outline-none focus:ring-2 focus:ring-amber-500/50 disabled:opacity-50 transition-all duration-150"
                                                     style={{
                                                         width: '100%',
-                                                        padding: '8px 10px',
+                                                        padding: '10px 12px',
                                                         backgroundColor: '#0a0a0c',
                                                         color: '#fafafa',
                                                         border: '1px solid rgba(255,255,255,0.08)',
                                                         borderRadius: '8px',
-                                                        fontSize: '12px',
+                                                        fontSize: '14px',
                                                         outline: 'none',
                                                         marginBottom: '8px',
                                                     }}
@@ -1631,12 +1555,15 @@ function ItemCard({
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowQc(false)}
+                                                        disabled={loading}
+                                                        className="focus:outline-none focus:ring-1 focus:ring-white/25 hover:bg-white/5 active:scale-95 disabled:opacity-50 transition-all duration-150"
                                                         style={{
-                                                            padding: '6px 12px',
+                                                            padding: '10px 16px',
                                                             backgroundColor: 'transparent',
                                                             color: '#a1a1aa',
-                                                            border: 'none',
-                                                            fontSize: '11px',
+                                                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                                                            borderRadius: '8px',
+                                                            fontSize: '12px',
                                                             cursor: 'pointer',
                                                         }}
                                                     >
@@ -1644,14 +1571,16 @@ function ItemCard({
                                                     </button>
                                                     <button
                                                         type="submit"
+                                                        disabled={loading}
+                                                        className="focus:outline-none focus:ring-2 focus:ring-amber-500/50 hover:brightness-105 active:scale-95 disabled:opacity-50 transition-all duration-150"
                                                         style={{
-                                                            padding: '6px 14px',
+                                                            padding: '10px 18px',
                                                             backgroundColor: '#fbbf24',
                                                             color: '#18181b',
                                                             borderRadius: '8px',
                                                             border: 'none',
                                                             fontWeight: 700,
-                                                            fontSize: '11px',
+                                                            fontSize: '12px',
                                                             cursor: 'pointer',
                                                         }}
                                                     >
@@ -1665,29 +1594,48 @@ function ItemCard({
                             })()}
 
                             {/* Done Button */}
-                            <button
-                                onClick={() => {
-                                    setActiveStage(null);
-                                    setIsExpanded(false);
-                                    setShowKendala(false);
-                                    setShowQc(false);
-                                }}
-                                style={{
-                                    marginTop: '12px',
-                                    width: '100%',
-                                    padding: '8px',
-                                    backgroundColor: 'rgba(52, 211, 153, 0.12)',
-                                    color: '#34d399',
-                                    border: '1px solid rgba(52, 211, 153, 0.2)',
-                                    borderRadius: '8px',
-                                    fontSize: '11px',
-                                    fontWeight: 700,
-                                    cursor: 'pointer',
-                                    textAlign: 'center',
-                                }}
-                            >
-                                {language === 'en' ? 'Done' : 'Selesai'}
-                            </button>
+                            {(() => {
+                                const hasLocalChanges = (item.target_qty > 1 && localCompletedQty !== (activeStage?.stage.completed_qty ?? 0)) ||
+                                                        (item.target_qty === 1 && localProgressPercent !== (activeStage?.stage.progress_percent ?? '0'));
+
+                                const doneButtonText = hasLocalChanges
+                                    ? (language === 'en' ? 'Save & Close' : 'Simpan & Selesai')
+                                    : (language === 'en' ? 'Close' : 'Selesai');
+
+                                return (
+                                    <button
+                                        onClick={handleDoneSubmit}
+                                        disabled={loading}
+                                        className="focus:outline-none focus:ring-2 focus:ring-emerald-500/50 hover:brightness-105 active:scale-[0.98] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        style={{
+                                            marginTop: '12px',
+                                            width: '100%',
+                                            padding: '12px',
+                                            backgroundColor: hasLocalChanges ? '#10b981' : 'rgba(52, 211, 153, 0.12)',
+                                            color: hasLocalChanges ? '#ffffff' : '#34d399',
+                                            border: hasLocalChanges ? 'none' : '1px solid rgba(52, 211, 153, 0.2)',
+                                            borderRadius: '8px',
+                                            fontSize: '12px',
+                                            fontWeight: 700,
+                                            cursor: loading ? 'not-allowed' : 'pointer',
+                                            textAlign: 'center',
+                                            boxShadow: hasLocalChanges ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px',
+                                        }}
+                                    >
+                                        {loading && (
+                                            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style={{ color: 'currentColor' }}>
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                        )}
+                                        {doneButtonText}
+                                    </button>
+                                );
+                            })()}
                         </div>
                     ) : (
                         // Fallback view when activeStage is null (locked stage or role mismatch)
@@ -1798,7 +1746,7 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
                         {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '4px' }}>
+                <div className="flex justify-between items-center gap-2 flex-wrap w-full md:w-auto mt-2 md:mt-0">
                     {/* Left: Language switcher */}
                     <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(255, 255, 255, 0.04)', padding: '2px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
                         <button
@@ -1856,6 +1804,35 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
                             <AlertTriangle size={18} />
                         </a>
 
+                        {/* Archive Button */}
+                        <a
+                            href={`/c/${slug}/archive`}
+                            style={{
+                                height: '38px',
+                                padding: '0 12px',
+                                backgroundColor: 'rgba(99, 102, 241, 0.12)',
+                                color: '#818cf8',
+                                border: '1px solid rgba(99, 102, 241, 0.2)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                textDecoration: 'none',
+                                gap: '4px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                            }}
+                            title={language === 'en' ? 'Archive' : 'Arsip'}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="21 8 21 21 3 21 3 8" />
+                                <rect x="1" y="3" width="22" height="5" />
+                                <line x1="10" y1="12" x2="14" y2="12" />
+                            </svg>
+                            {language === 'en' ? 'Archive' : 'Arsip'}
+                        </a>
+
                         {/* Profile Button */}
                         <a
                             href={`/c/${slug}/profile`}
@@ -1905,9 +1882,9 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
             <div className="dashboard-scroll" style={{
                 padding: '12px',
             }}>
-                {items.length === 0 ? (
+                    {items.length === 0 ? (
                     <p style={{ color: '#71717a', padding: '24px', textAlign: 'center', fontSize: '14px' }}>
-                        {userRole === 'QC' ? t.no_qc_items : userRole === 'DELIVERY' ? t.no_delivery_items : userRole === 'FINANCE' ? t.no_finance_items : t.no_active_items}
+                        {t.no_active_items}
                     </p>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

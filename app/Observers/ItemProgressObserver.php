@@ -69,8 +69,10 @@ class ItemProgressObserver
                     }
                 }
 
-                // Note: Delivery Order completes the PO completely, but we can set IN_PROGRESS if items start
-                if ($anyInProgress && $poStatus === 'PENDING') {
+                // When all items are COMPLETED, update PO to COMPLETED
+                if ($allCompleted && in_array($poStatus, ['PENDING', 'IN_PROGRESS'])) {
+                    $po->update(['status' => 'COMPLETED']);
+                } elseif ($anyInProgress && $poStatus === 'PENDING') {
                     $po->update(['status' => 'IN_PROGRESS']);
                 }
             }

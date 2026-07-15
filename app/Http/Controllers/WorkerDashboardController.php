@@ -21,6 +21,46 @@ use Inertia\Inertia;
 
 class WorkerDashboardController extends Controller
 {
+    private const STAGE_ROLE_MAP = [
+        'design' => ['DRAFTER'],
+        'gambar' => ['DRAFTER'],
+        'draft' => ['DRAFTER'],
+        'material' => ['PURCHASING'],
+        'bahan' => ['PURCHASING'],
+        'vendor' => ['PURCHASING'],
+        'purchasing' => ['PURCHASING'],
+        'machining' => ['MACHINING', 'CNC', 'PRODUCTION'],
+        'cnc' => ['MACHINING', 'CNC', 'PRODUCTION'],
+        'fabrication' => ['FABRICATION', 'PRODUCTION'],
+        'fabrikasi' => ['FABRICATION', 'PRODUCTION'],
+        'qc' => ['QC'],
+        'delivery' => ['DELIVERY'],
+        'pengiriman' => ['DELIVERY'],
+        'assembly' => ['ASSEMBLY'],
+        'perakitan' => ['ASSEMBLY'],
+        'rakit' => ['ASSEMBLY'],
+        'fitting' => ['ASSEMBLY'],
+        'fitter' => ['ASSEMBLY'],
+        'erection' => ['ASSEMBLY'],
+        'surface' => ['SURFACE'],
+        'heat treatment' => ['SURFACE'],
+        'powder coating' => ['SURFACE'],
+        'painting' => ['SURFACE'],
+        'cat' => ['SURFACE'],
+        'galvanizing' => ['SURFACE'],
+        'galvanis' => ['SURFACE'],
+        'plating' => ['SURFACE'],
+        'anodizing' => ['SURFACE'],
+        'sandblasting' => ['SURFACE'],
+        'electroplating' => ['SURFACE'],
+        'finishing' => ['SURFACE'],
+        'coating' => ['SURFACE'],
+        'maintenance' => ['MAINTENANCE'],
+        'perawatan' => ['MAINTENANCE'],
+        'repair' => ['MAINTENANCE'],
+        'perbaikan' => ['MAINTENANCE'],
+    ];
+
     public function index(Request $request, $slug)
     {
         // 1. Resolve tenant context by slug
@@ -104,77 +144,13 @@ class WorkerDashboardController extends Controller
                     ->orWhere(function ($sub) {
                         $sub->where('status', 'COMPLETED')
                             ->where(function ($subFinance) {
-                                $subFinance->where('invoice_status', 'UNINVOICED')
-                                    ->orWhere('payment_status', 'UNPAID');
+                                $subFinance->where('invoice_status', '!=', 'INVOICED')
+                                    ->orWhere('payment_status', '!=', 'PAID');
                             });
                     });
             });
         } else {
             $query->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED']);
-
-            // Filter items by matching stage for floor roles
-            if ($roleName === 'DRAFTER') {
-                $query->whereHas('itemProgresses', function ($q) {
-                    $q->where(fn($sub) => $sub->where('stage_name', 'like', '%Design%')
-                        ->orWhere('stage_name', 'like', '%DESIGN%')
-                        ->orWhere('stage_name', 'like', '%Gambar%')
-                        ->orWhere('stage_name', 'like', '%gambar%')
-                        ->orWhere('stage_name', 'like', '%Draft%')
-                        ->orWhere('stage_name', 'like', '%draft%')
-                    );
-                });
-            } elseif ($roleName === 'PURCHASING') {
-                $query->whereHas('itemProgresses', function ($q) {
-                    $q->where(fn($sub) => $sub->where('stage_name', 'like', '%Material%')
-                        ->orWhere('stage_name', 'like', '%Bahan%')
-                        ->orWhere('stage_name', 'like', '%Vendor%')
-                        ->orWhere('stage_name', 'like', '%Purchasing%')
-                        ->orWhere('stage_name', 'like', '%material%')
-                        ->orWhere('stage_name', 'like', '%bahan%')
-                        ->orWhere('stage_name', 'like', '%vendor%')
-                        ->orWhere('stage_name', 'like', '%purchasing%')
-                    );
-                });
-            } elseif ($roleName === 'MACHINING' || $roleName === 'CNC') {
-                $query->whereHas('itemProgresses', function ($q) {
-                    $q->where(fn($sub) => $sub->where('stage_name', 'like', '%Machining%')
-                        ->orWhere('stage_name', 'like', '%CNC%')
-                        ->orWhere('stage_name', 'like', '%machining%')
-                        ->orWhere('stage_name', 'like', '%cnc%')
-                    );
-                });
-            } elseif ($roleName === 'FABRICATION') {
-                $query->whereHas('itemProgresses', function ($q) {
-                    $q->where(fn($sub) => $sub->where('stage_name', 'like', '%Fabrication%')
-                        ->orWhere('stage_name', 'like', '%Fabrikasi%')
-                        ->orWhere('stage_name', 'like', '%fabrication%')
-                        ->orWhere('stage_name', 'like', '%fabrikasi%')
-                    );
-                });
-            } elseif ($roleName === 'PRODUCTION') {
-                $query->whereHas('itemProgresses', function ($q) {
-                    $q->where(fn($sub) => $sub->where('stage_name', 'like', '%Machining%')
-                        ->orWhere('stage_name', 'like', '%CNC%')
-                        ->orWhere('stage_name', 'like', '%Fabrication%')
-                        ->orWhere('stage_name', 'like', '%Fabrikasi%')
-                        ->orWhere('stage_name', 'like', '%machining%')
-                        ->orWhere('stage_name', 'like', '%cnc%')
-                        ->orWhere('stage_name', 'like', '%fabrication%')
-                        ->orWhere('stage_name', 'like', '%fabrikasi%')
-                    );
-                });
-            } elseif ($roleName === 'QC') {
-                $query->whereHas('itemProgresses', function ($q) {
-                    $q->where('stage_name', 'QC');
-                });
-            } elseif ($roleName === 'DELIVERY') {
-                $query->whereHas('itemProgresses', function ($q) {
-                    $q->where('stage_name', 'Delivery')
-                        ->orWhere('stage_name', 'Pengiriman');
-                });
-            } else {
-                $query->whereRaw('1 = 0');
-            }
         }
 
         $items = $query->get();
@@ -182,6 +158,102 @@ class WorkerDashboardController extends Controller
         return Inertia::render('Worker/Dashboard', [
             'items' => $items,
             'auth_user' => $user,
+        ]);
+    }
+
+    public function archive(Request $request, $slug)
+    {
+        TenantManager::bypass();
+        $tenant = Tenant::where('slug', $slug)->first();
+        if (! $tenant) {
+            abort(404, 'Tenant not found.');
+        }
+        TenantManager::enableScope();
+        TenantManager::setTenantId($tenant->id);
+
+        if (! auth()->check()) {
+            return redirect()->route('worker.dashboard', ['slug' => $slug]);
+        }
+
+        $user = auth()->user()->load('roleRelation', 'postRelation');
+        if ($user->tenant_id !== $tenant->id) {
+            abort(403, 'Unauthorized tenant access.');
+        }
+
+        $roleName = strtoupper($user->role_name);
+
+        $query = Item::with([
+            'itemProgresses',
+            'po',
+            'alerts' => fn ($q) => $q->where('is_resolved', false),
+        ])->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty');
+
+        match ($roleName) {
+            'DRAFTER' => $query->whereHas('itemProgresses', fn ($q) => $q
+                ->where(fn ($sub) => $sub
+                    ->where('stage_name', 'like', '%Design%')
+                    ->orWhere('stage_name', 'like', '%Gambar%')
+                    ->orWhere('stage_name', 'like', '%Draft%')
+                )->where('status', 'COMPLETED')
+            ),
+            'PURCHASING' => $query->whereHas('itemProgresses', fn ($q) => $q
+                ->where(fn ($sub) => $sub
+                    ->where('stage_name', 'like', '%Material%')
+                    ->orWhere('stage_name', 'like', '%Bahan%')
+                    ->orWhere('stage_name', 'like', '%Vendor%')
+                    ->orWhere('stage_name', 'like', '%Purchasing%')
+                )->where('status', 'COMPLETED')
+            ),
+            'MACHINING', 'CNC' => $query->whereHas('itemProgresses', fn ($q) => $q
+                ->where(fn ($sub) => $sub
+                    ->where('stage_name', 'like', '%Machining%')
+                    ->orWhere('stage_name', 'like', '%CNC%')
+                )->where('status', 'COMPLETED')
+            ),
+            'FABRICATION' => $query->whereHas('itemProgresses', fn ($q) => $q
+                ->where(fn ($sub) => $sub
+                    ->where('stage_name', 'like', '%Fabrication%')
+                    ->orWhere('stage_name', 'like', '%Fabrikasi%')
+                )->where('status', 'COMPLETED')
+            ),
+            'ASSEMBLY' => $query->whereHas('itemProgresses', fn ($q) => $q
+                ->where(fn ($sub) => $sub
+                    ->where('stage_name', 'like', '%Assembly%')
+                    ->orWhere('stage_name', 'like', '%Perakitan%')
+                    ->orWhere('stage_name', 'like', '%Rakit%')
+                    ->orWhere('stage_name', 'like', '%Fitting%')
+                )->where('status', 'COMPLETED')
+            ),
+            'SURFACE' => $query->whereHas('itemProgresses', fn ($q) => $q
+                ->where(fn ($sub) => $sub
+                    ->where('stage_name', 'like', '%Surface%')
+                    ->orWhere('stage_name', 'like', '%Painting%')
+                    ->orWhere('stage_name', 'like', '%Coating%')
+                    ->orWhere('stage_name', 'like', '%Finishing%')
+                )->where('status', 'COMPLETED')
+            ),
+            'QC' => $query->whereHas('itemProgresses', fn ($q) => $q
+                ->where('stage_name', 'QC')->where('status', 'COMPLETED')
+            ),
+            'DELIVERY' => $query->where('delivery_status', 'DELIVERED'),
+            'FINANCE' => $query->where('payment_status', 'PAID'),
+            'PRODUCTION' => $query->whereHas('itemProgresses', fn ($q) => $q
+                ->where(fn ($sub) => $sub
+                    ->where('stage_name', 'like', '%Machining%')
+                    ->orWhere('stage_name', 'like', '%CNC%')
+                    ->orWhere('stage_name', 'like', '%Fabrication%')
+                    ->orWhere('stage_name', 'like', '%Fabrikasi%')
+                )->where('status', 'COMPLETED')
+            ),
+            default => $query->whereRaw('1 = 0'),
+        };
+
+        $items = $query->orderBy('updated_at', 'desc')->get();
+
+        return Inertia::render('Worker/Archive', [
+            'items' => $items,
+            'auth_user' => $user,
+            'tenant' => $tenant,
         ]);
     }
 
@@ -814,7 +886,7 @@ class WorkerDashboardController extends Controller
 
     private function buildClientHealth(Carbon $startDate, Carbon $endDate): array
     {
-        $allPos = Po::with(['items', 'deliveryOrders'])->get();
+        $allPos = Po::with(['items.doItems', 'deliveryOrders'])->get();
 
         $clients = [];
         foreach ($allPos as $po) {
@@ -928,20 +1000,36 @@ class WorkerDashboardController extends Controller
             // Sync item status attribute
             if (str_contains($stageLower, 'design') || str_contains($stageLower, 'gambar') || str_contains($stageLower, 'draft')) {
                 $item->update([
-                    'drafter_status' => $progressPercent >= 100.00 ? 'APPROVED' : ($progressPercent > 0 ? 'DRAWING' : null)
+                    'drafter_status' => $progressPercent >= 100.00 ? 'APPROVED' : ($progressPercent > 0 ? 'DRAWING' : null),
                 ]);
             } elseif (str_contains($stageLower, 'material') || str_contains($stageLower, 'bahan') || str_contains($stageLower, 'vendor') || str_contains($stageLower, 'purchasing')) {
                 $item->update([
-                    'purchasing_status' => $progressPercent >= 100.00 ? 'READY' : ($progressPercent >= 66.00 ? 'PROSES' : ($progressPercent >= 33.00 ? 'ORDER' : null))
+                    'purchasing_status' => $progressPercent >= 100.00 ? 'READY' : ($progressPercent >= 66.00 ? 'PROSES' : ($progressPercent >= 33.00 ? 'ORDER' : null)),
                 ]);
             }
         } else {
             if ($item->target_qty > 1) {
-                $completedQty = $request->input('completed_qty', 0);
-                // Cap completed quantity at target
-                $completedQty = min($item->target_qty, $completedQty);
+                $inputQty = (int) $request->input('completed_qty', 0);
+                $completedQty = $progress->completed_qty + $inputQty;
+
+                // Determine maximum allowed quantity for this stage
+                $maxAllowed = $item->target_qty;
+                if (str_contains($stageLower, 'delivery') || str_contains($stageLower, 'pengiriman')) {
+                    $qcProgress = ItemProgress::where('item_id', $item->id)
+                        ->where('stage_name', 'QC')
+                        ->first();
+                    if ($qcProgress) {
+                        $maxAllowed = $qcProgress->completed_qty;
+                    }
+                }
+
+                // Cap completed quantity
+                $completedQty = min($maxAllowed, $completedQty);
                 $progressPercent = ($completedQty / $item->target_qty) * 100;
                 $status = $completedQty >= $item->target_qty ? 'COMPLETED' : 'IN_PROGRESS';
+                if ($completedQty == 0) {
+                    $status = 'PENDING';
+                }
 
                 $progress->update([
                     'completed_qty' => $completedQty,
@@ -982,15 +1070,24 @@ class WorkerDashboardController extends Controller
                 'delivery_date' => now()->toDateString(),
             ]);
 
-            $deliveredQty = $item->target_qty > 1
-                ? $progress->completed_qty
+            $deliveredQtyUpdate = $item->target_qty > 1
+                ? (int) $request->input('completed_qty', 0)
                 : ($progress->progress_percent >= 100.00 ? 1 : 0);
+
+            $existing = DoItem::where('delivery_order_id', $deliveryOrder->id)
+                ->where('item_id', $item->id)->first();
+
+            if ($item->target_qty === 1 && $existing && $existing->delivered_qty >= 1) {
+                $deliveredQtyUpdate = 0;
+            }
+
+            $newTotal = min($item->target_qty, ($existing->delivered_qty ?? 0) + $deliveredQtyUpdate);
 
             DoItem::updateOrCreate([
                 'delivery_order_id' => $deliveryOrder->id,
                 'item_id' => $item->id,
             ], [
-                'delivered_qty' => $deliveredQty,
+                'delivered_qty' => $newTotal,
             ]);
         }
 
@@ -1011,7 +1108,7 @@ class WorkerDashboardController extends Controller
 
         $item = $progress->item;
         $status = 'IN_PROGRESS';
-        
+
         $stageLower = strtolower($progress->stage_name);
         $isCustomStage = str_contains($stageLower, 'design') || str_contains($stageLower, 'gambar') || str_contains($stageLower, 'draft') ||
                           str_contains($stageLower, 'material') || str_contains($stageLower, 'bahan') || str_contains($stageLower, 'vendor') || str_contains($stageLower, 'purchasing');
@@ -1053,14 +1150,14 @@ class WorkerDashboardController extends Controller
         // Revert drafter_status on item if it's Design stage
         if (str_contains($stageNameLower, 'design') || str_contains($stageNameLower, 'gambar') || str_contains($stageNameLower, 'draft')) {
             $item->update([
-                'drafter_status' => $prevPercent >= 100.00 ? 'APPROVED' : ($prevPercent > 0 ? 'DRAWING' : null)
+                'drafter_status' => $prevPercent >= 100.00 ? 'APPROVED' : ($prevPercent > 0 ? 'DRAWING' : null),
             ]);
         }
 
         // Revert purchasing_status on item if it's Material stage
         if (str_contains($stageNameLower, 'material') || str_contains($stageNameLower, 'bahan') || str_contains($stageNameLower, 'vendor') || str_contains($stageNameLower, 'purchasing')) {
             $item->update([
-                'purchasing_status' => $prevPercent >= 100.00 ? 'READY' : ($prevPercent >= 66.00 ? 'PROSES' : ($prevPercent >= 33.00 ? 'ORDER' : null))
+                'purchasing_status' => $prevPercent >= 100.00 ? 'READY' : ($prevPercent >= 66.00 ? 'PROSES' : ($prevPercent >= 33.00 ? 'ORDER' : null)),
             ]);
         }
 
@@ -1322,8 +1419,9 @@ class WorkerDashboardController extends Controller
     public function updateFinanceStatus(Request $request, $slug, $itemId)
     {
         $request->validate([
-            'invoice_status' => ['required', 'string'],
-            'payment_status' => ['required', 'string'],
+            'invoice_status' => ['required', 'string', 'in:UNINVOICED,PARTIAL,INVOICED'],
+            'payment_status' => ['required', 'string', 'in:UNPAID,PARTIAL_PAID,PAID'],
+            'invoiced_qty' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $user = auth()->user()->load('roleRelation');
@@ -1333,22 +1431,68 @@ class WorkerDashboardController extends Controller
 
         $item = Item::findOrFail($itemId);
 
-        // Ensure Delivery stage status is 'COMPLETED' first
-        $deliveryProgress = ItemProgress::where('item_id', $itemId)
-            ->where(function ($query) {
-                $query->where('stage_name', 'Delivery')
-                    ->orWhere('stage_name', 'Pengiriman');
-            })
-            ->first();
+        $tenant = Tenant::find(TenantManager::getTenantId());
+        $settings = $tenant->workflow_settings ?? [];
+        $workflowMode = $settings['workflow_mode'] ?? 'loose';
 
-        if (! $deliveryProgress || $deliveryProgress->completed_qty <= 0) {
-            abort(403, 'Stage locked: Finance status cannot be updated until at least one item has been delivered.');
+        if ($workflowMode === 'strict') {
+            $reqDeliveryForFinance = true;
+        } elseif ($workflowMode === 'loose') {
+            $reqDeliveryForFinance = true;
+        } else {
+            $reqDeliveryForFinance = (bool) ($settings['require_delivery_for_finance'] ?? true);
+        }
+
+        if ($reqDeliveryForFinance) {
+            if ($item->delivery_status === 'PENDING') {
+                abort(403, 'Stage locked: Finance status cannot be updated until at least one item has been delivered.');
+            }
+        }
+
+        $invoicedQty = (int) $request->input('invoiced_qty', 0);
+        $maxAllowed = $item->delivered_qty;
+
+        if ($request->invoice_status === 'INVOICED') {
+            $invoicedQty = $maxAllowed;
+        } elseif ($request->invoice_status === 'UNINVOICED') {
+            $invoicedQty = 0;
+        } else {
+            if ($invoicedQty > $maxAllowed) {
+                $invoicedQty = $maxAllowed;
+            }
+        }
+
+        // Auto-calc invoice_status from invoiced_qty vs delivered_qty
+        if ($maxAllowed > 0) {
+            $invoiceStatus = $invoicedQty >= $maxAllowed ? 'INVOICED' : ($invoicedQty > 0 ? 'PARTIAL' : 'UNINVOICED');
+        } else {
+            $invoiceStatus = 'UNINVOICED';
         }
 
         $item->update([
-            'invoice_status' => $request->invoice_status,
+            'invoice_status' => $invoiceStatus,
             'payment_status' => $request->payment_status,
+            'invoiced_qty' => $invoicedQty,
         ]);
+
+        // PO Closing cascade: if all items in PO are paid, PO = CLOSED
+        $po = $item->po;
+        if ($po) {
+            $allPaid = true;
+            foreach ($po->items()->get() as $poItem) {
+                if ($poItem->status === 'CANCELLED' || $poItem->status === 'TERMINATED') {
+                    continue;
+                }
+                if ($poItem->payment_status !== 'PAID') {
+                    $allPaid = false;
+                    break;
+                }
+            }
+
+            if ($allPaid && $po->status !== 'CLOSED') {
+                $po->update(['status' => 'CLOSED']);
+            }
+        }
 
         return back()->with('success', 'Finance status updated.');
     }
@@ -1359,36 +1503,16 @@ class WorkerDashboardController extends Controller
         $roleName = $user->role_name;
         $isOffice = $user->role_level === 'office';
 
-        // 1. Role validation check
+        // 1. Role validation check using STAGE_ROLE_MAP
         if (! $isOffice) {
             $stageLower = strtolower($progress->stage_name);
-            if (str_contains($stageLower, 'design') || str_contains($stageLower, 'gambar') || str_contains($stageLower, 'draft')) {
-                if ($roleName !== 'DRAFTER') {
-                    abort(403, 'Stage locked: Only Drafters can update this stage.');
-                }
-            } elseif (str_contains($stageLower, 'material') || str_contains($stageLower, 'bahan')) {
-                if ($roleName !== 'PURCHASING') {
-                    abort(403, 'Stage locked: Only Purchasing agents can update this stage.');
-                }
-            } elseif (str_contains($stageLower, 'machining') || str_contains($stageLower, 'cnc')) {
-                if ($roleName !== 'MACHINING' && $roleName !== 'CNC' && $roleName !== 'PRODUCTION') {
-                    abort(403, 'Stage locked: Only Machining/CNC operators can update this stage.');
-                }
-            } elseif (str_contains($stageLower, 'fabrication') || str_contains($stageLower, 'fabrikasi')) {
-                if ($roleName !== 'FABRICATION' && $roleName !== 'PRODUCTION') {
-                    abort(403, 'Stage locked: Only Fabrication operators can update this stage.');
-                }
-            } elseif (str_contains($stageLower, 'vendor') || str_contains($stageLower, 'purchasing')) {
-                if ($roleName !== 'PURCHASING') {
-                    abort(403, 'Stage locked: Only Purchasing agents can update this stage.');
-                }
-            } elseif (str_contains($stageLower, 'qc')) {
-                if ($roleName !== 'QC') {
-                    abort(403, 'Stage locked: Only QC inspectors can update this stage.');
-                }
-            } elseif (str_contains($stageLower, 'delivery') || str_contains($stageLower, 'pengiriman')) {
-                if ($roleName !== 'DELIVERY') {
-                    abort(403, 'Stage locked: Only Delivery couriers can update this stage.');
+            foreach (self::STAGE_ROLE_MAP as $keyword => $roles) {
+                if (str_contains($stageLower, $keyword)) {
+                    if (! in_array($roleName, $roles)) {
+                        $rolesStr = implode('/', $roles);
+                        abort(403, "Stage locked: Only {$rolesStr} operators can update this stage.");
+                    }
+                    break;
                 }
             }
         }
@@ -1427,31 +1551,84 @@ class WorkerDashboardController extends Controller
                 }
             }
 
+            // Resolve workflow locks via Tenant settings
+            $tenant = Tenant::find(TenantManager::getTenantId());
+            $settings = $tenant->workflow_settings ?? [];
+            $workflowMode = $settings['workflow_mode'] ?? 'loose';
 
+            if ($workflowMode === 'strict') {
+                $reqDesign = true;
+                $reqMaterial = true;
+                $reqProductionForQc = true;
+                $reqQcForDelivery = true;
+            } elseif ($workflowMode === 'loose') {
+                $reqDesign = false;
+                $reqMaterial = false;
+                $reqProductionForQc = true;
+                $reqQcForDelivery = true;
+            } else {
+                $reqDesign = (bool) ($settings['require_design_approved_for_production'] ?? false);
+                $reqMaterial = (bool) ($settings['require_material_ready_for_production'] ?? false);
+                $reqProductionForQc = (bool) ($settings['require_production_completed_for_qc'] ?? true);
+                $reqQcForDelivery = (bool) ($settings['require_qc_completed_for_delivery'] ?? true);
+            }
 
-            // QC requires Machining & Fabrication completed first
-            if (str_contains($stageNameLower, 'qc') && !str_contains($stageNameLower, 'rework')) {
-                $prodProgresses = ItemProgress::where('item_id', $item->id)
+            // Design blocks Production
+            if ($reqDesign && (str_contains($stageNameLower, 'machining') || str_contains($stageNameLower, 'cnc') || str_contains($stageNameLower, 'fabrication') || str_contains($stageNameLower, 'fabrikasi'))) {
+                $designProgress = ItemProgress::where('item_id', $item->id)
                     ->where(function ($q) {
-                        $q->where('stage_name', 'like', '%machining%')
-                            ->orWhere('stage_name', 'like', '%CNC%')
-                            ->orWhere('stage_name', 'like', '%cnc%')
-                            ->orWhere('stage_name', 'like', '%fabrication%')
-                            ->orWhere('stage_name', 'like', '%fabrikasi%');
+                        $q->where('stage_name', 'like', '%design%')
+                            ->orWhere('stage_name', 'like', '%gambar%')
+                            ->orWhere('stage_name', 'like', '%draft%');
                     })
-                    ->where('stage_name', 'not like', '%rework%')
-                    ->where('stage_name', 'not like', '%REWORK%')
-                    ->get();
+                    ->first();
+                if ($designProgress && $designProgress->status !== 'COMPLETED') {
+                    abort(403, 'Stage locked: Production requires Design/Drawing to be completed/approved.');
+                }
+            }
 
-                foreach ($prodProgresses as $prod) {
-                    if ($prod->status !== 'COMPLETED') {
-                        abort(403, 'Stage locked: QC requires Machining & Fabrication to be COMPLETED first.');
+            // Material blocks Production
+            if ($reqMaterial && (str_contains($stageNameLower, 'machining') || str_contains($stageNameLower, 'cnc') || str_contains($stageNameLower, 'fabrication') || str_contains($stageNameLower, 'fabrikasi'))) {
+                $materialProgress = ItemProgress::where('item_id', $item->id)
+                    ->where(function ($q) {
+                        $q->where('stage_name', 'like', '%material%')
+                            ->orWhere('stage_name', 'like', '%bahan%')
+                            ->orWhere('stage_name', 'like', '%vendor%')
+                            ->orWhere('stage_name', 'like', '%purchasing%');
+                    })
+                    ->first();
+                if ($materialProgress && $materialProgress->status !== 'COMPLETED') {
+                    abort(403, 'Stage locked: Production requires Material/Bahan to be ready/completed.');
+                }
+            }
+
+            // QC requires all preceding stages (by required_stages order) to be COMPLETED
+            if ($reqProductionForQc && str_contains($stageNameLower, 'qc') && ! str_contains($stageNameLower, 'rework')) {
+                $requiredStages = $item->required_stages ?? [];
+                $qcIndex = null;
+                foreach ($requiredStages as $i => $rs) {
+                    if (str_contains(strtolower($rs), 'qc') && ! str_contains(strtolower($rs), 'rework')) {
+                        $qcIndex = $i;
+                        break;
+                    }
+                }
+
+                if ($qcIndex !== null) {
+                    $precedingNames = array_slice($requiredStages, 0, $qcIndex);
+                    $precedingStages = ItemProgress::where('item_id', $item->id)
+                        ->whereIn('stage_name', $precedingNames)
+                        ->get();
+
+                    foreach ($precedingStages as $stage) {
+                        if ($stage->status !== 'COMPLETED') {
+                            abort(403, "Stage locked: QC requires all preceding stages to be COMPLETED first. ({$stage->stage_name} is not done yet)");
+                        }
                     }
                 }
             }
 
             // Delivery stage update lockout
-            if (str_contains($stageNameLower, 'delivery') || str_contains($stageNameLower, 'pengiriman')) {
+            if ($reqQcForDelivery && (str_contains($stageNameLower, 'delivery') || str_contains($stageNameLower, 'pengiriman'))) {
                 $qcProgress = ItemProgress::where('item_id', $item->id)
                     ->where('stage_name', 'QC')
                     ->first();

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useForm } from '@inertiajs/react';
+import { ModalShell } from '../../Components/Modal/ModalShell';
 
 interface Worker {
     id: number;
@@ -85,6 +86,35 @@ export default function WorkerLogin({ tenant, workers }: Props) {
     });
 
     const t = translations[language];
+
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (!selectedWorker) return;
+
+            // Ignore if active input is a select dropdown
+            const active = document.activeElement;
+            if (active && (active.tagName === 'INPUT' || active.tagName === 'SELECT' || active.tagName === 'TEXTAREA')) {
+                return;
+            }
+
+            if (e.key >= '0' && e.key <= '9') {
+                e.preventDefault();
+                handleNumberClick(e.key);
+            } else if (e.key === 'Backspace') {
+                e.preventDefault();
+                handleBackspace();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                handleClear();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSubmit(e as any);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedWorker, pin, processing]);
 
     const handleNumberClick = (num: string) => {
         if (!selectedWorker) return;
@@ -227,7 +257,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(3, 1fr)',
                     gap: '10px',
-                    maxWidth: '220px',
+                    maxWidth: '280px',
                     margin: '0 auto',
                 }}>
                     {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
@@ -236,9 +266,10 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             type="button"
                             onClick={() => handleNumberClick(num)}
                             disabled={!selectedWorker}
+                            className="focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:bg-white/10 active:scale-95 transition-all duration-150"
                             style={{
-                                height: '48px',
-                                fontSize: '18px',
+                                height: '60px',
+                                fontSize: '20px',
                                 fontWeight: 700,
                                 borderRadius: '10px',
                                 border: '1px solid rgba(255, 255, 255, 0.05)',
@@ -258,9 +289,10 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         type="button"
                         onClick={handleClear}
                         disabled={!selectedWorker || pin.length === 0}
+                        className="focus:outline-none focus:ring-2 focus:ring-red-500/50 hover:brightness-110 active:scale-95 transition-all duration-150"
                         style={{
-                            height: '48px',
-                            fontSize: '11px',
+                            height: '60px',
+                            fontSize: '12px',
                             fontWeight: 700,
                             borderRadius: '10px',
                             border: 'none',
@@ -278,9 +310,10 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         type="button"
                         onClick={() => handleNumberClick('0')}
                         disabled={!selectedWorker}
+                        className="focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:bg-white/10 active:scale-95 transition-all duration-150"
                         style={{
-                            height: '48px',
-                            fontSize: '18px',
+                            height: '60px',
+                            fontSize: '20px',
                             fontWeight: 700,
                             borderRadius: '10px',
                             border: '1px solid rgba(255, 255, 255, 0.05)',
@@ -290,6 +323,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            outline: 'none',
                         }}
                     >
                         0
@@ -298,9 +332,10 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         type="button"
                         onClick={handleBackspace}
                         disabled={!selectedWorker || pin.length === 0}
+                        className="focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:bg-white/15 active:scale-95 transition-all duration-150"
                         style={{
-                            height: '48px',
-                            fontSize: '14px',
+                            height: '60px',
+                            fontSize: '16px',
                             fontWeight: 700,
                             borderRadius: '10px',
                             border: 'none',
@@ -320,22 +355,33 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                     type="button"
                     onClick={handleSubmit}
                     disabled={processing || !selectedWorker || pin.length < 4}
+                    className="focus:outline-none focus:ring-2 focus:ring-emerald-500/50 hover:brightness-105 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none transition-all duration-200"
                     style={{
                         width: '100%',
-                        maxWidth: '220px',
+                        maxWidth: '280px',
                         display: 'block',
                         margin: '16px auto 0',
-                        padding: '12px',
+                        padding: '14px',
                         backgroundColor: (selectedWorker && pin.length >= 4) ? '#34d399' : '#27272a',
                         color: (selectedWorker && pin.length >= 4) ? '#ffffff' : '#71717a',
                         fontWeight: 700,
                         borderRadius: '10px',
                         border: 'none',
                         cursor: (selectedWorker && pin.length >= 4) ? 'pointer' : 'not-allowed',
-                        fontSize: '14px',
+                        fontSize: '15px',
                     }}
                 >
-                    {processing ? t.verifying : t.verify_btn}
+                    {processing ? (
+                        <div className="flex items-center justify-center gap-2">
+                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>{t.verifying}</span>
+                        </div>
+                    ) : (
+                        t.verify_btn
+                    )}
                 </button>
 
                 {/* Forgot PIN */}
@@ -343,12 +389,13 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                     <button
                         type="button"
                         onClick={() => setShowPinResetModal(true)}
+                        className="focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:bg-white/5 active:scale-95 transition-all duration-150"
                         style={{
                             width: '100%',
-                            maxWidth: '220px',
+                            maxWidth: '280px',
                             display: 'block',
                             margin: '8px auto 0',
-                            padding: '10px',
+                            padding: '12px',
                             backgroundColor: 'transparent',
                             color: '#71717a',
                             border: '1px solid rgba(255,255,255,0.08)',
@@ -364,72 +411,59 @@ export default function WorkerLogin({ tenant, workers }: Props) {
             </div>
 
             {/* Forgot PIN Confirmation Modal */}
-            {showPinResetModal && selectedWorker && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 50
+            <ModalShell
+                isOpen={showPinResetModal && !!selectedWorker}
+                onClose={() => setShowPinResetModal(false)}
+                title={t.forgot_pin_title}
+                size="sm"
+                zIndex={50}
+            >
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    post(`/c/${tenant.slug}/pin-reset/request`, {
+                        onSuccess: () => {
+                            setShowPinResetModal(false);
+                            setPin('');
+                            setData('pin', '');
+                            setSelectedWorker(null);
+                        }
+                    });
                 }}>
-                    <form onSubmit={(e) => {
-                        e.preventDefault();
-                        post(`/c/${tenant.slug}/pin-reset/request`, {
-                            onSuccess: () => {
-                                setShowPinResetModal(false);
-                                setPin('');
-                                setData('pin', '');
-                                setSelectedWorker(null);
-                            }
-                        });
-                    }} style={{
-                        backgroundColor: '#18181b',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        borderRadius: '16px',
-                        padding: '24px',
-                        width: '100%',
-                        maxWidth: '400px',
-                        margin: '16px'
-                    }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 8px 0' }}>{t.forgot_pin_title}</h3>
-                        <p style={{ fontSize: '14px', color: '#a1a1aa', margin: '0 0 20px 0' }}>
-                            {t.forgot_pin_desc.replace('{name}', selectedWorker.name)}
-                        </p>
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                            <button
-                                type="button"
-                                onClick={() => setShowPinResetModal(false)}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: 'transparent',
-                                    color: '#a1a1aa',
-                                    border: 'none',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {t.cancel}
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                style={{
-                                    padding: '8px 16px',
-                                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                                    color: '#fff',
-                                    borderRadius: '8px',
-                                    border: 'none',
-                                    fontWeight: 600,
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {processing ? t.requesting : t.request_reset}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
+                    <p style={{ fontSize: '14px', color: '#a1a1aa', margin: '0 0 20px 0' }}>
+                        {selectedWorker && t.forgot_pin_desc.replace('{name}', selectedWorker.name)}
+                    </p>
+                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                        <button
+                            type="button"
+                            onClick={() => setShowPinResetModal(false)}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: 'transparent',
+                                color: '#a1a1aa',
+                                border: 'none',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            {t.cancel}
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            style={{
+                                padding: '8px 16px',
+                                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                                color: '#fff',
+                                borderRadius: '8px',
+                                border: 'none',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            {processing ? t.requesting : t.request_reset}
+                        </button>
+                    </div>
+                </form>
+            </ModalShell>
         </div>
     );
 }

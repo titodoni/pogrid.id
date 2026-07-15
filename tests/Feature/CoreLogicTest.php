@@ -15,6 +15,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -100,7 +101,7 @@ class CoreLogicTest extends TestCase
             'item_name' => 'Shaft S45C',
             'target_qty' => 20,
             'item_type' => 'MANUFACTURE',
-            'required_stages' => ['Machining', 'Fabrication'],
+            'required_stages' => ['Material', 'Design', 'Machining', 'Fabrication', 'QC', 'Delivery'],
             'status' => 'PENDING',
         ]);
 
@@ -168,7 +169,7 @@ class CoreLogicTest extends TestCase
             'item_name' => 'Special Bracket',
             'target_qty' => 1,
             'item_type' => 'MANUFACTURE',
-            'required_stages' => ['DESIGN', 'Machining', 'QC'],
+            'required_stages' => ['Material', 'DESIGN', 'Machining', 'QC', 'Delivery'],
             'status' => 'PENDING',
         ]);
 
@@ -294,7 +295,7 @@ class CoreLogicTest extends TestCase
         ]);
 
         $po->refresh();
-        $this->assertEquals('COMPLETED', $po->status);
+        $this->assertEquals('DELIVERED', $po->status);
     }
 
     public function test_qc_rework_spawns_rework_stage()
@@ -486,7 +487,7 @@ class CoreLogicTest extends TestCase
             'item_name' => '0 Percent Progress Item',
             'target_qty' => 10,
             'item_type' => 'MANUFACTURE',
-            'required_stages' => ['Machining'],
+            'required_stages' => ['Material', 'Design', 'Machining', 'QC', 'Delivery'],
             'status' => 'PENDING',
         ]);
 
@@ -495,7 +496,7 @@ class CoreLogicTest extends TestCase
             'item_name' => '50 Percent Progress Item',
             'target_qty' => 10,
             'item_type' => 'MANUFACTURE',
-            'required_stages' => ['Machining'],
+            'required_stages' => ['Material', 'Design', 'Machining', 'QC', 'Delivery'],
             'status' => 'PENDING',
         ]);
 
@@ -552,7 +553,7 @@ class CoreLogicTest extends TestCase
             'item_name' => 'Shaft S45C',
             'target_qty' => 10,
             'item_type' => 'MANUFACTURE',
-            'required_stages' => ['Machining', 'Fabrication'],
+            'required_stages' => ['Design', 'Material', 'Machining', 'Fabrication', 'QC', 'Delivery'],
             'status' => 'PENDING',
         ]);
 
@@ -725,7 +726,7 @@ class CoreLogicTest extends TestCase
             'item_name' => 'Item Lock test',
             'target_qty' => 10,
             'item_type' => 'MANUFACTURE',
-            'required_stages' => ['Machining', 'Fabrication'],
+            'required_stages' => ['Design', 'Material', 'Machining', 'Fabrication', 'QC', 'Delivery'],
             'status' => 'PENDING',
         ]);
 
@@ -1280,7 +1281,7 @@ class CoreLogicTest extends TestCase
             'item_name' => 'Revert Custom Item',
             'target_qty' => 10,
             'item_type' => 'MANUFACTURE',
-            'required_stages' => ['CNC'],
+            'required_stages' => ['Design', 'Material', 'CNC'],
             'status' => 'PENDING',
         ]);
 
@@ -1302,6 +1303,10 @@ class CoreLogicTest extends TestCase
 
         $designStage = $item->itemProgresses()->where('stage_name', 'Design')->first();
         $materialStage = $item->itemProgresses()->where('stage_name', 'Material')->first();
+
+        // Warm-start Design & Material progress values expected by this test
+        $designStage->update(['progress_percent' => 50.00, 'status' => 'IN_PROGRESS']);
+        $materialStage->update(['progress_percent' => 33.00, 'status' => 'IN_PROGRESS']);
 
         // 1. Drafter updates design to APPROVED (100%)
         $this->actingAs($drafter);
@@ -1340,5 +1345,536 @@ class CoreLogicTest extends TestCase
         $this->assertEquals('ORDER', $item->purchasing_status);
         $this->assertEquals(33.00, $materialStage->refresh()->progress_percent);
         $this->assertEquals('IN_PROGRESS', $materialStage->status);
+    }
+
+    public function test_customizable_workflow_modes_and_validation_gates()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-WF-TEST',
+            'client_name' => 'WF Client',
+            'global_deadline' => now()->addDays(5),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'WF Test Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Design', 'Material', 'Machining'],
+            'status' => 'PENDING',
+        ]);
+
+        $designStage = $item->itemProgresses()->where('stage_name', 'Design')->first();
+        $materialStage = $item->itemProgresses()->where('stage_name', 'Material')->first();
+        $machiningStage = $item->itemProgresses()->where('stage_name', 'Machining')->first();
+
+        // 1. By default, workflow mode is Loose (null/loose settings).
+        // Let's create a machining operator.
+        $operator = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Machining Operator',
+            'role_id' => 3,
+            'post_id' => 4,
+            'pin' => bcrypt('1111'),
+        ]);
+
+        // In Loose mode, operator can update Machining progress even if Design and Material are PENDING (0%)
+        $this->actingAs($operator);
+        $this->post("/c/{$this->tenant1->slug}/progress/{$machiningStage->id}/update", ['completed_qty' => 5])
+            ->assertRedirect();
+
+        $machiningStage->refresh();
+        $this->assertEquals(5, $machiningStage->completed_qty);
+
+        // Reset machining progress
+        $machiningStage->update(['completed_qty' => 0, 'status' => 'PENDING', 'progress_percent' => 0]);
+
+        // 2. Change workflow settings to Strict
+        $owner = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Owner Admin',
+            'role_id' => 8,
+            'post_id' => 12,
+            'email' => 'owner.wf@example.com',
+            'password' => bcrypt('password'),
+        ]);
+        $this->actingAs($owner);
+
+        $this->post('/company/workflow-settings', [
+            'workflow_mode' => 'strict',
+            'require_design_approved_for_production' => true,
+            'require_material_ready_for_production' => true,
+        ])->assertRedirect();
+
+        // Try updating Machining as operator -> should be BLOCKED (403)
+        $this->actingAs($operator);
+        $this->post("/c/{$this->tenant1->slug}/progress/{$machiningStage->id}/update", ['completed_qty' => 5])
+            ->assertStatus(403);
+
+        // 3. Complete Design and Material
+        $designStage->update(['status' => 'COMPLETED', 'progress_percent' => 100.00]);
+        $materialStage->update(['status' => 'COMPLETED', 'progress_percent' => 100.00]);
+
+        // Try updating Machining again -> should be ALLOWED now
+        $this->post("/c/{$this->tenant1->slug}/progress/{$machiningStage->id}/update", ['completed_qty' => 5])
+            ->assertRedirect();
+
+        $machiningStage->refresh();
+        $this->assertEquals(5, $machiningStage->completed_qty);
+    }
+
+    public function test_partial_invoicing_and_payment_status()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-BILL-TEST',
+            'client_name' => 'Bill Client',
+            'global_deadline' => now()->addDays(5),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Bill Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Design', 'Material', 'Delivery'],
+            'status' => 'PENDING',
+        ]);
+
+        $deliveryStage = $item->itemProgresses()->where('stage_name', 'Delivery')->first();
+
+        $financeRole = DB::table('roles')->where('name', 'FINANCE')->first();
+        $financePost = DB::table('posts')->where('name', 'Finance')->first();
+
+        // 1. Create Finance operator
+        $financeOperator = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Finance Operator',
+            'role_id' => $financeRole->id,
+            'post_id' => $financePost->id,
+            'pin' => bcrypt('1111'),
+        ]);
+
+        // Complete Design/Material and update Delivery to let Finance update status (due to delivery check)
+        $item->itemProgresses()->whereIn('stage_name', ['Design', 'Material'])->update(['status' => 'COMPLETED', 'completed_qty' => 10]);
+        $deliveryStage->update(['status' => 'COMPLETED', 'completed_qty' => 10]);
+
+        // Create DoItem so delivered_qty > 0 for finance gate
+        $do = DeliveryOrder::create(['po_id' => $po->id, 'do_number' => 'DO-BILL', 'delivery_date' => now()]);
+        DoItem::create(['delivery_order_id' => $do->id, 'item_id' => $item->id, 'delivered_qty' => 10]);
+        $item->refresh();
+
+        $this->actingAs($financeOperator);
+
+        // Test PARTIAL invoice update
+        $this->post("/c/{$this->tenant1->slug}/items/{$item->id}/finance", [
+            'invoice_status' => 'PARTIAL',
+            'payment_status' => 'PARTIAL_PAID',
+            'invoiced_qty' => 5,
+        ])->assertRedirect();
+
+        $item->refresh();
+        $this->assertEquals('PARTIAL', $item->invoice_status);
+        $this->assertEquals('PARTIAL_PAID', $item->payment_status);
+        $this->assertEquals(5, $item->invoiced_qty);
+
+        // Test fully INVOICED and PAID
+        $this->post("/c/{$this->tenant1->slug}/items/{$item->id}/finance", [
+            'invoice_status' => 'INVOICED',
+            'payment_status' => 'PAID',
+            'invoiced_qty' => 10,
+        ])->assertRedirect();
+
+        $item->refresh();
+        $this->assertEquals('INVOICED', $item->invoice_status);
+        $this->assertEquals('PAID', $item->payment_status);
+        $this->assertEquals(10, $item->invoiced_qty);
+
+        // PO should be CLOSED now
+        $po->refresh();
+        $this->assertEquals('CLOSED', $po->status);
+    }
+
+    public function test_additive_progress_same_stage()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-ADDITIVE',
+            'client_name' => 'Additive Client',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Additive Item',
+            'target_qty' => 20,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Machining'],
+            'status' => 'PENDING',
+        ]);
+
+        $machiningStage = $item->itemProgresses()->where('stage_name', 'Machining')->first();
+
+        // CNC worker (role 3) updates to 5
+        $cncWorker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'CNC Worker',
+            'role_id' => 3,
+            'post_id' => 4,
+            'pin' => bcrypt('1111'),
+        ]);
+        $this->actingAs($cncWorker);
+        $this->post("/c/{$this->tenant1->slug}/progress/{$machiningStage->id}/update", ['completed_qty' => 5])
+            ->assertRedirect();
+
+        $machiningStage->refresh();
+        $this->assertEquals(5, $machiningStage->completed_qty);
+
+        // Milling worker (also role 3 but different post 3 for Milling) updates same stage
+        $millingWorker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Milling Worker',
+            'role_id' => 3,
+            'post_id' => 3,
+            'pin' => bcrypt('2222'),
+        ]);
+        $this->actingAs($millingWorker);
+        $this->post("/c/{$this->tenant1->slug}/progress/{$machiningStage->id}/update", ['completed_qty' => 3])
+            ->assertRedirect();
+
+        // Additive: 5 + 3 = 8
+        $machiningStage->refresh();
+        $this->assertEquals(8, $machiningStage->completed_qty);
+    }
+
+    public function test_qc_generic_gate_surface_treatment()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-QC-SURFACE',
+            'client_name' => 'QC Surface Client',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'QC Surface Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Surface Treatment', 'QC'],
+            'status' => 'PENDING',
+        ]);
+
+        $surfaceStage = $item->itemProgresses()->where('stage_name', 'Surface Treatment')->first();
+        $qcStage = $item->itemProgresses()->where('stage_name', 'QC')->first();
+
+        $qcWorker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'QC Worker Surface',
+            'role_id' => 6,
+            'post_id' => 8,
+            'pin' => bcrypt('1111'),
+        ]);
+
+        // QC cannot update QC stage before Surface Treatment is COMPLETED
+        $this->actingAs($qcWorker);
+        $this->post("/c/{$this->tenant1->slug}/progress/{$qcStage->id}/update", ['completed_qty' => 5])
+            ->assertStatus(403);
+
+        // Complete Surface Treatment
+        $surfaceStage->update(['completed_qty' => 10, 'status' => 'COMPLETED']);
+
+        // Now QC can update
+        $this->post("/c/{$this->tenant1->slug}/progress/{$qcStage->id}/update", ['completed_qty' => 5])
+            ->assertRedirect();
+    }
+
+    public function test_delivery_additive_total()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-DEL-ADD',
+            'client_name' => 'Delivery Add Client',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Delivery Add Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Machining', 'QC', 'Delivery'],
+            'status' => 'PENDING',
+        ]);
+
+        // Complete preceding stages so Delivery is allowed
+        $item->itemProgresses()->whereIn('stage_name', ['Machining', 'QC'])->update(['completed_qty' => 10, 'status' => 'COMPLETED']);
+
+        $deliveryStage = $item->itemProgresses()->where('stage_name', 'Delivery')->first();
+
+        $deliveryWorker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Delivery Worker Add',
+            'role_id' => 7,
+            'post_id' => 9,
+            'pin' => bcrypt('1111'),
+        ]);
+        $this->actingAs($deliveryWorker);
+
+        // First delivery: 3 pcs
+        $this->post("/c/{$this->tenant1->slug}/progress/{$deliveryStage->id}/update", ['completed_qty' => 3])
+            ->assertRedirect();
+
+        $deliveryStage->refresh();
+        $this->assertEquals(3, $deliveryStage->completed_qty);
+
+        // Second delivery: 2 more pcs (additive)
+        $this->post("/c/{$this->tenant1->slug}/progress/{$deliveryStage->id}/update", ['completed_qty' => 2])
+            ->assertRedirect();
+
+        $deliveryStage->refresh();
+        $this->assertEquals(5, $deliveryStage->completed_qty);
+
+        // Assert DoItem is also additive: total = 5
+        $this->assertEquals(5, $item->doItems()->sum('delivered_qty'));
+    }
+
+    public function test_po_completed_delivered_closed_lifecycle()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-LIFECYCLE',
+            'client_name' => 'Lifecycle Client',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Lifecycle Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Machining', 'QC', 'Delivery'],
+            'status' => 'PENDING',
+        ]);
+
+        // Complete all progress stages via model instances so observer fires
+        foreach (['Machining', 'QC', 'Delivery'] as $stage) {
+            $progress = $item->itemProgresses()->where('stage_name', $stage)->first();
+            $progress->update(['completed_qty' => 10, 'status' => 'COMPLETED']);
+        }
+        $item->refresh();
+        $this->assertEquals('COMPLETED', $item->status);
+
+        $po->refresh();
+        $this->assertEquals('COMPLETED', $po->status);
+
+        // Deliver via DO → PO DELIVERED
+        $do = DeliveryOrder::create(['po_id' => $po->id, 'do_number' => 'DO-LIFE', 'delivery_date' => now()]);
+        DoItem::create(['delivery_order_id' => $do->id, 'item_id' => $item->id, 'delivered_qty' => 10]);
+
+        $po->refresh();
+        $this->assertEquals('DELIVERED', $po->status);
+
+        // Must use finance endpoint to trigger CLOSED cascade
+        $financeRole = DB::table('roles')->where('name', 'FINANCE')->first();
+        $financePost = DB::table('posts')->where('name', 'Finance')->first();
+        $financeWorker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Finance Lifecycle',
+            'role_id' => $financeRole->id,
+            'post_id' => $financePost->id,
+            'pin' => bcrypt('1111'),
+        ]);
+        $this->actingAs($financeWorker);
+        $this->post("/c/{$this->tenant1->slug}/items/{$item->id}/finance", [
+            'invoice_status' => 'INVOICED',
+            'payment_status' => 'PAID',
+        ])->assertRedirect();
+
+        $po->refresh();
+        $this->assertEquals('CLOSED', $po->status);
+    }
+
+    public function test_item_delivery_status_transitions()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-DEL-STATUS',
+            'client_name' => 'Delivery Status Client',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Delivery Status Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Delivery'],
+            'status' => 'PENDING',
+        ]);
+
+        // Initially PENDING
+        $this->assertEquals('PENDING', $item->refresh()->delivery_status);
+
+        // Deliver partially → PARTIAL
+        $do = DeliveryOrder::create(['po_id' => $po->id, 'do_number' => 'DO-STATUS', 'delivery_date' => now()]);
+        DoItem::create(['delivery_order_id' => $do->id, 'item_id' => $item->id, 'delivered_qty' => 4]);
+
+        $item->refresh();
+        $this->assertEquals('PARTIAL', $item->delivery_status);
+
+        // Deliver fully → DELIVERED
+        DoItem::create(['delivery_order_id' => $do->id, 'item_id' => $item->id, 'delivered_qty' => 6]);
+
+        $item->refresh();
+        $this->assertEquals('DELIVERED', $item->delivery_status);
+    }
+
+    public function test_surface_role_can_update_surface_treatment()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-SURFACE',
+            'client_name' => 'Surface Client',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Surface Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Surface Treatment'],
+            'status' => 'PENDING',
+        ]);
+
+        $surfaceStage = $item->itemProgresses()->where('stage_name', 'Surface Treatment')->first();
+
+        $surfaceRole = DB::table('roles')->where('name', 'SURFACE')->first();
+        $surfacePost = DB::table('posts')->where('name', 'HEAT_TREATMENT')->first();
+
+        $surfaceWorker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Surface Worker',
+            'role_id' => $surfaceRole->id,
+            'post_id' => $surfacePost->id,
+            'pin' => bcrypt('1111'),
+        ]);
+
+        // SURFACE role can update Surface Treatment stage
+        $this->actingAs($surfaceWorker);
+        $this->post("/c/{$this->tenant1->slug}/progress/{$surfaceStage->id}/update", ['completed_qty' => 5])
+            ->assertRedirect();
+
+        $surfaceStage->refresh();
+        $this->assertEquals(5, $surfaceStage->completed_qty);
+
+        // MACHINING role cannot update Surface Treatment
+        $machiningWorker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Machining Worker Surface',
+            'role_id' => 3,
+            'post_id' => 4,
+            'pin' => bcrypt('2222'),
+        ]);
+        $this->actingAs($machiningWorker);
+        $this->post("/c/{$this->tenant1->slug}/progress/{$surfaceStage->id}/update", ['completed_qty' => 3])
+            ->assertStatus(403);
+    }
+
+    public function test_assembly_role_can_update_assembly()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-ASSEMBLY',
+            'client_name' => 'Assembly Client',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Assembly Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Assembly'],
+            'status' => 'PENDING',
+        ]);
+
+        $assemblyStage = $item->itemProgresses()->where('stage_name', 'Assembly')->first();
+
+        $assemblyRole = DB::table('roles')->where('name', 'ASSEMBLY')->first();
+        $assemblyPost = DB::table('posts')->where('name', 'ASSEMBLY')->first();
+
+        $assemblyWorker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Assembly Worker',
+            'role_id' => $assemblyRole->id,
+            'post_id' => $assemblyPost->id,
+            'pin' => bcrypt('1111'),
+        ]);
+
+        $this->actingAs($assemblyWorker);
+        $this->post("/c/{$this->tenant1->slug}/progress/{$assemblyStage->id}/update", ['completed_qty' => 7])
+            ->assertRedirect();
+
+        $assemblyStage->refresh();
+        $this->assertEquals(7, $assemblyStage->completed_qty);
+
+        // QC role cannot update Assembly stage
+        $qcWorker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'QC Worker Assembly',
+            'role_id' => 6,
+            'post_id' => 8,
+            'pin' => bcrypt('2222'),
+        ]);
+        $this->actingAs($qcWorker);
+        $this->post("/c/{$this->tenant1->slug}/progress/{$assemblyStage->id}/update", ['completed_qty' => 3])
+            ->assertStatus(403);
+    }
+
+    public function test_no_auto_injection_when_item_created()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-NO-INJECT',
+            'client_name' => 'No Inject Client',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'No Inject Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Machining'],
+            'status' => 'PENDING',
+        ]);
+
+        // Only 1 stage should exist — no auto-injected Design/Material/QC/Delivery
+        $this->assertEquals(1, $item->itemProgresses()->count());
+        $this->assertEquals('Machining', $item->itemProgresses()->first()->stage_name);
+        $this->assertEquals(['Machining'], $item->required_stages);
     }
 }

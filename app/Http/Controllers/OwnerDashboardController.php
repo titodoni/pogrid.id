@@ -46,6 +46,35 @@ class OwnerDashboardController extends Controller
         return back()->with('success', 'Company settings updated successfully.');
     }
 
+    public function updateWorkflowSettings(Request $request)
+    {
+        $request->validate([
+            'workflow_mode' => ['required', 'string', 'in:strict,loose,custom'],
+            'require_design_approved_for_production' => ['nullable', 'boolean'],
+            'require_material_ready_for_production' => ['nullable', 'boolean'],
+            'require_production_completed_for_qc' => ['nullable', 'boolean'],
+            'require_qc_completed_for_delivery' => ['nullable', 'boolean'],
+            'require_delivery_for_finance' => ['nullable', 'boolean'],
+        ]);
+
+        $tenant = Tenant::find(TenantManager::getTenantId());
+
+        $settings = [
+            'workflow_mode' => $request->workflow_mode,
+            'require_design_approved_for_production' => (bool) $request->input('require_design_approved_for_production', false),
+            'require_material_ready_for_production' => (bool) $request->input('require_material_ready_for_production', false),
+            'require_production_completed_for_qc' => (bool) $request->input('require_production_completed_for_qc', true),
+            'require_qc_completed_for_delivery' => (bool) $request->input('require_qc_completed_for_delivery', true),
+            'require_delivery_for_finance' => (bool) $request->input('require_delivery_for_finance', true),
+        ];
+
+        $tenant->update([
+            'workflow_settings' => $settings,
+        ]);
+
+        return back()->with('success', 'Workflow settings updated successfully.');
+    }
+
     public function create()
     {
         $user = auth()->user();

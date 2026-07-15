@@ -17,10 +17,12 @@ class Tenant extends Model
         'slug',
         'subscription_status',
         'trial_ends_at',
+        'workflow_settings',
     ];
 
     protected $casts = [
         'trial_ends_at' => 'datetime',
+        'workflow_settings' => 'array',
     ];
 
     public function users(): HasMany

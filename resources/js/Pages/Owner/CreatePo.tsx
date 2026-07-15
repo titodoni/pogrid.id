@@ -17,6 +17,21 @@ interface Props {
     };
 }
 
+const TEMPLATES: { key: string; labelEn: string; labelId: string; stages: string[] }[] = [
+    { key: 'cnc', labelEn: 'CNC Workshop', labelId: 'Bubut/CNC', stages: ['Machining'] },
+    { key: 'fab', labelEn: 'Fabrication Workshop', labelId: 'Fabrikasi', stages: ['Fabrication'] },
+    { key: 'eng', labelEn: 'Engineering Workshop', labelId: 'Teknik', stages: ['Design', 'Machining'] },
+    { key: 'cnc-design', labelEn: 'CNC + Design', labelId: 'CNC + Desain', stages: ['Design', 'Machining'] },
+    { key: 'assembly', labelEn: 'Assembly Workshop', labelId: 'Perakitan', stages: ['Machining', 'Fabrication', 'Assembly'] },
+    { key: 'full-eng', labelEn: 'Full Engineering', labelId: 'Teknik Lengkap', stages: ['Design', 'Material', 'Machining', 'Fabrication', 'Assembly', 'QC', 'Delivery'] },
+    { key: 'finishing', labelEn: 'With Finishing', labelId: '+ Finishing', stages: ['Design', 'Material', 'Machining', 'Fabrication', 'Surface Treatment', 'QC', 'Delivery'] },
+    { key: 'procure', labelEn: 'Procurement Only', labelId: 'Pembelian Saja', stages: ['Material', 'Vendor'] },
+    { key: 'service', labelEn: 'Service / Design Only', labelId: 'Jasa / Desain Saja', stages: ['Design'] },
+    { key: 'custom', labelEn: 'Custom (Blank)', labelId: 'Kustom (Kosong)', stages: [] },
+];
+
+const ALL_STAGES = ['Design', 'Material', 'Machining', 'Fabrication', 'Assembly', 'Surface Treatment', 'QC', 'Delivery', 'Vendor'];
+
 const translations = {
     en: {
         back: 'Back to Dashboard',
@@ -37,11 +52,19 @@ const translations = {
         item_name: 'Item Name',
         item_type: 'Item Type',
         quantity: 'Quantity',
+        stage_templates: 'Stage Templates',
+        template_pick: 'Pick a template to auto-fill stages:',
+        custom_stage: 'Custom Stage',
+        add_stage: 'Add Stage',
         stages: 'Production Stages',
         design: 'Design (Drafter)',
         material: 'Material (Purchasing)',
         cnc: 'Machining',
         fabrication: 'Fabrication',
+        assembly: 'Assembly',
+        surface: 'Surface Treatment',
+        qc: 'QC / Inspection',
+        delivery: 'Delivery',
         vendor: 'Vendor',
         vendor_name: 'Vendor Name',
         vendor_phone: 'Vendor Phone',
@@ -77,11 +100,19 @@ const translations = {
         item_name: 'Nama Barang',
         item_type: 'Kategori / Tipe Barang',
         quantity: 'Jumlah (Qty)',
+        stage_templates: 'Template Tahapan',
+        template_pick: 'Pilih template untuk isi tahapan secara otomatis:',
+        custom_stage: 'Tahapan Kustom',
+        add_stage: 'Tambah',
         stages: 'Tahapan Produksi',
         design: 'Desain Teknis (Drafter)',
         material: 'Material (Purchasing)',
         cnc: 'Machining (Bubut/CNC)',
         fabrication: 'Fabrikasi (Fab)',
+        assembly: 'Perakitan (Assembly)',
+        surface: 'Surface Treatment',
+        qc: 'QC / Inspeksi',
+        delivery: 'Pengiriman (Delivery)',
         vendor: 'Vendor',
         vendor_name: 'Nama Vendor',
         vendor_phone: 'No. Telepon Vendor',
@@ -135,6 +166,8 @@ const labelStyle: React.CSSProperties = {
 export default function CreatePo({ tenant, auth_user }: Props) {
     const { errors } = usePage().props;
 
+    const [localError, setLocalError] = useState<string | null>(null);
+
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
         if (typeof window !== 'undefined') {
             return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
@@ -179,30 +212,52 @@ export default function CreatePo({ tenant, auth_user }: Props) {
     };
 
     const updateItem = (index: number, field: string, value: any) => {
-        setItems(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
+        setItems(prev => prev.map((item, i) => {
+            if (i !== index) return item;
+            
+            const updated = { ...item, [field]: value };
+            
+            // Adjust stages when item_type changes
+            if (field === 'item_type') {
+                if (value === 'BUY_OUT') {
+                    // Buy out cannot have Machining or Fabrication
+                    updated.required_stages = item.required_stages.filter(s => s !== 'Machining' && s !== 'Fabrication');
+                } else if (value === 'MANUFACTURE') {
+                    // Manufacture cannot have Vendor
+                    updated.required_stages = item.required_stages.filter(s => s !== 'Vendor');
+                }
+            }
+            
+            return updated;
+        }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        setLocalError(null);
 
         if (!poNumber.trim() || !clientName.trim() || !deliveryDate) {
-            alert(t.err_fill_header);
+            setLocalError(t.err_fill_header);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
 
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
             if (!item.item_name.trim()) {
-                alert(t.err_item_name.replace('{num}', String(i + 1)));
+                setLocalError(t.err_item_name.replace('{num}', String(i + 1)));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 return;
             }
             if (item.required_stages.length === 0) {
-                alert(t.err_select_stage.replace('{name}', item.item_name));
+                setLocalError(t.err_select_stage.replace('{name}', item.item_name));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 return;
             }
             if (item.required_stages.includes('Vendor')) {
                 if (!item.vendor_name?.trim() || !item.vendor_phone?.trim()) {
-                    alert(t.err_vendor_info.replace('{name}', item.item_name));
+                    setLocalError(t.err_vendor_info.replace('{name}', item.item_name));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
             }
@@ -294,7 +349,7 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                 </div>
 
                 {/* Validation errors */}
-                {errors && Object.keys(errors).length > 0 && (
+                {((errors && Object.keys(errors).length > 0) || localError) && (
                     <div style={{
                         backgroundColor: 'rgba(248, 113, 113, 0.12)',
                         border: '1px solid rgba(248, 113, 113, 0.25)',
@@ -305,7 +360,8 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                     }}>
                         <h4 style={{ margin: '0 0 8px 0', fontWeight: 700 }}>Validation Error</h4>
                         <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                            {Object.entries(errors).map(([key, val]) => (
+                            {localError && <li>{localError}</li>}
+                            {errors && Object.entries(errors).map(([key, val]) => (
                                 <li key={key}>{val as string}</li>
                             ))}
                         </ul>
@@ -516,19 +572,66 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                                     }} />
                                 </div>
                                 <div>
+                                    <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>{t.stage_templates}</label>
+                                    <div style={{
+                                        display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '10px',
+                                        padding: '6px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '10px',
+                                    }}>
+                                        {TEMPLATES.map(tmpl => {
+                                            const isActive = item.required_stages.length === tmpl.stages.length &&
+                                                tmpl.stages.every(s => item.required_stages.includes(s));
+                                            return (
+                                                <button
+                                                    key={tmpl.key}
+                                                    type="button"
+                                                    onClick={() => updateItem(index, 'required_stages', [...tmpl.stages])}
+                                                    style={{
+                                                        padding: '4px 8px',
+                                                        fontSize: '10px',
+                                                        fontWeight: 700,
+                                                        border: isActive ? '1px solid #818cf8' : '1px solid rgba(255,255,255,0.08)',
+                                                        borderRadius: '6px',
+                                                        backgroundColor: isActive ? 'rgba(99,102,241,0.2)' : 'transparent',
+                                                        color: isActive ? '#818cf8' : '#a1a1aa',
+                                                        cursor: 'pointer',
+                                                    }}
+                                                >
+                                                    {language === 'en' ? tmpl.labelEn : tmpl.labelId}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
                                     <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px' }}>{t.stages}</label>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
-                                        {['Design', 'Material', 'Machining', 'Fabrication', 'Vendor'].map(stage => {
-                                            const stageKey = stage.toLowerCase();
+                                        {ALL_STAGES.map(stage => {
+                                            const isStageDisabled = 
+                                                (item.item_type === 'BUY_OUT' && (stage === 'Machining' || stage === 'Fabrication')) ||
+                                                (item.item_type === 'MANUFACTURE' && stage === 'Vendor');
+
                                             return (
-                                                <label key={stage} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#e2e8f0', cursor: 'pointer' }}>
-                                                    <input type="checkbox" checked={item.required_stages.includes(stage)} onChange={() => {
-                                                        const stages = item.required_stages.includes(stage)
-                                                            ? item.required_stages.filter(s => s !== stage)
-                                                            : [...item.required_stages, stage];
-                                                        updateItem(index, 'required_stages', stages);
-                                                    }} />
-                                                    {stage === 'Design' ? t.design : stage === 'Material' ? t.material : stage === 'Machining' ? t.cnc : stage === 'Fabrication' ? t.fabrication : t.vendor}
+                                                <label key={stage} style={{ 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    gap: '4px', 
+                                                    fontSize: '12px', 
+                                                    color: isStageDisabled ? '#71717a' : '#e2e8f0', 
+                                                    cursor: isStageDisabled ? 'not-allowed' : 'pointer',
+                                                    opacity: isStageDisabled ? 0.5 : 1
+                                                }}>
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={item.required_stages.includes(stage)} 
+                                                        disabled={isStageDisabled}
+                                                        onChange={() => {
+                                                            if (isStageDisabled) return;
+                                                            const stages = item.required_stages.includes(stage)
+                                                                ? item.required_stages.filter(s => s !== stage)
+                                                                : [...item.required_stages, stage];
+                                                            updateItem(index, 'required_stages', stages);
+                                                        }} 
+                                                    />
+                                                    {stage === 'Machining' ? t.cnc : stage === 'Fabrication' ? t.fabrication : stage === 'Design' ? t.design : stage === 'Material' ? t.material : stage === 'Assembly' ? t.assembly : stage === 'Surface Treatment' ? t.surface : stage === 'QC' ? t.qc : stage === 'Delivery' ? t.delivery : t.vendor}
                                                 </label>
                                             );
                                         })}
