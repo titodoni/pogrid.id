@@ -1,6 +1,69 @@
 import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { ChevronDown, Settings, Lock, Plus, Palette, Stop, Broadcast, Globe, Copy, DotGreen, Search } from '../../Components/Icons';
+import { formatDeadline, calculateDeadlineDiff } from '../../Utils/deadline';
+import { WarningPill } from '../../Components/WarningPill';
+import { StatusBadge } from '../../Components/StatusBadge';
+
+const formatAlertTime = (dateStr: string, lang: 'en' | 'id') => {
+    try {
+        const date = new Date(dateStr);
+        const day = date.getDate();
+        const monthNamesEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthNamesId = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        const month = lang === 'en' ? monthNamesEn[date.getMonth()] : monthNamesId[date.getMonth()];
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        
+        const today = new Date();
+        const isToday = date.getDate() === today.getDate() &&
+                        date.getMonth() === today.getMonth() &&
+                        date.getFullYear() === today.getFullYear();
+        
+        if (isToday) {
+            return lang === 'id' ? `Hari ini, ${hours}:${minutes}` : `Today, ${hours}:${minutes}`;
+        }
+        return `${day} ${month}, ${hours}:${minutes}`;
+    } catch (e) {
+        return '';
+    }
+};
+
+const formatReasonType = (reason: string, lang: 'en' | 'id') => {
+    if (!reason) return '';
+    const clean = reason.trim();
+    if (lang === 'id') {
+        switch (clean.toLowerCase()) {
+            case 'machine broken':
+            case 'machine_broken':
+                return 'Mesin Rusak';
+            case 'material delay':
+            case 'material_delay':
+                return 'Bahan Baku Terlambat';
+            case 'operator sick':
+            case 'operator_sick':
+                return 'Operator Sakit';
+            case 'power outage':
+            case 'power_outage':
+                return 'Mati Listrik';
+            case 'human error':
+            case 'human_error':
+                return 'Kesalahan Operator';
+            case 'qc rework':
+            case 'qc_rework':
+                return 'Rework QC';
+            case 'pin reset':
+            case 'pin_reset':
+                return 'Reset PIN';
+            case 'other':
+                return 'Lainnya';
+            default:
+                return reason;
+        }
+    }
+    return reason;
+};
+
 
 interface Stage {
     id: number;
@@ -19,6 +82,10 @@ interface Item {
     status: string;
     purchasing_status?: string | null;
     drafter_status?: string | null;
+    delivery_status?: string | null;
+    invoice_status?: string | null;
+    payment_status?: string | null;
+    invoiced_qty?: number;
     item_progresses: Stage[];
     delivered_qty: number;
     vendor_name?: string | null;
@@ -36,136 +103,7 @@ interface Po {
     is_urgent?: boolean | null;
 }
 
-const formatDeadline = (deadlineDateStr: string, lang: 'en' | 'id') => {
-    if (!deadlineDateStr) return '';
-    const deadline = new Date(deadlineDateStr);
-    const deadlineClean = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
-    const today = new Date();
-    const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    const diffTime = deadlineClean.getTime() - todayClean.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    const dateFormatted = deadlineClean.toLocaleDateString();
-
-    if (diffDays === 0) {
-        return lang === 'id' ? `${dateFormatted} (Hari Ini)` : `${dateFormatted} (Today)`;
-    } else if (diffDays > 0) {
-        if (diffDays === 7) return lang === 'id' ? `${dateFormatted} (1 minggu)` : `${dateFormatted} (1 week)`;
-        if (diffDays === 30) return lang === 'id' ? `${dateFormatted} (1 bulan)` : `${dateFormatted} (1 month)`;
-        return lang === 'id' ? `${dateFormatted} (${diffDays} hari)` : `${dateFormatted} (${diffDays} days)`;
-    } else {
-        return lang === 'id' ? `${dateFormatted} (terlambat ${Math.abs(diffDays)} hari)` : `${dateFormatted} (delayed ${Math.abs(diffDays)} days)`;
-    }
-};
-
-const renderWarningPill = (deadlineDateStr: string | undefined, reworkMessage: string | null | boolean, lang: 'en' | 'id') => {
-    if (!deadlineDateStr) return null;
-    
-    // Check Rework first (takes precedence or is a high priority status)
-    if (reworkMessage) {
-        const displayMsg = typeof reworkMessage === 'string'
-            ? reworkMessage
-            : (lang === 'id' ? 'Rework' : 'Rework');
-
-        return (
-            <span className="badge" style={{
-                backgroundColor: 'rgba(249, 115, 22, 0.15)', // Orange background
-                color: '#fb923c', // Orange text
-                border: '1px solid rgba(249, 115, 22, 0.2)',
-                fontSize: '11px',
-                padding: '3px 8px',
-                fontWeight: 700,
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-            }}>
-                <span style={{ width: '6px', height: '6px', backgroundColor: '#fb923c', borderRadius: '50%' }} />
-                {displayMsg}
-            </span>
-        );
-    }
-
-    const deadline = new Date(deadlineDateStr);
-    const deadlineClean = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
-    const today = new Date();
-    const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-    const diffTime = deadlineClean.getTime() - todayClean.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) {
-        // Red warning (delayed)
-        const days = Math.abs(diffDays);
-        const text = lang === 'id' 
-            ? `Terlambat ${days} hari` 
-            : `Delayed ${days} day${days > 1 ? 's' : ''}`;
-        return (
-            <span className="badge" style={{
-                backgroundColor: 'rgba(239, 68, 68, 0.15)', // Red background
-                color: '#ef4444', // Red text
-                border: '1px solid rgba(239, 68, 68, 0.2)',
-                fontSize: '11px',
-                padding: '3px 8px',
-                fontWeight: 700,
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-            }}>
-                <span style={{ width: '6px', height: '6px', backgroundColor: '#ef4444', borderRadius: '50%' }} />
-                {text}
-            </span>
-        );
-    } else if (diffDays <= 3) {
-        // Yellow warning (deadline close)
-        let text = '';
-        if (diffDays === 0) {
-            text = lang === 'id' ? 'Hari Ini' : 'Today';
-        } else {
-            text = lang === 'id' 
-                ? `${diffDays} hari lagi` 
-                : `${diffDays} more day${diffDays > 1 ? 's' : ''}`;
-        }
-        return (
-            <span className="badge" style={{
-                backgroundColor: 'rgba(234, 179, 8, 0.15)', // Yellow background
-                color: '#fbbf24', // Yellow text
-                border: '1px solid rgba(234, 179, 8, 0.2)',
-                fontSize: '11px',
-                padding: '3px 8px',
-                fontWeight: 700,
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-            }}>
-                <span style={{ width: '6px', height: '6px', backgroundColor: '#fbbf24', borderRadius: '50%' }} />
-                {text}
-            </span>
-        );
-    } else {
-        // Green warning (normal/on track)
-        return (
-            <span className="badge" style={{
-                backgroundColor: 'rgba(16, 185, 129, 0.15)', // Green background
-                color: '#34d399', // Green text
-                border: '1px solid rgba(16, 185, 129, 0.2)',
-                fontSize: '11px',
-                padding: '3px 8px',
-                fontWeight: 700,
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-            }}>
-                <span style={{ width: '6px', height: '6px', backgroundColor: '#34d399', borderRadius: '50%' }} />
-                {lang === 'id' ? 'Normal' : 'Normal'}
-            </span>
-        );
-    }
-};
 
 const getItemStateColor = (deadlineDateStr: string | undefined, hasRework: boolean, itemStatus: string): { bg: string; border: string; glow: string } => {
     if (!deadlineDateStr) return { bg: 'transparent', border: 'transparent', glow: 'transparent' };
@@ -253,6 +191,14 @@ interface Props {
     tenant?: {
         company_name: string;
         slug: string;
+        workflow_settings?: {
+            workflow_mode: 'strict' | 'loose' | 'custom';
+            require_design_approved_for_production: boolean;
+            require_material_ready_for_production: boolean;
+            require_production_completed_for_qc: boolean;
+            require_qc_completed_for_delivery: boolean;
+            require_delivery_for_finance: boolean;
+        } | null;
     };
     auth_user?: User;
     telemetry?: any;
@@ -462,6 +408,43 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
     const [showSearchModal, setShowSearchModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
+    const [workflowMode, setWorkflowMode] = useState<'strict' | 'loose' | 'custom'>(() => {
+        return tenant?.workflow_settings?.workflow_mode || 'loose';
+    });
+    const [reqDesign, setReqDesign] = useState<boolean>(() => {
+        return tenant?.workflow_settings?.require_design_approved_for_production ?? false;
+    });
+    const [reqMaterial, setReqMaterial] = useState<boolean>(() => {
+        return tenant?.workflow_settings?.require_material_ready_for_production ?? false;
+    });
+    const [reqProductionForQc, setReqProductionForQc] = useState<boolean>(() => {
+        return tenant?.workflow_settings?.require_production_completed_for_qc ?? true;
+    });
+    const [reqQcForDelivery, setReqQcForDelivery] = useState<boolean>(() => {
+        return tenant?.workflow_settings?.require_qc_completed_for_delivery ?? true;
+    });
+    const [reqDeliveryForFinance, setReqDeliveryForFinance] = useState<boolean>(() => {
+        return tenant?.workflow_settings?.require_delivery_for_finance ?? true;
+    });
+    const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+    const saveWorkflowSettings = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSavingSettings(true);
+        router.post('/company/workflow-settings', {
+            workflow_mode: workflowMode,
+            require_design_approved_for_production: reqDesign,
+            require_material_ready_for_production: reqMaterial,
+            require_production_completed_for_qc: reqProductionForQc,
+            require_qc_completed_for_delivery: reqQcForDelivery,
+            require_delivery_for_finance: reqDeliveryForFinance,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            onFinish: () => setIsSavingSettings(false),
+        });
+    };
+
     const handleSearchItemClick = (poId: number, itemId?: number) => {
         const targetPo = pos.find(p => p.id === poId);
         if (!targetPo) return;
@@ -562,14 +545,17 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
     };
 
     const [activeTab, setActiveTab] = useState<'alerts' | 'active' | 'completed' | 'matrix' | 'team'>(() => {
+        const isOwner = auth_user?.is_owner === true;
         if (typeof window !== 'undefined') {
             const urlParams = new URLSearchParams(window.location.search);
             const tabParam = urlParams.get('tab');
             if (tabParam && ['alerts', 'active', 'completed', 'matrix', 'team'].includes(tabParam)) {
+                if (tabParam === 'team' && isOwner) return 'alerts';
                 return tabParam as any;
             }
             const localSaved = localStorage.getItem('owner_active_tab');
             if (localSaved && ['alerts', 'active', 'completed', 'matrix', 'team'].includes(localSaved)) {
+                if (localSaved === 'team' && isOwner) return 'alerts';
                 return localSaved as any;
             }
         }
@@ -577,6 +563,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
     });
 
     const changeTab = (tab: 'alerts' | 'active' | 'completed' | 'matrix' | 'team') => {
+        const isOwner = auth_user?.is_owner === true;
+        if (tab === 'team' && isOwner) return;
         setActiveTab(tab);
         if (typeof window !== 'undefined') {
             localStorage.setItem('owner_active_tab', tab);
@@ -641,17 +629,25 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
         const issues: {
             id: string;
             po_id?: number;
+            item_id?: number;
             severity: 'RED' | 'YELLOW' | 'BLUE' | 'ORANGE';
             type: 'DELAYED' | 'URGENT' | 'REWORK' | 'TROUBLE' | 'STUCK' | 'PIN_RESET' | 'OTHER';
             title: string;
             message: string;
+            created_at?: string;
+            itemName?: string;
+            poNumber?: string;
+            stage?: string;
+            note?: string;
+            reason?: string;
+            client_name?: string;
             action?: () => void;
         }[] = [];
 
         const today = new Date();
         const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-        // 1. Process active POs and items for delayed, close deadline, stuck, reworks, trouble
+        // 1. Process active POs and items for delayed, close deadline
         pos.forEach(po => {
             if (po.status === 'COMPLETED') return;
 
@@ -668,6 +664,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     issues.push({
                         id: `delayed-${item.id}`,
                         po_id: po.id,
+                        item_id: item.id,
                         severity: 'RED',
                         type: 'DELAYED',
                         title: language === 'en' ? 'DELAYED' : 'TERLAMBAT',
@@ -684,30 +681,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     issues.push({
                         id: `close-${item.id}`,
                         po_id: po.id,
+                        item_id: item.id,
                         severity: 'YELLOW',
                         type: 'URGENT',
                         title: language === 'en' ? 'DEADLINE CLOSE' : 'TENGGAT DEKAT',
                         message: language === 'en'
                             ? `Item "${item.item_name}" for client "${po.client_name}" is approaching deadline (${daysText}).`
                             : `Item "${item.item_name}" untuk klien "${po.client_name}" mendekati tenggat waktu (${daysText}).`,
-                    });
-                }
-
-                // C. Check Stuck stages
-                if (item.item_progresses) {
-                    item.item_progresses.forEach(progress => {
-                        if (progress.status === 'STUCK') {
-                            issues.push({
-                                id: `stuck-stage-${progress.id}`,
-                                po_id: po.id,
-                                severity: 'RED',
-                                type: 'STUCK',
-                                title: language === 'en' ? 'STAGE STUCK' : 'TAHAP STUCK',
-                                message: language === 'en'
-                                    ? `Production stage "${progress.stage_name}" for item "${item.item_name}" is stuck.`
-                                    : `Tahap produksi "${progress.stage_name}" untuk item "${item.item_name}" dalam kondisi stuck.`,
-                            });
-                        }
                     });
                 }
             });
@@ -724,6 +704,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     type: 'PIN_RESET',
                     title: language === 'en' ? 'PIN RESET REQUEST' : 'PERMINTAAN RESET PIN',
                     message: alert.message,
+                    created_at: alert.created_at,
                     action: () => router.post(`/pin-reset/${alert.id}/approve`)
                 });
             } else {
@@ -733,14 +714,73 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     ? (language === 'en' ? 'PRODUCTION TROUBLE' : 'KENDALA PRODUKSI')
                     : (language === 'en' ? 'QC REWORK ALERT' : 'PERINGATAN REWORK QC');
 
-                issues.push({
-                    id: `alert-db-${alert.id}`,
-                    po_id: alert.item?.po_id,
-                    severity: severity,
-                    type: type,
-                    title: title,
-                    message: alert.message,
-                });
+                // Custom parsed message logic to show exact trouble details
+                let cleanMessage = alert.message;
+                const itemName = alert.item?.item_name || 'Item';
+                const poNumber = alert.item?.po?.po_number || '';
+                const poInfo = poNumber ? `(PO: ${poNumber})` : '';
+
+                if (type === 'REWORK') {
+                    // Parse QC rework
+                    const qtyMatch = alert.message.match(/QC Rework: (\d+)/);
+                    const stageMatch = alert.message.match(/stage '([^']*)'/);
+                    const qty = qtyMatch ? qtyMatch[1] : '';
+                    const stage = stageMatch ? stageMatch[1] : '';
+                    
+                    if (language === 'id') {
+                        cleanMessage = `${itemName} ${poInfo} — Rework QC: ${qty || 1} pcs ditolak di ${stage || 'QC'}`;
+                    } else {
+                        cleanMessage = `${itemName} ${poInfo} — QC Rework: ${qty || 1} pcs rejected on ${stage || 'QC'}`;
+                    }
+
+                    issues.push({
+                        id: `alert-db-${alert.id}`,
+                        po_id: alert.item?.po_id,
+                        item_id: alert.item_id,
+                        severity: severity,
+                        type: type,
+                        title: title,
+                        message: cleanMessage,
+                        created_at: alert.created_at,
+                        itemName: itemName,
+                        poNumber: poNumber,
+                        stage: stage || 'QC',
+                        reason: 'QC Rework',
+                        note: qty ? `${qty} pcs` : '',
+                        client_name: alert.item?.po?.client_name || '',
+                    });
+                } else {
+                    // Parse Stuck/Trouble
+                    const stageMatch = alert.message.match(/stage '([^']*)'/);
+                    const noteMatch = alert.message.match(/\(Note: ([^\)]*)\)/);
+                    const stage = stageMatch ? stageMatch[1] : '';
+                    const note = noteMatch ? noteMatch[1] : '';
+                    const reason = alert.reason_type || '';
+                    const reasonDetail = note ? `${reason} (${note})` : reason;
+
+                    if (language === 'id') {
+                        cleanMessage = `${itemName} ${poInfo} — Terhambat di ${stage || 'Produksi'}: ${reasonDetail || 'Kendala'}`;
+                    } else {
+                        cleanMessage = `${itemName} ${poInfo} — Stuck on ${stage || 'Production'}: ${reasonDetail || 'Issue'}`;
+                    }
+
+                    issues.push({
+                        id: `alert-db-${alert.id}`,
+                        po_id: alert.item?.po_id,
+                        item_id: alert.item_id,
+                        severity: severity,
+                        type: type,
+                        title: title,
+                        message: cleanMessage,
+                        created_at: alert.created_at,
+                        itemName: itemName,
+                        poNumber: poNumber,
+                        stage: stage || 'Production',
+                        reason: reason,
+                        note: note,
+                        client_name: alert.item?.po?.client_name || '',
+                    });
+                }
             }
         });
 
@@ -767,8 +807,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
     const filteredPos = (() => {
         const basePos = pos.filter(po => {
-            if (activeTab === 'active') return po.status !== 'COMPLETED';
-            if (activeTab === 'completed') return po.status === 'COMPLETED';
+            if (activeTab === 'active') return po.status !== 'COMPLETED' && po.status !== 'DELIVERED' && po.status !== 'CLOSED';
+            if (activeTab === 'completed') return po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED';
             return true;
         });
 
@@ -784,17 +824,20 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         const itemAlerts = alerts.filter(a => a.item_id === item.id && !a.is_resolved);
                         return itemAlerts.some(a => a.severity === 'RED' || a.severity === 'YELLOW');
                     }
-                    case 'delayed':
-                        return item.days_overdue > 0 && item.status !== 'COMPLETED';
-                    case 'ontime':
-                        return (item.status === 'COMPLETED') || (item.status !== 'COMPLETED' && item.days_overdue === 0);
+                    case 'delayed': {
+                        if (item.status === 'COMPLETED') return false;
+                        const { diffDays } = calculateDeadlineDiff(po.global_deadline);
+                        return diffDays < 0;
+                    }
+                    case 'ontime': {
+                        if (item.status === 'COMPLETED') return true;
+                        const { diffDays } = calculateDeadlineDiff(po.global_deadline);
+                        return diffDays >= 0;
+                    }
                     case 'close_due': {
-                        if (!po.global_deadline || item.status === 'COMPLETED') return false;
-                        const deadline = new Date(po.global_deadline);
-                        const today = new Date();
-                        const diffTime = deadline.getTime() - today.getTime();
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        return diffDays >= 0 && diffDays <= 7;
+                        if (item.status === 'COMPLETED') return false;
+                        const { diffDays } = calculateDeadlineDiff(po.global_deadline);
+                        return diffDays >= 0 && diffDays <= 3;
                     }
                     default:
                         return true;
@@ -811,6 +854,18 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
         return result;
     })();
+
+    useEffect(() => {
+        if (activePoFilter !== 'all') {
+            const matchingPoIds = filteredPos.map(po => po.id);
+            setExpandedPOs(prev => {
+                const next = new Set(prev);
+                matchingPoIds.forEach(id => next.add(id));
+                return next;
+            });
+        }
+    }, [activePoFilter]);
+
 
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
 
@@ -1652,20 +1707,22 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     <span className="tab-label-full">{t.performance_matrix}</span>
                     <span className="tab-label-short">{t.tab_matrix}</span>
                 </button>
-                <button className={`tab ${activeTab === 'team' ? 'tab-active' : ''}`} onClick={() => changeTab('team')}>
-                    <span className="tab-label-full">{t.team_tab}</span>
-                    <span className="tab-label-short">{t.tab_team}</span>
-                    <span style={{
-                        marginLeft: '4px',
-                        fontSize: '10px',
-                        backgroundColor: 'rgba(255,255,255,0.1)',
-                        color: '#a1a1aa',
-                        padding: '1px 5px',
-                        borderRadius: '8px'
-                    }}>
-                        {users.length}
-                    </span>
-                </button>
+                {!isOwner && (
+                    <button className={`tab ${activeTab === 'team' ? 'tab-active' : ''}`} onClick={() => changeTab('team')}>
+                        <span className="tab-label-full">{t.team_tab}</span>
+                        <span className="tab-label-short">{t.tab_team}</span>
+                        <span style={{
+                            marginLeft: '4px',
+                            fontSize: '10px',
+                            backgroundColor: 'rgba(255,255,255,0.1)',
+                            color: '#a1a1aa',
+                            padding: '1px 5px',
+                            borderRadius: '8px'
+                        }}>
+                            {users.length}
+                        </span>
+                    </button>
+                )}
             </div>
 
             {/* State Summary Bar — compact */}
@@ -1793,7 +1850,24 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             onClick={() => {
                                                 if (issue.po_id) {
                                                     changeTab('active');
-                                                    togglePO(issue.po_id);
+                                                    setExpandedPOs(prev => {
+                                                        const next = new Set(prev);
+                                                        next.add(issue.po_id);
+                                                        return next;
+                                                    });
+                                                    if (issue.item_id) {
+                                                        setExpandedItems(prev => {
+                                                            const next = new Set(prev);
+                                                            next.add(issue.item_id);
+                                                            return next;
+                                                        });
+                                                        setTimeout(() => {
+                                                            const el = document.getElementById(`item-card-${issue.item_id}`);
+                                                            if (el) {
+                                                                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                            }
+                                                        }, 120);
+                                                    }
                                                 }
                                             }}
                                             style={{
@@ -1811,19 +1885,51 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             }}
                                             className={issue.po_id ? 'hover-grow' : ''}
                                         >
-                                            <span className="badge" style={{
-                                                color: '#fff',
-                                                backgroundColor: badgeBg,
-                                                fontSize: '10px',
-                                                fontWeight: 800,
-                                                padding: '3px 8px',
-                                                borderRadius: '4px',
-                                                whiteSpace: 'nowrap'
-                                            }}>
-                                                {badgeText}
-                                            </span>
-                                            <div style={{ fontSize: '14px', color: '#e4e4e7', flexGrow: 1 }}>
-                                                {issue.message}
+                                            <div style={{ flex: 1, minWidth: '200px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                                        <span className="badge" style={{
+                                                            color: '#fff',
+                                                            backgroundColor: badgeBg,
+                                                            fontSize: '10px',
+                                                            fontWeight: 800,
+                                                            padding: '3px 8px',
+                                                            borderRadius: '4px',
+                                                            whiteSpace: 'nowrap'
+                                                        }}>
+                                                            {badgeText}
+                                                        </span>
+                                                        {issue.poNumber && (
+                                                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#fafafa' }}>
+                                                                {issue.poNumber} {issue.client_name ? `(${issue.client_name})` : ''}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {issue.created_at && (
+                                                        <span style={{ fontSize: '11px', color: '#71717a', fontWeight: 500 }}>
+                                                            {formatAlertTime(issue.created_at, language)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                
+                                                {issue.itemName ? (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                        <div style={{ fontSize: '14px', color: '#e4e4e7', fontWeight: 600 }}>
+                                                            {issue.itemName} &middot; <span style={{ color: '#fb923c', fontWeight: 700 }}>Stage: {issue.stage}</span>
+                                                        </div>
+                                                        <div style={{ fontSize: '13px', color: '#a1a1aa' }}>
+                                                            <strong style={{ color: '#f87171' }}>
+                                                                {language === 'id' ? 'Penyebab: ' : 'Why: '}
+                                                            </strong>
+                                                            {issue.reason ? formatReasonType(issue.reason, language) : ''}
+                                                            {issue.note ? ` (${issue.note})` : ''}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ fontSize: '14px', color: '#e4e4e7' }}>
+                                                        {issue.message}
+                                                    </div>
+                                                )}
                                             </div>
                                             {issue.action && (
                                                 <button
@@ -1996,26 +2102,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                                     <span style={{ fontSize: '16px', fontWeight: 800 }}>{po.po_number}</span>
-                                                    <span className="badge" style={{
-                                                        backgroundColor: po.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(234, 179, 8, 0.15)',
-                                                        color: po.status === 'COMPLETED' ? '#34d399' : '#fbbf24'
-                                                    }}>
-                                                        {po.status}
-                                                    </span>
-                                                    {po.is_urgent && (
-                                                        <span className="badge" style={{
-                                                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                                                            color: '#ef4444',
-                                                            border: '1px solid rgba(239, 68, 68, 0.4)'
-                                                        }}>
-                                                            URGENT
-                                                        </span>
-                                                    )}
+                                                    <StatusBadge status={po.status} />
+                                                    {po.is_urgent && <StatusBadge status="URGENT" />}
                                                     {(() => {
                                                         const poItemIds = po.items.map(i => i.id);
                                                         const poAlerts = alerts.filter(a => poItemIds.includes(a.item_id) && !a.is_resolved);
                                                         const hasRework = poAlerts.some(a => a.severity === 'YELLOW');
-                                                        return renderWarningPill(po.global_deadline, hasRework, language);
+                                                        return <WarningPill deadlineDateStr={po.global_deadline} reworkMessage={hasRework} lang={language} />;
                                                     })()}
                                                 </div>
                                                 <div style={{ fontSize: '12px', color: '#a1a1aa', marginTop: '2px' }}>
@@ -2042,7 +2135,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         const itemExpanded = expandedItems.has(item.id);
 
                                                         return (
-                                                            <div key={item.id} className="item-compact" style={{
+                                                            <div key={item.id} id={`item-card-${item.id}`} className="item-compact" style={{
                                                         ...(() => {
                                                             const itemAlerts = alerts.filter(a => a.item_id === item.id && !a.is_resolved);
                                                             const hasRework = itemAlerts.some(a => a.severity === 'YELLOW');
@@ -2090,6 +2183,54 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                     : (language === 'id' ? `Material: ${item.purchasing_status}` : `Material: ${item.purchasing_status}`)}
                                                                             </span>
                                                                         )}
+                                                                        {item.delivery_status && (
+                                                                            <span className="badge" style={{
+                                                                                backgroundColor: item.delivery_status === 'DELIVERED' ? 'rgba(16, 185, 129, 0.15)' :
+                                                                                    item.delivery_status === 'PARTIAL' ? 'rgba(234, 179, 8, 0.15)' :
+                                                                                    'rgba(59, 130, 246, 0.1)',
+                                                                                color: item.delivery_status === 'DELIVERED' ? '#34d399' :
+                                                                                    item.delivery_status === 'PARTIAL' ? '#fbbf24' :
+                                                                                    '#3b82f6',
+                                                                            }}>
+                                                                                {item.delivery_status === 'DELIVERED'
+                                                                                    ? (language === 'id' ? 'Terkirim' : 'Delivered')
+                                                                                    : item.delivery_status === 'PARTIAL'
+                                                                                    ? (language === 'id' ? `Terkirim Sebagian (${item.delivered_qty}/${item.target_qty})` : `Partially Delivered (${item.delivered_qty}/${item.target_qty})`)
+                                                                                    : (language === 'id' ? 'Belum Dikirim' : 'Pending Delivery')}
+                                                                            </span>
+                                                                        )}
+                                                                        {item.invoice_status && (
+                                                                            <span className="badge" style={{
+                                                                                backgroundColor: item.invoice_status === 'INVOICED' ? 'rgba(16, 185, 129, 0.15)' :
+                                                                                    item.invoice_status === 'PARTIAL' ? 'rgba(168, 85, 247, 0.15)' :
+                                                                                    'rgba(255, 255, 255, 0.04)',
+                                                                                color: item.invoice_status === 'INVOICED' ? '#34d399' :
+                                                                                    item.invoice_status === 'PARTIAL' ? '#c084fc' :
+                                                                                    '#a1a1aa',
+                                                                            }}>
+                                                                                {item.invoice_status === 'INVOICED'
+                                                                                    ? (language === 'id' ? 'Difakturkan' : 'Invoiced')
+                                                                                    : item.invoice_status === 'PARTIAL'
+                                                                                    ? (language === 'id' ? `Faktur Sebagian (${item.invoiced_qty}/${item.target_qty})` : `Partially Invoiced (${item.invoiced_qty}/${item.target_qty})`)
+                                                                                    : (language === 'id' ? 'Belum Difakturkan' : 'Uninvoiced')}
+                                                                            </span>
+                                                                        )}
+                                                                        {item.payment_status && (
+                                                                            <span className="badge" style={{
+                                                                                backgroundColor: item.payment_status === 'PAID' ? 'rgba(16, 185, 129, 0.15)' :
+                                                                                    item.payment_status === 'PARTIAL_PAID' ? 'rgba(99, 102, 241, 0.15)' :
+                                                                                    'rgba(255, 255, 255, 0.04)',
+                                                                                color: item.payment_status === 'PAID' ? '#34d399' :
+                                                                                    item.payment_status === 'PARTIAL_PAID' ? '#818cf8' :
+                                                                                    '#a1a1aa',
+                                                                            }}>
+                                                                                {item.payment_status === 'PAID'
+                                                                                    ? (language === 'id' ? 'Lunas' : 'Paid')
+                                                                                    : item.payment_status === 'PARTIAL_PAID'
+                                                                                    ? (language === 'id' ? 'Bayar Sebagian' : 'Partial Paid')
+                                                                                    : (language === 'id' ? 'Belum Bayar' : 'Unpaid')}
+                                                                            </span>
+                                                                        )}
                                                                         <span className="badge" style={{
                                                                             backgroundColor: isCancelled ? 'rgba(239, 68, 68, 0.15)'
                                                                                 : isTerminated ? 'rgba(239, 68, 68, 0.15)'
@@ -2105,6 +2246,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                     case 'COMPLETED': return language === 'id' ? 'Selesai' : 'Completed';
                                                                                     case 'CANCELLED': return language === 'id' ? 'Dibatalkan' : 'Cancelled';
                                                                                     case 'TERMINATED': return language === 'id' ? 'Dihentikan' : 'Terminated';
+                                                                                    case 'DELIVERED': return language === 'id' ? 'Terkirim' : 'Delivered';
+                                                                                    case 'CLOSED': return language === 'id' ? 'Selesai & Lunas' : 'Closed';
                                                                                     default: return item.status;
                                                                                 }
                                                                             })()}
@@ -2113,7 +2256,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 const itemAlerts = alerts.filter(a => a.item_id === item.id && !a.is_resolved);
                                                                                 const reworkAlert = itemAlerts.find(a => a.severity === 'YELLOW');
                                                                                 const reworkVal = reworkAlert ? (reworkAlert.message ? `Rework: ${reworkAlert.message}` : 'Rework') : null;
-                                                                                return renderWarningPill(po.global_deadline, reworkVal, language);
+                                                                                return <WarningPill deadlineDateStr={po.global_deadline} reworkMessage={reworkVal} lang={language} />;
                                                                             })()}
                                                                         </div>
                                                                     </div>
@@ -2139,7 +2282,6 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                     </span>
                                                                     <ChevronDown size={14} expanded={itemExpanded} />
                                                                 </button>
-
                                                                 {itemExpanded && (
                                                                     <div className="item-compact-detail">
                                                                         <div className="responsive-split" style={{ marginBottom: '12px', gap: '8px' }}>
@@ -2147,22 +2289,57 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#818cf8' }}>
                                                                                     Client: {po.client_name}
                                                                                 </div>
-                                                                                <div style={{ fontSize: '12px', color: '#a1a1aa' }}>
-                                                                                    Deadline: {formatDeadline(po.global_deadline, language)}
-                                                                                </div>
+                                                                        {(() => {
+                                                                                     const deadline = new Date(po.global_deadline);
+                                                                                     const deadlineClean = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
+                                                                                     const today = new Date();
+                                                                                     const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                                                                                     const diffTime = deadlineClean.getTime() - todayClean.getTime();
+                                                                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                                                                     
+                                                                                     let color = '#34d399'; // Normal: Green
+                                                                                     let label = language === 'id' ? 'Aman' : 'On Track';
+                                                                                     if (diffDays < 0) {
+                                                                                         color = '#ef4444'; // Delayed: Red
+                                                                                         label = language === 'id' ? 'Terlambat' : 'Delayed';
+                                                                                     } else if (diffDays <= 3) {
+                                                                                         color = '#fbbf24'; // Close: Yellow
+                                                                                         label = language === 'id' ? 'Mendekati Tenggat' : 'Closing In';
+                                                                                     }
+                                                                                     
+                                                                                     return (
+                                                                                         <div style={{ 
+                                                                                             fontSize: '15px', 
+                                                                                             fontWeight: 800, 
+                                                                                             color: '#fafafa',
+                                                                                             marginTop: '2px',
+                                                                                             marginBottom: '4px',
+                                                                                             display: 'flex',
+                                                                                             alignItems: 'center',
+                                                                                             gap: '6px',
+                                                                                             flexWrap: 'wrap'
+                                                                                         }}>
+                                                                                             <span style={{ color: '#a1a1aa', fontWeight: 'normal', fontSize: '13px' }}>Deadline:</span>
+                                                                                             <span style={{ color }}>{formatDeadline(po.global_deadline, language)}</span>
+                                                                                             <span style={{ 
+                                                                                                 fontSize: '9px', 
+                                                                                                 padding: '2px 6px', 
+                                                                                                 borderRadius: '4px', 
+                                                                                                 backgroundColor: `${color}1a`, // ~10% opacity
+                                                                                                 color, 
+                                                                                                 border: `1px solid ${color}33`,
+                                                                                                 fontWeight: 800,
+                                                                                                 textTransform: 'uppercase',
+                                                                                                 letterSpacing: '0.05em'
+                                                                                             }}>
+                                                                                                 {label}
+                                                                                             </span>
+                                                                                         </div>
+                                                                                     );
+                                                                                 })()}
                                                                                 <div style={{ fontSize: '12px', fontWeight: 600, color: '#a5b4fc' }}>
                                                                                     Qty: {item.target_qty} pcs {item.delivered_qty > 0 ? `| Delivered: ${item.delivered_qty} pcs` : ''}
                                                                                 </div>
-                                                                                {item.drafter_status && (
-                                                                                    <div style={{ fontSize: '11px', color: item.drafter_status === 'APPROVED' ? '#34d399' : '#a78bfa' }}>
-                                                                                        {language === 'en' ? 'Drafter' : 'Drafter'}: {item.drafter_status}
-                                                                                    </div>
-                                                                                )}
-                                                                                {item.purchasing_status && (
-                                                                                    <div style={{ fontSize: '11px', color: item.purchasing_status === 'READY' ? '#34d399' : item.purchasing_status === 'PROSES' ? '#fbbf24' : '#3b82f6' }}>
-                                                                                        {language === 'en' ? 'Purchasing' : 'Pembelian'}: {item.purchasing_status}
-                                                                                    </div>
-                                                                                )}
                                                                                 {item.vendor_name && (
                                                                                     <div style={{ fontSize: '11px', color: '#34d399' }}>
                                                                                         Vendor: {item.vendor_name} ({item.vendor_phone})
@@ -2277,7 +2454,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                                         progressText = 'Pending';
                                                                                                     }
                                                                                                 } else {
-                                                                                                    progressText = stage.completed_qty > 0 ? `${stage.completed_qty} pcs` : `${parseFloat(stage.progress_percent).toFixed(0)}%`;
+                                                                                                    progressText = item.target_qty > 1
+                                                                                                        ? `${stage.completed_qty}/${item.target_qty} pcs`
+                                                                                                        : (stage.completed_qty > 0 ? `${stage.completed_qty} pcs` : `${parseFloat(stage.progress_percent).toFixed(0)}%`);
                                                                                                 }
 
                                                                                                 return `${stage.stage_name}: ${progressText}`;
@@ -2830,12 +3009,12 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                     break;
                                                 case 'finance_uninvoiced':
                                                     items = allItems.filter((item: any) =>
-                                                        item.po_status === 'COMPLETED' && item.invoice_status === 'UNINVOICED'
+                                                        (item.po_status === 'COMPLETED' || item.po_status === 'DELIVERED' || item.po_status === 'CLOSED') && item.invoice_status !== 'INVOICED'
                                                     );
                                                     break;
                                                 case 'finance_unpaid':
                                                     items = allItems.filter((item: any) =>
-                                                        item.po_status === 'COMPLETED' && item.payment_status === 'UNPAID' && item.invoice_status !== 'UNINVOICED'
+                                                        (item.po_status === 'COMPLETED' || item.po_status === 'DELIVERED' || item.po_status === 'CLOSED') && item.payment_status !== 'PAID' && item.invoice_status !== 'UNINVOICED'
                                                     );
                                                     break;
                                                 case 'client':
@@ -2850,12 +3029,12 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                     break;
                                                 case 'client_uninvoiced':
                                                     items = allItems.filter((item: any) =>
-                                                        item.client_name?.toLowerCase() === value.toLowerCase() && item.po_status === 'COMPLETED' && item.invoice_status === 'UNINVOICED'
+                                                        item.client_name?.toLowerCase() === value.toLowerCase() && item.po_status === 'COMPLETED' && item.invoice_status !== 'INVOICED'
                                                     );
                                                     break;
                                                 case 'client_unpaid':
                                                     items = allItems.filter((item: any) =>
-                                                        item.client_name?.toLowerCase() === value.toLowerCase() && item.po_status === 'COMPLETED' && item.payment_status === 'UNPAID' && item.invoice_status !== 'UNINVOICED'
+                                                        item.client_name?.toLowerCase() === value.toLowerCase() && item.po_status === 'COMPLETED' && item.payment_status !== 'PAID' && item.invoice_status !== 'UNINVOICED'
                                                     );
                                                     break;
                                                 case 'reason':
@@ -2952,15 +3131,23 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                         let statusColor = '#a1a1aa';
                                                                         let statusBg = 'rgba(255,255,255,0.03)';
                                                                         
-                                                                        if (item.po_status === 'COMPLETED') {
+                                                                        if (item.po_status === 'COMPLETED' || item.po_status === 'DELIVERED' || item.po_status === 'CLOSED') {
                                                                             if (item.invoice_status === 'UNINVOICED') {
                                                                                 displayStatus = language === 'id' ? 'Belum Difakturkan' : 'Finance: Uninvoiced';
                                                                                 statusColor = '#fbbf24';
                                                                                 statusBg = 'rgba(234,179,8,0.1)';
+                                                                            } else if (item.invoice_status === 'PARTIAL') {
+                                                                                displayStatus = (language === 'id' ? 'Faktur Sebagian' : 'Finance: Partial Invoice') + ` (${item.invoiced_qty}/${item.target_qty})`;
+                                                                                statusColor = '#a855f7';
+                                                                                statusBg = 'rgba(168,85,247,0.1)';
                                                                             } else if (item.payment_status === 'UNPAID') {
                                                                                 displayStatus = language === 'id' ? 'Belum Dibayar' : 'Finance: Unpaid';
                                                                                 statusColor = '#fb923c';
                                                                                 statusBg = 'rgba(249,115,22,0.1)';
+                                                                            } else if (item.payment_status === 'PARTIAL_PAID') {
+                                                                                displayStatus = language === 'id' ? 'Dibayar Sebagian' : 'Finance: Partial Paid';
+                                                                                statusColor = '#6366f1';
+                                                                                statusBg = 'rgba(99,102,241,0.1)';
                                                                             } else {
                                                                                 displayStatus = language === 'id' ? 'Selesai & Lunas' : 'Closed / Settled';
                                                                                 statusColor = '#34d399';
@@ -2976,8 +3163,27 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 <td style={{ padding: '12px 16px', fontWeight: 700 }}>
                                                                                     <button
                                                                                         onClick={() => {
-                                                                                            changeTab('active');
-                                                                                            togglePO(item.po_id);
+                                                                                            if (item.po_id) {
+                                                                                                changeTab('active');
+                                                                                                setExpandedPOs(prev => {
+                                                                                                    const next = new Set(prev);
+                                                                                                    next.add(item.po_id);
+                                                                                                    return next;
+                                                                                                });
+                                                                                                if (item.id) {
+                                                                                                    setExpandedItems(prev => {
+                                                                                                        const next = new Set(prev);
+                                                                                                        next.add(item.id);
+                                                                                                        return next;
+                                                                                                    });
+                                                                                                    setTimeout(() => {
+                                                                                                        const el = document.getElementById(`item-card-${item.id}`);
+                                                                                                        if (el) {
+                                                                                                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                                                                        }
+                                                                                                    }, 120);
+                                                                                                }
+                                                                                            }
                                                                                         }}
                                                                                         style={{
                                                                                             background: 'none',
@@ -3070,21 +3276,29 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                     let statusColor = '#a1a1aa';
                                                                     let statusBg = 'rgba(255,255,255,0.03)';
                                                                     
-                                                                    if (item.po_status === 'COMPLETED') {
-                                                                        if (item.invoice_status === 'UNINVOICED') {
-                                                                            displayStatus = language === 'id' ? 'Belum Difakturkan' : 'Finance: Uninvoiced';
-                                                                            statusColor = '#fbbf24';
-                                                                            statusBg = 'rgba(234,179,8,0.1)';
-                                                                        } else if (item.payment_status === 'UNPAID') {
-                                                                            displayStatus = language === 'id' ? 'Belum Dibayar' : 'Finance: Unpaid';
-                                                                            statusColor = '#fb923c';
-                                                                            statusBg = 'rgba(249,115,22,0.1)';
-                                                                        } else {
-                                                                            displayStatus = language === 'id' ? 'Selesai & Lunas' : 'Closed / Settled';
-                                                                            statusColor = '#34d399';
-                                                                            statusBg = 'rgba(16,185,129,0.1)';
-                                                                        }
-                                                                    } else {
+                                                                     if (item.po_status === 'COMPLETED' || item.po_status === 'DELIVERED' || item.po_status === 'CLOSED') {
+                                                                         if (item.invoice_status === 'UNINVOICED') {
+                                                                             displayStatus = language === 'id' ? 'Belum Difakturkan' : 'Finance: Uninvoiced';
+                                                                             statusColor = '#fbbf24';
+                                                                             statusBg = 'rgba(234,179,8,0.1)';
+                                                                         } else if (item.invoice_status === 'PARTIAL') {
+                                                                             displayStatus = (language === 'id' ? 'Faktur Sebagian' : 'Finance: Partial Invoice') + ` (${item.invoiced_qty}/${item.target_qty})`;
+                                                                             statusColor = '#a855f7';
+                                                                             statusBg = 'rgba(168,85,247,0.1)';
+                                                                         } else if (item.payment_status === 'UNPAID') {
+                                                                             displayStatus = language === 'id' ? 'Belum Dibayar' : 'Finance: Unpaid';
+                                                                             statusColor = '#fb923c';
+                                                                             statusBg = 'rgba(249,115,22,0.1)';
+                                                                         } else if (item.payment_status === 'PARTIAL_PAID') {
+                                                                             displayStatus = language === 'id' ? 'Dibayar Sebagian' : 'Finance: Partial Paid';
+                                                                             statusColor = '#6366f1';
+                                                                             statusBg = 'rgba(99,102,241,0.1)';
+                                                                         } else {
+                                                                             displayStatus = language === 'id' ? 'Selesai & Lunas' : 'Closed / Settled';
+                                                                             statusColor = '#34d399';
+                                                                             statusBg = 'rgba(16,185,129,0.1)';
+                                                                         }
+                                                                     } else {
                                                                         statusColor = '#3b82f6';
                                                                         statusBg = 'rgba(59,130,246,0.1)';
                                                                     }
@@ -3694,7 +3908,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
             </div>
 
             {/* ── Team / User Management Tab ─────────────────────────────── */}
-            {activeTab === 'team' && (() => {
+            {activeTab === 'team' && !isOwner && (() => {
                 const ALL_ROLES = (roles ?? []).map(r => r.name);
                 const filteredUsers = userRoleFilter === 'ALL'
                     ? [...users]
@@ -3954,6 +4168,142 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     })}
                                 </div>
                             )}
+
+                        {/* ── Workflow & Validation Settings ────────────────────── */}
+                        <div style={{
+                            marginTop: '32px',
+                            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                            borderRadius: '16px',
+                            padding: '24px',
+                        }}>
+                            <div style={{ marginBottom: '16px' }}>
+                                <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#fafafa', margin: '0 0 4px 0' }}>
+                                    {language === 'en' ? 'Workflow & Validation Rules' : 'Aturan Alur Kerja & Validasi'}
+                                </h3>
+                                <p style={{ fontSize: '12px', color: '#71717a', margin: 0 }}>
+                                    {language === 'en' 
+                                        ? 'Define rules and locks between design, material purchasing, production, QC, and delivery stages.' 
+                                        : 'Tentukan aturan dan kuncian antara tahap desain, pembelian bahan, produksi, QC, dan pengiriman.'}
+                                </p>
+                            </div>
+
+                            <form onSubmit={saveWorkflowSettings}>
+                                {/* Mode Selection Group */}
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+                                    {[
+                                        { value: 'loose', label: language === 'en' ? 'Loose Mode' : 'Mode Longgar', desc: language === 'en' ? 'Production is not blocked by design/material readiness.' : 'Produksi tidak dikunci oleh kesiapan desain/bahan.' },
+                                        { value: 'strict', label: language === 'en' ? 'Strict Mode' : 'Mode Ketat', desc: language === 'en' ? 'Design and material must be 100% ready to start production.' : 'Desain dan bahan harus 100% siap untuk mulai produksi.' },
+                                        { value: 'custom', label: language === 'en' ? 'Custom Mode' : 'Mode Kustom', desc: language === 'en' ? 'Configure individual gate locks manually.' : 'Atur kuncian gerbang secara manual.' }
+                                    ].map(mode => {
+                                        const isSelected = workflowMode === mode.value;
+                                        return (
+                                            <div
+                                                key={mode.value}
+                                                onClick={() => {
+                                                    setWorkflowMode(mode.value as any);
+                                                    if (mode.value === 'strict') {
+                                                        setReqDesign(true);
+                                                        setReqMaterial(true);
+                                                        setReqProductionForQc(true);
+                                                        setReqQcForDelivery(true);
+                                                        setReqDeliveryForFinance(true);
+                                                    } else if (mode.value === 'loose') {
+                                                        setReqDesign(false);
+                                                        setReqMaterial(false);
+                                                        setReqProductionForQc(true);
+                                                        setReqQcForDelivery(true);
+                                                        setReqDeliveryForFinance(true);
+                                                    }
+                                                }}
+                                                style={{
+                                                    backgroundColor: isSelected ? 'rgba(99, 102, 241, 0.08)' : 'rgba(255,255,255,0.02)',
+                                                    border: '1px solid',
+                                                    borderColor: isSelected ? '#6366f1' : 'rgba(255,255,255,0.06)',
+                                                    borderRadius: '12px',
+                                                    padding: '16px',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease',
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                                                    <div style={{
+                                                        width: '16px', height: '16px', borderRadius: '50%',
+                                                        border: isSelected ? '5px solid #6366f1' : '2px solid rgba(255,255,255,0.2)',
+                                                        backgroundColor: isSelected ? '#fff' : 'transparent',
+                                                        boxSizing: 'border-box'
+                                                    }} />
+                                                    <span style={{ fontSize: '14px', fontWeight: 700, color: isSelected ? '#818cf8' : '#fafafa' }}>
+                                                        {mode.label}
+                                                    </span>
+                                                </div>
+                                                <p style={{ fontSize: '11px', color: '#a1a1aa', margin: 0 }}>{mode.desc}</p>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Custom Toggles Box */}
+                                {workflowMode === 'custom' && (
+                                    <div style={{
+                                        backgroundColor: 'rgba(0,0,0,0.2)',
+                                        borderRadius: '12px',
+                                        padding: '16px',
+                                        marginBottom: '20px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '12px',
+                                        border: '1px solid rgba(255,255,255,0.04)',
+                                    }}>
+                                        {[
+                                            { state: reqDesign, setter: setReqDesign, label: language === 'en' ? 'Require Design Approved (APPROVED) to start Production' : 'Wajib Desain Disetujui (APPROVED) untuk memulai Produksi' },
+                                            { state: reqMaterial, setter: setReqMaterial, label: language === 'en' ? 'Require Material Ready (READY) to start Production' : 'Wajib Bahan Siap (READY) untuk memulai Produksi' },
+                                            { state: reqProductionForQc, setter: setReqProductionForQc, label: language === 'en' ? 'Require Production Completed to start QC' : 'Wajib Produksi Selesai untuk memulai QC' },
+                                            { state: reqQcForDelivery, setter: setReqQcForDelivery, label: language === 'en' ? 'Require QC Completed to start Delivery' : 'Wajib QC Selesai untuk memulai Pengiriman' },
+                                            { state: reqDeliveryForFinance, setter: setReqDeliveryForFinance, label: language === 'en' ? 'Require Delivery Completed to start Finance stage' : 'Wajib Pengiriman Selesai untuk memulai Keuangan' }
+                                        ].map((rule, idx) => (
+                                            <label key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px', color: '#e4e4e7' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={rule.state}
+                                                    onChange={e => rule.setter(e.target.checked)}
+                                                    style={{
+                                                        width: '16px', height: '16px', borderRadius: '4px',
+                                                        accentColor: '#6366f1', cursor: 'pointer'
+                                                    }}
+                                                />
+                                                {rule.label}
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Submit Button */}
+                                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                    <button
+                                        type="submit"
+                                        disabled={isSavingSettings}
+                                        style={{
+                                            padding: '8px 18px',
+                                            borderRadius: '8px',
+                                            backgroundColor: isSavingSettings ? 'rgba(99,102,241,0.5)' : '#6366f1',
+                                            color: '#fff',
+                                            fontSize: '13px',
+                                            fontWeight: 700,
+                                            border: 'none',
+                                            cursor: isSavingSettings ? 'not-allowed' : 'pointer',
+                                            transition: 'all 0.2s',
+                                        }}
+                                        onMouseOver={e => { if(!isSavingSettings) e.currentTarget.style.backgroundColor = '#4f46e5'; }}
+                                        onMouseOut={e => { if(!isSavingSettings) e.currentTarget.style.backgroundColor = '#6366f1'; }}
+                                    >
+                                        {isSavingSettings 
+                                            ? (language === 'en' ? 'Saving...' : 'Menyimpan...') 
+                                            : (language === 'en' ? 'Save Settings' : 'Simpan Pengaturan')}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 );
             })()}
@@ -4880,8 +5230,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                     <span style={{
                                                                         fontSize: '10px',
                                                                         fontWeight: 700,
-                                                                        color: po.status === 'COMPLETED' ? '#34d399' : '#fbbf24',
-                                                                        backgroundColor: po.status === 'COMPLETED' ? 'rgba(16,185,129,0.12)' : 'rgba(234,179,8,0.12)',
+                                                                        color: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? '#34d399' : '#fbbf24',
+                                                                        backgroundColor: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? 'rgba(16,185,129,0.12)' : 'rgba(234,179,8,0.12)',
                                                                         padding: '2px 6px',
                                                                         borderRadius: '4px'
                                                                     }}>
@@ -4895,7 +5245,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                 {/* Progress Bar */}
                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                                     <div style={{ flex: 1, height: '6px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
-                                                                        <div style={{ width: `${itemsProgress}%`, height: '100%', backgroundColor: po.status === 'COMPLETED' ? '#10b981' : '#6366f1', borderRadius: '3px' }} />
+                                                                        <div style={{ width: `${itemsProgress}%`, height: '100%', backgroundColor: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? '#10b981' : '#6366f1', borderRadius: '3px' }} />
                                                                     </div>
                                                                     <span style={{ fontSize: '11px', fontWeight: 700, color: '#fafafa' }}>{itemsProgress}%</span>
                                                                 </div>
