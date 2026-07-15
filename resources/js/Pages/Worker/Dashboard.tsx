@@ -14,6 +14,14 @@ interface Stage {
     previous_progress_percent?: string | null;
 }
 
+interface Alert {
+    id: number;
+    severity: string;
+    reason_type?: string | null;
+    message?: string | null;
+    is_resolved: boolean;
+}
+
 interface Item {
     id: number;
     item_name: string;
@@ -28,6 +36,7 @@ interface Item {
     delivery_status?: string | null;
     delivered_qty?: number;
     invoiced_qty?: number;
+    alerts: Alert[];
     po?: {
         po_number: string;
         external_po_number?: string | null;
