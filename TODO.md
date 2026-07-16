@@ -413,7 +413,7 @@ Already spec'd in `NEXT_BUILD.md`. Backend routes + controller exist.
 ## 🔵 BACKLOG — Future Features
 
 - [ ] **Pusher live toast**: bind React to Pusher channel for real-time Kendala alerts on Owner Dashboard
-- [ ] **Alert escalation**: auto-notify (log) if RED alert unresolved > 24 hours
+- [x] **Alert escalation**: `pogrid:evaluate-timelines` sets `escalated_at` + broadcasts `AlertEscalated` for RED alerts unresolved > 24h; scheduled daily in routes/console.php; escalation badge on Alert list (GIT-49)
 - [ ] **Worker self-KPI tab**: "My Completed Tasks" sub-tab with cycle times
 - [ ] **CSV/Excel export**: "Export to Excel" on Matrix tab
 - [ ] **Rework analytics**: "Rework Logbook" — 6-month rework trend per client/item/stage
