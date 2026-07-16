@@ -621,6 +621,68 @@ class CoreLogicTest extends TestCase
         $this->assertEquals('COMPLETED', $item->status);
     }
 
+    public function test_evaluate_timelines_escalates_red_alerts_unresolved_over_24h()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-ESC-1',
+            'client_name' => 'Client Esc',
+            'global_deadline' => now()->subDays(2),
+            'status' => 'PENDING',
+        ]);
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Stuck Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Machining'],
+            'status' => 'PENDING',
+        ]);
+
+        // Create RED alert that is >24h old (created 36 hours ago)
+        $staleAlert = Alert::create([
+            'tenant_id' => $this->tenant1->id,
+            'item_id' => $item->id,
+            'severity' => 'RED',
+            'message' => 'Overdue: Stuck Item under PO-ESC-1 is not completed past deadline.',
+            'is_resolved' => false,
+        ]);
+        DB::table('alerts')->where('id', $staleAlert->id)->update([
+            'created_at' => now()->subHours(36),
+            'updated_at' => now()->subHours(36),
+        ]);
+        $staleAlert->refresh();
+
+        // Create fresh RED alert (<24h old)
+        $freshAlert = Alert::create([
+            'tenant_id' => $this->tenant1->id,
+            'item_id' => $item->id,
+            'severity' => 'RED',
+            'message' => 'Overdue: Another stuck item under PO-ESC-1 is not completed past deadline.',
+            'is_resolved' => false,
+        ]);
+        DB::table('alerts')->where('id', $freshAlert->id)->update([
+            'created_at' => now()->subHours(2),
+            'updated_at' => now()->subHours(2),
+        ]);
+        $freshAlert->refresh();
+
+        // Run command
+        $this->artisan('pogrid:evaluate-timelines')->assertSuccessful();
+
+        // Reset TenantManager context to tenant1 after command (command leaves state as last tenant)
+        TenantManager::setTenantId($this->tenant1->id);
+
+        // Stale alert should be escalated
+        $staleAlert->refresh();
+        $this->assertNotNull($staleAlert->escalated_at, 'RED alert >24h unresolved should be escalated');
+
+        // Fresh alert should NOT be escalated
+        $freshAlert->refresh();
+        $this->assertNull($freshAlert->escalated_at, 'RED alert <24h old should not be escalated');
+    }
+
     public function test_evaluate_timelines_command_does_not_leak_cross_tenant_alerts()
     {
         // Setup Tenant 1

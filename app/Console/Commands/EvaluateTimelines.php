@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Events\AlertEscalated;
 use App\Models\Alert;
 use App\Models\Item;
 use App\Models\Tenant;
@@ -17,13 +18,11 @@ class EvaluateTimelines extends Command
 
     public function handle(): void
     {
-        // Bypass TenantScope to process all tenants
         TenantManager::bypass();
 
         $tenants = Tenant::all();
 
         foreach ($tenants as $tenant) {
-            // Set context for saving alerts with correct tenant_id
             TenantManager::setTenantId($tenant->id);
 
             $activeItems = Item::where('tenant_id', $tenant->id)
@@ -40,7 +39,6 @@ class EvaluateTimelines extends Command
                 $deadline = Carbon::parse($po->global_deadline);
                 $daysRemaining = $now->diffInDays($deadline, false);
 
-                // Check RED alert (Overdue): Current Date > Global Deadline while progress < 100%
                 if ($now->greaterThan($deadline)) {
                     Alert::updateOrCreate(
                         [
@@ -51,9 +49,7 @@ class EvaluateTimelines extends Command
                         ],
                         ['is_resolved' => false]
                     );
-                }
-                // Check YELLOW alert (Approaching Risk): Days Remaining <= 3 AND Item Progress < 70%
-                elseif ($daysRemaining <= 3 && (float) $item->progress_percent < 70.00) {
+                } elseif ($daysRemaining <= 3 && (float) $item->progress_percent < 70.00) {
                     Alert::updateOrCreate(
                         [
                             'tenant_id' => $tenant->id,
@@ -64,7 +60,6 @@ class EvaluateTimelines extends Command
                         ['is_resolved' => false]
                     );
                 } else {
-                    // Resolve timeline alerts for this item if timeline is healthy
                     Alert::where('item_id', $item->id)
                         ->where('is_resolved', false)
                         ->where(function ($query) {
@@ -73,6 +68,20 @@ class EvaluateTimelines extends Command
                         })
                         ->update(['is_resolved' => true]);
                 }
+            }
+
+            // Escalate RED alerts unresolved >24h
+            $cutoff = Carbon::now()->subHours(24);
+            $staleRedAlerts = Alert::where('tenant_id', $tenant->id)
+                ->where('severity', 'RED')
+                ->where('is_resolved', false)
+                ->whereNull('escalated_at')
+                ->where('created_at', '<', $cutoff)
+                ->get();
+
+            foreach ($staleRedAlerts as $alert) {
+                $alert->update(['escalated_at' => Carbon::now()]);
+                broadcast(new AlertEscalated($alert))->toOthers();
             }
         }
 

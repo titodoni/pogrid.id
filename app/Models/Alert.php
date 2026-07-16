@@ -18,10 +18,12 @@ class Alert extends Model
         'reason_type',
         'message',
         'is_resolved',
+        'escalated_at',
     ];
 
     protected $casts = [
         'is_resolved' => 'boolean',
+        'escalated_at' => 'datetime',
     ];
 
     public function item(): BelongsTo
