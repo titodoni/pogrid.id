@@ -3,8 +3,8 @@
 namespace App\Events;
 
 use App\Models\Item;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -23,7 +23,8 @@ class ProductionTerminated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('tenant.'.$this->item->tenant_id.'.workers'),
+            new PrivateChannel('tenant.'.$this->item->tenant_id.'.dashboard'),
+            new PrivateChannel('tenant.'.$this->item->tenant_id.'.workers'),
         ];
     }
 

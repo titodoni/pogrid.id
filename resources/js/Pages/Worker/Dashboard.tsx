@@ -3,6 +3,7 @@ import { router, usePage } from '@inertiajs/react';
 import { AlertTriangle, Settings } from '../../Components/Icons';
 import { formatDeadline } from '../../Utils/deadline';
 import { WarningPill } from '../../Components/WarningPill';
+import echo from '../../bootstrap';
 
 interface Stage {
     id: number;
@@ -58,6 +59,7 @@ interface Props {
         role_level: string;
         post_name: string | null;
     };
+    tenant_id?: number;
 }
 
 const translations = {
@@ -453,7 +455,8 @@ function ItemCard({
 
     const handleFinanceSubmit = () => {
         if (loading) return;
-        router.post(`/c/${slug}/items/${item.id}/finance`, {
+        const currentItem = item;
+        router.post(`/c/${slug}/items/${currentItem.id}/finance`, {
             invoice_status: invoiceStatus,
             payment_status: paymentStatus,
             invoiced_qty: invoicedQty,
@@ -463,7 +466,7 @@ function ItemCard({
             onStart: () => setLoading(true),
             onFinish: () => setLoading(false),
             onSuccess: (page) => {
-                const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
+                const updatedItem = (page.props.items as Item[]).find(i => i.id === currentItem.id);
                 if (updatedItem) {
                     const finPercent = updatedItem.invoice_status === 'INVOICED' && updatedItem.payment_status === 'PAID' ? '100' : '0';
                     const finStatus = updatedItem.invoice_status === 'INVOICED' && updatedItem.payment_status === 'PAID' ? 'COMPLETED' : 'PENDING';
@@ -485,15 +488,17 @@ function ItemCard({
     const revertLastUpdate = () => {
         if (!activeStage || loading) return;
         if (!confirm(language === 'id' ? 'Apakah Anda yakin ingin membatalkan progres terakhir?' : 'Are you sure you want to revert the last update?')) return;
-        router.post(`/c/${slug}/progress/${activeStage.stage.id}/cancel-last-update`, {}, {
+        const currentStage = activeStage;
+        const currentItem = item;
+        router.post(`/c/${slug}/progress/${currentStage.stage.id}/cancel-last-update`, {}, {
             preserveScroll: true,
             preserveState: true,
             onStart: () => setLoading(true),
             onFinish: () => setLoading(false),
             onSuccess: (page) => {
-                const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
+                const updatedItem = (page.props.items as Item[]).find(i => i.id === currentItem.id);
                 if (updatedItem) {
-                    const updatedStage = updatedItem.item_progresses.find(s => s.id === activeStage.stage.id);
+                    const updatedStage = updatedItem.item_progresses.find(s => s.id === currentStage.stage.id);
                     if (updatedStage) {
                         setActiveStage({ stage: updatedStage, item: updatedItem });
                     }
@@ -504,12 +509,14 @@ function ItemCard({
 
     const handleDoneSubmit = () => {
         if (!activeStage || loading) return;
+        const currentStage = activeStage;
+        const currentItem = item;
 
-        const initialQty = activeStage.stage.completed_qty;
-        const initialPercent = activeStage.stage.progress_percent || '0';
+        const initialQty = currentStage.stage.completed_qty;
+        const initialPercent = currentStage.stage.progress_percent || '0';
 
-        const isQtyChanged = item.target_qty > 1 && localCompletedQty !== initialQty;
-        const isPercentChanged = item.target_qty === 1 && localProgressPercent !== initialPercent;
+        const isQtyChanged = currentItem.target_qty > 1 && localCompletedQty !== initialQty;
+        const isPercentChanged = currentItem.target_qty === 1 && localProgressPercent !== initialPercent;
 
         if (!isQtyChanged && !isPercentChanged) {
             setActiveStage(null);
@@ -519,19 +526,19 @@ function ItemCard({
             return;
         }
 
-        const payload = item.target_qty === 1
+        const payload = currentItem.target_qty === 1
             ? { progress_percent: parseFloat(localProgressPercent) }
             : { completed_qty: localCompletedQty };
 
-        router.post(`/c/${slug}/progress/${activeStage.stage.id}/update`, payload, {
+        router.post(`/c/${slug}/progress/${currentStage.stage.id}/update`, payload, {
             preserveScroll: true,
             preserveState: true,
             onStart: () => setLoading(true),
             onFinish: () => setLoading(false),
             onSuccess: (page) => {
-                const updatedItem = (page.props.items as Item[]).find(i => i.id === item.id);
+                const updatedItem = (page.props.items as Item[]).find(i => i.id === currentItem.id);
                 if (updatedItem) {
-                    const updatedStage = updatedItem.item_progresses.find(s => s.id === activeStage.stage.id);
+                    const updatedStage = updatedItem.item_progresses.find(s => s.id === currentStage.stage.id);
                     if (updatedStage) {
                         setActiveStage({ stage: updatedStage, item: updatedItem });
                     }
@@ -547,7 +554,8 @@ function ItemCard({
     const submitKendala = (e: React.FormEvent) => {
         e.preventDefault();
         if (!activeStage || loading) return;
-        router.post(`/c/${slug}/progress/${activeStage.stage.id}/kendala`, {
+        const currentStage = activeStage;
+        router.post(`/c/${slug}/progress/${currentStage.stage.id}/kendala`, {
             kendala_type: kendalaType,
             note: kendalaNote,
         }, {
@@ -566,7 +574,8 @@ function ItemCard({
     const submitQcRework = (e: React.FormEvent) => {
         e.preventDefault();
         if (!activeStage || loading) return;
-        router.post(`/c/${slug}/progress/${activeStage.stage.id}/rework`, {
+        const currentStage = activeStage;
+        router.post(`/c/${slug}/progress/${currentStage.stage.id}/rework`, {
             reject_qty: parseInt(rejectQty, 10)
         }, {
             preserveScroll: true,
@@ -1701,7 +1710,7 @@ function ItemCard({
     );
 }
 
-export default function WorkerDashboard({ items, auth_user }: Props) {
+export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) {
     const { props, url } = usePage();
     const pathParts = url.split('/');
     const slug = pathParts[2] || '';
@@ -1717,16 +1726,66 @@ export default function WorkerDashboard({ items, auth_user }: Props) {
     const t = translations[language];
 
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [frozen, setFrozen] = useState<{ itemName: string } | null>(null);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 30000);
         return () => clearInterval(timer);
     }, []);
 
+    useEffect(() => {
+        const id = tenant_id ?? (props as any).tenant_id;
+        if (!id) return;
+
+        const channel = echo.private(`tenant.${id}.workers`);
+        channel.listen('production.terminated', (e: any) => {
+            setFrozen({ itemName: e.item?.item_name || '' });
+            setTimeout(() => {
+                window.location.href = `/c/${slug}`;
+            }, 10000);
+        });
+
+        return () => {
+            echo.leave(`tenant.${id}.workers`);
+        };
+    }, [tenant_id, (props as any).tenant_id]);
+
     const changeLanguage = (lang: 'en' | 'id') => {
         setLanguage(lang);
         localStorage.setItem('pogrid_lang', lang);
     };
+
+    if (frozen) {
+        return (
+            <div style={{
+                backgroundColor: '#09090b', fontFamily: 'Inter, sans-serif',
+                color: '#fafafa', height: '100vh', width: '100vw',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                position: 'fixed', top: 0, left: 0, zIndex: 99999,
+            }}>
+                <div style={{ fontSize: '64px', marginBottom: '24px' }}>⛔</div>
+                <h1 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px', textAlign: 'center' }}>
+                    {language === 'en' ? 'Production Terminated' : 'Produksi Dihentikan'}
+                </h1>
+                <p style={{ fontSize: '14px', color: '#a1a1aa', margin: '0 0 4px', textAlign: 'center', maxWidth: '320px' }}>
+                    {language === 'en'
+                        ? `Owner has terminated production for "${frozen.itemName}".`
+                        : `Owner telah menghentikan produksi untuk "${frozen.itemName}".`}
+                </p>
+                <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 24px', textAlign: 'center' }}>
+                    {language === 'en' ? 'Redirecting to login...' : 'Mengalihkan ke halaman login...'}
+                </p>
+                <button onClick={() => { window.location.href = `/c/${slug}`; }}
+                    style={{
+                        padding: '12px 32px', backgroundColor: '#6366f1', color: '#fff',
+                        border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '14px',
+                        cursor: 'pointer',
+                    }}>
+                    {language === 'en' ? 'Return to Login' : 'Kembali ke Login'}
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="dashboard-root" style={{

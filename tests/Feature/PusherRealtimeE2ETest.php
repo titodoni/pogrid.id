@@ -114,7 +114,7 @@ class PusherRealtimeE2ETest extends TestCase
 
             $channelNames = array_map(fn ($c) => $c->name, $event->broadcastOn());
             $this->assertSame(
-                ['tenant.'.$this->tenant->id.'.dashboard'],
+                ['private-tenant.'.$this->tenant->id.'.dashboard'],
                 $channelNames,
                 'Kendala must broadcast only on the owner dashboard channel (toast target).'
             );
@@ -150,8 +150,8 @@ class PusherRealtimeE2ETest extends TestCase
             $this->assertInstanceOf(ProductionTerminated::class, $event);
 
             $channelNames = array_map(fn ($c) => $c->name, $event->broadcastOn());
-            $this->assertContains('tenant.'.$this->tenant->id.'.dashboard', $channelNames, 'Owner dashboard must reload its list.');
-            $this->assertContains('tenant.'.$this->tenant->id.'.workers', $channelNames, 'Worker dashboard must show the freeze alert.');
+            $this->assertContains('private-tenant.'.$this->tenant->id.'.dashboard', $channelNames, 'Owner dashboard must reload its list.');
+            $this->assertContains('private-tenant.'.$this->tenant->id.'.workers', $channelNames, 'Worker dashboard must show the freeze alert.');
             $this->assertSame('production.terminated', $event->broadcastAs());
 
             $this->assertSame($item->id, $event->item->id);
@@ -213,8 +213,8 @@ class PusherRealtimeE2ETest extends TestCase
             $this->assertInstanceOf(KendalaReported::class, $event);
 
             $channelNames = array_map(fn ($c) => $c->name, $event->broadcastOn());
-            $this->assertContains('tenant.'.$this->tenant->id.'.dashboard', $channelNames);
-            $this->assertNotContains('tenant.'.$tenantB->id.'.dashboard', $channelNames, 'Kendala must not leak to another tenant.');
+            $this->assertContains('private-tenant.'.$this->tenant->id.'.dashboard', $channelNames);
+            $this->assertNotContains('private-tenant.'.$tenantB->id.'.dashboard', $channelNames, 'Kendala must not leak to another tenant.');
 
             return true;
         });
