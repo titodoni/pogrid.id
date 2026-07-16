@@ -315,12 +315,12 @@ Archive query per role:
 **File**: `resources/js/Pages/Worker/Dashboard.tsx` (Finance role view)
 **What**: Finance card shows invoice options: Full PO or Partial (by delivered qty).
 
-- [ ] Show `delivery_status` and `delivered_qty` on Finance item cards
-- [ ] Add "Invoice Full" and "Invoice Partial" options
-- [ ] Partial invoice: input `invoiced_qty` (max = delivered_qty)
-- [ ] Show PARTIAL badge when invoiced_qty < delivered_qty
-- [ ] Update `updateFinanceStatus()` to accept `invoiced_qty` + set PARTIAL status
-- [ ] Update Owner Dashboard: PARTIAL invoice badge visible in item directory
+- [x] Show `delivery_status` and `delivered_qty` on Finance item cards
+- [x] Add "Invoice Full" and "Invoice Partial" options
+- [x] Partial invoice: input `invoiced_qty` (max = delivered_qty)
+- [x] Show PARTIAL badge when invoiced_qty < delivered_qty
+- [x] Update `updateFinanceStatus()` to accept `invoiced_qty` + set PARTIAL status
+- [x] Update Owner Dashboard: PARTIAL invoice badge visible in item directory
 
 ---
 
@@ -329,10 +329,10 @@ Archive query per role:
 **File**: `WorkerDashboardController.php` → `updateFinanceStatus()`
 **What**: Gate = at least one piece delivered. Partial invoice allowed any time after first delivery.
 
-- [ ] Gate: `delivery_status != PENDING` (not just completed_qty > 0)
-- [ ] Allow Finance to update even if delivery is PARTIAL
-- [ ] invoice_status = PARTIAL if `invoiced_qty < delivered_qty`
-- [ ] invoice_status = INVOICED if `invoiced_qty >= delivered_qty`
+- [x] Gate: `delivery_status != PENDING` (not just completed_qty > 0)
+- [x] Allow Finance to update even if delivery is PARTIAL
+- [x] invoice_status = PARTIAL if `invoiced_qty < delivered_qty`
+- [x] invoice_status = INVOICED if `invoiced_qty >= delivered_qty`
 
 ---
 
@@ -446,5 +446,5 @@ npm run dev         # Vite (separate terminal)
 
 ---
 
-*Last updated: 2026-07-15*
+*Last updated: 2026-07-16*
 *Cross-reference: `MAIN-IDEA.md` for all decisions, `NEXT_BUILD.md` for immediate task specs.*

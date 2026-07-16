@@ -53,7 +53,14 @@ We have successfully overhauled the Owner Matrix Dashboard, Worker Floor Dashboa
 *   Overhauled onboarding registration (`Register.tsx`), password recovery (`ForgotPassword.tsx`), and resetting (`ResetPassword.tsx`) views.
 *   Modernized elements using Zinc-Indigo branding palettes (`#09090b` and `#6366f1`), rounded input borders (`10px`), and standard entry transition animations (`animate-in`).
 
-### 5. Core Architecture & Layout Stability
+### 6. Partial Invoice & Finance UI
+*   **Partial Invoice Support (Finance Dashboard)**: Added tri-state invoice status (UNINVOICED/PARTIAL/INVOICED) with dedicated purple badge, `invoiced_qty` input capped at `delivered_qty`, and "Invoice Full" / "Invoice Partial" selector buttons.
+*   **Partial Payment Support**: Added PARTIAL_PAID payment status with indigo badge distinct from PAID/UNPAID.
+*   **Finance Gate Delivery Check**: Finance requires `delivery_status != PENDING` — PARTIAL/DELIVERED delivery passes the gate.
+*   **Auto-Cascade to CLOSED**: When all items in a PO reach `payment_status = PAID`, PO auto-transitions to `CLOSED`.
+*   **Owner Dashboard Invoice Status Badges**: Added PARTIAL invoice/payment/delivery badges with distinct colors and qty fractions in item directory and matrix views.
+
+### 7. Core Architecture & Layout Stability
 *   **Global Layout Refactor**: Resolved an app-wide bug in [app.tsx](file:///home/tito/pogrid/resources/js/app.tsx) where the global default layout was defined as an inline anonymous wrapper, causing React to completely unmount and remount the entire page component tree on every Inertia props update. Defined a constant layout reference (`defaultLayout`) to keep components mounted, preserving state correctly.
 *   **Preserved State across Operations**: Standardized Inertia AJAX requests on the worker floor dashboard to use `preserveState: true`, preventing card drawers from auto-collapsing when updating progress.
 *   **Global Item Name Cleanup**: Implemented an Eloquent model accessor (`getItemNameAttribute`) in [Item.php](file:///home/tito/pogrid/app/Models/Item.php) to automatically strip stage suffixes (e.g. `(CNC)`, `(CNC + Fabrication)`) globally, updating all directories, summaries, and lists cleanly while preserving database integrity. Seeders were also cleaned.
@@ -62,21 +69,21 @@ We have successfully overhauled the Owner Matrix Dashboard, Worker Floor Dashboa
 
 ## 🚀 Future Roadmap & Next TODOs
 
-### ⚙️ 1. User Management & Admin UI
-- [ ] **Worker Accounts Directory**:
-    - Add a User Management sub-tab in the Owner dashboard to list all floor workers, their active roles, and posts.
-- [ ] **Edit User & PIN Management Modal**:
-    - Allow administrators to edit worker profiles, toggle between Password and PIN login methods, and change credentials/PINs directly.
-- [ ] **PIN Reset Request Approval Panel**:
-    - Add a dashboard UI widget for Admins to view pending PIN reset requests (`BLUE` alerts) and approve them to automatically generate and display a new 4-digit PIN once.
-- [ ] **Delete Worker Flow**:
-    - Build a delete worker action with confirmation dialog, ensuring self-deletion protection.
+### ⚙️ 1. User Management & Admin UI [DONE]
+- [x] **Worker Accounts Directory**:
+    - User Management (Team) tab in Owner dashboard lists all floor workers with role/post filters.
+- [x] **Edit User & PIN Management Modal**:
+    - Modal for editing profiles, toggling Password/PIN login, changing credentials.
+- [x] **PIN Reset Request Approval Panel**:
+    - Dashboard UI widget for Admins to approve pending PIN reset requests (BLUE alerts).
+- [x] **Delete Worker Flow**:
+    - Delete action with confirmation dialog, self-deletion protection.
 
-### 🔧 2. Backend Performance & Query Optimization
-- [ ] **Add Database Indexes**:
-    - Create a database migration to add composite indexes on `items` for `(deleted_at, status, invoice_status, payment_status)` to optimize complex telemetry queries in [WorkerDashboardController.php](file:///home/tito/pogrid/app/Http/Controllers/WorkerDashboardController.php).
-- [ ] **Eager Loading Optimization**:
-    - Optimize relations to avoid N+1 query loops inside metrics generation functions (e.g. `buildClientHealth`).
+### 🔧 2. Backend Performance & Query Optimization [DONE]
+- [x] **Add Database Indexes**:
+    - Composite index migration added: `items(tenant_id, status, invoice_status, payment_status)`.
+- [x] **Eager Loading Optimization**:
+    - Relations optimized in `buildClientHealth()`, N+1 eliminated, verified via PerformanceMatrixTest.
 
 ### 📊 3. Telemetry & Reporting Upgrades
 - [ ] **CSV / Excel Telemetry Export**:
@@ -85,10 +92,12 @@ We have successfully overhauled the Owner Matrix Dashboard, Worker Floor Dashboa
     - Implement a "Rework Logbook" telemetry tab to trace total rework counts per client, item, or production stage over the last 6 months to locate recurring quality control bottlenecks.
 
 ### 🔔 4. Realtime Push & Alerts
-- [ ] **Pusher Channel Subscriptions**:
-    - Bind React state to Pusher broadcast channels so Owner dashboard dashboards automatically slide in toast notifications when workers report a trouble/stuck alert (`Lapor Kendala`) on the floor.
+- [ ] **Pusher Live Toast (Owner Dashboard)**:
+    - Bind React state to Pusher broadcast channels so Owner dashboard displays toast notifications when workers report Kendala.
 - [ ] **Alert Escalation Rules**:
-    - Set up automated warnings (e.g., mail or SMS notifications via log) if a `RED` alert remains unresolved for more than 24 hours.
+    - Set up automated warnings if a RED alert remains unresolved > 24 hours.
+
+> Pusher infrastructure: channels configured (GIT-37), E2E tests added (GIT-41), switched to PrivateChannel (GIT-42). Client-side toast binding is the remaining piece.
 
 ### 👷 5. Worker Self-Monitoring (KPIs)
 - [ ] **Worker Performance History**:

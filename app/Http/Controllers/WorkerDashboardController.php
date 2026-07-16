@@ -158,6 +158,7 @@ class WorkerDashboardController extends Controller
         return Inertia::render('Worker/Dashboard', [
             'items' => $items,
             'auth_user' => $user,
+            'tenant_id' => $tenant->id,
         ]);
     }
 

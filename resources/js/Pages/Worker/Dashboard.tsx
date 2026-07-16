@@ -95,8 +95,10 @@ const translations = {
         locked_finance: "Locked: Requires Delivery to finish",
         finance_status: "Finance Status",
         invoiced: "Invoiced",
+        partially_invoiced: "Partially Invoiced",
         uninvoiced: "Uninvoiced",
         paid: "Paid",
+        partially_paid: "Partial Paid",
         unpaid: "Unpaid",
         invoice_label: "Invoice",
         payment_label: "Payment",
@@ -140,8 +142,10 @@ const translations = {
         locked_finance: "Terkunci: Menunggu Pengiriman (Delivery) selesai",
         finance_status: "Status Keuangan",
         invoiced: "Sudah Difakturkan",
+        partially_invoiced: "Faktur Sebagian",
         uninvoiced: "Belum Difakturkan",
         paid: "Lunas",
+        partially_paid: "Bayar Sebagian",
         unpaid: "Belum Bayar",
         invoice_label: "Invoice",
         payment_label: "Pembayaran",
@@ -976,8 +980,6 @@ function ItemCard({
                                 }
 
                                 if (activeStage.stage.stage_name === 'Finance') {
-                                    const isInvoiced = invoiceStatus === 'INVOICED';
-                                    const isPaid = paymentStatus === 'PAID';
 
                                     return (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1017,22 +1019,28 @@ function ItemCard({
                                                     fontWeight: 700,
                                                     padding: '2px 8px',
                                                     borderRadius: '6px',
-                                                    backgroundColor: isInvoiced ? 'rgba(52, 211, 153, 0.12)' : 'rgba(255, 255, 255, 0.04)',
-                                                    color: isInvoiced ? '#34d399' : '#a1a1aa',
-                                                    border: '1px solid ' + (isInvoiced ? 'rgba(52, 211, 153, 0.2)' : 'rgba(255, 255, 255, 0.06)'),
+                                                    backgroundColor: invoiceStatus === 'INVOICED' ? 'rgba(52, 211, 153, 0.12)' :
+                                                        invoiceStatus === 'PARTIAL' ? 'rgba(168, 85, 247, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+                                                    color: invoiceStatus === 'INVOICED' ? '#34d399' :
+                                                        invoiceStatus === 'PARTIAL' ? '#c084fc' : '#a1a1aa',
+                                                    border: '1px solid ' + (invoiceStatus === 'INVOICED' ? 'rgba(52, 211, 153, 0.2)' :
+                                                        invoiceStatus === 'PARTIAL' ? 'rgba(168, 85, 247, 0.2)' : 'rgba(255, 255, 255, 0.06)'),
                                                 }}>
-                                                    {t.invoice_label}: {isInvoiced ? t.invoiced : t.uninvoiced}
+                                                    {t.invoice_label}: {invoiceStatus === 'INVOICED' ? t.invoiced : invoiceStatus === 'PARTIAL' ? `${t.partially_invoiced} (${invoicedQty}/${item.target_qty})` : t.uninvoiced}
                                                 </span>
                                                 <span style={{
                                                     fontSize: '10px',
                                                     fontWeight: 700,
                                                     padding: '2px 8px',
                                                     borderRadius: '6px',
-                                                    backgroundColor: isPaid ? 'rgba(52, 211, 153, 0.12)' : 'rgba(255, 255, 255, 0.04)',
-                                                    color: isPaid ? '#34d399' : '#a1a1aa',
-                                                    border: '1px solid ' + (isPaid ? 'rgba(52, 211, 153, 0.2)' : 'rgba(255, 255, 255, 0.06)'),
+                                                    backgroundColor: paymentStatus === 'PAID' ? 'rgba(52, 211, 153, 0.12)' :
+                                                        paymentStatus === 'PARTIAL_PAID' ? 'rgba(99, 102, 241, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+                                                    color: paymentStatus === 'PAID' ? '#34d399' :
+                                                        paymentStatus === 'PARTIAL_PAID' ? '#818cf8' : '#a1a1aa',
+                                                    border: '1px solid ' + (paymentStatus === 'PAID' ? 'rgba(52, 211, 153, 0.2)' :
+                                                        paymentStatus === 'PARTIAL_PAID' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.06)'),
                                                 }}>
-                                                    {t.payment_label}: {isPaid ? t.paid : t.unpaid}
+                                                    {t.payment_label}: {paymentStatus === 'PAID' ? t.paid : paymentStatus === 'PARTIAL_PAID' ? t.partially_paid : t.unpaid}
                                                 </span>
                                             </div>
 

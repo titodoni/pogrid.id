@@ -167,6 +167,7 @@ export default function CreatePo({ tenant, auth_user }: Props) {
     const { errors } = usePage().props;
 
     const [localError, setLocalError] = useState<string | null>(null);
+    const [submitting, setSubmitting] = useState(false);
 
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
         if (typeof window !== 'undefined') {
@@ -234,6 +235,7 @@ export default function CreatePo({ tenant, auth_user }: Props) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (submitting) return;
         setLocalError(null);
 
         if (!poNumber.trim() || !clientName.trim() || !deliveryDate) {
@@ -263,6 +265,7 @@ export default function CreatePo({ tenant, auth_user }: Props) {
             }
         }
 
+        setSubmitting(true);
         router.post('/pos', {
             po_number: poNumber,
             external_po_number: externalPoNumber,
@@ -270,6 +273,8 @@ export default function CreatePo({ tenant, auth_user }: Props) {
             global_deadline: deliveryDate,
             is_urgent: isUrgent,
             items,
+        }, {
+            onFinish: () => setSubmitting(false),
         });
     };
 
@@ -314,25 +319,26 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                     <ChevronLeft size={16} />
                     <span>{t.back}</span>
                 </button>
-                <button type="submit" form="po-form" style={{
+                <button type="submit" form="po-form" disabled={submitting} style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
                     padding: '10px 18px',
-                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                    background: submitting ? '#4f46e5' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                     border: 'none',
                     color: '#fff',
                     borderRadius: '10px',
                     fontWeight: 600,
-                    cursor: 'pointer',
+                    cursor: submitting ? 'not-allowed' : 'pointer',
                     fontSize: '14px',
-                    boxShadow: '0 4px 12px -2px rgba(99, 102, 241, 0.3)',
+                    opacity: submitting ? 0.7 : 1,
+                    boxShadow: submitting ? 'none' : '0 4px 12px -2px rgba(99, 102, 241, 0.3)',
                 }}
-                    onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)')}
-                    onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)')}
+                    onMouseOver={(e) => { if (!submitting) e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)'; }}
+                    onMouseOut={(e) => { if (!submitting) e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'; }}
                 >
                     <Broadcast size={16} />
-                    {t.submit}
+                    {submitting ? '...' : t.submit}
                 </button>
             </header>
 
@@ -703,23 +709,24 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                     }}>
                         {t.cancel}
                     </button>
-                    <button type="submit" style={{
+                    <button type="submit" disabled={submitting} style={{
                         padding: '10px 24px',
-                        backgroundColor: '#2563eb',
+                        backgroundColor: submitting ? '#1d4ed8' : '#2563eb',
                         border: 'none',
                         color: '#fff',
                         borderRadius: '8px',
                         fontWeight: 600,
-                        cursor: 'pointer',
+                        cursor: submitting ? 'not-allowed' : 'pointer',
                         fontSize: '14px',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
+                        opacity: submitting ? 0.7 : 1,
                     }}
-                        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
-                        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+                        onMouseOver={(e) => { if (!submitting) e.currentTarget.style.backgroundColor = '#1d4ed8'; }}
+                        onMouseOut={(e) => { if (!submitting) e.currentTarget.style.backgroundColor = '#2563eb'; }}
                     >
-                        <Broadcast size={16} /> {t.submit}
+                        <Broadcast size={16} /> {submitting ? '...' : t.submit}
                     </button>
                 </div>
             </form>
@@ -750,25 +757,26 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                 }}>
                     {t.cancel}
                 </button>
-                <button type="submit" form="po-form" style={{
+                <button type="submit" form="po-form" disabled={submitting} style={{
                     flex: 2,
                     padding: '12px 16px',
-                    backgroundColor: '#2563eb',
+                    backgroundColor: submitting ? '#1d4ed8' : '#2563eb',
                     border: 'none',
                     color: '#fff',
                     borderRadius: '8px',
                     fontWeight: 700,
-                    cursor: 'pointer',
+                    cursor: submitting ? 'not-allowed' : 'pointer',
                     fontSize: '14px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '6px',
+                    opacity: submitting ? 0.7 : 1,
                 }}
-                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
-                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+                    onMouseOver={(e) => { if (!submitting) e.currentTarget.style.backgroundColor = '#1d4ed8'; }}
+                    onMouseOut={(e) => { if (!submitting) e.currentTarget.style.backgroundColor = '#2563eb'; }}
                 >
-                    <Broadcast size={16} /> {t.submit}
+                    <Broadcast size={16} /> {submitting ? '...' : t.submit}
                 </button>
             </div>
         </div>

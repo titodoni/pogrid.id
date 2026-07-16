@@ -1,5 +1,5 @@
 .claude/
-*.md
+# *.md intentionally ingested for business-concept nodes (Sunk-Cost Protection, QC Gate, Additive Delta)
 *.txt
 vendor/
 node_modules/

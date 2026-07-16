@@ -78,10 +78,12 @@ export default function Profile({ tenant, auth_user }: Props) {
     const [cpCurrentPassword, setCpCurrentPassword] = useState('');
     const [cpNewPassword, setCpNewPassword] = useState('');
     const [cpConfirmPassword, setCpConfirmPassword] = useState('');
+    const [changingPassword, setChangingPassword] = useState(false);
 
     const submitChangePassword = (e: React.FormEvent) => {
         e.preventDefault();
-        const slug = tenant?.slug || '';
+        if (changingPassword) return;
+        setChangingPassword(true);
         router.post('/change-password', {
             current_password: cpCurrentPassword,
             new_password: cpNewPassword,
@@ -91,7 +93,9 @@ export default function Profile({ tenant, auth_user }: Props) {
                 setCpCurrentPassword('');
                 setCpNewPassword('');
                 setCpConfirmPassword('');
+                setChangingPassword(false);
             },
+            onError: () => setChangingPassword(false),
         });
     };
 
@@ -291,19 +295,21 @@ export default function Profile({ tenant, auth_user }: Props) {
 
                             <button
                                 type="submit"
+                                disabled={changingPassword}
                                 style={{
                                     padding: '10px 20px',
-                                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                                    background: changingPassword ? '#4f46e5' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                                     border: 'none',
                                     color: '#fff',
                                     borderRadius: '10px',
                                     fontWeight: 600,
-                                    cursor: 'pointer',
+                                    cursor: changingPassword ? 'not-allowed' : 'pointer',
                                     fontSize: '14px',
-                                    boxShadow: '0 4px 12px -2px rgba(99, 102, 241, 0.3)',
+                                    opacity: changingPassword ? 0.7 : 1,
+                                    boxShadow: changingPassword ? 'none' : '0 4px 12px -2px rgba(99, 102, 241, 0.3)',
                                 }}
                             >
-                                {t.save_changes}
+                                {changingPassword ? '...' : t.save_changes}
                             </button>
                         </form>
                     </div>

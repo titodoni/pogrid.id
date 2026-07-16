@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import FlashMessages from './Components/FlashMessages';
+import './bootstrap';
 
 const defaultLayout = (page: React.ReactNode) => (
     <>
