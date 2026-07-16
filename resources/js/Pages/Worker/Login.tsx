@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import { ModalShell } from '../../Components/Modal/ModalShell';
+import { localizedDisplay } from '../../Utils/locale';
 
 interface Worker {
     id: number;
     name: string;
-    role: string;
+    role_name: string;
+    role_display_name: string;
+    role_display_name_id?: string | null;
 }
 
 interface Tenant {
@@ -218,7 +221,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         <option value="">{t.select_name}...</option>
                         {workers.map((worker) => (
                             <option key={worker.id} value={worker.id}>
-                                {worker.name} — {worker.role_name}
+                                {worker.name} — {localizedDisplay({ display_name: worker.role_display_name, display_name_id: worker.role_display_name_id }, language)}
                             </option>
                         ))}
                     </select>

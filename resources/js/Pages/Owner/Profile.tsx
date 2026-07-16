@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { ChevronLeft, Lock, Globe } from '../../Components/Icons';
+import { localizedDisplay } from '../../Utils/locale';
 
 interface Props {
     tenant?: {
@@ -13,6 +14,10 @@ interface Props {
         role_name: string;
         role_level: string;
         post_name: string | null;
+        role_display_name: string;
+        role_display_name_id?: string | null;
+        post_display_name?: string | null;
+        post_display_name_id?: string | null;
     };
 }
 
@@ -208,7 +213,7 @@ export default function Profile({ tenant, auth_user }: Props) {
                                     {t.role}
                                 </div>
                                 <div style={{ fontSize: '14px', fontWeight: 700, color: '#818cf8' }}>
-                                    {auth_user?.role_name}{auth_user?.post_name ? ` — ${auth_user.post_name}` : ''}
+                                    {localizedDisplay({ display_name: auth_user?.role_display_name || '', display_name_id: auth_user?.role_display_name_id }, language)}{auth_user?.post_display_name ? ` — ${localizedDisplay({ display_name: auth_user.post_display_name, display_name_id: auth_user.post_display_name_id }, language)}` : ''}
                                 </div>
                             </div>
                         </div>

@@ -104,9 +104,9 @@ class WorkerDashboardController extends Controller
                 },
             ])->get();
             $alerts = Alert::with('item.po')->where('is_resolved', false)->get();
-            $users = User::with('roleRelation:id,name', 'postRelation:id,name')->get();
-            $roles = Role::all(['id', 'name', 'display_name', 'level']);
-            $posts = Post::all(['id', 'name', 'display_name']);
+            $users = User::with('roleRelation:id,name,display_name,display_name_id', 'postRelation:id,name,display_name,display_name_id')->get();
+            $roles = Role::all(['id', 'name', 'display_name', 'display_name_id', 'level']);
+            $posts = Post::all(['id', 'name', 'display_name', 'display_name_id']);
 
             $range = $request->input('range', 'month');
             if (! in_array($range, ['week', 'month', 'year'])) {

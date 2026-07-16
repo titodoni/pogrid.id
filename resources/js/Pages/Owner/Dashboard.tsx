@@ -3,6 +3,7 @@ import { router, usePage } from '@inertiajs/react';
 import { ChevronDown, Settings, Lock, Plus, Palette, Stop, Broadcast, Globe, Copy, DotGreen, Search } from '../../Components/Icons';
 import { formatDeadline, calculateDeadlineDiff } from '../../Utils/deadline';
 import { WarningPill } from '../../Components/WarningPill';
+import { localizedDisplay } from '../../Utils/locale';
 import { StatusBadge } from '../../Components/StatusBadge';
 import PresentationMode from '../../Components/OwnerDashboard/PresentationMode';
 import SearchModal from '../../Components/OwnerDashboard/SearchModal';
@@ -142,9 +143,17 @@ interface Alert {
     severity: string;
     message: string;
     is_resolved: boolean;
+    escalated_at?: string | null;
+    created_at?: string;
+    reason_type?: string | null;
     item?: {
         id: number;
         po_id: number;
+        item_name?: string;
+        po?: {
+            po_number: string;
+            client_name: string;
+        };
     };
 }
 
@@ -183,6 +192,10 @@ interface User {
     role_name: string;
     role_level: string;
     post_name: string | null;
+    role_display_name: string;
+    role_display_name_id?: string | null;
+    post_display_name?: string | null;
+    post_display_name_id?: string | null;
     is_owner: boolean;
 }
 
@@ -190,8 +203,8 @@ interface Props {
     pos: Po[];
     alerts: Alert[];
     users: User[];
-    roles: Array<{ id: number; name: string; display_name: string; level: string }>;
-    posts: Array<{ id: number; name: string; display_name: string }>;
+    roles: Array<{ id: number; name: string; display_name: string; display_name_id?: string | null; level: string }>;
+    posts: Array<{ id: number; name: string; display_name: string; display_name_id?: string | null }>;
     tenant?: {
         company_name: string;
         slug: string;
@@ -591,7 +604,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
     const [directoryFilter, setDirectoryFilter] = useState<'client' | 'marked' | 'delayed' | 'ontime' | 'close_due'>('client');
     const [activePoFilter, setActivePoFilter] = useState<'all' | 'marked' | 'delayed' | 'ontime' | 'close_due'>('all');
     const [currentTime, setCurrentTime] = useState(new Date());
-    const [kendalaToast, setKendalaToast] = useState<{ message: string; severity: string; id: number } | null>(null);
+    const [toastQueue, setToastQueue] = useState<Array<{ message: string; severity: string; id: number; timestamp: number }>>([]);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 30000);
@@ -605,8 +618,19 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
         const channel = echo.private(`tenant.${tenantId}.dashboard`);
         channel.listen('kendala.reported', (e: any) => {
             const alert = e.alert;
-            setKendalaToast({ message: alert.message || '', severity: alert.severity || 'RED', id: alert.id });
-            setTimeout(() => setKendalaToast(null), 8000);
+            const entry = { message: alert.message || '', severity: alert.severity || 'RED', id: alert.id, timestamp: Date.now() };
+            setToastQueue(prev => [...prev, entry]);
+            setTimeout(() => {
+                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
+            }, 8000);
+        });
+        channel.listen('alert.escalated', (e: any) => {
+            const alert = e.alert;
+            const entry = { message: alert.message || '', severity: 'ALERT', id: alert.id, timestamp: Date.now() };
+            setToastQueue(prev => [...prev, entry]);
+            setTimeout(() => {
+                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
+            }, 12000);
         });
         channel.listen('production.terminated', () => {
             router.reload({ preserveState: true, preserveScroll: true });
@@ -665,6 +689,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
             title: string;
             message: string;
             created_at?: string;
+            escalated_at?: string | null;
             itemName?: string;
             poNumber?: string;
             stage?: string;
@@ -735,6 +760,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     title: language === 'en' ? 'PIN RESET REQUEST' : 'PERMINTAAN RESET PIN',
                     message: alert.message,
                     created_at: alert.created_at,
+                    escalated_at: alert.escalated_at,
                     action: () => router.post(`/pin-reset/${alert.id}/approve`)
                 });
             } else {
@@ -772,6 +798,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         title: title,
                         message: cleanMessage,
                         created_at: alert.created_at,
+                        escalated_at: alert.escalated_at,
                         itemName: itemName,
                         poNumber: poNumber,
                         stage: stage || 'QC',
@@ -803,6 +830,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         title: title,
                         message: cleanMessage,
                         created_at: alert.created_at,
+                        escalated_at: alert.escalated_at,
                         itemName: itemName,
                         poNumber: poNumber,
                         stage: stage || 'Production',
@@ -1113,27 +1141,35 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
             fontFamily: 'Inter, sans-serif',
             color: '#fafafa',
         }}>
-            {kendalaToast && (
-                <div style={{
-                    position: 'fixed', top: '16px', right: '16px', zIndex: 9999,
-                    backgroundColor: kendalaToast.severity === 'RED' ? 'rgba(239, 68, 68, 0.95)' : 'rgba(251, 191, 36, 0.95)',
-                    color: '#fff', padding: '12px 20px', borderRadius: '10px',
-                    fontSize: '13px', fontWeight: 600, maxWidth: '360px',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                    display: 'flex', alignItems: 'center', gap: '8px',
-                    animation: 'slideIn 0.3s ease-out',
-                }}>
-                    <span style={{ fontSize: '18px' }}>🚨</span>
-                    <div>
-                        <div style={{ fontWeight: 700, marginBottom: '2px' }}>
-                            {language === 'en' ? 'Kendala Reported' : 'Kendala Dilaporkan'}
+            {toastQueue.length > 0 && (
+                <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {toastQueue.map(t => (
+                        <div key={t.timestamp} onClick={() => setToastQueue(prev => prev.filter(x => x.timestamp !== t.timestamp))}
+                            style={{
+                                backgroundColor: t.severity === 'RED' ? 'rgba(239, 68, 68, 0.95)' : t.severity === 'ALERT' ? 'rgba(251, 191, 36, 0.95)' : 'rgba(251, 191, 36, 0.95)',
+                                color: '#fff', padding: '12px 20px', borderRadius: '10px',
+                                fontSize: '13px', fontWeight: 600, maxWidth: '360px',
+                                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                                display: 'flex', alignItems: 'center', gap: '8px',
+                                animation: 'slideIn 0.3s ease-out', cursor: 'pointer',
+                            }}>
+                            <span style={{ fontSize: '18px' }}>{t.severity === 'RED' ? '🚨' : t.severity === 'ALERT' ? '🔴' : '⚠️'}</span>
+                            <div>
+                                <div style={{ fontWeight: 700, marginBottom: '2px' }}>
+                                    {t.severity === 'RED'
+                                        ? (language === 'en' ? 'Kendala Reported' : 'Kendala Dilaporkan')
+                                        : t.severity === 'ALERT'
+                                        ? (language === 'en' ? 'Alert Escalated' : 'Peringatan Dinaikkan')
+                                        : (language === 'en' ? 'QC Rework' : 'Rework QC')}
+                                </div>
+                                <div style={{ opacity: 0.9, fontSize: '12px' }}>{t.message}</div>
+                            </div>
+                            <button onClick={(e) => { e.stopPropagation(); setToastQueue(prev => prev.filter(x => x.timestamp !== t.timestamp)); }}
+                                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '18px', opacity: 0.7 }}>
+                                ×
+                            </button>
                         </div>
-                        <div style={{ opacity: 0.9, fontSize: '12px' }}>{kendalaToast.message}</div>
-                    </div>
-                    <button onClick={() => setKendalaToast(null)}
-                        style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '18px', opacity: 0.7 }}>
-                        ×
-                    </button>
+                    ))}
                 </div>
             )}
             <div className="dashboard-above-scroll">
@@ -1475,11 +1511,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         ) : (
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
                                 {unifiedIssues.map((issue) => {
+                                    const isEscalated = !!issue.escalated_at;
                                     const bgColor = issue.severity === 'RED' ? 'rgba(239, 68, 68, 0.08)' 
                                         : issue.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.08)' 
                                         : issue.severity === 'ORANGE' ? 'rgba(249, 115, 22, 0.08)'
                                         : 'rgba(234, 179, 8, 0.08)';
-                                    const bdColor = issue.severity === 'RED' ? 'rgba(239, 68, 68, 0.2)' 
+                                    const bdColor = issue.severity === 'RED' 
+                                        ? (isEscalated ? '#ef4444' : 'rgba(239, 68, 68, 0.2)')
                                         : issue.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.2)' 
                                         : issue.severity === 'ORANGE' ? 'rgba(249, 115, 22, 0.2)'
                                         : 'rgba(234, 179, 8, 0.2)';
@@ -1545,6 +1583,20 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         }}>
                                                             {badgeText}
                                                         </span>
+                                                        {isEscalated && (
+                                                            <span className="badge" style={{
+                                                                color: '#000',
+                                                                backgroundColor: '#fbbf24',
+                                                                fontSize: '10px',
+                                                                fontWeight: 800,
+                                                                padding: '3px 8px',
+                                                                borderRadius: '4px',
+                                                                whiteSpace: 'nowrap',
+                                                                animation: 'pulse 1.5s ease-in-out infinite',
+                                                            }}>
+                                                                ESCALATED
+                                                            </span>
+                                                        )}
                                                         {issue.poNumber && (
                                                             <span style={{ fontSize: '12px', fontWeight: 700, color: '#fafafa' }}>
                                                                 {issue.poNumber} {issue.client_name ? `(${issue.client_name})` : ''}
@@ -3763,7 +3815,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         backgroundColor: roleStyle.bg,
                                                         color: roleStyle.color,
                                                     }}>
-                                                        {user.role_name}
+                                                        {localizedDisplay({ display_name: user.role_display_name, display_name_id: user.role_display_name_id }, language)}
                                                     </span>
                                                     <span style={{
                                                         fontSize: '10px',
@@ -4053,7 +4105,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     }}
                                 >
                                     {(roles ?? []).map(r => (
-                                        <option key={r.id} value={r.id}>{r.display_name} ({r.name})</option>
+                                        <option key={r.id} value={r.id}>{localizedDisplay(r, language)} ({r.name})</option>
                                     ))}
                                 </select>
                                 {editingUser.is_owner && (
@@ -4085,7 +4137,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 >
                                     <option value="">-- No post --</option>
                                     {(posts ?? []).map(p => (
-                                        <option key={p.id} value={p.id}>{p.display_name} ({p.name})</option>
+                                        <option key={p.id} value={p.id}>{localizedDisplay(p, language)} ({p.name})</option>
                                     ))}
                                 </select>
                             </div>
@@ -4344,7 +4396,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 >
                                     <option value="">-- Select role --</option>
                                     {(roles ?? []).map(r => (
-                                        <option key={r.id} value={r.id}>{r.display_name} ({r.name})</option>
+                                        <option key={r.id} value={r.id}>{localizedDisplay(r, language)} ({r.name})</option>
                                     ))}
                                 </select>
                             </div>
@@ -4369,7 +4421,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 >
                                     <option value="">-- No post --</option>
                                     {(posts ?? []).map(p => (
-                                        <option key={p.id} value={p.id}>{p.display_name} ({p.name})</option>
+                                        <option key={p.id} value={p.id}>{localizedDisplay(p, language)} ({p.name})</option>
                                     ))}
                                 </select>
                             </div>
@@ -4597,7 +4649,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 >
                                     <option value="">-- Select role --</option>
                                     {(roles ?? []).map(r => (
-                                        <option key={r.id} value={r.id}>{r.display_name} ({r.name})</option>
+                                        <option key={r.id} value={r.id}>{localizedDisplay(r, language)} ({r.name})</option>
                                     ))}
                                 </select>
                             </div>
@@ -4623,7 +4675,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 >
                                     <option value="">-- Select post --</option>
                                     {(posts ?? []).map(p => (
-                                        <option key={p.id} value={p.id}>{p.display_name} ({p.name})</option>
+                                        <option key={p.id} value={p.id}>{localizedDisplay(p, language)} ({p.name})</option>
                                     ))}
                                 </select>
                             </div>
@@ -5015,6 +5067,12 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                 );
             })()}
 
+            <style>{`
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `}</style>
         </div>
     );
 }

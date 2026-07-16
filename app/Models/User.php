@@ -34,6 +34,10 @@ class User extends Authenticatable
         'role_name',
         'role_level',
         'post_name',
+        'role_display_name',
+        'role_display_name_id',
+        'post_display_name',
+        'post_display_name_id',
     ];
 
     protected function casts(): array
@@ -69,6 +73,26 @@ class User extends Authenticatable
     public function getPostNameAttribute(): ?string
     {
         return $this->postRelation?->name;
+    }
+
+    public function getRoleDisplayNameAttribute(): string
+    {
+        return $this->roleRelation?->display_name ?? 'Worker';
+    }
+
+    public function getRoleDisplayNameIdAttribute(): ?string
+    {
+        return $this->roleRelation?->display_name_id;
+    }
+
+    public function getPostDisplayNameAttribute(): ?string
+    {
+        return $this->postRelation?->display_name;
+    }
+
+    public function getPostDisplayNameIdAttribute(): ?string
+    {
+        return $this->postRelation?->display_name_id;
     }
 
     public function isOwner(): bool

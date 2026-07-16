@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { AlertTriangle, Settings } from '../../Components/Icons';
 import { formatDeadline } from '../../Utils/deadline';
+import { localizedDisplay } from '../../Utils/locale';
 import { WarningPill } from '../../Components/WarningPill';
 import echo from '../../bootstrap';
 
@@ -58,6 +59,10 @@ interface Props {
         role_name: string;
         role_level: string;
         post_name: string | null;
+        role_display_name: string;
+        role_display_name_id?: string | null;
+        post_display_name?: string | null;
+        post_display_name_id?: string | null;
     };
     tenant_id?: number;
 }
@@ -1812,8 +1817,8 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                 <div>
                     <div className="greeting-name" style={{ fontSize: '13px', color: '#818cf8', fontWeight: 600, marginBottom: '2px' }}>
                         {language === 'en'
-                            ? `Hello, ${auth_user?.name}${auth_user?.post_name ? ` (${auth_user.post_name})` : ''}`
-                            : `Halo, ${auth_user?.name}${auth_user?.post_name ? ` (${auth_user.post_name})` : ''}`}
+                            ? `Hello, ${auth_user?.name}${auth_user?.post_display_name ? ` (${localizedDisplay({ display_name: auth_user.post_display_name, display_name_id: auth_user.post_display_name_id }, language)})` : ''}`
+                            : `Halo, ${auth_user?.name}${auth_user?.post_display_name ? ` (${localizedDisplay({ display_name: auth_user.post_display_name, display_name_id: auth_user.post_display_name_id }, language)})` : ''}`}
                     </div>
                     <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.floor_terminal}</h1>
                     <p style={{ fontSize: '12px', color: '#71717a', margin: '2px 0 0 0' }}>
