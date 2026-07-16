@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { ChevronLeft, Plus, Close, Check, Broadcast } from '../../Components/Icons';
+import { useUnsavedChanges } from '../../Hooks/useUnsavedChanges';
 
 interface Props {
     tenant?: {
@@ -15,6 +16,16 @@ interface Props {
         role_level: string;
         is_owner: boolean;
     };
+    recent_pos?: RecentPo[];
+}
+
+interface RecentPo {
+    id: number;
+    po_number: string;
+    client_name: string;
+    is_urgent: boolean;
+    created_at: string | null;
+    items: PoItem[];
 }
 
 const TEMPLATES: { key: string; labelEn: string; labelId: string; stages: string[] }[] = [
@@ -78,8 +89,14 @@ const translations = {
         err_item_name: 'Please enter a name for Item #{num}.',
         err_select_stage: 'Please select at least one stage for Item "{name}".',
         err_vendor_info: 'Item "{name}" has a Vendor stage. Please provide the vendor name and phone.',
+        draft_restored: 'Draft restored',
+        draft_dismiss: 'Dismiss',
         access_restricted: 'Access Restricted',
         owner_restrict_desc: 'Owners cannot create POs. Please assign an Admin user.',
+        repeat_order: 'Repeat Order',
+        repeat_order_desc: 'Clone items and stages from a previous PO.',
+        select_previous_po: 'Select a previous PO...',
+        repeat_applied: 'Items copied from {po}. Set a new PO number and deadline.',
     },
     id: {
         back: 'Kembali ke Dasbor',
@@ -126,8 +143,14 @@ const translations = {
         err_item_name: 'Harap isi nama untuk Item #{num}.',
         err_select_stage: 'Harap pilih minimal satu tahapan untuk Item "{name}".',
         err_vendor_info: 'Harap isi nama dan nomor telepon vendor.',
+        draft_restored: 'Draf dipulihkan',
+        draft_dismiss: 'Tutup',
         access_restricted: 'Akses Dibatasi',
         owner_restrict_desc: 'Owner tidak dapat membuat PO. Harap tugaskan akun Admin.',
+        repeat_order: 'Ulangi Order',
+        repeat_order_desc: 'Salin barang dan tahapan dari PO sebelumnya.',
+        select_previous_po: 'Pilih PO sebelumnya...',
+        repeat_applied: 'Barang disalin dari {po}. Isi nomor PO dan deadline baru.',
     }
 };
 
@@ -163,11 +186,14 @@ const labelStyle: React.CSSProperties = {
     fontWeight: 600,
 };
 
-export default function CreatePo({ tenant, auth_user }: Props) {
+const DRAFT_KEY = 'pogrid_po_draft';
+
+export default function CreatePo({ tenant, auth_user, recent_pos = [] }: Props) {
     const { errors } = usePage().props;
 
     const [localError, setLocalError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const [repeatNotice, setRepeatNotice] = useState<string | null>(null);
 
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
         if (typeof window !== 'undefined') {
@@ -196,6 +222,72 @@ export default function CreatePo({ tenant, auth_user }: Props) {
     const [items, setItems] = useState<PoItem[]>([
         { item_name: '', item_type: 'MANUFACTURE', target_qty: 1, required_stages: [], vendor_name: '', vendor_phone: '' }
     ]);
+    const [draftRestored, setDraftRestored] = useState(false);
+
+    const hasUnsavedData =
+        poNumber.trim() !== '' ||
+        externalPoNumber.trim() !== '' ||
+        clientName.trim() !== '' ||
+        deliveryDate !== '' ||
+        isUrgent ||
+        items.some(item =>
+            item.item_name.trim() !== '' ||
+            item.required_stages.length > 0 ||
+            item.target_qty !== 1 ||
+            (item.vendor_name?.trim() ?? '') !== '' ||
+            (item.vendor_phone?.trim() ?? '') !== ''
+        );
+
+    useUnsavedChanges(hasUnsavedData);
+
+    useEffect(() => {
+        const draft = { poNumber, externalPoNumber, clientName, isCustomClient, deliveryDate, isUrgent, items, clients };
+        const timer = setTimeout(() => {
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        }, 800);
+        return () => clearTimeout(timer);
+    }, [poNumber, externalPoNumber, clientName, isCustomClient, deliveryDate, isUrgent, items, clients]);
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(DRAFT_KEY);
+            if (raw) {
+                const draft = JSON.parse(raw);
+                if (draft.poNumber) setPoNumber(draft.poNumber);
+                if (draft.externalPoNumber) setExternalPoNumber(draft.externalPoNumber);
+                if (draft.clientName) setClientName(draft.clientName);
+                if (draft.isCustomClient !== undefined) setIsCustomClient(draft.isCustomClient);
+                if (draft.deliveryDate) setDeliveryDate(draft.deliveryDate);
+                if (draft.isUrgent !== undefined) setIsUrgent(draft.isUrgent);
+                if (draft.items) setItems(draft.items);
+                if (draft.clients) setClients(draft.clients);
+                setDraftRestored(true);
+            }
+        } catch {
+            // Invalid draft data, ignore
+        }
+    }, []);
+
+    const applyRepeatOrder = (poId: string) => {
+        if (!poId) return;
+        const source = recent_pos.find(p => String(p.id) === poId);
+        if (!source) return;
+        setClientName(source.client_name);
+        if (!clients.includes(source.client_name)) {
+            setClients(prev => [...prev, source.client_name]);
+        }
+        setIsCustomClient(false);
+        setIsUrgent(source.is_urgent);
+        setItems(source.items.map(item => ({
+            item_name: item.item_name,
+            item_type: item.item_type,
+            target_qty: item.target_qty,
+            required_stages: [...(item.required_stages || [])],
+            vendor_name: item.vendor_name || '',
+            vendor_phone: item.vendor_phone || '',
+        })));
+        setRepeatNotice(t.repeat_applied.replace('{po}', source.po_number));
+    };
 
     const goBack = () => {
         if (tenant?.slug) {
@@ -274,6 +366,7 @@ export default function CreatePo({ tenant, auth_user }: Props) {
             is_urgent: isUrgent,
             items,
         }, {
+            onSuccess: () => localStorage.removeItem(DRAFT_KEY),
             onFinish: () => setSubmitting(false),
         });
     };
@@ -353,6 +446,71 @@ export default function CreatePo({ tenant, auth_user }: Props) {
                     <h1 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>{t.title}</h1>
                     <p style={{ fontSize: '14px', color: '#71717a', margin: 0 }}>{t.subtitle}</p>
                 </div>
+
+                {/* Draft restored indicator */}
+                {draftRestored && (
+                    <div style={{
+                        backgroundColor: 'rgba(52, 211, 153, 0.1)',
+                        border: '1px solid rgba(52, 211, 153, 0.2)',
+                        borderRadius: '12px',
+                        padding: '12px 16px',
+                        marginBottom: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                    }}>
+                        <span style={{ color: '#34d399', fontSize: '14px', fontWeight: 600 }}>
+                            {t.draft_restored}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setDraftRestored(false)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#34d399',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                opacity: 0.7,
+                                padding: '4px 8px',
+                            }}
+                        >
+                            {t.draft_dismiss}
+                        </button>
+                    </div>
+                )}
+
+                {/* Repeat order shortcut */}
+                {recent_pos.length > 0 && (
+                    <div style={{
+                        backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                        border: '1px solid rgba(99, 102, 241, 0.2)',
+                        borderRadius: '12px',
+                        padding: '16px',
+                        marginBottom: '24px',
+                    }}>
+                        <label style={{ ...labelStyle, color: '#818cf8' }}>{t.repeat_order}</label>
+                        <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 10px 0' }}>{t.repeat_order_desc}</p>
+                        <select
+                            defaultValue=""
+                            onChange={(e) => applyRepeatOrder(e.target.value)}
+                            style={inputStyle}
+                        >
+                            <option value="">{t.select_previous_po}</option>
+                            {recent_pos.map(po => (
+                                <option key={po.id} value={po.id}>
+                                    {po.po_number} — {po.client_name}{po.created_at ? ` (${po.created_at})` : ''}
+                                </option>
+                            ))}
+                        </select>
+                        {repeatNotice && (
+                            <p style={{ fontSize: '13px', color: '#34d399', margin: '10px 0 0 0', fontWeight: 600 }}>
+                                {repeatNotice}
+                            </p>
+                        )}
+                    </div>
+                )}
 
                 {/* Validation errors */}
                 {((errors && Object.keys(errors).length > 0) || localError) && (

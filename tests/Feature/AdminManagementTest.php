@@ -182,6 +182,55 @@ class AdminManagementTest extends TestCase
         $this->assertContains('Machining', $gearShaft->itemProgresses->pluck('stage_name')->toArray());
     }
 
+    public function test_create_po_page_exposes_recent_pos_for_repeat_order()
+    {
+        $tenant = Tenant::create([
+            'company_name' => 'Repeat CNC',
+            'slug' => 'repeat-cnc',
+        ]);
+
+        $admin = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Admin Repeat',
+            'username' => 'admin_repeat',
+            'password' => Hash::make('password'),
+            'role_id' => 8,
+            'post_id' => 12,
+        ]);
+
+        $this->actingAs($admin);
+        TenantManager::setTenantId($tenant->id);
+
+        $po = Po::create([
+            'tenant_id' => $tenant->id,
+            'po_number' => 'PO-REPEAT-01',
+            'client_name' => 'PT Repeat',
+            'global_deadline' => now()->addWeek()->toDateString(),
+            'status' => 'PENDING',
+        ]);
+        Item::create([
+            'tenant_id' => $tenant->id,
+            'po_id' => $po->id,
+            'item_name' => 'Bracket',
+            'item_type' => 'MANUFACTURE',
+            'target_qty' => 3,
+            'required_stages' => ['Design', 'Machining', 'QC'],
+            'status' => 'PENDING',
+        ]);
+
+        $response = $this->get('/pos/create');
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('Owner/CreatePo')
+            ->has('recent_pos', 1)
+            ->where('recent_pos.0.po_number', 'PO-REPEAT-01')
+            ->where('recent_pos.0.client_name', 'PT Repeat')
+            ->has('recent_pos.0.items', 1)
+            ->where('recent_pos.0.items.0.item_name', 'Bracket')
+            ->where('recent_pos.0.items.0.required_stages', ['Design', 'Machining', 'QC'])
+        );
+    }
+
     public function test_administrative_users_cannot_log_in_via_pin()
     {
         $tenant = Tenant::create([

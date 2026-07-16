@@ -86,9 +86,34 @@ class OwnerDashboardController extends Controller
         // Ensure tenant context is set for this request
         TenantManager::setTenantId($user->tenant_id);
 
+        $recentPos = Po::with('items')
+            ->latest()
+            ->take(20)
+            ->get()
+            ->map(function ($po) {
+                return [
+                    'id' => $po->id,
+                    'po_number' => $po->po_number,
+                    'client_name' => $po->client_name,
+                    'is_urgent' => (bool) $po->is_urgent,
+                    'created_at' => $po->created_at?->toDateString(),
+                    'items' => $po->items->map(function ($item) {
+                        return [
+                            'item_name' => $item->item_name,
+                            'item_type' => $item->item_type,
+                            'target_qty' => $item->target_qty,
+                            'required_stages' => $item->required_stages,
+                            'vendor_name' => $item->vendor_name,
+                            'vendor_phone' => $item->vendor_phone,
+                        ];
+                    })->values(),
+                ];
+            });
+
         return Inertia::render('Owner/CreatePo', [
             'tenant' => $user->tenant,
             'auth_user' => $user,
+            'recent_pos' => $recentPos,
         ]);
     }
 
@@ -367,6 +392,48 @@ class OwnerDashboardController extends Controller
         GenerateSunkCostInvoiceJob::dispatch($item->id, $completedPieces);
 
         return back()->with('success', 'Production halted. Sunk-cost recovery billing task dispatched.');
+    }
+
+    public function batchAction(Request $request)
+    {
+        $request->validate([
+            'action' => ['required', 'in:cancel,terminate'],
+            'item_ids' => ['required', 'array', 'min:1'],
+            'item_ids.*' => ['required', 'integer', 'exists:items,id'],
+        ]);
+
+        $action = $request->input('action');
+        $itemIds = $request->input('item_ids');
+        $results = ['cancelled' => 0, 'terminated' => 0, 'errors' => []];
+
+        foreach ($itemIds as $itemId) {
+            try {
+                $item = Item::findOrFail($itemId);
+
+                if ($action === 'cancel') {
+                    if ((float) $item->progress_percent > 0.00) {
+                        $results['errors'][] = "Item {$item->item_name}: has progress > 0%, cannot cancel.";
+
+                        continue;
+                    }
+                    $item->update(['status' => 'CANCELLED']);
+                    $results['cancelled']++;
+                } elseif ($action === 'terminate') {
+                    $item->update(['status' => 'TERMINATED']);
+                    ProductionTerminated::dispatch($item);
+                    $results['terminated']++;
+                }
+            } catch (\Exception $e) {
+                $results['errors'][] = "Item {$itemId}: {$e->getMessage()}";
+            }
+        }
+
+        $message = "Batch action '{$action}' completed: {$results['cancelled']} cancelled, {$results['terminated']} terminated.";
+        if (! empty($results['errors'])) {
+            $message .= ' Errors: '.implode('; ', $results['errors']);
+        }
+
+        return back()->with('success', $message);
     }
 
     public function changePassword(Request $request)
