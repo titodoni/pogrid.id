@@ -6,6 +6,7 @@ import { WarningPill } from '../../Components/WarningPill';
 import { StatusBadge } from '../../Components/StatusBadge';
 import PresentationMode from '../../Components/OwnerDashboard/PresentationMode';
 import SearchModal from '../../Components/OwnerDashboard/SearchModal';
+import { useImperativeAlertDialog } from '@astryxdesign/core';
 import echo from '../../bootstrap';
 
 const formatAlertTime = (dateStr: string, lang: 'en' | 'id') => {
@@ -282,6 +283,8 @@ const translations = {
         edit_user: "Edit User",
         delete_user: "Delete User",
         delete_user_confirm: "Are you sure you want to delete this user? This action cannot be undone.",
+        cancel_item_confirm: "Are you sure you want to cancel this item?",
+        terminate_item_confirm: "WARNING: This will immediately HALT all floor operator operations for this item. Proceed?",
         filter_all_roles: "All Roles",
         login_method_password: "Password",
         login_method_pin: "PIN",
@@ -372,6 +375,8 @@ const translations = {
         edit_user: "Edit Pengguna",
         delete_user: "Hapus Pengguna",
         delete_user_confirm: "Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.",
+        cancel_item_confirm: "Apakah Anda yakin ingin membatalkan item ini?",
+        terminate_item_confirm: "PERINGATAN: Ini akan MENGENTIKAN semua operasi lantai produksi untuk item ini. Lanjutkan?",
         filter_all_roles: "Semua Role",
         login_method_password: "Password",
         login_method_pin: "PIN",
@@ -893,6 +898,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
 
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
+    const confirmAlert = useImperativeAlertDialog();
 
     // Add Admin modal
     const [showAddAdminModal, setShowAddAdminModal] = useState(false);
@@ -966,9 +972,17 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
     };
 
     const handleDeleteUser = (user: User) => {
-        if (!confirm(t.delete_user_confirm)) return;
-        router.post(`/users/${user.id}/delete`, {}, {
-            onSuccess: () => closeEditUser(),
+        confirmAlert.show({
+            title: language === 'en' ? 'Delete User' : 'Hapus Pengguna',
+            description: t.delete_user_confirm,
+            actionLabel: t.delete_user,
+            onAction: () => {
+                router.post(`/users/${user.id}/delete`, {}, {
+                    onSuccess: () => { closeEditUser(); confirmAlert.hide(); },
+                    onError: () => confirmAlert.hide(),
+                });
+            },
+            cancelLabel: t.cancel,
         });
     };
     // ─────────────────────────────────────────────────────────────────────────
@@ -1046,15 +1060,30 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
     // No client/PO creation state â€” moved to dedicated page at /pos/create
 
     const handleCancel = (itemId: number) => {
-        if (confirm('Are you sure you want to cancel this item?')) {
-            router.post(`/items/${itemId}/cancel`);
-        }
+        confirmAlert.show({
+            title: language === 'en' ? 'Cancel Item' : 'Batalkan Item',
+            description: t.cancel_item_confirm,
+            actionLabel: language === 'en' ? 'Cancel' : 'Batalkan',
+            onAction: () => {
+                router.post(`/items/${itemId}/cancel`);
+                confirmAlert.hide();
+            },
+            cancelLabel: t.cancel,
+        });
     };
 
     const handleTerminate = (itemId: number) => {
-        if (confirm('WARNING: This will immediately HALT all floor operator operations for this item. Proceed?')) {
-            router.post(`/items/${itemId}/terminate`);
-        }
+        confirmAlert.show({
+            title: language === 'en' ? 'Terminate Production' : 'Hentikan Produksi',
+            description: t.terminate_item_confirm,
+            actionLabel: language === 'en' ? 'Terminate' : 'Hentikan',
+            actionVariant: 'destructive',
+            onAction: () => {
+                router.post(`/items/${itemId}/terminate`);
+                confirmAlert.hide();
+            },
+            cancelLabel: t.cancel,
+        });
     };
 
     const isOwner = auth_user?.is_owner === true;
@@ -3924,6 +3953,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     </div>
                 );
             })()}
+
+            {confirmAlert.element}
 
             {/* ── Edit User Modal (Task 1b / 1c / 1d) ────────────────────── */}
             {editingUser && (
