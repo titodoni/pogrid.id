@@ -6,3 +6,6 @@ GRAPHIFY_OUT="/home/tito/pogrid/graphify-out"
 if [ -x "$GRAPHIFY_BIN" ] && [ -d "$GRAPHIFY_OUT" ]; then
     "$GRAPHIFY_BIN" update /home/tito/pogrid 2>/dev/null &
 fi
+
+git push origin main 2>/dev/null &
+
