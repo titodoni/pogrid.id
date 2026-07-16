@@ -271,6 +271,8 @@ const translations = {
         production_overdue_trends: "Production Output & Overdue Trends",
         why_delayed_reasons: "\"Why Delayed\" Reasons",
         export_pdf: "Export PDF",
+        export_csv: "Export CSV",
+        export_xlsx: "Export Excel",
         presentation_mode: "Presentation Mode",
         exit_presentation: "Exit Presentation Mode",
         no_incidents: "No operational failures logged.",
@@ -363,6 +365,8 @@ const translations = {
         production_overdue_trends: "Tren Hasil & Keterlambatan Produksi",
         why_delayed_reasons: "Penyebab Terlambat",
         export_pdf: "Ekspor PDF",
+        export_csv: "Ekspor CSV",
+        export_xlsx: "Ekspor Excel",
         presentation_mode: "Mode Presentasi",
         exit_presentation: "Keluar Mode Presentasi",
         no_incidents: "Operasional lancar, tidak ada kendala.",
@@ -1158,9 +1162,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
     return (
         <div className="dashboard-root" style={{
-            backgroundColor: '#09090b',
+            backgroundColor: 'var(--color-pg-bg)',
             fontFamily: 'Inter, sans-serif',
-            color: '#fafafa',
+            color: 'var(--color-pg-text)',
         }}>
             {toastQueue.length > 0 && (
                 <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1201,13 +1205,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                 <div className="owner-header-title">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.owner_command_center}</h1>
-                        <span className="owner-header-datetime" style={{ fontSize: '11px', color: '#71717a' }}>
+                        <span className="owner-header-datetime" style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>
                             {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                             {' · '}
                             {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                     </div>
-                    <div className="owner-greeting" style={{ fontSize: '11px', color: '#818cf8', fontWeight: 600, marginTop: '1px' }}>
+                    <div className="owner-greeting" style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 600, marginTop: '1px' }}>
                         {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
                     </div>
                 </div>
@@ -1221,7 +1225,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         style={{
                             padding: '8px',
                             backgroundColor: 'rgba(255,255,255,0.05)',
-                            color: '#a1a1aa',
+                            color: 'var(--color-pg-text-secondary)',
                             border: '1px solid rgba(255,255,255,0.08)',
                             borderRadius: '8px',
                             cursor: 'pointer',
@@ -1233,12 +1237,12 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         onMouseOver={(e) => {
                             e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.15)';
                             e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.3)';
-                            e.currentTarget.style.color = '#818cf8';
+                            e.currentTarget.style.color = 'var(--color-pg-primary-hover)';
                         }}
                         onMouseOut={(e) => {
                             e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)';
                             e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-                            e.currentTarget.style.color = '#a1a1aa';
+                            e.currentTarget.style.color = 'var(--color-pg-text-secondary)';
                         }}
                     >
                         <Search size={16} />
@@ -1250,7 +1254,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         style={{
                             padding: '8px',
                             backgroundColor: 'rgba(255,255,255,0.05)',
-                            color: '#a1a1aa',
+                            color: 'var(--color-pg-text-secondary)',
                             border: '1px solid rgba(255,255,255,0.08)',
                             borderRadius: '8px',
                             cursor: 'pointer',
@@ -1270,7 +1274,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             style={{
                                 padding: '8px 12px',
                                 backgroundColor: 'rgba(255,255,255,0.05)',
-                                color: '#a1a1aa',
+                                color: 'var(--color-pg-text-secondary)',
                                 border: '1px solid rgba(255,255,255,0.08)',
                                 borderRadius: '8px',
                                 fontWeight: 600,
@@ -1332,11 +1336,11 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     alignItems: 'center',
                     gap: '6px',
                     fontSize: '11px',
-                    color: '#71717a',
+                    color: 'var(--color-pg-text-secondary)',
                     flexWrap: 'nowrap',
                     minWidth: 0,
                 }}>
-                    <span style={{ fontWeight: 600, color: '#818cf8' }}>{t.floor_terminal_url}</span>
+                    <span style={{ fontWeight: 600, color: 'var(--color-pg-primary-hover)' }}>{t.floor_terminal_url}</span>
                     <code className="floor-terminal-chip" style={{
                         backgroundColor: 'rgba(37,99,235,0.08)',
                         padding: '2px 8px',
@@ -1358,7 +1362,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         style={{
                             padding: '1px 6px',
                             backgroundColor: 'rgba(37,99,235,0.15)',
-                            color: '#818cf8',
+                            color: 'var(--color-pg-primary-hover)',
                             fontWeight: 600,
                             border: '1px solid rgba(37,99,235,0.2)',
                             borderRadius: '4px',
@@ -1410,7 +1414,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             marginLeft: '4px',
                             fontSize: '10px',
                             backgroundColor: 'rgba(255,255,255,0.1)',
-                            color: '#a1a1aa',
+                            color: 'var(--color-pg-text-secondary)',
                             padding: '1px 5px',
                             borderRadius: '8px'
                         }}>
@@ -1508,7 +1512,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             <span>{t.unresolved_alerts}</span>
                             <span style={{
                                 fontSize: '12px',
-                                backgroundColor: unifiedIssues.length > 0 ? '#ef4444' : '#34d399',
+                                backgroundColor: unifiedIssues.length > 0 ? '#ef4444' : 'var(--color-pg-success)',
                                 color: '#fff',
                                 padding: '2px 8px',
                                 borderRadius: '12px'
@@ -1523,7 +1527,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 border: '1px solid rgba(16, 185, 129, 0.15)',
                                 borderRadius: '12px',
                                 padding: '16px',
-                                color: '#34d399',
+                                color: 'var(--color-pg-success)',
                                 fontSize: '14px',
                                 fontWeight: 500
                             }}>
@@ -1544,8 +1548,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         : 'rgba(234, 179, 8, 0.2)';
                                     const badgeBg = issue.severity === 'RED' ? '#ef4444' 
                                         : issue.severity === 'BLUE' ? '#3b82f6' 
-                                        : issue.severity === 'ORANGE' ? '#fb923c'
-                                        : '#fbbf24';
+                                        : issue.severity === 'ORANGE' ? 'var(--color-pg-orange)'
+                                        : 'var(--color-pg-warning)';
                                     const badgeText = issue.title;
 
                                     return (
@@ -1607,7 +1611,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         {isEscalated && (
                                                             <span className="badge" style={{
                                                                 color: '#000',
-                                                                backgroundColor: '#fbbf24',
+                                                                backgroundColor: 'var(--color-pg-warning)',
                                                                 fontSize: '10px',
                                                                 fontWeight: 800,
                                                                 padding: '3px 8px',
@@ -1619,13 +1623,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                             </span>
                                                         )}
                                                         {issue.poNumber && (
-                                                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#fafafa' }}>
+                                                            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-pg-text)' }}>
                                                                 {issue.poNumber} {issue.client_name ? `(${issue.client_name})` : ''}
                                                             </span>
                                                         )}
                                                     </div>
                                                     {issue.created_at && (
-                                                        <span style={{ fontSize: '11px', color: '#71717a', fontWeight: 500 }}>
+                                                        <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', fontWeight: 500 }}>
                                                             {formatAlertTime(issue.created_at, language)}
                                                         </span>
                                                     )}
@@ -1634,10 +1638,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 {issue.itemName ? (
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                         <div style={{ fontSize: '14px', color: '#e4e4e7', fontWeight: 600 }}>
-                                                            {issue.itemName} &middot; <span style={{ color: '#fb923c', fontWeight: 700 }}>Stage: {issue.stage}</span>
+                                                            {issue.itemName} &middot; <span style={{ color: 'var(--color-pg-orange)', fontWeight: 700 }}>Stage: {issue.stage}</span>
                                                         </div>
-                                                        <div style={{ fontSize: '13px', color: '#a1a1aa' }}>
-                                                            <strong style={{ color: '#f87171' }}>
+                                                        <div style={{ fontSize: '13px', color: 'var(--color-pg-text-secondary)' }}>
+                                                            <strong style={{ color: 'var(--color-pg-danger)' }}>
                                                                 {language === 'id' ? 'Penyebab: ' : 'Why: '}
                                                             </strong>
                                                             {issue.reason ? formatReasonType(issue.reason, language) : ''}
@@ -1720,8 +1724,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'all' ? '#6366f1' : 'rgba(255,255,255,0.05)',
-                                    color: activePoFilter === 'all' ? '#ffffff' : '#a1a1aa',
+                                    backgroundColor: activePoFilter === 'all' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                    color: activePoFilter === 'all' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
                                 }}
@@ -1737,8 +1741,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'marked' ? '#6366f1' : 'rgba(255,255,255,0.05)',
-                                    color: activePoFilter === 'marked' ? '#ffffff' : '#a1a1aa',
+                                    backgroundColor: activePoFilter === 'marked' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                    color: activePoFilter === 'marked' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
                                 }}
@@ -1754,8 +1758,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'delayed' ? '#6366f1' : 'rgba(255,255,255,0.05)',
-                                    color: activePoFilter === 'delayed' ? '#ffffff' : '#a1a1aa',
+                                    backgroundColor: activePoFilter === 'delayed' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                    color: activePoFilter === 'delayed' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
                                 }}
@@ -1771,8 +1775,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'ontime' ? '#6366f1' : 'rgba(255,255,255,0.05)',
-                                    color: activePoFilter === 'ontime' ? '#ffffff' : '#a1a1aa',
+                                    backgroundColor: activePoFilter === 'ontime' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                    color: activePoFilter === 'ontime' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
                                 }}
@@ -1788,8 +1792,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'close_due' ? '#6366f1' : 'rgba(255,255,255,0.05)',
-                                    color: activePoFilter === 'close_due' ? '#ffffff' : '#a1a1aa',
+                                    backgroundColor: activePoFilter === 'close_due' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                    color: activePoFilter === 'close_due' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
                                 }}
@@ -1800,13 +1804,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         </div>
                     )}
                     {filteredPos.length === 0 ? (
-                        <div style={{ padding: '40px', textAlign: 'center', color: '#71717a' }}>
+                        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-pg-text-muted)' }}>
                             {activeTab === 'completed' ? 'No completed POs yet.' : t.no_pos}
                         </div>
                     ) : (
                         <div>
                             {/* Compact summary strip for mobile */}
-                            <div style={{ fontSize: '12px', color: '#71717a', marginBottom: '12px', padding: '0 4px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', marginBottom: '12px', padding: '0 4px' }}>
                                 {filteredPos.length} PO{filteredPos.length > 1 ? 's' : ''} &middot; {filteredPos.reduce((sum, po) => sum + po.items.length, 0)} items
                             </div>
                             {filteredPos.map((po) => {
@@ -1830,7 +1834,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         return <WarningPill deadlineDateStr={po.global_deadline} reworkMessage={hasRework} lang={language} />;
                                                     })()}
                                                 </div>
-                                                <div style={{ fontSize: '12px', color: '#a1a1aa', marginTop: '2px' }}>
+                                                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginTop: '2px' }}>
                                                     {po.client_name} &middot; {formatDeadline(po.global_deadline, language)}
                                                     {!isExpanded && po.items.length > 0 && (
                                                         <span style={{ marginLeft: '8px', color: '#3b82f6' }}>
@@ -1844,7 +1848,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         {isExpanded && (
                                             <div className="po-accordion-body">
                                                 {po.items.length === 0 ? (
-                                                    <div style={{ fontSize: '14px', color: '#71717a', padding: '12px 0' }}>No items in this PO.</div>
+                                                    <div style={{ fontSize: '14px', color: 'var(--color-pg-text-muted)', padding: '12px 0' }}>No items in this PO.</div>
                                                 ) : (
                                                     <>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '4px' }}>
@@ -1890,8 +1894,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                 <button className="item-compact-summary" onClick={() => toggleItem(item.id)} style={{ flex: 1 }}>
                                                                     <div style={{ flex: 1, minWidth: 0 }}>
                                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                                                            <span style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa' }}>{item.item_name}</span>
-                                                                        <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.06)', color: '#a1a1aa' }}>
+                                                                            <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{item.item_name}</span>
+                                                                        <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.06)', color: 'var(--color-pg-text-secondary)' }}>
                                                                             {item.item_type === 'MANUFACTURE' 
                                                                                 ? (language === 'id' ? 'Produksi Internal' : 'Manufactured') 
                                                                                 : (language === 'id' ? 'Beli Jadi (Buyout)' : 'Buyout')}
@@ -1899,7 +1903,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                         {item.drafter_status && (
                                                                             <span className="badge" style={{
                                                                                 backgroundColor: item.drafter_status === 'APPROVED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(139, 92, 246, 0.15)',
-                                                                                color: item.drafter_status === 'APPROVED' ? '#34d399' : '#a78bfa',
+                                                                                color: item.drafter_status === 'APPROVED' ? 'var(--color-pg-success)' : '#a78bfa',
                                                                             }}>
                                                                                 {item.drafter_status === 'APPROVED' 
                                                                                     ? (language === 'id' ? 'Gambar Disetujui' : 'Drawing Approved')
@@ -1911,8 +1915,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 backgroundColor: item.purchasing_status === 'READY' ? 'rgba(16, 185, 129, 0.15)' :
                                                                                     item.purchasing_status === 'PROSES' ? 'rgba(234, 179, 8, 0.15)' :
                                                                                     'rgba(59, 130, 246, 0.1)',
-                                                                                color: item.purchasing_status === 'READY' ? '#34d399' :
-                                                                                    item.purchasing_status === 'PROSES' ? '#fbbf24' :
+                                                                                color: item.purchasing_status === 'READY' ? 'var(--color-pg-success)' :
+                                                                                    item.purchasing_status === 'PROSES' ? 'var(--color-pg-warning)' :
                                                                                     '#3b82f6',
                                                                             }}>
                                                                                 {item.purchasing_status === 'READY'
@@ -1927,8 +1931,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 backgroundColor: item.delivery_status === 'DELIVERED' ? 'rgba(16, 185, 129, 0.15)' :
                                                                                     item.delivery_status === 'PARTIAL' ? 'rgba(234, 179, 8, 0.15)' :
                                                                                     'rgba(59, 130, 246, 0.1)',
-                                                                                color: item.delivery_status === 'DELIVERED' ? '#34d399' :
-                                                                                    item.delivery_status === 'PARTIAL' ? '#fbbf24' :
+                                                                                color: item.delivery_status === 'DELIVERED' ? 'var(--color-pg-success)' :
+                                                                                    item.delivery_status === 'PARTIAL' ? 'var(--color-pg-warning)' :
                                                                                     '#3b82f6',
                                                                             }}>
                                                                                 {item.delivery_status === 'DELIVERED'
@@ -1943,9 +1947,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 backgroundColor: item.invoice_status === 'INVOICED' ? 'rgba(16, 185, 129, 0.15)' :
                                                                                     item.invoice_status === 'PARTIAL' ? 'rgba(168, 85, 247, 0.15)' :
                                                                                     'rgba(255, 255, 255, 0.04)',
-                                                                                color: item.invoice_status === 'INVOICED' ? '#34d399' :
+                                                                                color: item.invoice_status === 'INVOICED' ? 'var(--color-pg-success)' :
                                                                                     item.invoice_status === 'PARTIAL' ? '#c084fc' :
-                                                                                    '#a1a1aa',
+                                                                                    'var(--color-pg-text-secondary)',
                                                                             }}>
                                                                                 {item.invoice_status === 'INVOICED'
                                                                                     ? (language === 'id' ? 'Difakturkan' : 'Invoiced')
@@ -1959,9 +1963,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 backgroundColor: item.payment_status === 'PAID' ? 'rgba(16, 185, 129, 0.15)' :
                                                                                     item.payment_status === 'PARTIAL_PAID' ? 'rgba(99, 102, 241, 0.15)' :
                                                                                     'rgba(255, 255, 255, 0.04)',
-                                                                                color: item.payment_status === 'PAID' ? '#34d399' :
-                                                                                    item.payment_status === 'PARTIAL_PAID' ? '#818cf8' :
-                                                                                    '#a1a1aa',
+                                                                                color: item.payment_status === 'PAID' ? 'var(--color-pg-success)' :
+                                                                                    item.payment_status === 'PARTIAL_PAID' ? 'var(--color-pg-primary-hover)' :
+                                                                                    'var(--color-pg-text-secondary)',
                                                                             }}>
                                                                                 {item.payment_status === 'PAID'
                                                                                     ? (language === 'id' ? 'Lunas' : 'Paid')
@@ -1976,7 +1980,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 : progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
                                                                             color: isCancelled ? '#ef4444'
                                                                                 : isTerminated ? '#ef4444'
-                                                                                : progress >= 100 ? '#34d399' : '#3b82f6'
+                                                                                : progress >= 100 ? 'var(--color-pg-success)' : '#3b82f6'
                                                                         }}>
                                                                             {(() => {
                                                                                 switch (item.status) {
@@ -2002,20 +2006,20 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                     <div className="progress-bar-mini" style={{ maxWidth: '100px' }}>
                                                                         <div className="progress-bar-mini-fill" style={{
                                                                             width: `${progress}%`,
-                                                                            backgroundColor: isCancelled ? '#f87171' : '#6366f1'
+                                                                            backgroundColor: isCancelled ? 'var(--color-pg-danger)' : 'var(--color-pg-primary)'
                                                                         }} />
                                                                     </div>
                                                                     <span className="item-pct-label" style={{ 
                                                                         fontSize: '12px', 
                                                                         fontWeight: 700, 
-                                                                        color: '#818cf8',
+                                                                        color: 'var(--color-pg-primary-hover)',
                                                                         display: 'flex',
                                                                         flexDirection: 'column',
                                                                         gap: '2px',
                                                                         alignItems: 'flex-end'
                                                                     }}>
                                                                         <span>{progress.toFixed(0)}%</span>
-                                                                        <span style={{ fontSize: '10px', color: '#71717a', fontWeight: 'normal' }}>
+                                                                        <span style={{ fontSize: '10px', color: 'var(--color-pg-text-muted)', fontWeight: 'normal' }}>
                                                                             ({item.delivered_qty || 0} / {item.target_qty || 0} pcs)
                                                                         </span>
                                                                     </span>
@@ -2025,7 +2029,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                     <div className="item-compact-detail">
                                                                         <div className="responsive-split" style={{ marginBottom: '12px', gap: '8px' }}>
                                                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                                                <div style={{ fontSize: '13px', fontWeight: 600, color: '#818cf8' }}>
+                                                                                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-pg-primary-hover)' }}>
                                                                                     Client: {po.client_name}
                                                                                 </div>
                                                                         {(() => {
@@ -2080,7 +2084,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                     Qty: {item.target_qty} pcs {item.delivered_qty > 0 ? `| Delivered: ${item.delivered_qty} pcs` : ''}
                                                                                 </div>
                                                                                 {item.vendor_name && (
-                                                                                    <div style={{ fontSize: '11px', color: '#34d399' }}>
+                                                                                    <div style={{ fontSize: '11px', color: 'var(--color-pg-success)' }}>
                                                                                         Vendor: {item.vendor_name} ({item.vendor_phone})
                                                                                     </div>
                                                                                 )}
@@ -2094,7 +2098,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                         title={hasProgress ? "Cannot cancel. Progress has started. Use Terminate Midway instead." : ""}
                                                                                         style={{
                                                                                             padding: '5px 10px',
-                                                                                            backgroundColor: hasProgress ? '#27272a' : 'rgba(239, 68, 68, 0.1)',
+                                                                                            backgroundColor: hasProgress ? 'var(--color-pg-border)' : 'rgba(239, 68, 68, 0.1)',
                                                                                             color: hasProgress ? '#52525b' : '#ef4444',
                                                                                             border: 'none',
                                                                                             borderRadius: '6px',
@@ -2132,14 +2136,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                             <div style={{
                                                                                 flexGrow: 1,
                                                                                 height: '6px',
-                                                                                backgroundColor: '#09090b',
+                                                                                backgroundColor: 'var(--color-pg-bg)',
                                                                                 borderRadius: '3px',
                                                                                 overflow: 'hidden'
                                                                             }}>
                                                                                 <div style={{
                                                                                     width: `${progress}%`,
                                                                                     height: '100%',
-                                                                                    backgroundColor: isCancelled ? '#f87171' : '#6366f1',
+                                                                                    backgroundColor: isCancelled ? 'var(--color-pg-danger)' : 'var(--color-pg-primary)',
                                                                                     borderRadius: '3px',
                                                                                     transition: 'width 0.3s ease'
                                                                                 }} />
@@ -2152,7 +2156,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                         {/* Stages display */}
                                                                         {item.item_progresses && item.item_progresses.length > 0 && (
                                                                             <div style={{ marginTop: '10px' }}>
-                                                                                <div style={{ fontSize: '11px', color: '#71717a', marginBottom: '6px' }}>
+                                                                                <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', marginBottom: '6px' }}>
                                                                                     Stages
                                                                                 </div>
                                                                                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -2160,8 +2164,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                         <span key={stage.id} className="badge" style={{
                                                                                             backgroundColor: stage.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.1)'
                                                                                                 : stage.status === 'STUCK' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255,255,255,0.05)',
-                                                                                            color: stage.status === 'COMPLETED' ? '#34d399'
-                                                                                                : stage.status === 'STUCK' ? '#ef4444' : '#a1a1aa',
+                                                                                            color: stage.status === 'COMPLETED' ? 'var(--color-pg-success)'
+                                                                                                : stage.status === 'STUCK' ? '#ef4444' : 'var(--color-pg-text-secondary)',
                                                                                             border: '1px solid rgba(255,255,255,0.05)',
                                                                                             fontSize: '11px',
                                                                                             padding: '3px 8px'
@@ -2211,7 +2215,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         </div>
                                                         );
                                                     })
-                                                )}
+                                                }
+                                            </>
+                                        )
+                                    }
                                             </div>
                                         )}
                                     </div>
@@ -2291,9 +2298,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                 // Pipeline stage health color
                 const getStageHealth = (metric: any) => {
                     if (metric.stuck_count > 0) return { border: 'rgba(239,68,68,0.6)', bg: 'rgba(239,68,68,0.08)', label: '#ef4444' };
-                    if (metric.avg_cycle_time > 3) return { border: 'rgba(249,115,22,0.5)', bg: 'rgba(249,115,22,0.07)', label: '#fb923c' };
-                    if (metric.avg_cycle_time > 1) return { border: 'rgba(234,179,8,0.4)', bg: 'rgba(234,179,8,0.05)', label: '#fbbf24' };
-                    return { border: 'rgba(16,185,129,0.35)', bg: 'rgba(16,185,129,0.05)', label: '#34d399' };
+                    if (metric.avg_cycle_time > 3) return { border: 'rgba(249,115,22,0.5)', bg: 'rgba(249,115,22,0.07)', label: 'var(--color-pg-orange)' };
+                    if (metric.avg_cycle_time > 1) return { border: 'rgba(234,179,8,0.4)', bg: 'rgba(234,179,8,0.05)', label: 'var(--color-pg-warning)' };
+                    return { border: 'rgba(16,185,129,0.35)', bg: 'rgba(16,185,129,0.05)', label: 'var(--color-pg-success)' };
                 };
 
                 const pipelineStages = (telemetry.stage_metrics || [])
@@ -2311,8 +2318,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         onClick={() => handleRangeChange(r)}
                                         style={{
                                             padding: '6px 12px',
-                                            backgroundColor: selected_range === r ? '#6366f1' : 'transparent',
-                                            color: selected_range === r ? '#fff' : '#a1a1aa',
+                                            backgroundColor: selected_range === r ? 'var(--color-pg-primary)' : 'transparent',
+                                            color: selected_range === r ? '#fff' : 'var(--color-pg-text-secondary)',
                                             border: 'none',
                                             borderRadius: '6px',
                                             fontWeight: 600,
@@ -2340,6 +2347,40 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 >
                                     {isPresentationMode ? t.exit_presentation : t.presentation_mode}
                                 </button>
+                                <a
+                                    href={`/c/${tenant?.slug}/export-csv?range=${selected_range || 'month'}`}
+                                    style={{
+                                        padding: '8px 16px',
+                                        background: 'rgba(255,255,255,0.05)',
+                                        color: '#e4e4e7',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        fontSize: '12px',
+                                        textDecoration: 'none',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    {t.export_csv}
+                                </a>
+                                <a
+                                    href={`/c/${tenant?.slug}/export-xlsx?range=${selected_range || 'month'}`}
+                                    style={{
+                                        padding: '8px 16px',
+                                        background: 'rgba(255,255,255,0.05)',
+                                        color: '#e4e4e7',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        fontSize: '12px',
+                                        textDecoration: 'none',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    {t.export_xlsx}
+                                </a>
                                 <a
                                     href={`/c/${tenant?.slug}/export-pdf?range=${selected_range || 'month'}`}
                                     target="_blank"
@@ -2374,7 +2415,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         }}>
                             <span style={{ fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>📊</span>
                             <div>
-                                <div style={{ fontSize: '10px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+                                <div style={{ fontSize: '10px', color: 'var(--color-pg-primary-hover)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
                                     {language === 'id' ? 'Ringkasan Kinerja' : 'Performance Summary'} · {rangeLabel}
                                 </div>
                                 <p style={{ margin: 0, fontSize: '13px', color: '#e4e4e7', lineHeight: 1.65 }}>{narrative}</p>
@@ -2403,12 +2444,12 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                <span style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.on_time_delivery}</span>
-                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: telemetry.otdr >= 80 ? '#34d399' : telemetry.otdr >= 60 ? '#fbbf24' : '#ef4444' }}>
+                                <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.on_time_delivery}</span>
+                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: telemetry.otdr >= 80 ? 'var(--color-pg-success)' : telemetry.otdr >= 60 ? 'var(--color-pg-warning)' : '#ef4444' }}>
                                     {telemetry.otdr}%
                                 </span>
                                 {otdrDelta != null && (
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: otdrDelta >= 0 ? '#34d399' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: otdrDelta >= 0 ? 'var(--color-pg-success)' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
                                         {otdrDelta >= 0 ? '▲' : '▼'} {Math.abs(otdrDelta)}%{' '}
                                         <span style={{ color: '#52525b', fontWeight: 400 }}>vs {rangeLabel}</span>
                                     </span>
@@ -2434,12 +2475,12 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                <span style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.parts_manufactured}</span>
+                                <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.parts_manufactured}</span>
                                 <span style={{ fontSize: '24px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: '#3b82f6' }}>
                                     {deliveredCurr} <span style={{ fontSize: '15px', color: '#52525b', fontWeight: 500 }}>/ {telemetry.manufacture?.target ?? 0} Pcs</span>
                                 </span>
                                 {deliveredDelta != null && (
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: deliveredDelta >= 0 ? '#34d399' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: deliveredDelta >= 0 ? 'var(--color-pg-success)' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
                                         {deliveredDelta >= 0 ? '▲' : '▼'} {Math.abs(deliveredDelta)}%{' '}
                                         <span style={{ color: '#52525b', fontWeight: 400 }}>vs {rangeLabel}</span>
                                     </span>
@@ -2465,12 +2506,12 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                <span style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.avg_delay}</span>
-                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: telemetry.avg_delay_days === 0 ? '#34d399' : telemetry.avg_delay_days <= 3 ? '#fbbf24' : '#ef4444' }}>
+                                <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.avg_delay}</span>
+                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: telemetry.avg_delay_days === 0 ? 'var(--color-pg-success)' : telemetry.avg_delay_days <= 3 ? 'var(--color-pg-warning)' : '#ef4444' }}>
                                     {telemetry.avg_delay_days} <span style={{ fontSize: '15px', fontWeight: 500, color: '#52525b' }}>{language === 'id' ? 'Hari' : 'Days'}</span>
                                 </span>
                                 {delayDelta != null && (
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: delayDelta <= 0 ? '#34d399' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: delayDelta <= 0 ? 'var(--color-pg-success)' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
                                         {delayDelta >= 0 ? '▲' : '▼'} {Math.abs(delayDelta)}{' '}
                                         <span style={{ color: '#52525b', fontWeight: 400 }}>vs {rangeLabel}</span>
                                     </span>
@@ -2496,10 +2537,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     transition: 'all 0.2s ease',
                                 }}
                             >
-                                <span style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>
+                                <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>
                                     {language === 'id' ? 'PO Mendesak Aktif' : 'Urgent Active POs'}
                                 </span>
-                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: (telemetry.urgent_active || 0) > 0 ? '#ef4444' : '#34d399' }}>
+                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: (telemetry.urgent_active || 0) > 0 ? '#ef4444' : 'var(--color-pg-success)' }}>
                                     {telemetry.urgent_active || 0}
                                 </span>
                                 <span style={{ fontSize: '11px', color: '#52525b', marginTop: '2px' }}>
@@ -2513,7 +2554,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         {/* ── Section 2: Pipeline Flow Visualization ───────────── */}
                         <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', marginBottom: '22px' }}>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '16px' }}>
-                                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa', margin: 0 }}>
+                                <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-pg-text)', margin: 0 }}>
                                     {language === 'id' ? 'Alur Produksi' : 'Production Pipeline'}
                                 </h3>
                                 <span className="pipeline-legend" style={{ fontSize: '11px', color: '#52525b' }}>
@@ -2569,10 +2610,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        border: '2px solid #09090b',
+                                                        border: '2px solid var(--color-pg-bg)',
                                                     }}>{metric.stuck_count}</span>
                                                 )}
-                                                <div style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                                                <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                                                     {metric.stage}
                                                 </div>
                                                 <div style={{ fontSize: '20px', fontWeight: 800, color: health.label, lineHeight: 1 }}>
@@ -2588,7 +2629,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 )}
                                             </div>
                                             {idx < pipelineStages.length - 1 && (
-                                                <div className="pipeline-arrow" style={{ color: '#27272a', fontSize: '22px', padding: '0 3px', flexShrink: 0, userSelect: 'none' }}>→</div>
+                                                <div className="pipeline-arrow" style={{ color: 'var(--color-pg-border)', fontSize: '22px', padding: '0 3px', flexShrink: 0, userSelect: 'none' }}>→</div>
                                             )}
                                         </React.Fragment>
                                     );
@@ -2597,28 +2638,18 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         </div>
 
                         {/* ── Active Delay & Risk Directory ────────────────────── */}
-                        <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', marginBottom: '22px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fafafa', margin: 0 }}>
+                        <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 mb-5.5">
+                            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                                <div className="flex items-center gap-2.5">
+                                    <h3 className="text-base font-bold text-pg-text m-0">
                                         {matrixFilter ? (language === 'id' ? 'Hasil Filter Data' : 'Filtered Data Directory') : (language === 'id' ? 'Direktori PO & Item' : 'PO & Item Directory')}
                                     </h3>
                                     {matrixFilter && (
-                                        <span style={{
-                                            backgroundColor: '#6366f1',
-                                            color: '#fff',
-                                            padding: '4px 10px',
-                                            borderRadius: '6px',
-                                            fontSize: '11px',
-                                            fontWeight: 700,
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                        }}>
+                                        <span className="bg-pg-primary text-white px-2.5 py-1 rounded-md text-[11px] font-bold inline-flex items-center gap-1.5">
                                             {matrixFilter.label}: {matrixFilter.value.toUpperCase()}
                                             <button
                                                 onClick={() => setMatrixFilter(null)}
-                                                style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '0 2px', fontSize: '12px', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center' }}
+                                                className="bg-transparent border-none text-white cursor-pointer p-0.5 text-xs font-bold inline-flex items-center"
                                             >
                                                 ✕
                                             </button>
@@ -2626,85 +2657,80 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     )}
                                 </div>
                             </div>
-
+                            
                             {/* Pill Filters */}
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                            <div className="flex gap-2 flex-wrap mb-4">
                                 <button
                                     onClick={() => setDirectoryFilter('client')}
+                                    className="cursor-pointer transition-all duration-200"
                                     style={{
                                         padding: '6px 14px',
                                         borderRadius: '9999px',
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'client' ? '#6366f1' : 'rgba(255,255,255,0.05)',
-                                        color: directoryFilter === 'client' ? '#ffffff' : '#a1a1aa',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
+                                        backgroundColor: directoryFilter === 'client' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                        color: directoryFilter === 'client' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
                                 >
                                     {language === 'id' ? 'Per Klien (Default)' : 'Per Client (Default)'}
                                 </button>
                                 <button
                                     onClick={() => setDirectoryFilter('marked')}
+                                    className="cursor-pointer transition-all duration-200"
                                     style={{
                                         padding: '6px 14px',
                                         borderRadius: '9999px',
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'marked' ? '#6366f1' : 'rgba(255,255,255,0.05)',
-                                        color: directoryFilter === 'marked' ? '#ffffff' : '#a1a1aa',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
+                                        backgroundColor: directoryFilter === 'marked' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                        color: directoryFilter === 'marked' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
                                 >
                                     {language === 'id' ? 'Ditandai (Rework/Kendala)' : 'Marked (Rework / Trouble)'}
                                 </button>
                                 <button
                                     onClick={() => setDirectoryFilter('delayed')}
+                                    className="cursor-pointer transition-all duration-200"
                                     style={{
                                         padding: '6px 14px',
                                         borderRadius: '9999px',
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'delayed' ? '#6366f1' : 'rgba(255,255,255,0.05)',
-                                        color: directoryFilter === 'delayed' ? '#ffffff' : '#a1a1aa',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
+                                        backgroundColor: directoryFilter === 'delayed' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                        color: directoryFilter === 'delayed' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
                                 >
                                     {language === 'id' ? 'Terlambat' : 'Delayed'}
                                 </button>
                                 <button
                                     onClick={() => setDirectoryFilter('ontime')}
+                                    className="cursor-pointer transition-all duration-200"
                                     style={{
                                         padding: '6px 14px',
                                         borderRadius: '9999px',
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'ontime' ? '#6366f1' : 'rgba(255,255,255,0.05)',
-                                        color: directoryFilter === 'ontime' ? '#ffffff' : '#a1a1aa',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
+                                        backgroundColor: directoryFilter === 'ontime' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                        color: directoryFilter === 'ontime' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
                                 >
                                     {language === 'id' ? 'Tepat Waktu' : 'On Time'}
                                 </button>
                                 <button
                                     onClick={() => setDirectoryFilter('close_due')}
+                                    className="cursor-pointer transition-all duration-200"
                                     style={{
                                         padding: '6px 14px',
                                         borderRadius: '9999px',
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'close_due' ? '#6366f1' : 'rgba(255,255,255,0.05)',
-                                        color: directoryFilter === 'close_due' ? '#ffffff' : '#a1a1aa',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
+                                        backgroundColor: directoryFilter === 'close_due' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                        color: directoryFilter === 'close_due' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
                                 >
                                     {language === 'id' ? 'Mendekati Deadline' : 'Close Due Date'}
@@ -2821,7 +2847,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                                     if (filteredItems.length === 0) {
                                         return (
-                                            <div style={{ color: '#71717a', fontSize: '13px', padding: '24px 0', textAlign: 'center' }}>
+                                            <div className="text-pg-text-muted text-sm py-6 text-center">
                                                 {matrixFilter ? (language === 'id' ? `Tidak ada data untuk filter "${matrixFilter.label}: ${matrixFilter.value}".` : `No data found for filter "${matrixFilter.label}: ${matrixFilter.value}".`) : (language === 'id' ? 'Tidak ada data item PO.' : 'No PO items found.')}
                                             </div>
                                         );
@@ -2840,17 +2866,17 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     return (
                                         <>
                                             <div className="directory-table-container">
-                                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                                <table className="w-full border-collapse text-sm">
                                                     <thead>
-                                                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.po_number_label}</th>
-                                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.client_label}</th>
-                                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.item_name_label}</th>
-                                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.progress_label}</th>
-                                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{language === 'id' ? 'Status' : 'Status'}</th>
-                                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.deadline_label}</th>
-                                                            <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.days_overdue_label}</th>
-                                                            <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a', fontWeight: 600 }}>{t.delay_reason_label}</th>
+                                                        <tr className="border-b border-white/8">
+                                                            <th className="text-left px-4 py-3 text-pg-text-muted font-semibold">{t.po_number_label}</th>
+                                                            <th className="text-left px-4 py-3 text-pg-text-muted font-semibold">{t.client_label}</th>
+                                                            <th className="text-left px-4 py-3 text-pg-text-muted font-semibold">{t.item_name_label}</th>
+                                                            <th className="text-center px-4 py-3 text-pg-text-muted font-semibold">{t.progress_label}</th>
+                                                            <th className="text-center px-4 py-3 text-pg-text-muted font-semibold">{language === 'id' ? 'Status' : 'Status'}</th>
+                                                            <th className="text-center px-4 py-3 text-pg-text-muted font-semibold">{t.deadline_label}</th>
+                                                            <th className="text-center px-4 py-3 text-pg-text-muted font-semibold">{t.days_overdue_label}</th>
+                                                            <th className="text-left px-4 py-3 text-pg-text-muted font-semibold">{t.delay_reason_label}</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -2858,8 +2884,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                             const clientItems = groupedByClient[cName];
                                                             return (
                                                                 <React.Fragment key={`group-${cName}`}>
-                                                                    <tr style={{ backgroundColor: 'rgba(59,130,246,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                                                                        <td colSpan={8} style={{ padding: '8px 16px', fontWeight: 700, color: '#818cf8', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                    <tr className="bg-blue-500/3 border-b border-white/6">
+                                                                        <td colSpan={8} className="px-4 py-2 font-bold text-pg-primary-hover text-[11px] uppercase tracking-wider">
                                                                             🏢 CLIENT: {cName} ({clientItems.length} item{clientItems.length > 1 ? 's' : ''})
                                                                         </td>
                                                                     </tr>
@@ -2868,13 +2894,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                         
                                                                         // Determine status badge
                                                                         let displayStatus = item.current_stage || '-';
-                                                                        let statusColor = '#a1a1aa';
+                                                                        let statusColor = 'var(--color-pg-text-secondary)';
                                                                         let statusBg = 'rgba(255,255,255,0.03)';
                                                                         
                                                                         if (item.po_status === 'COMPLETED' || item.po_status === 'DELIVERED' || item.po_status === 'CLOSED') {
                                                                             if (item.invoice_status === 'UNINVOICED') {
                                                                                 displayStatus = language === 'id' ? 'Belum Difakturkan' : 'Finance: Uninvoiced';
-                                                                                statusColor = '#fbbf24';
+                                                                                statusColor = 'var(--color-pg-warning)';
                                                                                 statusBg = 'rgba(234,179,8,0.1)';
                                                                             } else if (item.invoice_status === 'PARTIAL') {
                                                                                 displayStatus = (language === 'id' ? 'Faktur Sebagian' : 'Finance: Partial Invoice') + ` (${item.invoiced_qty}/${item.target_qty})`;
@@ -2882,15 +2908,15 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 statusBg = 'rgba(168,85,247,0.1)';
                                                                             } else if (item.payment_status === 'UNPAID') {
                                                                                 displayStatus = language === 'id' ? 'Belum Dibayar' : 'Finance: Unpaid';
-                                                                                statusColor = '#fb923c';
+                                                                                statusColor = 'var(--color-pg-orange)';
                                                                                 statusBg = 'rgba(249,115,22,0.1)';
                                                                             } else if (item.payment_status === 'PARTIAL_PAID') {
                                                                                 displayStatus = language === 'id' ? 'Dibayar Sebagian' : 'Finance: Partial Paid';
-                                                                                statusColor = '#6366f1';
+                                                                                statusColor = 'var(--color-pg-primary)';
                                                                                 statusBg = 'rgba(99,102,241,0.1)';
                                                                             } else {
                                                                                 displayStatus = language === 'id' ? 'Selesai & Lunas' : 'Closed / Settled';
-                                                                                statusColor = '#34d399';
+                                                                                statusColor = 'var(--color-pg-success)';
                                                                                 statusBg = 'rgba(16,185,129,0.1)';
                                                                             }
                                                                         } else {
@@ -2899,8 +2925,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                         }
 
                                                                         return (
-                                                                            <tr key={`delay-${cName}-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#e4e4e7' }}>
-                                                                                <td style={{ padding: '12px 16px', fontWeight: 700 }}>
+                                                                            <tr key={`delay-${cName}-${idx}`} className="border-b border-white/4 text-zinc-300">
+                                                                                <td className="px-4 py-3 font-bold">
                                                                                     <button
                                                                                         onClick={() => {
                                                                                             if (item.po_id) {
@@ -2925,57 +2951,45 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                                 }
                                                                                             }
                                                                                         }}
-                                                                                        style={{
-                                                                                            background: 'none',
-                                                                                            border: 'none',
-                                                                                            color: '#3b82f6',
-                                                                                            fontWeight: 700,
-                                                                                            cursor: 'pointer',
-                                                                                            padding: 0,
-                                                                                            textAlign: 'left',
-                                                                                            textDecoration: 'underline',
-                                                                                        }}
+                                                                                        className="bg-transparent border-none text-blue-500 font-bold cursor-pointer p-0 text-left underline"
                                                                                     >
                                                                                         {item.po_number}
                                                                                     </button>
                                                                                 </td>
-                                                                                <td style={{ padding: '12px 16px' }}>{item.client_name}</td>
-                                                                                <td style={{ padding: '12px 16px', fontWeight: 600 }}>{item.item_name}</td>
-                                                                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                                                                <td className="px-4 py-3">{item.client_name}</td>
+                                                                                <td className="px-4 py-3 font-semibold">{item.item_name}</td>
+                                                                                <td className="px-4 py-3 text-center">
+                                                                                    <div className="flex flex-col items-center gap-0.5">
                                                                                         <span className="badge" style={{
                                                                                             backgroundColor: progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                                                                                            color: progress >= 100 ? '#34d399' : '#3b82f6',
+                                                                                            color: progress >= 100 ? 'var(--color-pg-success)' : '#3b82f6',
                                                                                         }}>
                                                                                             {progress.toFixed(0)}%
                                                                                         </span>
                                                                                         {item.target_qty !== undefined && (
-                                                                                            <span style={{ fontSize: '10px', color: '#71717a' }}>
+                                                                                            <span className="text-[10px] text-pg-text-muted">
                                                                                                 ({item.total_delivered_qty || 0} / {item.target_qty} pcs)
                                                                                             </span>
                                                                                         )}
                                                                                     </div>
                                                                                 </td>
-                                                                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                                                                    <span className="badge" style={{
-                                                                                        backgroundColor: statusBg,
-                                                                                        color: statusColor,
-                                                                                        fontWeight: 600,
-                                                                                    }}>
+                                                                                <td className="px-4 py-3 text-center">
+                                                                                    <span className="badge font-semibold"
+                                                                                        style={{ backgroundColor: statusBg, color: statusColor }}>
                                                                                         {displayStatus}
                                                                                     </span>
                                                                                 </td>
-                                                                                <td style={{ padding: '12px 16px', textAlign: 'center', color: '#a1a1aa' }}>{item.global_deadline}</td>
-                                                                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                                                                <td className="px-4 py-3 text-center text-pg-text-secondary">{item.global_deadline}</td>
+                                                                                <td className="px-4 py-3 text-center">
                                                                                     {item.days_overdue > 0 ? (
-                                                                                        <span className="badge" style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                                                                                        <span className="badge bg-red-500/15 text-red-500">
                                                                                             {item.days_overdue} {t.days_suffix}
                                                                                         </span>
                                                                                     ) : (
-                                                                                        <span style={{ color: '#71717a' }}>-</span>
+                                                                                        <span className="text-pg-text-muted">-</span>
                                                                                     )}
                                                                                 </td>
-                                                                                <td style={{ padding: '12px 16px', color: '#ef4444', fontStyle: 'italic' }}>
+                                                                                <td className="px-4 py-3 text-pg-danger italic">
                                                                                     {item.reason}
                                                                                 </td>
                                                                             </tr>
@@ -2992,34 +3006,23 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 {Object.keys(groupedByClient).map((cName) => {
                                                     const clientItems = groupedByClient[cName];
                                                     return (
-                                                        <div key={`mobile-group-${cName}`} style={{ marginBottom: '12px' }}>
-                                                            <div style={{
-                                                                backgroundColor: 'rgba(59,130,246,0.04)',
-                                                                border: '1px solid rgba(255,255,255,0.06)',
-                                                                borderRadius: '8px',
-                                                                padding: '8px 12px',
-                                                                fontWeight: 700,
-                                                                color: '#818cf8',
-                                                                fontSize: '11px',
-                                                                textTransform: 'uppercase',
-                                                                letterSpacing: '0.05em',
-                                                                marginBottom: '6px',
-                                                            }}>
+                                                        <div key={`mobile-group-${cName}`} className="mb-3">
+                                                            <div className="bg-blue-500/4 border border-white/6 rounded-lg px-3 py-2 font-bold text-pg-primary-hover text-[11px] uppercase tracking-wider mb-1.5">
                                                                 🏢 CLIENT: {cName} ({clientItems.length} item{clientItems.length > 1 ? 's' : ''})
                                                             </div>
-                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                            <div className="flex flex-col gap-1.5">
                                                                 {clientItems.map((item: any, idx: number) => {
                                                                     const progress = parseFloat(item.progress_percent);
                                                                     
                                                                     // Determine status badge
                                                                     let displayStatus = item.current_stage || '-';
-                                                                    let statusColor = '#a1a1aa';
+                                                                    let statusColor = 'var(--color-pg-text-secondary)';
                                                                     let statusBg = 'rgba(255,255,255,0.03)';
                                                                     
                                                                      if (item.po_status === 'COMPLETED' || item.po_status === 'DELIVERED' || item.po_status === 'CLOSED') {
                                                                          if (item.invoice_status === 'UNINVOICED') {
                                                                              displayStatus = language === 'id' ? 'Belum Difakturkan' : 'Finance: Uninvoiced';
-                                                                             statusColor = '#fbbf24';
+                                                                             statusColor = 'var(--color-pg-warning)';
                                                                              statusBg = 'rgba(234,179,8,0.1)';
                                                                          } else if (item.invoice_status === 'PARTIAL') {
                                                                              displayStatus = (language === 'id' ? 'Faktur Sebagian' : 'Finance: Partial Invoice') + ` (${item.invoiced_qty}/${item.target_qty})`;
@@ -3027,15 +3030,15 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                              statusBg = 'rgba(168,85,247,0.1)';
                                                                          } else if (item.payment_status === 'UNPAID') {
                                                                              displayStatus = language === 'id' ? 'Belum Dibayar' : 'Finance: Unpaid';
-                                                                             statusColor = '#fb923c';
+                                                                             statusColor = 'var(--color-pg-orange)';
                                                                              statusBg = 'rgba(249,115,22,0.1)';
                                                                          } else if (item.payment_status === 'PARTIAL_PAID') {
                                                                              displayStatus = language === 'id' ? 'Dibayar Sebagian' : 'Finance: Partial Paid';
-                                                                             statusColor = '#6366f1';
+                                                                             statusColor = 'var(--color-pg-primary)';
                                                                              statusBg = 'rgba(99,102,241,0.1)';
                                                                          } else {
                                                                              displayStatus = language === 'id' ? 'Selesai & Lunas' : 'Closed / Settled';
-                                                                             statusColor = '#34d399';
+                                                                             statusColor = 'var(--color-pg-success)';
                                                                              statusBg = 'rgba(16,185,129,0.1)';
                                                                          }
                                                                      } else {
@@ -3044,75 +3047,51 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                     }
 
                                                                     return (
-                                                                        <div key={`mobile-item-${cName}-${idx}`} style={{
-                                                                            backgroundColor: '#18181b',
-                                                                            border: '1px solid rgba(255,255,255,0.06)',
-                                                                            borderRadius: '10px',
-                                                                            padding: '10px',
-                                                                            display: 'flex',
-                                                                            flexDirection: 'column',
-                                                                            gap: '6px',
-                                                                        }}>
-                                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                                                                        <div key={`mobile-item-${cName}-${idx}`} className="bg-pg-card border border-white/6 rounded-xl p-2.5 flex flex-col gap-1.5">
+                                                                            <div className="flex justify-between items-baseline">
                                                                                 <button
                                                                                     onClick={() => {
                                                                                         changeTab('active');
                                                                                         togglePO(item.po_id);
                                                                                     }}
-                                                                                    style={{
-                                                                                        background: 'none',
-                                                                                        border: 'none',
-                                                                                        color: '#3b82f6',
-                                                                                        fontWeight: 700,
-                                                                                        cursor: 'pointer',
-                                                                                        padding: 0,
-                                                                                        textAlign: 'left',
-                                                                                        textDecoration: 'underline',
-                                                                                        fontSize: '12px',
-                                                                                    }}
+                                                                                    className="bg-transparent border-none text-blue-500 font-bold cursor-pointer p-0 text-left underline text-xs"
                                                                                 >
                                                                                     {item.po_number}
                                                                                 </button>
-                                                                                <span style={{ fontWeight: 700, color: '#fafafa', fontSize: '12px' }}>{item.item_name}</span>
+                                                                                <span className="font-bold text-pg-text text-xs">{item.item_name}</span>
                                                                             </div>
-                                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                                                    <span className="badge" style={{
-                                                                                        backgroundColor: progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                                                                                        color: progress >= 100 ? '#34d399' : '#3b82f6',
-                                                                                        fontSize: '10px',
-                                                                                        padding: '2px 6px',
-                                                                                    }}>
+                                                                            <div className="flex justify-between items-center">
+                                                                                <div className="flex items-center gap-1">
+                                                                                    <span className="badge text-[10px] px-1.5 py-0.5"
+                                                                                        style={{
+                                                                                            backgroundColor: progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                                                                            color: progress >= 100 ? 'var(--color-pg-success)' : '#3b82f6',
+                                                                                        }}>
                                                                                         {progress.toFixed(0)}%
                                                                                     </span>
                                                                                     {item.target_qty !== undefined && (
-                                                                                        <span style={{ fontSize: '10px', color: '#71717a' }}>
+                                                                                        <span className="text-[10px] text-pg-text-muted">
                                                                                             ({item.total_delivered_qty || 0} / {item.target_qty} pcs)
                                                                                         </span>
                                                                                     )}
                                                                                 </div>
-                                                                                <span className="badge" style={{
-                                                                                    backgroundColor: statusBg,
-                                                                                    color: statusColor,
-                                                                                    fontWeight: 600,
-                                                                                    fontSize: '10px',
-                                                                                    padding: '2px 6px',
-                                                                                }}>
+                                                                                <span className="badge font-semibold text-[10px] px-1.5 py-0.5"
+                                                                                    style={{ backgroundColor: statusBg, color: statusColor }}>
                                                                                     {displayStatus}
                                                                                 </span>
                                                                             </div>
-                                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#a1a1aa', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '4px' }}>
+                                                                            <div className="flex justify-between items-center text-[10px] text-pg-text-secondary border-t border-white/4 pt-1">
                                                                                 <span>{t.deadline_label}: {item.global_deadline}</span>
                                                                                 {item.days_overdue > 0 ? (
-                                                                                    <span className="badge" style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', fontSize: '9px', padding: '1px 4px' }}>
+                                                                                    <span className="badge bg-red-500/15 text-red-500 text-[9px] px-1 py-px">
                                                                                         {item.days_overdue} {t.days_suffix}
                                                                                     </span>
                                                                                 ) : (
-                                                                                    <span style={{ color: '#71717a' }}>-</span>
+                                                                                    <span className="text-pg-text-muted">-</span>
                                                                                 )}
                                                                             </div>
                                                                             {item.reason && (
-                                                                                <div style={{ fontSize: '10px', color: '#ef4444', fontStyle: 'italic', marginTop: '2px' }}>
+                                                                                <div className="text-[10px] text-pg-danger italic mt-0.5">
                                                                                     {item.reason}
                                                                                 </div>
                                                                             )}
@@ -3132,29 +3111,23 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                         {/* ── Section 5: Finance Health Strip ──────────────────── */}
                         {telemetry.finance_health && (
-                            <div style={{ display: 'flex', backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', overflow: 'hidden', marginBottom: '22px' }}>
+                            <div className="flex bg-slate-900/40 border border-white/5 rounded-xl overflow-hidden mb-5.5">
                                 <div
                                     onClick={() => setMatrixFilter(prev =>
                                         prev?.type === 'finance_uninvoiced' ? null : { type: 'finance_uninvoiced', value: `${telemetry.finance_health.uninvoiced_count} Items`, label: language === 'id' ? 'Belum Difakturkan' : 'Uninvoiced Items' }
                                     )}
+                                    className="flex-1 px-5 py-3.5 border-r border-white/5 flex items-center gap-3 cursor-pointer transition-all duration-200"
                                     style={{
-                                        flex: 1,
-                                        padding: '14px 20px',
-                                        borderRight: '1px solid rgba(255,255,255,0.05)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '12px',
-                                        cursor: 'pointer',
                                         backgroundColor: matrixFilter?.type === 'finance_uninvoiced' ? 'rgba(37,99,235,0.1)' : 'transparent',
-                                        transition: 'all 0.2s ease',
                                     }}
                                 >
-                                    <span style={{ fontSize: '20px' }}>💼</span>
+                                    <span className="text-xl">💼</span>
                                     <div>
-                                        <div style={{ fontSize: '10px', color: '#71717a', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>
+                                        <div className="text-[10px] text-pg-text-muted font-bold uppercase tracking-wider mb-0.5">
                                             {language === 'id' ? 'Belum Difakturkan' : 'Uninvoiced Items'}
                                         </div>
-                                        <div style={{ fontSize: '22px', fontWeight: 800, color: telemetry.finance_health.uninvoiced_count > 0 ? '#fbbf24' : '#34d399', lineHeight: 1 }}>
+                                        <div className="text-[22px] font-extrabold leading-none"
+                                            style={{ color: telemetry.finance_health.uninvoiced_count > 0 ? 'var(--color-pg-warning)' : 'var(--color-pg-success)' }}>
                                             {telemetry.finance_health.uninvoiced_count}
                                         </div>
                                     </div>
@@ -3163,23 +3136,18 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     onClick={() => setMatrixFilter(prev =>
                                         prev?.type === 'finance_unpaid' ? null : { type: 'finance_unpaid', value: `${telemetry.finance_health.unpaid_count} Items`, label: language === 'id' ? 'Belum Dibayar' : 'Unpaid Items' }
                                     )}
+                                    className="flex-1 px-5 py-3.5 flex items-center gap-3 cursor-pointer transition-all duration-200"
                                     style={{
-                                        flex: 1,
-                                        padding: '14px 20px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '12px',
-                                        cursor: 'pointer',
                                         backgroundColor: matrixFilter?.type === 'finance_unpaid' ? 'rgba(37,99,235,0.1)' : 'transparent',
-                                        transition: 'all 0.2s ease',
                                     }}
                                 >
-                                    <span style={{ fontSize: '20px' }}>💰</span>
+                                    <span className="text-xl">💰</span>
                                     <div>
-                                        <div style={{ fontSize: '10px', color: '#71717a', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>
+                                        <div className="text-[10px] text-pg-text-muted font-bold uppercase tracking-wider mb-0.5">
                                             {language === 'id' ? 'Belum Dibayar' : 'Unpaid Items'}
                                         </div>
-                                        <div style={{ fontSize: '22px', fontWeight: 800, color: telemetry.finance_health.unpaid_count > 0 ? '#fb923c' : '#34d399', lineHeight: 1 }}>
+                                        <div className="text-[22px] font-extrabold leading-none"
+                                            style={{ color: telemetry.finance_health.unpaid_count > 0 ? 'var(--color-pg-orange)' : 'var(--color-pg-success)' }}>
                                             {telemetry.finance_health.unpaid_count}
                                         </div>
                                     </div>
@@ -3188,11 +3156,11 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         )}
 
                         {/* ── Chart Row ─────────────────────────────────────────── */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '22px' }}>
+                        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5 mb-5.5">
                             {/* Output and Overdue Trends */}
-                            <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px' }}>
-                                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa', marginBottom: '16px' }}>{t.production_overdue_trends}</h3>
-                                <div style={{ width: '100%', overflowX: 'auto' }}>
+                            <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5">
+                                <h3 className="text-sm font-bold text-pg-text mb-4">{t.production_overdue_trends}</h3>
+                                <div className="w-full overflow-x-auto">
                                     <svg width="100%" height="200" viewBox="0 0 500 200" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
                                         <line x1="40" y1="20" x2="480" y2="20" stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
                                         <line x1="40" y1="70" x2="480" y2="70" stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
@@ -3259,29 +3227,29 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         })()}
                                     </svg>
                                 </div>
-                                <div style={{ display: 'flex', gap: '16px', marginTop: '16px', justifyContent: 'center', fontSize: '11px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        <span style={{ display: 'inline-block', width: '12px', height: '12px', backgroundColor: '#3b82f6', borderRadius: '3px' }} />
-                                        <span style={{ color: '#a1a1aa' }}>{t.legend_completed}</span>
+                                <div className="flex gap-4 mt-4 justify-center text-[11px]">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="inline-block w-3 h-3 bg-blue-500 rounded-sm" />
+                                        <span className="text-pg-text-secondary">{t.legend_completed}</span>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        <span style={{ display: 'inline-block', width: '12px', height: '2px', backgroundColor: '#ef4444' }} />
-                                        <span style={{ color: '#a1a1aa' }}>{t.legend_overdue}</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="inline-block w-3 h-0.5 bg-red-500" />
+                                        <span className="text-pg-text-secondary">{t.legend_overdue}</span>
                                     </div>
                                 </div>
                             </div>
-
+                            
                             {/* Why Delayed Pie */}
-                            <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px' }}>
-                                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa', marginBottom: '16px' }}>{t.why_delayed_reasons}</h3>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px', flexWrap: 'wrap' }}>
+                            <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5">
+                                <h3 className="text-sm font-bold text-pg-text mb-4">{t.why_delayed_reasons}</h3>
+                                <div className="flex items-center justify-center gap-6 flex-wrap">
                                     {(() => {
                                         const reasons = telemetry.delay_reasons || {};
                                         const total = Object.values(reasons).reduce((a: any, b: any) => a + b, 0) as number;
-                                        const colors = ['#ef4444', '#fbbf24', '#3b82f6', '#34d399', '#a855f7', '#fb923c', '#71717a'];
+                                        const colors = ['#ef4444', 'var(--color-pg-warning)', '#3b82f6', 'var(--color-pg-success)', '#a855f7', 'var(--color-pg-orange)', 'var(--color-pg-text-muted)'];
                                         if (total === 0) {
                                             return (
-                                                <div style={{ color: '#71717a', fontSize: '13px', padding: '40px 0' }}>
+                                                <div className="text-pg-text-muted text-sm py-10">
                                                     {t.no_incidents}
                                                 </div>
                                             );
@@ -3353,18 +3321,18 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         </div>
 
                         {/* ── Bottleneck Detail Table ───────────────────────────── */}
-                        <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', marginBottom: '22px' }}>
-                            <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa', marginBottom: '16px' }}>{t.bottleneck_analyzer}</h3>
-                            <div style={{ width: '100%', overflowX: 'auto' }}>
+                        <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 mb-5.5">
+                            <h3 className="text-sm font-bold text-pg-text mb-4">{t.bottleneck_analyzer}</h3>
+                            <div className="w-full overflow-x-auto">
                                 <div className="bottleneck-table-container">
-                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                    <table className="w-full border-collapse text-sm">
                                         <thead>
-                                            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                                <th style={{ textAlign: 'left', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.stage}</th>
-                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.active_items}</th>
-                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.stuck_incidents}</th>
-                                                <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.rework_count}</th>
-                                                <th style={{ textAlign: 'right', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>{t.avg_cycle_time}</th>
+                                            <tr className="border-b border-white/8">
+                                                <th className="text-left px-4 py-2.5 text-pg-text-muted font-semibold">{t.stage}</th>
+                                                <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">{t.active_items}</th>
+                                                <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">{t.stuck_incidents}</th>
+                                                <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">{t.rework_count}</th>
+                                                <th className="text-right px-4 py-2.5 text-pg-text-muted font-semibold">{t.avg_cycle_time}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -3376,31 +3344,28 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                             ? null
                                                             : { type: 'stage', value: metric.stage, label: language === 'id' ? 'Tahap' : 'Stage' }
                                                     )}
+                                                    className="border-b border-white/4 text-zinc-300 cursor-pointer transition-all duration-200"
                                                     style={{
-                                                        borderBottom: '1px solid rgba(255,255,255,0.04)',
-                                                        color: '#e4e4e7',
-                                                        cursor: 'pointer',
                                                         backgroundColor: matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage ? 'rgba(37,99,235,0.1)' : 'transparent',
-                                                        transition: 'all 0.2s ease',
                                                     }}
                                                 >
-                                                    <td style={{ padding: '10px 16px', fontWeight: 700 }}>
+                                                    <td className="px-4 py-2.5 font-bold">
                                                         <span style={{ color: matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage ? '#3b82f6' : 'inherit' }}>
                                                             {metric.stage.toUpperCase()}
                                                         </span>
                                                     </td>
-                                                    <td style={{ padding: '10px 16px', textAlign: 'center' }}>{metric.active_items}</td>
-                                                    <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                                                    <td className="px-4 py-2.5 text-center">{metric.active_items}</td>
+                                                    <td className="px-4 py-2.5 text-center">
                                                         {metric.stuck_count > 0
-                                                            ? <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444' }}>{metric.stuck_count} stuck</span>
+                                                            ? <span className="badge bg-red-500/15 text-red-500">{metric.stuck_count} stuck</span>
                                                             : '0'}
                                                     </td>
-                                                    <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                                                    <td className="px-4 py-2.5 text-center">
                                                         {metric.rework_count > 0
-                                                            ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24' }}>{metric.rework_count} rework</span>
+                                                            ? <span className="badge bg-amber-500/15 text-pg-warning">{metric.rework_count} rework</span>
                                                             : '0'}
                                                     </td>
-                                                    <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 700, color: '#3b82f6' }}>{metric.avg_cycle_time.toFixed(2)}</td>
+                                                    <td className="px-4 py-2.5 text-right font-bold text-blue-500">{metric.avg_cycle_time.toFixed(2)}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -3418,31 +3383,26 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         ? null
                                                         : { type: 'stage', value: metric.stage, label: language === 'id' ? 'Tahap' : 'Stage' }
                                                 )}
+                                                className="rounded-xl p-3 flex flex-col gap-2 cursor-pointer"
                                                 style={{
-                                                    backgroundColor: isSelected ? 'rgba(37,99,235,0.1)' : '#18181b',
+                                                    backgroundColor: isSelected ? 'rgba(37,99,235,0.1)' : 'var(--color-pg-card)',
                                                     border: isSelected ? '1px solid #3b82f6' : '1px solid rgba(255,255,255,0.06)',
-                                                    borderRadius: '10px',
-                                                    padding: '12px',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    gap: '8px',
-                                                    cursor: 'pointer',
                                                 }}
                                             >
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <span style={{ fontWeight: 800, fontSize: '13px', color: isSelected ? '#3b82f6' : '#fafafa' }}>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="font-extrabold text-sm" style={{ color: isSelected ? '#3b82f6' : 'var(--color-pg-text)' }}>
                                                         {metric.stage.toUpperCase()}
                                                     </span>
-                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#3b82f6' }}>
+                                                    <span className="text-xs font-bold text-blue-500">
                                                         {metric.avg_cycle_time.toFixed(2)} {language === 'id' ? 'Hari' : 'Days'}
                                                     </span>
                                                 </div>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '11px', color: '#a1a1aa' }}>
+                                                <div className="flex flex-wrap gap-2 text-[11px] text-pg-text-secondary">
                                                     <span>{t.active_items}: <strong>{metric.active_items}</strong></span>
                                                     <span>•</span>
                                                     <span>
                                                         {t.stuck_incidents}: {metric.stuck_count > 0 ? (
-                                                            <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444', fontSize: '10px', padding: '1px 5px' }}>
+                                                            <span className="badge bg-red-500/15 text-red-500 text-[10px] px-1.5 py-px">
                                                                 {metric.stuck_count} stuck
                                                             </span>
                                                         ) : '0'}
@@ -3450,7 +3410,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                     <span>•</span>
                                                     <span>
                                                         {t.rework_count}: {metric.rework_count > 0 ? (
-                                                            <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24', fontSize: '10px', padding: '1px 5px' }}>
+                                                            <span className="badge bg-amber-500/15 text-pg-warning text-[10px] px-1.5 py-px">
                                                                 {metric.rework_count} rework
                                                             </span>
                                                         ) : '0'}
@@ -3467,36 +3427,36 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                         {/* ── Section 4: Papan Kinerja Klien ───────────────────── */}
                         {telemetry.client_health && telemetry.client_health.length > 0 && (
-                            <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
-                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '16px' }}>
-                                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fafafa', margin: 0 }}>
+                            <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 mb-4">
+                                <div className="flex items-baseline gap-2.5 mb-4">
+                                    <h3 className="text-base font-bold text-pg-text m-0">
                                         {language === 'id' ? 'Papan Kinerja Klien' : 'Client Performance Board'}
                                     </h3>
-                                    <span style={{ fontSize: '11px', color: '#52525b' }}>
+                                    <span className="text-[11px] text-zinc-600">
                                         {language === 'id' ? 'diurutkan berdasarkan risiko tertinggi' : 'sorted by highest risk'}
                                     </span>
                                 </div>
-                                <div style={{ width: '100%', overflowX: 'auto' }}>
+                                <div className="w-full overflow-x-auto">
                                     <div className="client-table-container">
-                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                        <table className="w-full border-collapse text-sm">
                                             <thead>
-                                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                                    <th style={{ textAlign: 'left', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
+                                                <tr className="border-b border-white/8">
+                                                    <th className="text-left px-4 py-2.5 text-pg-text-muted font-semibold">
                                                         {language === 'id' ? 'Klien' : 'Client'}
                                                     </th>
-                                                    <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
+                                                    <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">
                                                         {language === 'id' ? 'PO Aktif' : 'Active POs'}
                                                     </th>
-                                                    <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
+                                                    <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">
                                                         {language === 'id' ? 'Ketepatan Waktu' : 'On-Time Rate'}
                                                     </th>
-                                                    <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
+                                                    <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">
                                                         {language === 'id' ? 'Item Terlambat' : 'Overdue Items'}
                                                     </th>
-                                                    <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
+                                                    <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">
                                                         {language === 'id' ? 'Belum Faktur' : 'Uninvoiced'}
                                                     </th>
-                                                    <th style={{ textAlign: 'center', padding: '10px 16px', color: '#71717a', fontWeight: 600 }}>
+                                                    <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">
                                                         {language === 'id' ? 'Belum Bayar' : 'Unpaid'}
                                                     </th>
                                                 </tr>
@@ -3504,48 +3464,52 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             <tbody>
                                                 {telemetry.client_health.map((client: any, idx: number) => {
                                                     const otdrColor = client.on_time_rate == null
-                                                        ? '#71717a'
-                                                        : client.on_time_rate >= 80 ? '#34d399'
-                                                        : client.on_time_rate >= 60 ? '#fbbf24'
+                                                        ? 'var(--color-pg-text-muted)'
+                                                        : client.on_time_rate >= 80 ? 'var(--color-pg-success)'
+                                                        : client.on_time_rate >= 60 ? 'var(--color-pg-warning)'
                                                         : '#ef4444';
                                                     const hasRisk = client.overdue_items > 0 || client.uninvoiced_count > 0 || client.unpaid_count > 0;
                                                     return (
-                                                        <tr key={`client-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#e4e4e7', backgroundColor: hasRisk ? 'rgba(239,68,68,0.015)' : 'transparent' }}>
+                                                        <tr key={`client-${idx}`} className="border-b border-white/4 text-zinc-300"
+                                                            style={{ backgroundColor: hasRisk ? 'rgba(239,68,68,0.015)' : 'transparent' }}>
                                                             <td
                                                                 onClick={() => setMatrixFilter({ type: 'client', value: client.client_name, label: language === 'id' ? 'Klien' : 'Client' })}
-                                                                style={{ padding: '11px 16px', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', color: '#818cf8' }}
+                                                                className="px-4 py-2.75 font-bold cursor-pointer underline text-pg-primary-hover"
                                                             >
                                                                 {client.client_name}
                                                             </td>
-                                                            <td style={{ padding: '11px 16px', textAlign: 'center', color: '#a1a1aa' }}>{client.active_pos}</td>
-                                                            <td style={{ padding: '11px 16px', textAlign: 'center' }}>
+                                                            <td className="px-4 py-2.75 text-center text-pg-text-secondary">{client.active_pos}</td>
+                                                            <td className="px-4 py-2.75 text-center">
                                                                 {client.on_time_rate != null
-                                                                    ? <span style={{ fontWeight: 700, color: otdrColor }}>{client.on_time_rate}%</span>
-                                                                    : <span style={{ color: '#52525b', fontSize: '11px' }}>N/A</span>}
+                                                                    ? <span className="font-bold" style={{ color: otdrColor }}>{client.on_time_rate}%</span>
+                                                                    : <span className="text-zinc-600 text-[11px]">N/A</span>}
                                                             </td>
                                                             <td
                                                                 onClick={() => client.overdue_items > 0 && setMatrixFilter({ type: 'client_overdue', value: client.client_name, label: language === 'id' ? 'Overdue Klien' : 'Client Overdue' })}
-                                                                style={{ padding: '11px 16px', textAlign: 'center', cursor: client.overdue_items > 0 ? 'pointer' : 'default' }}
+                                                                className="px-4 py-2.75 text-center"
+                                                                style={{ cursor: client.overdue_items > 0 ? 'pointer' : 'default' }}
                                                             >
                                                                 {client.overdue_items > 0
-                                                                    ? <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444' }}>{client.overdue_items}</span>
-                                                                    : <span style={{ color: '#71717a' }}>-</span>}
+                                                                    ? <span className="badge bg-red-500/15 text-red-500">{client.overdue_items}</span>
+                                                                    : <span className="text-pg-text-muted">-</span>}
                                                             </td>
                                                             <td
                                                                 onClick={() => client.uninvoiced_count > 0 && setMatrixFilter({ type: 'client_uninvoiced', value: client.client_name, label: language === 'id' ? 'Belum Difakturkan Klien' : 'Client Uninvoiced' })}
-                                                                style={{ padding: '11px 16px', textAlign: 'center', cursor: client.uninvoiced_count > 0 ? 'pointer' : 'default' }}
+                                                                className="px-4 py-2.75 text-center"
+                                                                style={{ cursor: client.uninvoiced_count > 0 ? 'pointer' : 'default' }}
                                                             >
                                                                 {client.uninvoiced_count > 0
-                                                                    ? <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24' }}>{client.uninvoiced_count}</span>
-                                                                    : <span style={{ color: '#71717a' }}>-</span>}
+                                                                    ? <span className="badge bg-amber-500/15 text-pg-warning">{client.uninvoiced_count}</span>
+                                                                    : <span className="text-pg-text-muted">-</span>}
                                                             </td>
                                                             <td
                                                                 onClick={() => client.unpaid_count > 0 && setMatrixFilter({ type: 'client_unpaid', value: client.client_name, label: language === 'id' ? 'Belum Dibayar Klien' : 'Client Unpaid' })}
-                                                                style={{ padding: '11px 16px', textAlign: 'center', cursor: client.unpaid_count > 0 ? 'pointer' : 'default' }}
+                                                                className="px-4 py-2.75 text-center"
+                                                                style={{ cursor: client.unpaid_count > 0 ? 'pointer' : 'default' }}
                                                             >
                                                                 {client.unpaid_count > 0
-                                                                    ? <span className="badge" style={{ backgroundColor: 'rgba(249,115,22,0.15)', color: '#fb923c' }}>{client.unpaid_count}</span>
-                                                                    : <span style={{ color: '#71717a' }}>-</span>}
+                                                                    ? <span className="badge bg-orange-500/15 text-pg-orange">{client.unpaid_count}</span>
+                                                                    : <span className="text-pg-text-muted">-</span>}
                                                             </td>
                                                         </tr>
                                                     );
@@ -3557,76 +3521,64 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     <div className="client-mobile-list">
                                         {telemetry.client_health.map((client: any, idx: number) => {
                                             const otdrColor = client.on_time_rate == null
-                                                ? '#71717a'
-                                                : client.on_time_rate >= 80 ? '#34d399'
-                                                : client.on_time_rate >= 60 ? '#fbbf24'
+                                                ? 'var(--color-pg-text-muted)'
+                                                : client.on_time_rate >= 80 ? 'var(--color-pg-success)'
+                                                : client.on_time_rate >= 60 ? 'var(--color-pg-warning)'
                                                 : '#ef4444';
                                             return (
                                                 <div
                                                     key={`client-mobile-${idx}`}
-                                                    style={{
-                                                        backgroundColor: '#18181b',
-                                                        border: '1px solid rgba(255,255,255,0.06)',
-                                                        borderRadius: '12px',
-                                                        padding: '12px',
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        gap: '8px',
-                                                    }}
+                                                    className="bg-pg-card border border-white/6 rounded-xl p-3 flex flex-col gap-2"
                                                 >
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <div className="flex justify-between items-center">
                                                         <span
                                                             onClick={() => setMatrixFilter({ type: 'client', value: client.client_name, label: language === 'id' ? 'Klien' : 'Client' })}
-                                                            style={{ fontWeight: 800, fontSize: '13px', cursor: 'pointer', textDecoration: 'underline', color: '#818cf8' }}
+                                                            className="font-extrabold text-sm cursor-pointer underline text-pg-primary-hover"
                                                         >
                                                             {client.client_name}
                                                         </span>
-                                                        <span style={{ fontSize: '12px', fontWeight: 700, color: otdrColor }}>
+                                                        <span className="text-xs font-bold" style={{ color: otdrColor }}>
                                                             {client.on_time_rate != null ? `${client.on_time_rate}% OTD` : 'N/A OTD'}
                                                         </span>
                                                     </div>
-                                                    <div style={{ fontSize: '11px', color: '#a1a1aa' }}>
+                                                    <div className="text-[11px] text-pg-text-secondary">
                                                         {language === 'id' ? 'PO Aktif' : 'Active POs'}: <strong>{client.active_pos}</strong>
                                                     </div>
-                                                    <div style={{
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'center',
-                                                        borderTop: '1px solid rgba(255,255,255,0.04)',
-                                                        paddingTop: '8px',
-                                                        fontSize: '11px',
-                                                    }}>
+                                                    <div className="flex justify-between items-center border-t border-white/4 pt-2 text-[11px]">
                                                         <div
                                                             onClick={() => client.overdue_items > 0 && setMatrixFilter({ type: 'client_overdue', value: client.client_name, label: language === 'id' ? 'Overdue Klien' : 'Client Overdue' })}
-                                                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', flex: 1, cursor: client.overdue_items > 0 ? 'pointer' : 'default' }}
+                                                            className="flex flex-col items-center gap-0.75 flex-1"
+                                                            style={{ cursor: client.overdue_items > 0 ? 'pointer' : 'default' }}
                                                         >
-                                                            <span style={{ color: '#71717a', fontSize: '10px' }}>{language === 'id' ? 'Terlambat' : 'Overdue'}</span>
+                                                            <span className="text-pg-text-muted text-[10px]">{language === 'id' ? 'Terlambat' : 'Overdue'}</span>
                                                             {client.overdue_items > 0 ? (
-                                                                <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444', padding: '2px 6px' }}>{client.overdue_items}</span>
+                                                                <span className="badge bg-red-500/15 text-red-500 px-1.5 py-0.5">{client.overdue_items}</span>
                                                             ) : (
-                                                                <span style={{ color: '#71717a' }}>-</span>
+                                                                <span className="text-pg-text-muted">-</span>
                                                             )}
                                                         </div>
                                                         <div
                                                             onClick={() => client.uninvoiced_count > 0 && setMatrixFilter({ type: 'client_uninvoiced', value: client.client_name, label: language === 'id' ? 'Belum Difakturkan Klien' : 'Client Uninvoiced' })}
-                                                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', flex: 1, cursor: client.uninvoiced_count > 0 ? 'pointer' : 'default' }}
+                                                            className="flex flex-col items-center gap-0.75 flex-1"
+                                                            style={{ cursor: client.uninvoiced_count > 0 ? 'pointer' : 'default' }}
                                                         >
-                                                            <span style={{ color: '#71717a', fontSize: '10px' }}>{language === 'id' ? 'Faktur' : 'Invoice'}</span>
+                                                            <span className="text-pg-text-muted text-[10px]">{language === 'id' ? 'Faktur' : 'Invoice'}</span>
                                                             {client.uninvoiced_count > 0 ? (
-                                                                <span className="badge" style={{ backgroundColor: 'rgba(234,179,8,0.15)', color: '#fbbf24', padding: '2px 6px' }}>{client.uninvoiced_count}</span>
+                                                                <span className="badge bg-amber-500/15 text-pg-warning px-1.5 py-0.5">{client.uninvoiced_count}</span>
                                                             ) : (
-                                                                <span style={{ color: '#71717a' }}>-</span>
+                                                                <span className="text-pg-text-muted">-</span>
                                                             )}
                                                         </div>
                                                         <div
                                                             onClick={() => client.unpaid_count > 0 && setMatrixFilter({ type: 'client_unpaid', value: client.client_name, label: language === 'id' ? 'Belum Dibayar Klien' : 'Client Unpaid' })}
-                                                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', flex: 1, cursor: client.unpaid_count > 0 ? 'pointer' : 'default' }}
+                                                            className="flex flex-col items-center gap-0.75 flex-1"
+                                                            style={{ cursor: client.unpaid_count > 0 ? 'pointer' : 'default' }}
                                                         >
-                                                            <span style={{ color: '#71717a', fontSize: '10px' }}>{language === 'id' ? 'Bayar' : 'Paid'}</span>
+                                                            <span className="text-pg-text-muted text-[10px]">{language === 'id' ? 'Bayar' : 'Paid'}</span>
                                                             {client.unpaid_count > 0 ? (
-                                                                <span className="badge" style={{ backgroundColor: 'rgba(249,115,22,0.15)', color: '#fb923c', padding: '2px 6px' }}>{client.unpaid_count}</span>
+                                                                <span className="badge bg-orange-500/15 text-pg-orange px-1.5 py-0.5">{client.unpaid_count}</span>
                                                             ) : (
-                                                                <span style={{ color: '#71717a' }}>-</span>
+                                                                <span className="text-pg-text-muted">-</span>
                                                             )}
                                                         </div>
                                                     </div>
@@ -3656,40 +3608,27 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                 const roleColorMap: Record<string, { bg: string; color: string }> = {
                     DRAFTER:      { bg: 'rgba(168,85,247,0.12)',   color: '#a855f7' },
-                    PURCHASING:   { bg: 'rgba(249,115,22,0.12)',   color: '#fb923c' },
+                    PURCHASING:   { bg: 'rgba(249,115,22,0.12)',   color: 'var(--color-pg-orange)' },
                     MACHINING:    { bg: 'rgba(20,184,166,0.12)',   color: '#14b8a6' },
-                    FABRICATION:  { bg: 'rgba(99,102,241,0.12)',   color: '#6366f1' },
-                    PRODUCTION:   { bg: 'rgba(100,116,139,0.12)',  color: '#71717a' },
-                    QC:           { bg: 'rgba(248,113,113,0.12)',    color: '#f87171' },
-                    DELIVERY:     { bg: 'rgba(16,185,129,0.12)',   color: '#34d399' },
-                    STAFF:        { bg: 'rgba(99,102,241,0.12)',   color: '#818cf8' },
+                    FABRICATION:  { bg: 'rgba(99,102,241,0.12)',   color: 'var(--color-pg-primary)' },
+                    PRODUCTION:   { bg: 'rgba(100,116,139,0.12)',  color: 'var(--color-pg-text-muted)' },
+                    QC:           { bg: 'rgba(248,113,113,0.12)',    color: 'var(--color-pg-danger)' },
+                    DELIVERY:     { bg: 'rgba(16,185,129,0.12)',   color: 'var(--color-pg-success)' },
+                    STAFF:        { bg: 'rgba(99,102,241,0.12)',   color: 'var(--color-pg-primary-hover)' },
                     FINANCE:      { bg: 'rgba(236,72,153,0.12)',   color: '#ec4899' },
                 };
 
                 return (
                 <div>
                         {/* Header */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+                        <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
                             <div>
-                                <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 2px 0' }}>{t.team_title}</h2>
-                                <p style={{ fontSize: '12px', color: '#71717a', margin: 0 }}>{t.team_subtitle}</p>
+                                <h2 className="text-lg font-bold m-0 mb-0.5">{t.team_title}</h2>
+                                <p className="text-xs text-pg-text-muted m-0">{t.team_subtitle}</p>
                             </div>
                             <button
                                 onClick={openAddUser}
-                                style={{
-                                    padding: '6px 14px',
-                                    borderRadius: '8px',
-                                    border: '1px solid rgba(16,185,129,0.3)',
-                                    backgroundColor: 'rgba(16,185,129,0.1)',
-                                    color: '#34d399',
-                                    fontSize: '12px',
-                                    fontWeight: 700,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    flexShrink: 0,
-                                }}
+                                className="px-3.5 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-pg-success text-xs font-bold cursor-pointer flex items-center gap-1.5 shrink-0"
                             >
                                 <Plus size={14} /> {t.add_user}
                             </button>
@@ -3699,23 +3638,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         <div style={{ marginBottom: '16px' }}>
                             {/* Mobile Dropdown View */}
                             <div className="show-mobile-only">
-                                <label style={{ display: 'block', fontSize: '11px', color: '#71717a', marginBottom: '6px', fontWeight: 600, textTransform: 'uppercase' }}>
+                                <label className="block text-[11px] text-pg-text-muted mb-1.5 font-semibold uppercase">
                                     {language === 'en' ? 'Filter by Role' : 'Saring berdasarkan Role'}
                                 </label>
                                 <select
                                     value={userRoleFilter}
                                     onChange={e => setUserRoleFilter(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: '#fafafa',
-                                        fontSize: '13px',
-                                        fontWeight: 600,
-                                        outline: 'none',
-                                    }}
+                                    className="w-full p-2.5 px-3.5 bg-slate-900/60 border border-white/8 rounded-lg text-pg-text text-sm font-semibold outline-none"
                                 >
                                     <option value="ALL">{t.filter_all_roles}</option>
                                     {ALL_ROLES.map(role => (
@@ -3727,7 +3656,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             </div>
 
                             {/* Desktop Pills View */}
-                            <div className="hide-mobile-only" style={{ gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                            <div className="hide-mobile-only flex gap-1.5 flex-wrap items-center">
                                 <button
                                     onClick={() => setUserRoleFilter('ALL')}
                                     style={{
@@ -3736,9 +3665,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid',
-                                        borderColor: userRoleFilter === 'ALL' ? '#6366f1' : 'rgba(255,255,255,0.08)',
+                                        borderColor: userRoleFilter === 'ALL' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.08)',
                                         backgroundColor: userRoleFilter === 'ALL' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255,255,255,0.05)',
-                                        color: userRoleFilter === 'ALL' ? '#818cf8' : '#a1a1aa',
+                                        color: userRoleFilter === 'ALL' ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s ease',
                                         flexShrink: 0,
@@ -3758,14 +3687,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 fontWeight: 600,
                                                 border: '1px solid',
                                                 borderColor: userRoleFilter === role
-                                                    ? (roleColorMap[role]?.color || '#71717a')
+                                                    ? (roleColorMap[role]?.color || 'var(--color-pg-text-muted)')
                                                     : 'rgba(255,255,255,0.08)',
                                                 backgroundColor: userRoleFilter === role
                                                     ? (roleColorMap[role]?.bg || 'rgba(255,255,255,0.06)')
                                                     : 'rgba(255,255,255,0.05)',
                                                 color: userRoleFilter === role
-                                                    ? (roleColorMap[role]?.color || '#71717a')
-                                                    : '#a1a1aa',
+                                                    ? (roleColorMap[role]?.color || 'var(--color-pg-text-muted)')
+                                                    : 'var(--color-pg-text-secondary)',
                                                 cursor: 'pointer',
                                                 transition: 'all 0.2s ease',
                                                 flexShrink: 0,
@@ -3780,95 +3709,58 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                         {/* User cards grid */}
                         {filteredUsers.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '40px', color: '#71717a', fontSize: '14px' }}>
+                            <div className="text-center p-10 text-pg-text-muted text-sm">
                                 {t.no_users}
                             </div>
                         ) : (
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-                                gap: '12px',
-                            }}>
+                            <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3">
                                     {filteredUsers.map(user => {
                                         const isSelf = user.id === auth_user?.id;
                                         const loginMethod = user.username ? 'PASSWORD' : 'PIN';
-                                        const roleStyle = roleColorMap[user.role_name] || { bg: 'rgba(100,116,139,0.12)', color: '#71717a' };
+                                        const roleStyle = roleColorMap[user.role_name] || { bg: 'rgba(100,116,139,0.12)', color: 'var(--color-pg-text-muted)' };
                                         return (
                                             <div
                                                 key={user.id}
-                                                className="user-card"
-                                                style={{
-                                                    backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                                                    border: '1px solid rgba(255,255,255,0.06)',
-                                                    borderRadius: '12px',
-                                                    padding: '16px',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    gap: '10px',
-                                                }}
+                                                className="user-card bg-slate-900/60 border border-white/6 rounded-xl p-4 flex flex-col gap-2.5"
                                             >
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                    <div style={{
-                                                        width: '36px',
-                                                        height: '36px',
-                                                        borderRadius: '10px',
-                                                        backgroundColor: roleStyle.bg,
-                                                        border: `1px solid ${roleStyle.color}30`,
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        fontSize: '14px',
-                                                        fontWeight: 800,
-                                                        color: roleStyle.color,
-                                                        flexShrink: 0,
-                                                    }}>
+                                                <div className="flex items-center gap-2.5">
+                                                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-extrabold shrink-0"
+                                                        style={{
+                                                            backgroundColor: roleStyle.bg,
+                                                            border: `1px solid ${roleStyle.color}30`,
+                                                            color: roleStyle.color,
+                                                        }}>
                                                         {user.name.charAt(0).toUpperCase()}
                                                     </div>
-                                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                                            <span style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa' }}>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                                            <span className="text-sm font-bold text-pg-text">
                                                                 {user.name}
                                                             </span>
                                                             {isSelf && (
-                                                                <span style={{
-                                                                    fontSize: '10px',
-                                                                    backgroundColor: 'rgba(59,130,246,0.15)',
-                                                                    color: '#3b82f6',
-                                                                    padding: '1px 6px',
-                                                                    borderRadius: '4px',
-                                                                    fontWeight: 700,
-                                                                }}>
+                                                                <span className="text-[10px] bg-blue-500/15 text-blue-500 px-1.5 py-px rounded font-bold">
                                                                     {t.user_self_badge}
                                                                 </span>
                                                             )}
                                                         </div>
                                                         {user.username && (
-                                                            <div style={{ fontSize: '11px', color: '#71717a', marginTop: '1px' }}>@{user.username}</div>
+                                                            <div className="text-[11px] text-pg-text-muted mt-px">@{user.username}</div>
                                                         )}
                                                     </div>
                                                 </div>
-
-                                                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                                    <span style={{
-                                                        fontSize: '10px',
-                                                        fontWeight: 700,
-                                                        padding: '3px 8px',
-                                                        borderRadius: '5px',
-                                                        backgroundColor: roleStyle.bg,
-                                                        color: roleStyle.color,
-                                                    }}>
+                                                
+                                                <div className="flex gap-1.5 flex-wrap">
+                                                    <span className="text-[10px] font-bold px-2 py-[3px] rounded-md"
+                                                        style={{ backgroundColor: roleStyle.bg, color: roleStyle.color }}>
                                                         {localizedDisplay({ display_name: user.role_display_name, display_name_id: user.role_display_name_id }, language)}
                                                     </span>
-                                                    <span style={{
-                                                        fontSize: '10px',
-                                                        fontWeight: 700,
-                                                        padding: '3px 8px',
-                                                        borderRadius: '5px',
-                                                        backgroundColor: loginMethod === 'PASSWORD'
-                                                            ? 'rgba(99,102,241,0.12)'
-                                                            : 'rgba(16,185,129,0.1)',
-                                                        color: loginMethod === 'PASSWORD' ? '#818cf8' : '#34d399',
-                                                    }}>
+                                                    <span className="text-[10px] font-bold px-2 py-[3px] rounded-md"
+                                                        style={{
+                                                            backgroundColor: loginMethod === 'PASSWORD'
+                                                                ? 'rgba(99,102,241,0.12)'
+                                                                : 'rgba(16,185,129,0.1)',
+                                                            color: loginMethod === 'PASSWORD' ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-success)',
+                                                        }}>
                                                         {loginMethod === 'PASSWORD' ? '🔑 ' + t.login_method_password : '🔢 ' + t.login_method_pin}
                                                     </span>
                                                 </div>
@@ -3877,28 +3769,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                     <button
                                                         id={`edit-user-${user.id}`}
                                                         onClick={() => openEditUser(user)}
-                                                        style={{
-                                                            padding: '8px',
-                                                            backgroundColor: 'rgba(255,255,255,0.04)',
-                                                            border: '1px solid rgba(255,255,255,0.08)',
-                                                            borderRadius: '8px',
-                                                            color: '#a1a1aa',
-                                                            fontSize: '12px',
-                                                            fontWeight: 600,
-                                                            cursor: 'pointer',
-                                                            width: '100%',
-                                                            textAlign: 'center',
-                                                        }}
-                                                        onMouseOver={e => {
-                                                            e.currentTarget.style.backgroundColor = 'rgba(99,102,241,0.12)';
-                                                            e.currentTarget.style.borderColor = 'rgba(99,102,241,0.25)';
-                                                            e.currentTarget.style.color = '#818cf8';
-                                                        }}
-                                                        onMouseOut={e => {
-                                                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)';
-                                                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-                                                            e.currentTarget.style.color = '#a1a1aa';
-                                                        }}
+                                                        className="py-2 bg-white/4 border border-white/8 rounded-lg text-pg-text-secondary text-xs font-semibold cursor-pointer w-full text-center"
                                                     >
                                                         ✏️ {t.edit_user}
                                                     </button>
@@ -3910,18 +3781,12 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             )}
 
                         {/* ── Workflow & Validation Settings ────────────────────── */}
-                        <div style={{
-                            marginTop: '32px',
-                            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                            border: '1px solid rgba(255,255,255,0.06)',
-                            borderRadius: '16px',
-                            padding: '24px',
-                        }}>
-                            <div style={{ marginBottom: '16px' }}>
-                                <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#fafafa', margin: '0 0 4px 0' }}>
+                        <div className="mt-8 bg-slate-900/60 border border-white/6 rounded-2xl p-6">
+                            <div className="mb-4">
+                                <h3 className="text-base font-extrabold text-pg-text m-0 mb-1">
                                     {language === 'en' ? 'Workflow & Validation Rules' : 'Aturan Alur Kerja & Validasi'}
                                 </h3>
-                                <p style={{ fontSize: '12px', color: '#71717a', margin: 0 }}>
+                                <p className="text-xs text-pg-text-muted m-0">
                                     {language === 'en' 
                                         ? 'Define rules and locks between design, material purchasing, production, QC, and delivery stages.' 
                                         : 'Tentukan aturan dan kuncian antara tahap desain, pembelian bahan, produksi, QC, dan pengiriman.'}
@@ -3930,7 +3795,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                             <form onSubmit={saveWorkflowSettings}>
                                 {/* Mode Selection Group */}
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+                                <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3 mb-5">
                                     {[
                                         { value: 'loose', label: language === 'en' ? 'Loose Mode' : 'Mode Longgar', desc: language === 'en' ? 'Production is not blocked by design/material readiness.' : 'Produksi tidak dikunci oleh kesiapan desain/bahan.' },
                                         { value: 'strict', label: language === 'en' ? 'Strict Mode' : 'Mode Ketat', desc: language === 'en' ? 'Design and material must be 100% ready to start production.' : 'Desain dan bahan harus 100% siap untuk mulai produksi.' },
@@ -3956,28 +3821,24 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         setReqDeliveryForFinance(true);
                                                     }
                                                 }}
+                                                className="rounded-xl p-4 cursor-pointer transition-all duration-200"
                                                 style={{
                                                     backgroundColor: isSelected ? 'rgba(99, 102, 241, 0.08)' : 'rgba(255,255,255,0.02)',
                                                     border: '1px solid',
-                                                    borderColor: isSelected ? '#6366f1' : 'rgba(255,255,255,0.06)',
-                                                    borderRadius: '12px',
-                                                    padding: '16px',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s ease',
+                                                    borderColor: isSelected ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.06)',
                                                 }}
                                             >
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                                                    <div style={{
-                                                        width: '16px', height: '16px', borderRadius: '50%',
-                                                        border: isSelected ? '5px solid #6366f1' : '2px solid rgba(255,255,255,0.2)',
-                                                        backgroundColor: isSelected ? '#fff' : 'transparent',
-                                                        boxSizing: 'border-box'
-                                                    }} />
-                                                    <span style={{ fontSize: '14px', fontWeight: 700, color: isSelected ? '#818cf8' : '#fafafa' }}>
+                                                <div className="flex items-center gap-2 mb-1.5">
+                                                    <div className="w-4 h-4 rounded-full box-border"
+                                                        style={{
+                                                            border: isSelected ? '5px solid var(--color-pg-primary)' : '2px solid rgba(255,255,255,0.2)',
+                                                            backgroundColor: isSelected ? '#fff' : 'transparent',
+                                                        }} />
+                                                    <span className="text-sm font-bold" style={{ color: isSelected ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text)' }}>
                                                         {mode.label}
                                                     </span>
                                                 </div>
-                                                <p style={{ fontSize: '11px', color: '#a1a1aa', margin: 0 }}>{mode.desc}</p>
+                                                <p className="text-[11px] text-pg-text-secondary m-0">{mode.desc}</p>
                                             </div>
                                         );
                                     })}
@@ -3985,16 +3846,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                                 {/* Custom Toggles Box */}
                                 {workflowMode === 'custom' && (
-                                    <div style={{
-                                        backgroundColor: 'rgba(0,0,0,0.2)',
-                                        borderRadius: '12px',
-                                        padding: '16px',
-                                        marginBottom: '20px',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '12px',
-                                        border: '1px solid rgba(255,255,255,0.04)',
-                                    }}>
+                                    <div className="bg-black/20 rounded-xl p-4 mb-5 flex flex-col gap-3 border border-white/4">
                                         {[
                                             { state: reqDesign, setter: setReqDesign, label: language === 'en' ? 'Require Design Approved (APPROVED) to start Production' : 'Wajib Desain Disetujui (APPROVED) untuk memulai Produksi' },
                                             { state: reqMaterial, setter: setReqMaterial, label: language === 'en' ? 'Require Material Ready (READY) to start Production' : 'Wajib Bahan Siap (READY) untuk memulai Produksi' },
@@ -4002,14 +3854,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             { state: reqQcForDelivery, setter: setReqQcForDelivery, label: language === 'en' ? 'Require QC Completed to start Delivery' : 'Wajib QC Selesai untuk memulai Pengiriman' },
                                             { state: reqDeliveryForFinance, setter: setReqDeliveryForFinance, label: language === 'en' ? 'Require Delivery Completed to start Finance stage' : 'Wajib Pengiriman Selesai untuk memulai Keuangan' }
                                         ].map((rule, idx) => (
-                                            <label key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px', color: '#e4e4e7' }}>
+                                            <label key={idx} className="flex items-center gap-2.5 cursor-pointer text-sm text-zinc-300">
                                                 <input
                                                     type="checkbox"
                                                     checked={rule.state}
                                                     onChange={e => rule.setter(e.target.checked)}
                                                     style={{
                                                         width: '16px', height: '16px', borderRadius: '4px',
-                                                        accentColor: '#6366f1', cursor: 'pointer'
+                                                        accentColor: 'var(--color-pg-primary)', cursor: 'pointer'
                                                     }}
                                                 />
                                                 {rule.label}
@@ -4019,23 +3871,15 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 )}
 
                                 {/* Submit Button */}
-                                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                <div className="flex justify-end">
                                     <button
                                         type="submit"
                                         disabled={isSavingSettings}
+                                        className="px-4.5 py-2 rounded-lg text-white text-sm font-bold border-none transition-all duration-200"
                                         style={{
-                                            padding: '8px 18px',
-                                            borderRadius: '8px',
-                                            backgroundColor: isSavingSettings ? 'rgba(99,102,241,0.5)' : '#6366f1',
-                                            color: '#fff',
-                                            fontSize: '13px',
-                                            fontWeight: 700,
-                                            border: 'none',
+                                            backgroundColor: isSavingSettings ? 'rgba(99,102,241,0.5)' : 'var(--color-pg-primary)',
                                             cursor: isSavingSettings ? 'not-allowed' : 'pointer',
-                                            transition: 'all 0.2s',
                                         }}
-                                        onMouseOver={e => { if(!isSavingSettings) e.currentTarget.style.backgroundColor = '#4f46e5'; }}
-                                        onMouseOut={e => { if(!isSavingSettings) e.currentTarget.style.backgroundColor = '#6366f1'; }}
                                     >
                                         {isSavingSettings 
                                             ? (language === 'en' ? 'Saving...' : 'Menyimpan...') 
@@ -4054,54 +3898,26 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
             {editingUser && (
                 <div
                     id="edit-user-modal"
-                    style={{
-                        position: 'fixed',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        backgroundColor: 'rgba(0,0,0,0.75)',
-                        backdropFilter: 'blur(8px)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 60,
-                        padding: '20px',
-                    }}
+                    className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[60] p-5"
                     onClick={e => { if (e.target === e.currentTarget) closeEditUser(); }}
                 >
-                    <div style={{
-                        backgroundColor: '#18181b',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        borderRadius: '16px',
-                        padding: '24px',
-                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)',
-                        width: '100%',
-                        maxWidth: '460px',
-                        maxHeight: '90vh',
-                        overflowY: 'auto',
-                    }}>
+                    <div className="bg-pg-card border border-white/8 rounded-2xl p-6 shadow-2xl w-full max-w-[460px] max-h-[90vh] overflow-y-auto">
                         {/* Modal header */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                        <div className="flex justify-between items-start mb-5">
                             <div>
-                                <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0' }}>{t.edit_user}</h2>
-                                <p style={{ fontSize: '12px', color: '#71717a', margin: 0 }}>{editingUser.name}</p>
+                                <h2 className="text-lg font-extrabold m-0 mb-1">{t.edit_user}</h2>
+                                <p className="text-xs text-pg-text-muted m-0">{editingUser.name}</p>
                             </div>
                             <button
                                 onClick={closeEditUser}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: '#71717a',
-                                    fontSize: '20px',
-                                    cursor: 'pointer',
-                                    lineHeight: 1,
-                                    padding: '0 4px',
-                                }}
+                                className="bg-transparent border-none text-pg-text-muted text-xl cursor-pointer leading-none px-1"
                             >×</button>
                         </div>
 
                         <form onSubmit={submitEditUser}>
                             {/* Name */}
-                            <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                            <div className="mb-3.5">
+                                <label className="block text-xs text-pg-text-secondary mb-1.5 font-semibold">
                                     {t.user_name_label}
                                 </label>
                                 <input
@@ -4110,23 +3926,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     value={editName}
                                     onChange={e => setEditName(e.target.value)}
                                     required
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        backgroundColor: '#09090b',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none',
-                                        boxSizing: 'border-box',
-                                    }}
+                                    className="w-full p-2.5 px-3 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none box-border"
                                 />
                             </div>
 
                             {/* Role */}
-                            <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                            <div className="mb-3.5">
+                                <label className="block text-xs text-pg-text-secondary mb-1.5 font-semibold">
                                     {t.user_role_label}
                                 </label>
                                 <select
@@ -4134,30 +3940,21 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     value={editRole}
                                     onChange={e => setEditRole(e.target.value)}
                                     disabled={editingUser.is_owner}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        backgroundColor: '#09090b',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: editingUser.is_owner ? '#71717a' : '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none',
-                                        boxSizing: 'border-box',
-                                    }}
+                                    className="w-full p-2.5 px-3 bg-pg-bg border border-white/8 rounded-lg text-sm outline-none box-border"
+                                    style={{ color: editingUser.is_owner ? 'var(--color-pg-text-muted)' : '#fff' }}
                                 >
                                     {(roles ?? []).map(r => (
                                         <option key={r.id} value={r.id}>{localizedDisplay(r, language)} ({r.name})</option>
                                     ))}
                                 </select>
                                 {editingUser.is_owner && (
-                                    <p style={{ fontSize: '11px', color: '#71717a', margin: '4px 0 0 0' }}>Owner role cannot be changed.</p>
+                                    <p className="text-[11px] text-pg-text-muted mt-1 m-0">Owner role cannot be changed.</p>
                                 )}
                             </div>
 
                             {/* Post */}
-                            <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                            <div className="mb-3.5">
+                                <label className="block text-xs text-pg-text-secondary mb-1.5 font-semibold">
                                     Post
                                 </label>
                                 <select
@@ -4165,17 +3962,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     value={editPostId}
                                     onChange={e => setEditPostId(e.target.value)}
                                     disabled={editingUser.is_owner}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        backgroundColor: '#09090b',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: editingUser.is_owner ? '#71717a' : '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none',
-                                        boxSizing: 'border-box',
-                                    }}
+                                    className="w-full p-2.5 px-3 bg-pg-bg border border-white/8 rounded-lg text-sm outline-none box-border"
+                                    style={{ color: editingUser.is_owner ? 'var(--color-pg-text-muted)' : '#fff' }}
                                 >
                                     <option value="">-- No post --</option>
                                     {(posts ?? []).map(p => (
@@ -4185,27 +3973,21 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             </div>
 
                             {/* Login Method toggle */}
-                            <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '8px', fontWeight: 600 }}>
+                            <div className="mb-3.5">
+                                <label className="block text-xs text-pg-text-secondary mb-2 font-semibold">
                                     {t.user_login_label}
                                 </label>
-                                <div style={{ display: 'flex', gap: '8px' }}>
+                                <div className="flex gap-2">
                                     {(['PASSWORD', 'PIN'] as const).map(method => (
                                         <button
                                             key={method}
                                             type="button"
                                             onClick={() => setEditLoginMethod(method)}
+                                            className="flex-1 py-2 rounded-lg border text-xs font-bold cursor-pointer"
                                             style={{
-                                                flex: 1,
-                                                padding: '9px',
-                                                borderRadius: '8px',
-                                                border: '1px solid',
                                                 borderColor: editLoginMethod === method ? '#3b82f6' : 'rgba(255,255,255,0.08)',
                                                 backgroundColor: editLoginMethod === method ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.03)',
-                                                color: editLoginMethod === method ? '#3b82f6' : '#a1a1aa',
-                                                fontSize: '12px',
-                                                fontWeight: 700,
-                                                cursor: 'pointer',
+                                                color: editLoginMethod === method ? '#3b82f6' : 'var(--color-pg-text-secondary)',
                                             }}
                                         >
                                             {method === 'PASSWORD' ? '🔑 ' + t.login_method_password : '🔢 ' + t.login_method_pin}
@@ -4217,8 +3999,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             {/* PASSWORD fields */}
                             {editLoginMethod === 'PASSWORD' && (
                                 <>
-                                    <div style={{ marginBottom: '14px' }}>
-                                        <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                                    <div className="mb-3.5">
+                                        <label className="block text-xs text-pg-text-secondary mb-1.5 font-semibold">
                                             {t.admin_username}
                                         </label>
                                         <input
@@ -4227,21 +4009,11 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             value={editUsername}
                                             onChange={e => setEditUsername(e.target.value)}
                                             required
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 12px',
-                                                backgroundColor: '#09090b',
-                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                borderRadius: '8px',
-                                                color: '#fff',
-                                                fontSize: '14px',
-                                                outline: 'none',
-                                                boxSizing: 'border-box',
-                                            }}
+                                            className="w-full p-2.5 px-3 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none box-border"
                                         />
                                     </div>
-                                    <div style={{ marginBottom: '14px' }}>
-                                        <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                                    <div className="mb-3.5">
+                                        <label className="block text-xs text-pg-text-secondary mb-1.5 font-semibold">
                                             {t.new_password_label}
                                         </label>
                                         <input
@@ -4251,26 +4023,16 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             onChange={e => setEditPassword(e.target.value)}
                                             minLength={6}
                                             placeholder="••••••••"
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 12px',
-                                                backgroundColor: '#09090b',
-                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                borderRadius: '8px',
-                                                color: '#fff',
-                                                fontSize: '14px',
-                                                outline: 'none',
-                                                boxSizing: 'border-box',
-                                            }}
+                                            className="w-full p-2.5 px-3 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none box-border"
                                         />
                                     </div>
                                 </>
                             )}
-
+                            
                             {/* PIN field */}
                             {editLoginMethod === 'PIN' && (
-                                <div style={{ marginBottom: '14px' }}>
-                                    <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                                <div className="mb-3.5">
+                                    <label className="block text-xs text-pg-text-secondary mb-1.5 font-semibold">
                                         {t.new_pin_label}
                                     </label>
                                     <input
@@ -4283,58 +4045,30 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         minLength={4}
                                         maxLength={6}
                                         placeholder="e.g. 1234"
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px 12px',
-                                            backgroundColor: '#09090b',
-                                            border: '1px solid rgba(255,255,255,0.08)',
-                                            borderRadius: '8px',
-                                            color: '#fff',
-                                            fontSize: '18px',
-                                            letterSpacing: '0.3em',
-                                            outline: 'none',
-                                            boxSizing: 'border-box',
-                                        }}
+                                        className="w-full p-2.5 px-3 bg-pg-bg border border-white/8 rounded-lg text-white text-lg outline-none box-border"
+                                        style={{ letterSpacing: '0.3em' }}
                                     />
                                 </div>
                             )}
 
                             {/* Action buttons */}
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '20px', flexWrap: 'wrap' }}>
+                            <div className="flex gap-2.5 mt-5 flex-wrap">
                                 {/* Delete — only if not self */}
                                 {editingUser.id !== auth_user?.id && (
                                     <button
                                         type="button"
                                         id={`delete-user-${editingUser.id}`}
                                         onClick={() => handleDeleteUser(editingUser)}
-                                        style={{
-                                            padding: '10px 16px',
-                                            backgroundColor: 'rgba(239,68,68,0.1)',
-                                            border: '1px solid rgba(239,68,68,0.25)',
-                                            color: '#ef4444',
-                                            borderRadius: '8px',
-                                            fontWeight: 600,
-                                            fontSize: '13px',
-                                            cursor: 'pointer',
-                                        }}
+                                        className="px-4 py-2.5 bg-red-500/10 border border-red-500/25 text-red-500 rounded-lg font-semibold text-sm cursor-pointer"
                                     >
                                         🗑️ {t.delete_user}
                                     </button>
                                 )}
-                                <div style={{ flex: 1 }} />
+                                <div className="flex-1" />
                                 <button
                                     type="button"
                                     onClick={closeEditUser}
-                                    style={{
-                                        padding: '10px 16px',
-                                        backgroundColor: 'rgba(255,255,255,0.05)',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        color: '#e4e4e7',
-                                        borderRadius: '8px',
-                                        fontWeight: 600,
-                                        fontSize: '13px',
-                                        cursor: 'pointer',
-                                    }}
+                                    className="px-4 py-2.5 bg-white/5 border border-white/8 text-zinc-300 rounded-lg font-semibold text-sm cursor-pointer"
                                 >
                                     {t.cancel}
                                 </button>
@@ -4342,14 +4076,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     type="submit"
                                     id={`save-user-${editingUser.id}`}
                                     disabled={editSubmitting}
+                                    className="px-5 py-2.5 border-none text-white rounded-xl font-semibold text-sm"
                                     style={{
-                                        padding: '10px 20px',
                                         background: editSubmitting ? '#4f46e5' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                                        border: 'none',
-                                        color: '#fff',
-                                        borderRadius: '10px',
-                                        fontWeight: 600,
-                                        fontSize: '13px',
                                         cursor: editSubmitting ? 'not-allowed' : 'pointer',
                                         opacity: editSubmitting ? 0.7 : 1,
                                     }}
@@ -4364,38 +4093,18 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
             {/* Add User Modal */}
             {showAddUserModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 50,
-                    padding: '20px',
-                }}>
-                    <div style={{
-                        backgroundColor: '#18181b',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        borderRadius: '16px',
-                        padding: '24px',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                        width: '100%',
-                        maxWidth: '420px',
-                        maxHeight: '90vh',
-                        overflowY: 'auto',
-                    }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 8px 0' }}>
+                <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[50] p-5">
+                    <div className="bg-pg-card border border-white/8 rounded-2xl p-6 shadow-2xl w-full max-w-[420px] max-h-[90vh] overflow-y-auto">
+                        <h2 className="text-xl font-extrabold m-0 mb-2">
                             {t.add_user_title}
                         </h2>
-                        <p style={{ fontSize: '13px', color: '#71717a', margin: '0 0 24px 0' }}>
+                        <p className="text-sm text-pg-text-muted m-0 mb-6">
                             {t.add_user_subtitle}
                         </p>
 
                         <form onSubmit={submitAddUser}>
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                            <div className="mb-4">
+                                <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
                                     {t.user_name_label}
                                 </label>
                                 <input
@@ -4404,37 +4113,18 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     onChange={(e) => setNewUserName(e.target.value)}
                                     required
                                     placeholder="e.g. John Doe"
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        backgroundColor: '#09090b',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none',
-                                        boxSizing: 'border-box',
-                                    }}
+                                    className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none box-border"
                                 />
                             </div>
 
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                            <div className="mb-4">
+                                <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
                                     {t.user_role_label}
                                 </label>
                                 <select
                                     value={newUserRoleId ?? ''}
                                     onChange={e => setNewUserRoleId(Number(e.target.value))}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        backgroundColor: '#09090b',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none',
-                                    }}
+                                    className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none"
                                 >
                                     <option value="">-- Select role --</option>
                                     {(roles ?? []).map(r => (
@@ -4443,23 +4133,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 </select>
                             </div>
 
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                            <div className="mb-4">
+                                <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
                                     Post
                                 </label>
                                 <select
                                     value={newUserPostId}
                                     onChange={e => setNewUserPostId(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        backgroundColor: '#09090b',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none',
-                                    }}
+                                    className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none"
                                 >
                                     <option value="">-- No post --</option>
                                     {(posts ?? []).map(p => (
@@ -4468,27 +4149,21 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 </select>
                             </div>
 
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '8px', fontWeight: 600 }}>
+                            <div className="mb-4">
+                                <label className="block text-xs text-pg-text-secondary mb-2 font-semibold">
                                     {t.user_login_label}
                                 </label>
-                                <div style={{ display: 'flex', gap: '8px' }}>
+                                <div className="flex gap-2">
                                     {(['PASSWORD', 'PIN'] as const).map(method => (
                                         <button
                                             key={method}
                                             type="button"
                                             onClick={() => setNewUserLoginMethod(method)}
+                                            className="flex-1 py-2 rounded-lg border text-xs font-bold cursor-pointer"
                                             style={{
-                                                flex: 1,
-                                                padding: '9px',
-                                                borderRadius: '8px',
-                                                border: '1px solid',
                                                 borderColor: newUserLoginMethod === method ? '#3b82f6' : 'rgba(255,255,255,0.08)',
                                                 backgroundColor: newUserLoginMethod === method ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.03)',
-                                                color: newUserLoginMethod === method ? '#3b82f6' : '#a1a1aa',
-                                                fontSize: '12px',
-                                                fontWeight: 700,
-                                                cursor: 'pointer',
+                                                color: newUserLoginMethod === method ? '#3b82f6' : 'var(--color-pg-text-secondary)',
                                             }}
                                         >
                                             {method === 'PASSWORD' ? '🔑 ' + t.login_method_password : '🔢 ' + t.login_method_pin}
@@ -4499,8 +4174,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                             {newUserLoginMethod === 'PASSWORD' && (
                                 <>
-                                    <div style={{ marginBottom: '16px' }}>
-                                        <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                                    <div className="mb-4">
+                                        <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
                                             {t.admin_username}
                                         </label>
                                         <input
@@ -4509,21 +4184,11 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             onChange={(e) => setNewUserUsername(e.target.value)}
                                             required
                                             placeholder="e.g. john.worker"
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: '#09090b',
-                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                borderRadius: '8px',
-                                                color: '#fff',
-                                                fontSize: '14px',
-                                                outline: 'none',
-                                                boxSizing: 'border-box',
-                                            }}
+                                            className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none box-border"
                                         />
                                     </div>
-                                    <div style={{ marginBottom: '24px' }}>
-                                        <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                                    <div className="mb-6">
+                                        <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
                                             {t.admin_password}
                                         </label>
                                         <input
@@ -4533,25 +4198,15 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             required
                                             minLength={6}
                                             placeholder="••••••••"
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: '#09090b',
-                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                borderRadius: '8px',
-                                                color: '#fff',
-                                                fontSize: '14px',
-                                                outline: 'none',
-                                                boxSizing: 'border-box',
-                                            }}
+                                            className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none box-border"
                                         />
                                     </div>
                                 </>
                             )}
-
+                            
                             {newUserLoginMethod === 'PIN' && (
-                                <div style={{ marginBottom: '24px' }}>
-                                    <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                                <div className="mb-6">
+                                    <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
                                         {t.new_pin_label}
                                     </label>
                                     <input
@@ -4564,48 +4219,26 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         minLength={4}
                                         maxLength={6}
                                         placeholder="e.g. 1234"
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px 14px',
-                                            backgroundColor: '#09090b',
-                                            border: '1px solid rgba(255,255,255,0.08)',
-                                            borderRadius: '8px',
-                                            color: '#fff',
-                                            fontSize: '18px',
-                                            letterSpacing: '0.3em',
-                                            outline: 'none',
-                                            boxSizing: 'border-box',
-                                        }}
+                                        className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-lg outline-none box-border"
+                                        style={{ letterSpacing: '0.3em' }}
                                     />
                                 </div>
                             )}
 
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                            <div className="flex gap-3 justify-end">
                                 <button
                                     type="button"
                                     onClick={() => setShowAddUserModal(false)}
-                                    style={{
-                                        padding: '10px 16px',
-                                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                                        color: '#e4e4e7',
-                                        borderRadius: '8px',
-                                        fontWeight: 600,
-                                        cursor: 'pointer'
-                                    }}
+                                    className="px-4 py-2.5 bg-white/5 border border-white/8 text-zinc-300 rounded-lg font-semibold cursor-pointer"
                                 >
                                     {t.cancel}
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={addUserSubmitting}
+                                    className="px-5 py-2.5 border-none text-white rounded-xl font-semibold"
                                     style={{
-                                        padding: '10px 20px',
                                         background: addUserSubmitting ? '#4f46e5' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                                        border: 'none',
-                                        color: '#fff',
-                                        borderRadius: '10px',
-                                        fontWeight: 600,
                                         cursor: addUserSubmitting ? 'not-allowed' : 'pointer',
                                         opacity: addUserSubmitting ? 0.7 : 1,
                                     }}
@@ -4620,36 +4253,18 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
             {/* Add Admin Modal */}
             {showAddAdminModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 50,
-                    padding: '20px',
-                }}>
-                    <div style={{
-                        backgroundColor: '#18181b',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        borderRadius: '16px',
-                        padding: '24px',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                        width: '100%',
-                        maxWidth: '420px'
-                    }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 8px 0' }}>
+                <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[50] p-5">
+                    <div className="bg-pg-card border border-white/8 rounded-2xl p-6 shadow-2xl w-full max-w-[420px]">
+                        <h2 className="text-xl font-extrabold m-0 mb-2">
                             {t.create_admin}
                         </h2>
-                        <p style={{ fontSize: '13px', color: '#71717a', margin: '0 0 24px 0' }}>
+                        <p className="text-sm text-pg-text-muted m-0 mb-6">
                             {t.admin_subtitle}
                         </p>
 
                         <form onSubmit={submitAddAdmin}>
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                            <div className="mb-4">
+                                <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
                                     {t.admin_name}
                                 </label>
                                 <input
@@ -4658,36 +4273,18 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     onChange={(e) => setAdminName(e.target.value)}
                                     required
                                     placeholder="e.g. Joko Widodo"
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        backgroundColor: '#09090b',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none'
-                                    }}
+                                    className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none"
                                 />
                             </div>
-
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                            
+                            <div className="mb-4">
+                                <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
                                     Role
                                 </label>
                                 <select
                                     value={adminRoleId ?? ''}
                                     onChange={e => setAdminRoleId(Number(e.target.value))}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        backgroundColor: '#09090b',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none'
-                                    }}
+                                    className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none"
                                 >
                                     <option value="">-- Select role --</option>
                                     {(roles ?? []).map(r => (
@@ -4695,25 +4292,16 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     ))}
                                 </select>
                             </div>
-
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                            
+                            <div className="mb-4">
+                                <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
                                     Post
                                 </label>
                                 <select
                                     id="add-admin-post"
                                     value={adminPostId ?? ''}
                                     onChange={e => setAdminPostId(Number(e.target.value))}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        backgroundColor: '#09090b',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none'
-                                    }}
+                                    className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none"
                                 >
                                     <option value="">-- Select post --</option>
                                     {(posts ?? []).map(p => (
@@ -4721,9 +4309,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     ))}
                                 </select>
                             </div>
-
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                            
+                            <div className="mb-4">
+                                <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
                                     {t.admin_username}
                                 </label>
                                 <input
@@ -4732,21 +4320,12 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     onChange={(e) => setAdminUsername(e.target.value)}
                                     required
                                     placeholder="e.g. joko.admin"
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        backgroundColor: '#09090b',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none'
-                                    }}
+                                    className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none"
                                 />
                             </div>
-
-                            <div style={{ marginBottom: '24px' }}>
-                                <label style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>
+                            
+                            <div className="mb-6">
+                                <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
                                     {t.admin_password}
                                 </label>
                                 <input
@@ -4755,46 +4334,25 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     onChange={(e) => setAdminPassword(e.target.value)}
                                     required
                                     minLength={6}
-                                    placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        backgroundColor: '#09090b',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none'
-                                    }}
+                                    placeholder="••••••••"
+                                    className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none"
                                 />
                             </div>
-
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                            
+                            <div className="flex gap-3 justify-end">
                                 <button
                                     type="button"
                                     onClick={() => setShowAddAdminModal(false)}
-                                    style={{
-                                        padding: '10px 16px',
-                                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                                        color: '#e4e4e7',
-                                        borderRadius: '8px',
-                                        fontWeight: 600,
-                                        cursor: 'pointer'
-                                    }}
+                                    className="px-4 py-2.5 bg-white/5 border border-white/8 text-zinc-300 rounded-lg font-semibold cursor-pointer"
                                 >
                                     {t.cancel}
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={adminSubmitting}
+                                    className="px-5 py-2.5 border-none text-white rounded-xl font-semibold"
                                     style={{
-                                        padding: '10px 20px',
                                         background: adminSubmitting ? '#4f46e5' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                                        border: 'none',
-                                        color: '#fff',
-                                        borderRadius: '10px',
-                                        fontWeight: 600,
                                         cursor: adminSubmitting ? 'not-allowed' : 'pointer',
                                         opacity: adminSubmitting ? 0.7 : 1,
                                     }}
@@ -4815,130 +4373,84 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                 return (
                     <div
                         id="search-modal"
-                        style={{
-                            position: 'fixed',
-                            top: 0, left: 0, right: 0, bottom: 0,
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            backdropFilter: 'blur(10px)',
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            justifyContent: 'center',
-                            zIndex: 100,
-                            padding: '40px 20px',
-                        }}
+                        className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start justify-center z-[100] p-10 px-5"
                         onClick={e => { if (e.target === e.currentTarget) setShowSearchModal(false); }}
                     >
-                        <div style={{
-                            backgroundColor: '#18181b',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: '16px',
-                            padding: '24px',
-                            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)',
-                            width: '100%',
-                            maxWidth: '640px',
-                            maxHeight: '80vh',
-                            display: 'flex',
-                            flexDirection: 'column',
-                        }}>
+                        <div className="bg-pg-card border border-white/8 rounded-2xl p-6 shadow-2xl w-full max-w-[640px] max-h-[80vh] flex flex-col">
                             {/* Header */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-extrabold m-0">
                                     {language === 'en' ? 'Search Directory' : 'Cari Data'}
                                 </h3>
                                 <button
                                     onClick={() => setShowSearchModal(false)}
-                                    style={{
-                                        background: 'none',
-                                        border: 'none',
-                                        color: '#71717a',
-                                        fontSize: '20px',
-                                        cursor: 'pointer',
-                                        lineHeight: 1,
-                                        padding: '0 4px',
-                                    }}
+                                    className="bg-transparent border-none text-pg-text-muted text-xl cursor-pointer leading-none px-1"
                                 >×</button>
                             </div>
-
+                            
                             {/* Search Input */}
-                            <div style={{ position: 'relative', marginBottom: '16px', flexShrink: 0 }}>
-                                <Search size={18} style={{ position: 'absolute', left: '14px', top: '14px', color: '#71717a' }} />
+                            <div className="relative mb-4 shrink-0">
+                                <Search size={18} className="absolute left-3.5 top-3.5 text-pg-text-muted" />
                                 <input
                                     type="text"
                                     value={searchQuery}
                                     onChange={e => setSearchQuery(e.target.value)}
                                     placeholder={language === 'en' ? "Search POs, items, clients, or issues..." : "Cari nomor PO, barang, klien, atau kendala..."}
                                     autoFocus
-                                    style={{
-                                        width: '100%',
-                                        padding: '12px 16px 12px 42px',
-                                        backgroundColor: '#09090b',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '10px',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none',
-                                        boxSizing: 'border-box',
-                                    }}
+                                    className="w-full py-3 px-4 pl-[42px] bg-pg-bg border border-white/8 rounded-xl text-white text-sm outline-none box-border"
                                 />
                             </div>
 
                             {/* Results list */}
-                            <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
+                            <div className="flex-1 overflow-y-auto pr-1">
                                 {!searchQuery.trim() ? (
-                                    <div style={{ textAlign: 'center', padding: '40px 20px', color: '#71717a' }}>
-                                        <div style={{ fontSize: '24px', marginBottom: '12px' }}>🔍</div>
-                                        <p style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 4px 0' }}>
+                                    <div className="text-center p-10 px-5 text-pg-text-muted">
+                                        <div className="text-2xl mb-3">🔍</div>
+                                        <p className="text-sm font-semibold m-0 mb-1">
                                             {language === 'en' ? 'Search POs, Items, Clients & Issues' : 'Cari PO, Barang, Klien & Kendala'}
                                         </p>
-                                        <p style={{ fontSize: '12px', margin: 0 }}>
+                                        <p className="text-xs m-0">
                                             {language === 'en' ? 'Type above to query client names, PO numbers, item statuses, and logged trouble reports.' : 'Ketik di atas untuk mencari nama klien, nomor PO, status barang, dan laporan kendala.'}
                                         </p>
                                     </div>
                                 ) : totalResults === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '40px 20px', color: '#71717a' }}>
-                                        <div style={{ fontSize: '24px', marginBottom: '12px' }}>📭</div>
-                                        <p style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 4px 0' }}>
+                                    <div className="text-center p-10 px-5 text-pg-text-muted">
+                                        <div className="text-2xl mb-3">📭</div>
+                                        <p className="text-sm font-semibold m-0 mb-1">
                                             {language === 'en' ? 'No results found' : 'Tidak ada hasil'}
                                         </p>
-                                        <p style={{ fontSize: '12px', margin: 0 }}>
+                                        <p className="text-xs m-0">
                                             {language === 'en' ? `No matches found for "${searchQuery}"` : `Tidak ada hasil pencarian untuk "${searchQuery}"`}
                                         </p>
                                     </div>
                                 ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                    <div className="flex flex-col gap-5">
                                         {/* 1. Alerts / Issues Section */}
                                         {results.alerts.length > 0 && (
                                             <div>
-                                                <h4 style={{ fontSize: '11px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                                <h4 className="text-[11px] text-pg-primary-hover font-bold uppercase mb-2 tracking-wider">
                                                     {language === 'en' ? 'Alerts & Operational Issues' : 'Kendala & Masalah Operasional'}
                                                 </h4>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                <div className="flex flex-col gap-2">
                                                     {results.alerts.map((issue: any) => {
                                                         const badgeColor = issue.severity === 'RED' ? '#ef4444' 
                                                             : issue.severity === 'BLUE' ? '#3b82f6' 
-                                                            : issue.severity === 'ORANGE' ? '#fb923c'
-                                                            : '#fbbf24';
+                                                            : issue.severity === 'ORANGE' ? 'var(--color-pg-orange)'
+                                                            : 'var(--color-pg-warning)';
 
                                                         return (
                                                             <div
                                                                 key={issue.id}
                                                                 onClick={() => handleSearchAlertClick(issue.id.replace('alert-db-', '').replace('alert-pin-', ''))}
-                                                                style={{
-                                                                    backgroundColor: 'rgba(255,255,255,0.03)',
-                                                                    border: '1px solid rgba(255,255,255,0.06)',
-                                                                    borderRadius: '8px',
-                                                                    padding: '12px',
-                                                                    cursor: 'pointer',
-                                                                    transition: 'all 0.15s ease',
-                                                                }}
-                                                                className="hover-grow"
+                                                                className="bg-white/3 border border-white/6 rounded-lg p-3 cursor-pointer transition-all duration-150 hover-grow"
                                                             >
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                                                    <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', backgroundColor: badgeColor, color: '#fff' }}>
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded text-white"
+                                                                        style={{ backgroundColor: badgeColor }}>
                                                                         {issue.title}
                                                                     </span>
                                                                 </div>
-                                                                <p style={{ fontSize: '13px', margin: 0, color: '#fafafa' }}>{issue.message}</p>
+                                                                <p className="text-sm m-0 text-pg-text">{issue.message}</p>
                                                             </div>
                                                         );
                                                     })}
@@ -4949,10 +4461,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         {/* 2. Purchase Orders Section */}
                                         {results.pos.length > 0 && (
                                             <div>
-                                                <h4 style={{ fontSize: '11px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                                <h4 className="text-[11px] text-pg-primary-hover font-bold uppercase mb-2 tracking-wider">
                                                     {language === 'en' ? 'Purchase Orders (POs)' : 'Daftar PO'}
                                                 </h4>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                <div className="flex flex-col gap-2">
                                                     {results.pos.map((po: any) => {
                                                         const itemsProgress = po.items.length > 0
                                                             ? Math.round(po.items.reduce((sum: number, item: any) => sum + parseFloat(item.progress_percent), 0) / po.items.length)
@@ -4962,38 +4474,28 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                             <div
                                                                 key={po.id}
                                                                 onClick={() => handleSearchItemClick(po.id)}
-                                                                style={{
-                                                                    backgroundColor: 'rgba(255,255,255,0.03)',
-                                                                    border: '1px solid rgba(255,255,255,0.06)',
-                                                                    borderRadius: '8px',
-                                                                    padding: '12px',
-                                                                    cursor: 'pointer',
-                                                                }}
-                                                                className="hover-grow"
+                                                                className="bg-white/3 border border-white/6 rounded-lg p-3 cursor-pointer hover-grow"
                                                             >
-                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                                                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#fafafa' }}>{po.po_number}</span>
-                                                                    <span style={{
-                                                                        fontSize: '10px',
-                                                                        fontWeight: 700,
-                                                                        color: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? '#34d399' : '#fbbf24',
-                                                                        backgroundColor: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? 'rgba(16,185,129,0.12)' : 'rgba(234,179,8,0.12)',
-                                                                        padding: '2px 6px',
-                                                                        borderRadius: '4px'
-                                                                    }}>
+                                                                <div className="flex justify-between items-center mb-1.5">
+                                                                    <span className="text-sm font-extrabold text-pg-text">{po.po_number}</span>
+                                                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+                                                                        style={{
+                                                                            color: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? 'var(--color-pg-success)' : 'var(--color-pg-warning)',
+                                                                            backgroundColor: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? 'rgba(16,185,129,0.12)' : 'rgba(234,179,8,0.12)',
+                                                                        }}>
                                                                         {po.status}
                                                                     </span>
                                                                 </div>
-                                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>
+                                                                <div className="flex justify-between text-xs text-pg-text-secondary mb-1.5">
                                                                     <span>{po.client_name}</span>
                                                                     <span>{language === 'en' ? 'Deadline: ' : 'Tenggat: '} {new Date(po.global_deadline).toLocaleDateString()}</span>
                                                                 </div>
                                                                 {/* Progress Bar */}
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                    <div style={{ flex: 1, height: '6px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
-                                                                        <div style={{ width: `${itemsProgress}%`, height: '100%', backgroundColor: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? '#10b981' : '#6366f1', borderRadius: '3px' }} />
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="flex-1 h-1.5 bg-white/8 rounded-sm overflow-hidden">
+                                                                        <div style={{ width: `${itemsProgress}%`, height: '100%', backgroundColor: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? '#10b981' : 'var(--color-pg-primary)', borderRadius: '3px' }} />
                                                                     </div>
-                                                                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#fafafa' }}>{itemsProgress}%</span>
+                                                                    <span className="text-[11px] font-bold text-pg-text">{itemsProgress}%</span>
                                                                 </div>
                                                             </div>
                                                         );
@@ -5005,10 +4507,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         {/* 3. Items Section */}
                                         {results.items.length > 0 && (
                                             <div>
-                                                <h4 style={{ fontSize: '11px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                                <h4 className="text-[11px] text-pg-primary-hover font-bold uppercase mb-2 tracking-wider">
                                                     {language === 'en' ? 'Items & Components' : 'Barang & Komponen'}
                                                 </h4>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                <div className="flex flex-col gap-2">
                                                     {results.items.map((item: any) => {
                                                         const progress = Math.round(parseFloat(item.progress_percent));
 
@@ -5016,37 +4518,27 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                             <div
                                                                 key={`${item.po_id}-${item.id}`}
                                                                 onClick={() => handleSearchItemClick(item.po_id, item.id)}
-                                                                style={{
-                                                                    backgroundColor: 'rgba(255,255,255,0.03)',
-                                                                    border: '1px solid rgba(255,255,255,0.06)',
-                                                                    borderRadius: '8px',
-                                                                    padding: '12px',
-                                                                    cursor: 'pointer',
-                                                                }}
-                                                                className="hover-grow"
+                                                                className="bg-white/3 border border-white/6 rounded-lg p-3 cursor-pointer hover-grow"
                                                             >
-                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                                                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#fafafa' }}>{item.item_name}</span>
-                                                                    <span style={{
-                                                                        fontSize: '10px',
-                                                                        fontWeight: 700,
-                                                                        color: item.status === 'COMPLETED' ? '#34d399' : '#a855f7',
-                                                                        backgroundColor: item.status === 'COMPLETED' ? 'rgba(16,185,129,0.12)' : 'rgba(168,85,247,0.12)',
-                                                                        padding: '2px 6px',
-                                                                        borderRadius: '4px'
-                                                                    }}>
+                                                                <div className="flex justify-between items-center mb-1">
+                                                                    <span className="text-sm font-bold text-pg-text">{item.item_name}</span>
+                                                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+                                                                        style={{
+                                                                            color: item.status === 'COMPLETED' ? 'var(--color-pg-success)' : '#a855f7',
+                                                                            backgroundColor: item.status === 'COMPLETED' ? 'rgba(16,185,129,0.12)' : 'rgba(168,85,247,0.12)',
+                                                                        }}>
                                                                         {item.status}
                                                                     </span>
                                                                 </div>
-                                                                <div style={{ fontSize: '11px', color: '#a1a1aa', marginBottom: '8px' }}>
+                                                                <div className="text-[11px] text-pg-text-secondary mb-2">
                                                                     {item.client_name} &middot; PO {item.po_number}
                                                                 </div>
                                                                 {/* Progress Bar */}
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                    <div style={{ flex: 1, height: '4px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="flex-1 h-1 bg-white/8 rounded-sm overflow-hidden">
                                                                         <div style={{ width: `${progress}%`, height: '100%', backgroundColor: item.status === 'COMPLETED' ? '#10b981' : '#a855f7', borderRadius: '2px' }} />
                                                                     </div>
-                                                                    <span style={{ fontSize: '10px', fontWeight: 700, color: '#fafafa' }}>{progress}%</span>
+                                                                    <span className="text-[10px] font-bold text-pg-text">{progress}%</span>
                                                                 </div>
                                                             </div>
                                                         );
@@ -5054,14 +4546,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 </div>
                                             </div>
                                         )}
-
+                                        
                                         {/* 4. Clients Section */}
                                         {results.clients.length > 0 && (
                                             <div>
-                                                <h4 style={{ fontSize: '11px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                                <h4 className="text-[11px] text-pg-primary-hover font-bold uppercase mb-2 tracking-wider">
                                                     {language === 'en' ? 'Clients' : 'Klien'}
                                                 </h4>
-                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+                                                <div className="grid grid-cols-1 gap-2">
                                                     {results.clients.map((clientName: string) => {
                                                         const clientPos = pos.filter(p => p.client_name === clientName);
                                                         const activeCount = clientPos.filter(p => p.status !== 'COMPLETED').length;
@@ -5074,24 +4566,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                     const firstPo = clientPos[0];
                                                                     if (firstPo) handleSearchItemClick(firstPo.id);
                                                                 }}
-                                                                style={{
-                                                                    backgroundColor: 'rgba(255,255,255,0.03)',
-                                                                    border: '1px solid rgba(255,255,255,0.06)',
-                                                                    borderRadius: '8px',
-                                                                    padding: '12px',
-                                                                    cursor: 'pointer',
-                                                                    display: 'flex',
-                                                                    justifyContent: 'space-between',
-                                                                    alignItems: 'center',
-                                                                }}
-                                                                className="hover-grow"
+                                                                className="bg-white/3 border border-white/6 rounded-lg p-3 cursor-pointer flex justify-between items-center hover-grow"
                                                             >
-                                                                <span style={{ fontSize: '13px', fontWeight: 700, color: '#fafafa' }}>{clientName}</span>
-                                                                <div style={{ display: 'flex', gap: '8px' }}>
-                                                                    <span style={{ fontSize: '10px', color: '#fbbf24', backgroundColor: 'rgba(234,179,8,0.12)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                                                                <span className="text-sm font-bold text-pg-text">{clientName}</span>
+                                                                <div className="flex gap-2">
+                                                                    <span className="text-[10px] text-pg-warning bg-amber-500/12 px-1.5 py-0.5 rounded font-semibold">
                                                                         {activeCount} {language === 'en' ? 'Active' : 'Aktif'}
                                                                     </span>
-                                                                    <span style={{ fontSize: '10px', color: '#34d399', backgroundColor: 'rgba(16,185,129,0.12)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                                                                    <span className="text-[10px] text-pg-success bg-emerald-500/12 px-1.5 py-0.5 rounded font-semibold">
                                                                         {doneCount} {language === 'en' ? 'Done' : 'Selesai'}
                                                                     </span>
                                                                 </div>
@@ -5110,22 +4592,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
             })()}
 
             {selectedItemIds.size > 0 && (
-                <div style={{
-                    position: 'fixed',
-                    bottom: '24px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    zIndex: 50,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px 20px',
-                    background: '#1f2937',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '12px',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                }}>
-                    <span style={{ color: '#d1d5db', fontSize: '14px' }}>
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[50] flex items-center gap-3 px-5 py-3 bg-gray-800 border border-white/10 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+                    <span className="text-gray-300 text-sm">
                         {selectedItemIds.size} selected
                     </span>
                     <button
@@ -5138,15 +4606,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 setSelectedItemIds(new Set());
                             }
                         }}
-                        style={{
-                            padding: '8px 16px',
-                            background: '#ef4444',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '8px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                        }}
+                        className="px-4 py-2 bg-red-500 text-white border-none rounded-lg font-semibold cursor-pointer"
                     >
                         Cancel Selected
                     </button>
@@ -5160,28 +4620,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 setSelectedItemIds(new Set());
                             }
                         }}
-                        style={{
-                            padding: '8px 16px',
-                            background: '#f59e0b',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '8px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                        }}
+                        className="px-4 py-2 bg-amber-500 text-white border-none rounded-lg font-semibold cursor-pointer"
                     >
                         Terminate Selected
                     </button>
                     <button
                         onClick={() => setSelectedItemIds(new Set())}
-                        style={{
-                            padding: '8px 12px',
-                            background: 'transparent',
-                            color: '#9ca3af',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: '18px',
-                        }}
+                        className="p-2 bg-transparent text-gray-400 border-none cursor-pointer text-lg"
                     >
                         &times;
                     </button>

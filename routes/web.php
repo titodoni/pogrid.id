@@ -67,6 +67,8 @@ Route::prefix('c/{slug}')->group(function () {
 
     Route::middleware('auth')->group(function () {
         Route::get('/export-pdf', [WorkerDashboardController::class, 'exportPdf']);
+        Route::get('/export-csv', [WorkerDashboardController::class, 'exportCsv']);
+        Route::get('/export-xlsx', [WorkerDashboardController::class, 'exportXlsx']);
         Route::get('/profile', [ProfileController::class, 'index']);
         Route::get('/trouble-reports', [WorkerDashboardController::class, 'listTroubles'])->name('worker.troubles');
         Route::get('/archive', [WorkerDashboardController::class, 'archive'])->name('worker.archive');
