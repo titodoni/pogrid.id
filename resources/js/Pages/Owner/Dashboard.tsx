@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronDown, Settings, Lock, Plus, Palette, Stop, Broadcast, Globe, Copy, DotGreen, Search } from '../../Components/Icons';
 import { formatDeadline, calculateDeadlineDiff } from '../../Utils/deadline';
 import { WarningPill } from '../../Components/WarningPill';
@@ -846,6 +846,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
     };
     const [expandedPOs, setExpandedPOs] = useState<Set<number>>(new Set());
     const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+    const [selectedItemIds, setSelectedItemIds] = useState<Set<number>>(new Set());
 
     const togglePO = (id: number) => {
         setExpandedPOs(prev => {
@@ -861,6 +862,26 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
             if (next.has(id)) next.delete(id); else next.add(id);
             return next;
         });
+    };
+
+    const toggleItemSelection = (itemId: number) => {
+        setSelectedItemIds(prev => {
+            const next = new Set(prev);
+            if (next.has(itemId)) {
+                next.delete(itemId);
+            } else {
+                next.add(itemId);
+            }
+            return next;
+        });
+    };
+
+    const toggleSelectAll = (items: Item[]) => {
+        if (selectedItemIds.size === items.length) {
+            setSelectedItemIds(new Set());
+        } else {
+            setSelectedItemIds(new Set(items.map(i => i.id)));
+        }
     };
 
     const filteredPos = (() => {
@@ -1223,7 +1244,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         <Search size={16} />
                     </button>
                     {/* Profile - visible to all roles */}
-                    <a
+                    <Link
                         href={'/c/' + (tenant?.slug || '') + '/profile'}
                         onClick={() => setShowSettingsDropdown(false)}
                         style={{
@@ -1241,7 +1262,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         title={language === 'en' ? 'Profile' : 'Profil'}
                     >
                         <Settings size={16} />
-                    </a>
+                    </Link>
 
                     {isOwner && (
                         <button
@@ -1397,14 +1418,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         </span>
                     </button>
                 )}
-                <a
+                <Link
                     href={`/c/${tenant?.slug || ''}/archive`}
                     className="tab"
                     style={{ textDecoration: 'none' }}
                 >
                     <span className="tab-label-full">{t.tab_archive}</span>
                     <span className="tab-label-short">{t.tab_archive}</span>
-                </a>
+                </Link>
             </div>
 
             {/* State Summary Bar — compact */}
@@ -1825,7 +1846,19 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 {po.items.length === 0 ? (
                                                     <div style={{ fontSize: '14px', color: '#71717a', padding: '12px 0' }}>No items in this PO.</div>
                                                 ) : (
-                                                    po.items.map((item) => {
+                                                    <>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '4px' }}>
+                                                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#9ca3af', cursor: 'pointer', userSelect: 'none' }}>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={selectedItemIds.size === po.items.length}
+                                                                    onChange={() => toggleSelectAll(po.items)}
+                                                                    className="mr-1 accent-indigo-500"
+                                                                />
+                                                                Select All
+                                                            </label>
+                                                        </div>
+                                                        {po.items.map((item) => {
                                                         const progress = parseFloat(item.progress_percent);
                                                         const hasProgress = progress > 0;
                                                         const isCancelled = item.status === 'CANCELLED';
@@ -1846,7 +1879,15 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                             };
                                                         })()
                                                     }}>
-                                                                <button className="item-compact-summary" onClick={() => toggleItem(item.id)}>
+                                                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={selectedItemIds.has(item.id)}
+                                                                    onChange={() => toggleItemSelection(item.id)}
+                                                                    style={{ marginTop: '14px' }}
+                                                                    className="accent-indigo-500"
+                                                                />
+                                                                <button className="item-compact-summary" onClick={() => toggleItem(item.id)} style={{ flex: 1 }}>
                                                                     <div style={{ flex: 1, minWidth: 0 }}>
                                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                                                                             <span style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa' }}>{item.item_name}</span>
@@ -2167,6 +2208,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                     </div>
                                                                 )}
                                                             </div>
+                                                        </div>
                                                         );
                                                     })
                                                 )}
@@ -5066,6 +5108,85 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     </div>
                 );
             })()}
+
+            {selectedItemIds.size > 0 && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '24px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 50,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 20px',
+                    background: '#1f2937',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '12px',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                }}>
+                    <span style={{ color: '#d1d5db', fontSize: '14px' }}>
+                        {selectedItemIds.size} selected
+                    </span>
+                    <button
+                        onClick={() => {
+                            if (confirm(`Cancel ${selectedItemIds.size} items?`)) {
+                                router.post('/items/batch-action', {
+                                    action: 'cancel',
+                                    item_ids: Array.from(selectedItemIds),
+                                });
+                                setSelectedItemIds(new Set());
+                            }
+                        }}
+                        style={{
+                            padding: '8px 16px',
+                            background: '#ef4444',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                        }}
+                    >
+                        Cancel Selected
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (confirm(`Terminate ${selectedItemIds.size} items? This will trigger sunk-cost billing.`)) {
+                                router.post('/items/batch-action', {
+                                    action: 'terminate',
+                                    item_ids: Array.from(selectedItemIds),
+                                });
+                                setSelectedItemIds(new Set());
+                            }
+                        }}
+                        style={{
+                            padding: '8px 16px',
+                            background: '#f59e0b',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                        }}
+                    >
+                        Terminate Selected
+                    </button>
+                    <button
+                        onClick={() => setSelectedItemIds(new Set())}
+                        style={{
+                            padding: '8px 12px',
+                            background: 'transparent',
+                            color: '#9ca3af',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '18px',
+                        }}
+                    >
+                        &times;
+                    </button>
+                </div>
+            )}
 
             <style>{`
                 @keyframes slideIn {

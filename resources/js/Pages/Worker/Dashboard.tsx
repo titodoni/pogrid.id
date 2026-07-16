@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { AlertTriangle, Settings } from '../../Components/Icons';
 import { formatDeadline } from '../../Utils/deadline';
 import { localizedDisplay } from '../../Utils/locale';
+import { isStageLocked, getStageLockReason, getMatchingStages, getMatchingStageOrMock, getAllStages } from '../../Utils/permissions';
 import { WarningPill } from '../../Components/WarningPill';
 import echo from '../../bootstrap';
 
@@ -164,68 +165,7 @@ const translations = {
     }
 };
 
-const isStageLocked = (item: Item, stageName: string, userRole: string) => {
-    const role = userRole.toUpperCase();
-    const officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
-    if (officeRoles.includes(role)) {
-        return false;
-    }
-
-    const stageLower = stageName.toLowerCase();
-
-    // Role-based permission mapping
-    if ((stageLower.includes('design') || stageLower.includes('gambar') || stageLower.includes('draft')) && role !== 'DRAFTER') return true;
-    if ((stageLower.includes('material') || stageLower.includes('bahan')) && role !== 'PURCHASING') return true;
-    if ((stageLower.includes('machining') || stageLower.includes('cnc')) && (role !== 'MACHINING' && role !== 'CNC' && role !== 'PRODUCTION')) return true;
-    if ((stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) && (role !== 'FABRICATION' && role !== 'PRODUCTION')) return true;
-    if ((stageLower.includes('vendor') || stageLower.includes('purchasing')) && role !== 'PURCHASING') return true;
-    if (stageLower === 'qc' && role !== 'QC') return true;
-    if ((stageLower === 'delivery' || stageLower === 'pengiriman') && role !== 'DELIVERY') return true;
-    if (stageLower === 'finance' && role !== 'FINANCE') return true;
-
-    // Check off-state configuration
-    const originalStages = item.item_progresses
-        .map(s => s.stage_name)
-        .filter(name => !['QC', 'Delivery', 'Finance', 'Pengiriman'].includes(name) && !name.endsWith('REWORK'));
-
-    const isVendorJob = originalStages.some(name => name.toLowerCase().includes('vendor'));
-
-    if (isVendorJob) {
-        if (['machining', 'fabrication', 'fabrikasi', 'cnc', 'qc', 'delivery', 'pengiriman', 'finance'].some(v => stageLower.includes(v))) {
-            return true;
-        }
-    } else {
-        if ((stageLower.includes('machining') || stageLower.includes('cnc')) && !originalStages.some(name => name.toLowerCase().includes('machining') || name.toLowerCase().includes('cnc'))) return true;
-        if ((stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) && !originalStages.some(name => name.toLowerCase().includes('fabrication') || name.toLowerCase().includes('fabrikasi'))) return true;
-        if (stageLower.includes('vendor')) return true;
-
-
-
-        // QC requires Machining & Fabrication COMPLETED first
-        if (stageLower === 'qc' && !stageLower.includes('rework')) {
-            const prodStages = item.item_progresses.filter(s => 
-                (s.stage_name.toLowerCase().includes('machining') || 
-                 s.stage_name.toLowerCase().includes('cnc') || 
-                 s.stage_name.toLowerCase().includes('fabrication') || 
-                 s.stage_name.toLowerCase().includes('fabrikasi')) &&
-                !s.stage_name.toLowerCase().includes('rework')
-            );
-            if (prodStages.some(s => s.status !== 'COMPLETED')) return true;
-        }
-
-        if (stageLower === 'delivery' || stageLower === 'pengiriman') {
-            const qcStage = item.item_progresses.find(s => s.stage_name === 'QC');
-            if (!qcStage || (item.target_qty > 1 ? qcStage.completed_qty === 0 : parseFloat(qcStage.progress_percent) < 100)) return true;
-        }
-
-        if (stageLower === 'finance') {
-            const deliveryStage = item.item_progresses.find(s => s.stage_name === 'Delivery' || s.stage_name === 'Pengiriman');
-            if (!deliveryStage || (item.target_qty > 1 ? deliveryStage.completed_qty === 0 : parseFloat(deliveryStage.progress_percent) < 100)) return true;
-        }
-    }
-
-    return false;
-};
+// isStageLocked moved to ../../Utils/permissions
 
 interface ItemCardProps {
     item: Item;
@@ -1865,7 +1805,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                     {/* Right: Actions */}
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         {/* Trouble Reports Button */}
-                        <a
+                        <Link
                             href={`/c/${slug}/trouble-reports`}
                             style={{
                                 width: '38px',
@@ -1883,10 +1823,10 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                             title={language === 'en' ? 'Trouble Reports' : 'Laporan Kendala'}
                         >
                             <AlertTriangle size={18} />
-                        </a>
+                        </Link>
 
                         {/* Archive Button */}
-                        <a
+                        <Link
                             href={`/c/${slug}/archive`}
                             style={{
                                 height: '38px',
@@ -1912,10 +1852,10 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                                 <line x1="10" y1="12" x2="14" y2="12" />
                             </svg>
                             {language === 'en' ? 'Archive' : 'Arsip'}
-                        </a>
+                        </Link>
 
                         {/* Profile Button */}
-                        <a
+                        <Link
                             href={`/c/${slug}/profile`}
                             style={{
                                 width: '38px',
@@ -1933,7 +1873,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                             title={language === 'en' ? 'Profile' : 'Profil'}
                         >
                             <Settings size={18} />
-                        </a>
+                        </Link>
 
                         <button
                             onClick={() => router.post('/logout')}
