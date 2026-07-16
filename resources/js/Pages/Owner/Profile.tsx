@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, Lock, Globe } from '../../Components/Icons';
 import { localizedDisplay } from '../../Utils/locale';
 
@@ -118,7 +118,7 @@ export default function Profile({ tenant, auth_user }: Props) {
                 flexShrink: 0,
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                    <a
+                    <Link
                         href={`/c/${tenant?.slug || ''}`}
                         style={{
                             display: 'flex',
@@ -135,7 +135,7 @@ export default function Profile({ tenant, auth_user }: Props) {
                         }}
                     >
                         <ChevronLeft size={16} /> {t.back}
-                    </a>
+                    </Link>
                     <div>
                         <div className="greeting-name" style={{ fontSize: '11px', color: '#818cf8', fontWeight: 600, marginBottom: '2px' }}>
                             {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}

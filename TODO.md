@@ -420,7 +420,7 @@ Already spec'd in `NEXT_BUILD.md`. Backend routes + controller exist.
 - [ ] **Tenant stage templates**: save custom templates per tenant for re-use
 - [ ] **Repeat order shortcut**: clone previous PO stages for same client/item
 - [ ] **PPIC dashboard**: production planning view (backlog, capacity, scheduling)
-- [ ] **Multi-language posts**: posts have EN + ID display names
+- [x] **Multi-language posts**: posts have EN + ID display names
 
 ---
 
@@ -448,3 +448,9 @@ npm run dev         # Vite (separate terminal)
 
 *Last updated: 2026-07-16*
 *Cross-reference: `MAIN-IDEA.md` for all decisions, `NEXT_BUILD.md` for immediate task specs.*
+
+---
+
+## Staffing Plan (GIT-66)
+
+See `docs/hiring-plan.md` for full role definitions and responsibilities.

@@ -420,24 +420,20 @@ export default function Register() {
                     <button
                         type="submit"
                         disabled={processing}
-                        style={{
-                            width: '100%',
-                            padding: '14px',
-                            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                            color: '#ffffff',
-                            fontWeight: 600,
-                            borderRadius: '10px',
-                            border: 'none',
-                            fontSize: '16px',
-                            cursor: 'pointer',
-                            transition: 'background-color 0.2s, transform 0.1s',
-                            boxShadow: '0 4px 12px -2px rgba(99, 102, 241, 0.3)',
-                            marginBottom: '20px'
-                        }}
-                        onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)')}
-                        onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)')}
+                        className="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white font-semibold rounded-xl text-base shadow-lg shadow-indigo-500/30 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                        style={{ marginBottom: '20px' }}
                     >
-                        {processing ? t.registering : t.submit_btn}
+                        {processing ? (
+                            <div className="flex items-center justify-center gap-2">
+                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>{t.registering}</span>
+                            </div>
+                        ) : (
+                            t.submit_btn
+                        )}
                     </button>
                 </form>
 

@@ -32,5 +32,14 @@ class AppServiceProvider extends ServiceProvider
                 'info' => session('info'),
             ];
         });
+
+        Inertia::share('retry_after', fn () => session('retry_after'));
+
+        Inertia::share('pusher', function () {
+            return [
+                'key' => config('broadcasting.connections.pusher.key'),
+                'cluster' => config('broadcasting.connections.pusher.options.cluster'),
+            ];
+        });
     }
 }

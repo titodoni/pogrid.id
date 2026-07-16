@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, AlertTriangle, DotGreen, Settings } from '../../Components/Icons';
 
 interface Alert {
@@ -7,6 +7,7 @@ interface Alert {
     severity: string;
     message: string;
     is_resolved: boolean;
+    escalated_at?: string | null;
     created_at: string;
     item?: {
         id: number;
@@ -149,7 +150,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                         </button>
                     </div>
 
-                    <a
+                    <Link
                         href={`/c/${slug}/profile`}
                         style={{
                             padding: '8px',
@@ -166,7 +167,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                         title={language === 'en' ? 'Profile' : 'Profil'}
                     >
                         <Settings size={16} />
-                    </a>
+                    </Link>
 
                     <button
                         onClick={() => router.post('/logout')}
@@ -193,7 +194,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
             }}>
                 <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
                 <div style={{ marginBottom: '16px' }}>
-                    <a
+                    <Link
                         href={`/c/${slug}`}
                         style={{
                             display: 'inline-flex',
@@ -210,7 +211,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                         }}
                     >
                         <ChevronLeft size={16} /> {t.back}
-                    </a>
+                    </Link>
                 </div>
 
                 <div style={{
@@ -287,6 +288,22 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                                                     }}>
                                                         {alert.severity}
                                                     </span>
+                                                    {alert.escalated_at && (
+                                                        <span style={{
+                                                            display: 'inline-block',
+                                                            padding: '2px 6px',
+                                                            borderRadius: '4px',
+                                                            fontSize: '9px',
+                                                            fontWeight: 800,
+                                                            backgroundColor: '#fbbf2440',
+                                                            color: '#fbbf24',
+                                                            border: '1px solid #fbbf2480',
+                                                            marginLeft: '4px',
+                                                            animation: 'pulse 1.5s ease-in-out infinite',
+                                                        }}>
+                                                            ESCALATED
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td style={{ padding: '14px 8px', color: '#fafafa', lineHeight: '1.4' }}>
                                                     {alert.message}

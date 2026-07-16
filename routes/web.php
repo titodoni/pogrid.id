@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [OwnerDashboardController::class, 'index'])->name('dashboard');
     Route::post('/items/{itemId}/cancel', [OwnerDashboardController::class, 'cancelItem']);
     Route::post('/items/{itemId}/terminate', [OwnerDashboardController::class, 'terminateMidway']);
+    Route::post('/items/batch-action', [OwnerDashboardController::class, 'batchAction']);
 
     // PO Broadcasting
     Route::get('/pos/create', [OwnerDashboardController::class, 'create'])->name('pos.create');

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useForm, Link } from '@inertiajs/react';
+import { useForm, usePage, Link } from '@inertiajs/react';
 
 const translations = {
     en: {
@@ -44,11 +44,18 @@ export default function ForgotPassword() {
     };
 
     const t = translations[language];
+    const { props } = usePage();
+    const flashSuccess = (props as any).flash?.success;
+    const [submitted, setSubmitted] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/forgot-password');
+        post('/forgot-password', {
+            onSuccess: () => setSubmitted(true),
+        });
     };
+
+    const successMessage = flashSuccess || (submitted ? 'Password reset link has been sent to your email. Check your inbox (or server log in dev mode).' : null);
 
     return (
         <div style={{
@@ -124,6 +131,22 @@ export default function ForgotPassword() {
                     </p>
                 </div>
 
+                {successMessage ? (
+                    <div style={{
+                        backgroundColor: 'rgba(34, 197, 94, 0.08)',
+                        border: '1px solid rgba(34, 197, 94, 0.25)',
+                        borderRadius: '12px',
+                        padding: '24px',
+                        marginBottom: '20px',
+                        textAlign: 'center'
+                    }}>
+                        <div style={{ fontSize: '40px', marginBottom: '12px' }}>&#10003;</div>
+                        <p style={{ color: '#86efac', fontSize: '14px', lineHeight: '1.5', margin: 0 }}>
+                            {successMessage}
+                        </p>
+                    </div>
+                ) : (
+                    <>
                 {typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
                     <div style={{
                         backgroundColor: 'rgba(99, 102, 241, 0.06)',
@@ -202,6 +225,8 @@ export default function ForgotPassword() {
                         )}
                     </button>
                 </form>
+                    </>
+                )}
 
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between items-center text-sm">
                     <span style={{ color: '#a1a1aa' }}>{t.remember_password} </span>

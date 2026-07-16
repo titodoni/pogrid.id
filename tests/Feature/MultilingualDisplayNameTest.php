@@ -155,7 +155,7 @@ class MultilingualDisplayNameTest extends TestCase
 
     public function test_post_count_is_correct(): void
     {
-        $this->assertEquals(54, Post::count());
+        $this->assertEquals(53, Post::count());
     }
 
     public function test_all_roles_have_both_translations(): void

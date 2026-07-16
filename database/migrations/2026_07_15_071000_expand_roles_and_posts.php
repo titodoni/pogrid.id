@@ -33,7 +33,6 @@ return new class extends Migration
             ['name' => 'LOGISTIK', 'display_name' => 'Logistik'],
             ['name' => 'GUDANG', 'display_name' => 'Gudang'],
             ['name' => 'INVENTORY', 'display_name' => 'Inventory'],
-            ['name' => 'MILLING', 'display_name' => 'Milling'],
             ['name' => 'TURNING', 'display_name' => 'Turning'],
             ['name' => 'DRILLING', 'display_name' => 'Drilling'],
             ['name' => 'GRINDING', 'display_name' => 'Grinding'],

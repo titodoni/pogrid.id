@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration
 {
     private array $translations = [
-        'MILLING' => 'Freis',
         'ASSEMBLY' => 'Perakitan',
         'PPIC' => 'PPIC',
         'MAINTENANCE' => 'Perawatan',

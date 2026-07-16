@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetTenant;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -16,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
-            Inertia\Middleware::class,
+            HandleInertiaRequests::class,
             SetTenant::class,
         ]);
     })
@@ -30,7 +33,24 @@ return Application::configure(basePath: dirname(__DIR__))
 
                 return back()->withErrors([
                     'pin' => 'too_many_attempts',
-                ]);
+                ])->with('retry_after', $retryAfter);
+            }
+        });
+        $exceptions->render(function (HttpException $e, Request $request) {
+            if ($request->inertia()) {
+                $status = $e->getStatusCode();
+                $component = match ($status) {
+                    403 => 'Errors/403',
+                    404 => 'Errors/404',
+                    419 => 'Errors/419',
+                    500 => 'Errors/500',
+                    default => null,
+                };
+                if ($component) {
+                    return Inertia::render($component, ['status' => $status])
+                        ->toResponse($request)
+                        ->setStatusCode($status);
+                }
             }
         });
     })->create();

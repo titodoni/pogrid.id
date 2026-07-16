@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useForm } from '@inertiajs/react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useForm, usePage } from '@inertiajs/react';
 import { ModalShell } from '../../Components/Modal/ModalShell';
 import { localizedDisplay } from '../../Utils/locale';
 
@@ -90,6 +90,39 @@ export default function WorkerLogin({ tenant, workers }: Props) {
 
     const t = translations[language];
 
+    const { props: pageProps } = usePage();
+    const retryAfter = (pageProps as any).retry_after as number | undefined;
+    const [countdown, setCountdown] = useState(0);
+    const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    useEffect(() => {
+        if (retryAfter && retryAfter > 0) {
+            setCountdown(retryAfter);
+        }
+    }, [retryAfter]);
+
+    useEffect(() => {
+        if (countdown > 0) {
+            if (countdownRef.current) clearInterval(countdownRef.current);
+            countdownRef.current = setInterval(() => {
+                setCountdown((prev) => {
+                    if (prev <= 1) {
+                        if (countdownRef.current) clearInterval(countdownRef.current);
+                        countdownRef.current = null;
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+        return () => {
+            if (countdownRef.current) {
+                clearInterval(countdownRef.current);
+                countdownRef.current = null;
+            }
+        };
+    }, [countdown > 0]);
+
     React.useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (!selectedWorker) return;
@@ -117,10 +150,10 @@ export default function WorkerLogin({ tenant, workers }: Props) {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [selectedWorker, pin, processing]);
+    }, [selectedWorker, pin, processing, countdown]);
 
     const handleNumberClick = (num: string) => {
-        if (!selectedWorker) return;
+        if (!selectedWorker || countdown > 0) return;
         if (pin.length < 6) {
             const newPin = pin + num;
             setPin(newPin);
@@ -130,12 +163,14 @@ export default function WorkerLogin({ tenant, workers }: Props) {
     };
 
     const handleBackspace = () => {
+        if (countdown > 0) return;
         const newPin = pin.slice(0, -1);
         setPin(newPin);
         setData('pin', newPin);
     };
 
     const handleClear = () => {
+        if (countdown > 0) return;
         setPin('');
         setData('pin', '');
     };
@@ -150,6 +185,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (countdown > 0) return;
         clearErrors();
         if (!selectedWorker) {
             setError('pin', t.select_worker_error);
@@ -248,7 +284,11 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                     }}>
                         {'•'.repeat(pin.length)}
                     </div>
-                    {Object.keys(errors).length > 0 && (
+                    {countdown > 0 ? (
+                        <div style={{ color: '#fbbf24', fontSize: '11px', marginTop: '4px' }}>
+                            {t.too_many_attempts.replace('1 minute', `${countdown}s`)}
+                        </div>
+                    ) : Object.keys(errors).length > 0 && (
                         <div style={{ color: '#f87171', fontSize: '11px', marginTop: '4px' }}>
                             {t[Object.values(errors)[0] as keyof typeof t] || Object.values(errors)[0]}
                         </div>
@@ -268,7 +308,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             key={num}
                             type="button"
                             onClick={() => handleNumberClick(num)}
-                            disabled={!selectedWorker}
+                            disabled={!selectedWorker || countdown > 0}
                             className="focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:bg-white/10 active:scale-95 transition-all duration-150"
                             style={{
                                 height: '60px',
@@ -277,8 +317,8 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                                 borderRadius: '10px',
                                 border: '1px solid rgba(255, 255, 255, 0.05)',
                                 backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                                color: selectedWorker ? '#fafafa' : '#52525b',
-                                cursor: selectedWorker ? 'pointer' : 'not-allowed',
+                                color: selectedWorker && !countdown ? '#fafafa' : '#52525b',
+                                cursor: selectedWorker && !countdown ? 'pointer' : 'not-allowed',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -291,7 +331,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                     <button
                         type="button"
                         onClick={handleClear}
-                        disabled={!selectedWorker || pin.length === 0}
+                        disabled={!selectedWorker || pin.length === 0 || countdown > 0}
                         className="focus:outline-none focus:ring-2 focus:ring-red-500/50 hover:brightness-110 active:scale-95 transition-all duration-150"
                         style={{
                             height: '60px',
@@ -301,7 +341,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             border: 'none',
                             backgroundColor: 'rgba(248, 113, 113, 0.12)',
                             color: '#f87171',
-                            cursor: (selectedWorker && pin.length > 0) ? 'pointer' : 'not-allowed',
+                            cursor: (selectedWorker && pin.length > 0 && !countdown) ? 'pointer' : 'not-allowed',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -312,7 +352,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                     <button
                         type="button"
                         onClick={() => handleNumberClick('0')}
-                        disabled={!selectedWorker}
+                        disabled={!selectedWorker || countdown > 0}
                         className="focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:bg-white/10 active:scale-95 transition-all duration-150"
                         style={{
                             height: '60px',
@@ -321,8 +361,8 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             borderRadius: '10px',
                             border: '1px solid rgba(255, 255, 255, 0.05)',
                             backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                            color: selectedWorker ? '#fafafa' : '#52525b',
-                            cursor: selectedWorker ? 'pointer' : 'not-allowed',
+                            color: selectedWorker && !countdown ? '#fafafa' : '#52525b',
+                            cursor: selectedWorker && !countdown ? 'pointer' : 'not-allowed',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -334,7 +374,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                     <button
                         type="button"
                         onClick={handleBackspace}
-                        disabled={!selectedWorker || pin.length === 0}
+                        disabled={!selectedWorker || pin.length === 0 || countdown > 0}
                         className="focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:bg-white/15 active:scale-95 transition-all duration-150"
                         style={{
                             height: '60px',
@@ -344,7 +384,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             border: 'none',
                             backgroundColor: 'rgba(255, 255, 255, 0.08)',
                             color: '#fafafa',
-                            cursor: (selectedWorker && pin.length > 0) ? 'pointer' : 'not-allowed',
+                            cursor: (selectedWorker && pin.length > 0 && !countdown) ? 'pointer' : 'not-allowed',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -357,7 +397,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                 <button
                     type="button"
                     onClick={handleSubmit}
-                    disabled={processing || !selectedWorker || pin.length < 4}
+                    disabled={processing || !selectedWorker || pin.length < 4 || countdown > 0}
                     className="focus:outline-none focus:ring-2 focus:ring-emerald-500/50 hover:brightness-105 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none transition-all duration-200"
                     style={{
                         width: '100%',
@@ -365,12 +405,12 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         display: 'block',
                         margin: '16px auto 0',
                         padding: '14px',
-                        backgroundColor: (selectedWorker && pin.length >= 4) ? '#34d399' : '#27272a',
-                        color: (selectedWorker && pin.length >= 4) ? '#ffffff' : '#71717a',
+                        backgroundColor: (selectedWorker && pin.length >= 4 && !countdown) ? '#34d399' : '#27272a',
+                        color: (selectedWorker && pin.length >= 4 && !countdown) ? '#ffffff' : '#71717a',
                         fontWeight: 700,
                         borderRadius: '10px',
                         border: 'none',
-                        cursor: (selectedWorker && pin.length >= 4) ? 'pointer' : 'not-allowed',
+                        cursor: (selectedWorker && pin.length >= 4 && !countdown) ? 'pointer' : 'not-allowed',
                         fontSize: '15px',
                     }}
                 >

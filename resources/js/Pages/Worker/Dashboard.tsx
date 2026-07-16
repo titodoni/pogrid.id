@@ -587,24 +587,24 @@ function ItemCard({
                     </h3>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                         <span style={{
-                            fontSize: '10px',
+                            fontSize: '13px',
                             fontWeight: 700,
-                            padding: '2px 6px',
+                            padding: '2px 8px',
                             borderRadius: '6px',
                             backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                            color: '#818cf8',
+                            color: 'var(--color-pg-primary-hover)',
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
                         }}>
                             <span>{parseFloat(item.progress_percent).toFixed(0)}%</span>
-                            <span style={{ fontSize: '8px', color: '#a1a1aa', fontWeight: 'normal' }}>
+                            <span style={{ fontSize: '16px', color: 'var(--color-pg-text-secondary)', fontWeight: 'normal' }}>
                                 ({item.delivered_qty || 0}/{item.target_qty || 0})
                             </span>
                         </span>
                         {/* Chevron Indicator */}
                         <span style={{
-                            color: '#71717a',
+                            color: 'var(--color-pg-text-muted)',
                             display: 'flex',
                             alignItems: 'center',
                         }}>
@@ -626,13 +626,13 @@ function ItemCard({
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'baseline',
-                    fontSize: '11px',
+                    fontSize: '13px',
                     marginTop: '6px',
                 }}>
-                    <span style={{ color: '#818cf8', fontWeight: 600 }}>
+                    <span style={{ color: 'var(--color-pg-primary-hover)', fontWeight: 600 }}>
                         {item.po?.client_name || 'N/A'}
                     </span>
-                    <span style={{ color: '#a1a1aa', textAlign: 'right' }}>
+                    <span style={{ color: 'var(--color-pg-text-secondary)', textAlign: 'right' }}>
                         {item.po?.po_number || ''}
                     </span>
                 </div>
@@ -641,9 +641,9 @@ function ItemCard({
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'baseline',
-                    fontSize: '11px',
+                    fontSize: '13px',
                     marginTop: '2px',
-                    color: '#a1a1aa',
+                    color: 'var(--color-pg-text-secondary)',
                 }}>
                     <span>
                         {formatDeadline(item.po?.global_deadline, language)}
@@ -657,12 +657,12 @@ function ItemCard({
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px' }}>
                     {item.po?.is_urgent && (
                         <span style={{
-                            fontSize: '11px',
+                            fontSize: '12px',
                             fontWeight: 700,
                             padding: '2px 6px',
                             borderRadius: '4px',
                             backgroundColor: 'rgba(248, 113, 113, 0.12)',
-                            color: '#f87171',
+                            color: 'var(--color-pg-danger)',
                             border: '1px solid rgba(248, 113, 113, 0.2)',
                             flexShrink: 0,
                         }}>
@@ -670,12 +670,12 @@ function ItemCard({
                         </span>
                     )}
                     <span style={{
-                        fontSize: '11px',
+                        fontSize: '12px',
                         fontWeight: 700,
                         padding: '2px 6px',
                         borderRadius: '4px',
                         backgroundColor: 'rgba(255,255,255,0.06)',
-                        color: '#a1a1aa',
+                        color: 'var(--color-pg-text-secondary)',
                         flexShrink: 0,
                     }}>
                         {item.item_type === 'MANUFACTURE' 
@@ -689,12 +689,12 @@ function ItemCard({
                         const label = isApproved ? 'Drafter: ✓' : `Drafter: ${language === 'id' ? 'Proses' : 'Processing'}`;
                         return (
                             <span style={{
-                                fontSize: '11px',
+                                fontSize: '12px',
                                 fontWeight: 700,
                                 padding: '2px 6px',
                                 borderRadius: '4px',
                                 backgroundColor: isApproved ? 'rgba(52, 211, 153, 0.12)' : 'rgba(139, 92, 246, 0.12)',
-                                color: isApproved ? '#34d399' : '#a78bfa',
+                                color: isApproved ? 'var(--color-pg-success)' : '#a78bfa',
                                 flexShrink: 0,
                             }}>
                                 {label}
@@ -708,12 +708,12 @@ function ItemCard({
                         const label = isReady ? 'Purchasing: ✓' : `Purchasing: ${language === 'id' ? 'Proses' : 'Processing'}`;
                         return (
                             <span style={{
-                                fontSize: '11px',
+                                fontSize: '12px',
                                 fontWeight: 700,
                                 padding: '2px 6px',
                                 borderRadius: '4px',
                                 backgroundColor: isReady ? 'rgba(52, 211, 153, 0.12)' : 'rgba(99, 102, 241, 0.12)',
-                                color: isReady ? '#34d399' : '#818cf8',
+                                color: isReady ? 'var(--color-pg-success)' : 'var(--color-pg-primary-hover)',
                                 flexShrink: 0,
                             }}>
                                 {label}
@@ -757,11 +757,11 @@ function ItemCard({
                                     {userStages.map(stage => {
                                         const isActive = activeStage?.stage.id === stage.id;
                                         const stageLower = stage.stage_name.toLowerCase();
-                                        let color = '#71717a';
-                                        if (stageLower.includes('machining') || stageLower.includes('cnc')) color = '#6366f1';
+                                        let color = 'var(--color-pg-text-muted)';
+                                        if (stageLower.includes('machining') || stageLower.includes('cnc')) color = 'var(--color-pg-primary)';
                                         else if (stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) color = '#8b5cf6';
-                                        else if (stageLower === 'qc') color = '#fbbf24';
-                                        else if (stageLower === 'delivery' || stageLower === 'pengiriman') color = '#34d399';
+                                        else if (stageLower === 'qc') color = 'var(--color-pg-warning)';
+                                        else if (stageLower === 'delivery' || stageLower === 'pengiriman') color = 'var(--color-pg-success)';
 
                                         return (
                                             <button
@@ -773,7 +773,7 @@ function ItemCard({
                                                     borderRadius: '8px',
                                                     border: isActive ? '1px solid ' + color : '1px solid rgba(255,255,255,0.08)',
                                                     backgroundColor: isActive ? color + '20' : 'transparent',
-                                                    color: isActive ? color : '#a1a1aa',
+                                                    color: isActive ? color : 'var(--color-pg-text-secondary)',
                                                     fontSize: '12px',
                                                     fontWeight: 700,
                                                     cursor: isStageLocked(item, stage.stage_name, userRole) ? 'not-allowed' : 'pointer',
@@ -808,42 +808,42 @@ function ItemCard({
 
                                     return (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
-                                            <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: '0 0 2px 0' }}>
-                                                {language === 'en' ? 'Drafter Status' : 'Status Drafter'}
-                                            </h4>
-                                            <div style={{
-                                                display: 'flex',
-                                                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                                                padding: '4px',
-                                                borderRadius: '12px',
-                                                border: '1px solid rgba(255, 255, 255, 0.06)',
-                                                gap: '4px'
-                                            }}>
-                                                {statuses.map((status) => {
-                                                    const isActive = currentStatus === status;
-                                                    const isDisabled = currentIdx !== -1 && statuses.indexOf(status) < currentIdx;
-                                                    return (
-                                                        <button
-                                                            key={status}
-                                                            onClick={() => {
-                                                                if (isActive || loading) return;
-                                                                router.post(`/c/${slug}/items/${item.id}/drafter-status`, {
-                                                                    drafter_status: status,
-                                                                }, {
-                                                                    preserveScroll: true,
-                                                                    preserveState: true,
-                                                                    onStart: () => setLoading(true),
-                                                                    onFinish: () => setLoading(false),
-                                                                });
-                                                            }}
-                                                            disabled={isDisabled || loading}
-                                                            style={{
-                                                                flex: 1,
-                                                                padding: '12px 4px',
-                                                                borderRadius: '8px',
-                                                                border: 'none',
-                                                                background: isActive ? '#6366f1' : 'transparent',
-                                                                color: isActive ? '#fafafa' : '#a1a1aa',
+                                                        <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: '0 0 2px 0' }}>
+                                                            {language === 'en' ? 'Drafter Status' : 'Status Drafter'}
+                                                        </h4>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                                            padding: '4px',
+                                                            borderRadius: '12px',
+                                                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                            gap: '4px'
+                                                        }}>
+                                                            {statuses.map((status) => {
+                                                                const isActive = currentStatus === status;
+                                                                const isDisabled = currentIdx !== -1 && statuses.indexOf(status) < currentIdx;
+                                                                return (
+                                                                    <button
+                                                                        key={status}
+                                                                        onClick={() => {
+                                                                            if (isActive || loading) return;
+                                                                            router.post(`/c/${slug}/items/${item.id}/drafter-status`, {
+                                                                                drafter_status: status,
+                                                                            }, {
+                                                                                preserveScroll: true,
+                                                                                preserveState: true,
+                                                                                onStart: () => setLoading(true),
+                                                                                onFinish: () => setLoading(false),
+                                                                            });
+                                                                        }}
+                                                                        disabled={isDisabled || loading}
+                                                                        style={{
+                                                                            flex: 1,
+                                                                            padding: '12px 4px',
+                                                                            borderRadius: '8px',
+                                                                            border: 'none',
+                                                                            background: isActive ? 'var(--color-pg-primary)' : 'transparent',
+                                                                            color: isActive ? 'var(--color-pg-text)' : 'var(--color-pg-text-secondary)',
                                                                 fontSize: '12px',
                                                                 fontWeight: 700,
                                                                 cursor: isDisabled ? 'not-allowed' : 'pointer',
@@ -872,42 +872,42 @@ function ItemCard({
 
                                     return (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
-                                            <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: '0 0 2px 0' }}>
-                                                {language === 'en' ? 'Purchasing Status' : 'Status Pembelian'}
-                                            </h4>
-                                            <div style={{
-                                                display: 'flex',
-                                                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                                                padding: '4px',
-                                                borderRadius: '12px',
-                                                border: '1px solid rgba(255, 255, 255, 0.06)',
-                                                gap: '4px'
-                                            }}>
-                                                {statuses.map((status) => {
-                                                    const isActive = currentStatus === status;
-                                                    const isDisabled = currentIdx !== -1 && statuses.indexOf(status) < currentIdx;
-                                                    return (
-                                                        <button
-                                                            key={status}
-                                                            onClick={() => {
-                                                                if (isActive || loading) return;
-                                                                router.post(`/c/${slug}/items/${item.id}/purchasing-status`, {
-                                                                    purchasing_status: status,
-                                                                }, {
-                                                                    preserveScroll: true,
-                                                                    preserveState: true,
-                                                                    onStart: () => setLoading(true),
-                                                                    onFinish: () => setLoading(false),
-                                                                });
-                                                            }}
-                                                            disabled={isDisabled || loading}
-                                                            style={{
-                                                                flex: 1,
-                                                                padding: '12px 4px',
-                                                                borderRadius: '8px',
-                                                                border: 'none',
-                                                                background: isActive ? '#6366f1' : 'transparent',
-                                                                color: isActive ? '#fafafa' : '#a1a1aa',
+                                                        <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: '0 0 2px 0' }}>
+                                                            {language === 'en' ? 'Purchasing Status' : 'Status Pembelian'}
+                                                        </h4>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                                            padding: '4px',
+                                                            borderRadius: '12px',
+                                                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                            gap: '4px'
+                                                        }}>
+                                                            {statuses.map((status) => {
+                                                                const isActive = currentStatus === status;
+                                                                const isDisabled = currentIdx !== -1 && statuses.indexOf(status) < currentIdx;
+                                                                return (
+                                                                    <button
+                                                                        key={status}
+                                                                        onClick={() => {
+                                                                            if (isActive || loading) return;
+                                                                            router.post(`/c/${slug}/items/${item.id}/purchasing-status`, {
+                                                                                purchasing_status: status,
+                                                                            }, {
+                                                                                preserveScroll: true,
+                                                                                preserveState: true,
+                                                                                onStart: () => setLoading(true),
+                                                                                onFinish: () => setLoading(false),
+                                                                            });
+                                                                        }}
+                                                                        disabled={isDisabled || loading}
+                                                                        style={{
+                                                                            flex: 1,
+                                                                            padding: '12px 4px',
+                                                                            borderRadius: '8px',
+                                                                            border: 'none',
+                                                                            background: isActive ? 'var(--color-pg-primary)' : 'transparent',
+                                                                            color: isActive ? 'var(--color-pg-text)' : 'var(--color-pg-text-secondary)',
                                                                 fontSize: '12px',
                                                                 fontWeight: 700,
                                                                 cursor: isDisabled ? 'not-allowed' : 'pointer',
@@ -936,15 +936,15 @@ function ItemCard({
                                                 borderRadius: '8px',
                                                 marginBottom: '8px',
                                             }}>
-                                                <div style={{ fontSize: '11px', color: '#71717a', marginBottom: '2px' }}>
+                                                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', marginBottom: '2px' }}>
                                                     {language === 'en' ? 'Item Delivery Status' : 'Status Pengiriman Barang'}
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                     <span style={{
                                                         fontSize: '13px',
                                                         fontWeight: 700,
-                                                        color: item.delivery_status === 'DELIVERED' ? '#34d399' :
-                                                            item.delivery_status === 'PARTIAL' ? '#fbbf24' : '#3b82f6'
+                                                        color: item.delivery_status === 'DELIVERED' ? 'var(--color-pg-success)' :
+                                                            item.delivery_status === 'PARTIAL' ? 'var(--color-pg-warning)' : '#3b82f6'
                                                     }}>
                                                         {item.delivery_status === 'DELIVERED'
                                                             ? (language === 'id' ? 'Terkirim' : 'Delivered')
@@ -952,7 +952,7 @@ function ItemCard({
                                                             ? (language === 'id' ? 'Terkirim Sebagian' : 'Partially Delivered')
                                                             : (language === 'id' ? 'Belum Dikirim' : 'Pending Delivery')}
                                                     </span>
-                                                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#fafafa' }}>
+                                                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-pg-text)' }}>
                                                         {item.delivered_qty ?? 0} / {item.target_qty} pcs
                                                     </span>
                                                 </div>
@@ -960,28 +960,28 @@ function ItemCard({
 
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                 <span style={{
-                                                    fontSize: '10px',
+                                                    fontSize: '12px',
                                                     fontWeight: 700,
                                                     padding: '2px 8px',
                                                     borderRadius: '6px',
                                                     backgroundColor: invoiceStatus === 'INVOICED' ? 'rgba(52, 211, 153, 0.12)' :
                                                         invoiceStatus === 'PARTIAL' ? 'rgba(168, 85, 247, 0.12)' : 'rgba(255, 255, 255, 0.04)',
-                                                    color: invoiceStatus === 'INVOICED' ? '#34d399' :
-                                                        invoiceStatus === 'PARTIAL' ? '#c084fc' : '#a1a1aa',
+                                                    color: invoiceStatus === 'INVOICED' ? 'var(--color-pg-success)' :
+                                                        invoiceStatus === 'PARTIAL' ? '#c084fc' : 'var(--color-pg-text-secondary)',
                                                     border: '1px solid ' + (invoiceStatus === 'INVOICED' ? 'rgba(52, 211, 153, 0.2)' :
                                                         invoiceStatus === 'PARTIAL' ? 'rgba(168, 85, 247, 0.2)' : 'rgba(255, 255, 255, 0.06)'),
                                                 }}>
                                                     {t.invoice_label}: {invoiceStatus === 'INVOICED' ? t.invoiced : invoiceStatus === 'PARTIAL' ? `${t.partially_invoiced} (${invoicedQty}/${item.target_qty})` : t.uninvoiced}
                                                 </span>
                                                 <span style={{
-                                                    fontSize: '10px',
+                                                    fontSize: '12px',
                                                     fontWeight: 700,
                                                     padding: '2px 8px',
                                                     borderRadius: '6px',
                                                     backgroundColor: paymentStatus === 'PAID' ? 'rgba(52, 211, 153, 0.12)' :
                                                         paymentStatus === 'PARTIAL_PAID' ? 'rgba(99, 102, 241, 0.12)' : 'rgba(255, 255, 255, 0.04)',
-                                                    color: paymentStatus === 'PAID' ? '#34d399' :
-                                                        paymentStatus === 'PARTIAL_PAID' ? '#818cf8' : '#a1a1aa',
+                                                    color: paymentStatus === 'PAID' ? 'var(--color-pg-success)' :
+                                                        paymentStatus === 'PARTIAL_PAID' ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
                                                     border: '1px solid ' + (paymentStatus === 'PAID' ? 'rgba(52, 211, 153, 0.2)' :
                                                         paymentStatus === 'PARTIAL_PAID' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.06)'),
                                                 }}>
@@ -993,9 +993,9 @@ function ItemCard({
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', marginTop: '12px' }}>
                                                 {/* Invoiced Status Selection */}
                                                 <div>
-                                                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a1a1aa', marginBottom: '6px', textTransform: 'uppercase' }}>
-                                                        {language === 'en' ? 'Invoice Status' : 'Status Invoice'}
-                                                    </label>
+                                                <                                                label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--color-pg-text-secondary)', marginBottom: '6px', textTransform: 'uppercase' }}>
+                                                    {language === 'en' ? 'Invoice Status' : 'Status Invoice'}
+                                                </label>
                                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                                                         {(['UNINVOICED', 'PARTIAL', 'INVOICED'] as const).map(status => {
                                                             const isSel = invoiceStatus === status;
@@ -1014,9 +1014,9 @@ function ItemCard({
                                                                         fontSize: '12px',
                                                                         fontWeight: 700,
                                                                         borderRadius: '8px',
-                                                                        border: '1px solid ' + (isSel ? '#6366f1' : 'rgba(255, 255, 255, 0.08)'),
-                                                                        backgroundColor: isSel ? 'rgba(99, 102, 241, 0.15)' : '#09090b',
-                                                                        color: isSel ? '#818cf8' : '#a1a1aa',
+                                                                    border: '1px solid ' + (isSel ? 'var(--color-pg-primary)' : 'rgba(255, 255, 255, 0.08)'),
+                                                                    backgroundColor: isSel ? 'rgba(99, 102, 241, 0.15)' : 'var(--color-pg-bg)',
+                                                                    color: isSel ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
                                                                         cursor: 'pointer',
                                                                     }}
                                                                 >
@@ -1030,7 +1030,7 @@ function ItemCard({
                                                 {/* Invoiced Qty (Shown when PARTIAL) */}
                                                 {invoiceStatus === 'PARTIAL' && (
                                                     <div style={{ animation: 'fadeIn 0.2s ease-in-out' }}>
-                                                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a1a1aa', marginBottom: '6px', textTransform: 'uppercase' }}>
+                                                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--color-pg-text-secondary)', marginBottom: '6px', textTransform: 'uppercase' }}>
                                                             {language === 'en' ? 'Invoiced Quantity' : 'Jumlah Diinvoice'}
                                                         </label>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1047,14 +1047,14 @@ function ItemCard({
                                                                     flex: 1,
                                                                     padding: '10px 12px',
                                                                     fontSize: '14px',
-                                                                    backgroundColor: '#09090b',
+                                                                    backgroundColor: 'var(--color-pg-bg)',
                                                                     border: '1px solid rgba(255,255,255,0.08)',
                                                                     borderRadius: '8px',
                                                                     color: '#fff',
                                                                     outline: 'none',
                                                                 }}
                                                             />
-                                                            <span style={{ fontSize: '13px', color: '#71717a' }}>
+                                                            <span style={{ fontSize: '13px', color: 'var(--color-pg-text-muted)' }}>
                                                                 / {item.delivered_qty ?? 0}
                                                             </span>
                                                         </div>
@@ -1063,9 +1063,9 @@ function ItemCard({
 
                                                 {/* Payment Status Selection */}
                                                 <div>
-                                                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a1a1aa', marginBottom: '6px', textTransform: 'uppercase' }}>
-                                                        {language === 'en' ? 'Payment Status' : 'Status Pembayaran'}
-                                                    </label>
+                                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--color-pg-text-secondary)', marginBottom: '6px', textTransform: 'uppercase' }}>
+                                                    {language === 'en' ? 'Payment Status' : 'Status Pembayaran'}
+                                                </label>
                                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                                                         {(['UNPAID', 'PARTIAL_PAID', 'PAID'] as const).map(status => {
                                                             const isSel = paymentStatus === status;
@@ -1081,8 +1081,8 @@ function ItemCard({
                                                                         fontWeight: 700,
                                                                         borderRadius: '8px',
                                                                         border: '1px solid ' + (isSel ? '#10b981' : 'rgba(255, 255, 255, 0.08)'),
-                                                                        backgroundColor: isSel ? 'rgba(16, 185, 129, 0.15)' : '#09090b',
-                                                                        color: isSel ? '#34d399' : '#a1a1aa',
+                                                                        backgroundColor: isSel ? 'rgba(16, 185, 129, 0.15)' : 'var(--color-pg-bg)',
+                                                                        color: isSel ? 'var(--color-pg-success)' : 'var(--color-pg-text-secondary)',
                                                                         cursor: 'pointer',
                                                                     }}
                                                                 >
@@ -1147,9 +1147,9 @@ function ItemCard({
                                                 border: '1px solid rgba(255, 255, 255, 0.04)',
                                             }}>
                                                 <div style={{ marginRight: 'auto', paddingLeft: '4px' }}>
-                                                    <div style={{ fontSize: '10px', color: '#a1a1aa', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                                                        {language === 'en' ? 'Completed' : 'Selesai'}
-                                                    </div>
+                                                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                                                    {language === 'en' ? 'Completed' : 'Selesai'}
+                                                </div>
                                                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '2px' }}>
                                                         <span style={{ fontSize: '24px', fontWeight: 800, color: '#fafafa', lineHeight: '1' }}>
                                                             {localCompletedQty}
@@ -1409,7 +1409,7 @@ function ItemCard({
                                                 backgroundColor: 'rgba(255, 255, 255, 0.02)',
                                                 borderRadius: '10px',
                                             }}>
-                                                <label style={{ fontSize: '10px', color: '#a1a1aa', marginBottom: '4px', display: 'block' }}>
+                                                <label style={{ fontSize: '12px', color: '#a1a1aa', marginBottom: '4px', display: 'block', fontWeight: 600 }}>
                                                     {t.failure_type_label}
                                                 </label>
                                                 <select
@@ -1432,7 +1432,7 @@ function ItemCard({
                                                     <option value="Operator Sick">{t.operator_sick}</option>
                                                     <option value="Power Outage">{t.power_outage}</option>
                                                 </select>
-                                                <label style={{ fontSize: '10px', color: '#a1a1aa', marginTop: '8px', marginBottom: '4px', display: 'block' }}>
+                                                <label style={{ fontSize: '12px', color: '#a1a1aa', marginTop: '8px', marginBottom: '4px', display: 'block', fontWeight: 600 }}>
                                                     {language === 'en' ? 'Note / Description' : 'Catatan / Deskripsi'}
                                                 </label>
                                                 <textarea
@@ -1500,7 +1500,7 @@ function ItemCard({
                                                 backgroundColor: 'rgba(255, 255, 255, 0.02)',
                                                 borderRadius: '10px',
                                             }}>
-                                                <label style={{ fontSize: '10px', color: '#a1a1aa', marginBottom: '4px', display: 'block' }}>
+                                                <label style={{ fontSize: '12px', color: '#a1a1aa', marginBottom: '4px', display: 'block', fontWeight: 600 }}>
                                                     {t.reject_qty_label}
                                                 </label>
                                                 <input
@@ -1623,7 +1623,7 @@ function ItemCard({
                                     color: '#f87171',
                                     border: '1px solid rgba(248, 113, 113, 0.15)',
                                     borderRadius: '8px',
-                                    fontSize: '11px',
+                                    fontSize: '13px',
                                     fontWeight: 700,
                                     display: 'flex',
                                     alignItems: 'center',
@@ -1647,8 +1647,8 @@ function ItemCard({
                                         border: '1px solid rgba(251, 191, 36, 0.15)',
                                         borderRadius: '8px',
                                         color: '#fbbf24',
-                                        fontSize: '11px',
-                                        fontWeight: 600,
+                                        fontSize: '13px',
+                                        fontWeight: 700,
                                     }}>
                                         <AlertTriangle size={14} style={{ flexShrink: 0 }} />
                                         <span>{lockReason}</span>
@@ -1747,21 +1747,15 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
             color: '#fafafa',
         }}>
             {/* Header */}
-            <header className="responsive-header" style={{
-                padding: '12px 16px',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-                backgroundColor: 'rgba(9, 9, 11, 0.6)',
-                backdropFilter: 'blur(8px)',
-                flexShrink: 0,
-            }}>
+        <header className="responsive-header p-3 border-b border-pg-border bg-pg-bg/60 backdrop-blur shrink-0">
                 <div>
-                    <div className="greeting-name" style={{ fontSize: '13px', color: '#818cf8', fontWeight: 600, marginBottom: '2px' }}>
+                    <div className="greeting-name text-sm text-pg-primary-hover font-semibold mb-0.5">
                         {language === 'en'
                             ? `Hello, ${auth_user?.name}${auth_user?.post_display_name ? ` (${localizedDisplay({ display_name: auth_user.post_display_name, display_name_id: auth_user.post_display_name_id }, language)})` : ''}`
                             : `Halo, ${auth_user?.name}${auth_user?.post_display_name ? ` (${localizedDisplay({ display_name: auth_user.post_display_name, display_name_id: auth_user.post_display_name_id }, language)})` : ''}`}
                     </div>
-                    <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.floor_terminal}</h1>
-                    <p style={{ fontSize: '12px', color: '#71717a', margin: '2px 0 0 0' }}>
+                    <h1 className="text-2xl font-extrabold m-0 tracking-tight">{t.floor_terminal}</h1>
+                    <p className="text-xs text-pg-text-muted m-0 mt-0.5">
                         {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         {' · '}
                         {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
@@ -1769,33 +1763,21 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                 </div>
                 <div className="flex justify-between items-center gap-2 flex-wrap w-full md:w-auto mt-2 md:mt-0">
                     {/* Left: Language switcher */}
-                    <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(255, 255, 255, 0.04)', padding: '2px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                    <div className="flex gap-1 bg-white/4 p-0.5 rounded-lg border border-pg-border">
                         <button
                             onClick={() => changeLanguage('en')}
+                            className="min-w-[44px] min-h-[44px] px-3 py-1.5 border-none rounded-md text-white font-bold text-xs cursor-pointer flex items-center justify-center"
                             style={{
-                                padding: '6px 12px',
                                 backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
-                                border: 'none',
-                                borderRadius: '6px',
-                                color: '#fff',
-                                fontWeight: 600,
-                                fontSize: '11px',
-                                cursor: 'pointer',
                             }}
                         >
                             EN
                         </button>
                         <button
                             onClick={() => changeLanguage('id')}
+                            className="min-w-[44px] min-h-[44px] px-3 py-1.5 border-none rounded-md text-white font-bold text-xs cursor-pointer flex items-center justify-center"
                             style={{
-                                padding: '6px 12px',
                                 backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
-                                border: 'none',
-                                borderRadius: '6px',
-                                color: '#fff',
-                                fontWeight: 600,
-                                fontSize: '11px',
-                                cursor: 'pointer',
                             }}
                         >
                             ID
@@ -1808,8 +1790,8 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                         <Link
                             href={`/c/${slug}/trouble-reports`}
                             style={{
-                                width: '38px',
-                                height: '38px',
+                                width: '44px',
+                                height: '44px',
                                 backgroundColor: 'rgba(248, 113, 113, 0.12)',
                                 color: '#f87171',
                                 border: '1px solid rgba(248, 113, 113, 0.2)',
@@ -1829,7 +1811,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                         <Link
                             href={`/c/${slug}/archive`}
                             style={{
-                                height: '38px',
+                                minHeight: '44px',
                                 padding: '0 12px',
                                 backgroundColor: 'rgba(99, 102, 241, 0.12)',
                                 color: '#818cf8',
@@ -1841,7 +1823,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                                 justifyContent: 'center',
                                 textDecoration: 'none',
                                 gap: '4px',
-                                fontSize: '11px',
+                                fontSize: '12px',
                                 fontWeight: 700,
                             }}
                             title={language === 'en' ? 'Archive' : 'Arsip'}
@@ -1858,8 +1840,8 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                         <Link
                             href={`/c/${slug}/profile`}
                             style={{
-                                width: '38px',
-                                height: '38px',
+                                width: '44px',
+                                height: '44px',
                                 backgroundColor: 'rgba(255, 255, 255, 0.04)',
                                 color: '#a1a1aa',
                                 border: '1px solid rgba(255, 255, 255, 0.06)',
@@ -1878,7 +1860,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                         <button
                             onClick={() => router.post('/logout')}
                             style={{
-                                height: '38px',
+                                minHeight: '44px',
                                 padding: '0 16px',
                                 backgroundColor: '#f87171',
                                 color: '#fff',

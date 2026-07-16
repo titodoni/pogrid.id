@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, AlertTriangle, Settings } from '../../Components/Icons';
 import { WarningPill } from '../../Components/WarningPill';
 import { formatDeadline } from '../../Utils/deadline';
@@ -164,7 +164,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                         </button>
                     </div>
 
-                    <a
+                    <Link
                         href={`/c/${slug}/profile`}
                         style={{
                             padding: '8px',
@@ -181,7 +181,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                         title={language === 'en' ? 'Profile' : 'Profil'}
                     >
                         <Settings size={16} />
-                    </a>
+                    </Link>
 
                     <button
                         onClick={() => router.post('/logout')}
@@ -207,7 +207,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
             }}>
                 <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
                     <div style={{ marginBottom: '16px' }}>
-                        <a
+                        <Link
                             href={`/c/${slug}`}
                             style={{
                                 display: 'inline-flex',
@@ -224,7 +224,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                             }}
                         >
                             <ChevronLeft size={16} /> {t.back}
-                        </a>
+                        </Link>
                     </div>
 
                     <div style={{

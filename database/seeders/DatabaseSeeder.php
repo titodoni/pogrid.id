@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
 
         // 2. Seed roles (skip if already exist from migration)
         $roles = [
+            // Intentional: "Drafter" is standard English loanword in Indonesian manufacturing (same as Helper, PPIC, Supervisor)
             'DRAFTER' => Role::firstOrCreate(['name' => 'DRAFTER'], ['display_name' => 'Drafter', 'display_name_id' => 'Drafter', 'level' => 'production']),
             'PURCHASING' => Role::firstOrCreate(['name' => 'PURCHASING'], ['display_name' => 'Purchasing', 'display_name_id' => 'Pembelian', 'level' => 'production']),
             'MACHINING' => Role::firstOrCreate(['name' => 'MACHINING'], ['display_name' => 'Operator', 'display_name_id' => 'Operator Mesin', 'level' => 'production']),
@@ -70,7 +71,6 @@ class DatabaseSeeder extends Seeder
             'LOGISTIK' => Post::firstOrCreate(['name' => 'LOGISTIK'], ['display_name' => 'Logistik', 'display_name_id' => 'Logistik']),
             'GUDANG' => Post::firstOrCreate(['name' => 'GUDANG'], ['display_name' => 'Gudang', 'display_name_id' => 'Gudang']),
             'INVENTORY' => Post::firstOrCreate(['name' => 'INVENTORY'], ['display_name' => 'Inventory', 'display_name_id' => 'Inventaris']),
-            'MILLING' => Post::firstOrCreate(['name' => 'MILLING'], ['display_name' => 'Milling', 'display_name_id' => 'Freis']),
             'TURNING' => Post::firstOrCreate(['name' => 'TURNING'], ['display_name' => 'Turning', 'display_name_id' => 'Bubut']),
             'DRILLING' => Post::firstOrCreate(['name' => 'DRILLING'], ['display_name' => 'Drilling', 'display_name_id' => 'Bor']),
             'GRINDING' => Post::firstOrCreate(['name' => 'GRINDING'], ['display_name' => 'Grinding', 'display_name_id' => 'Gerinda']),

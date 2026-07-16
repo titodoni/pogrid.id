@@ -19,6 +19,7 @@ return new class extends Migration
 
         // Seed Indonesian display_name_id for roles
         $roleTranslations = [
+            // Intentional: English loanword standard in Indonesian manufacturing (same as Helper, PPIC, Supervisor)
             'DRAFTER' => 'Drafter',
             'PURCHASING' => 'Pembelian',
             'MACHINING' => 'Operator Mesin',
@@ -65,7 +66,6 @@ return new class extends Migration
             'LOGISTIK' => 'Logistik',
             'GUDANG' => 'Gudang',
             'INVENTORY' => 'Inventaris',
-            'MILLING' => 'Freis',
             'TURNING' => 'Bubut',
             'DRILLING' => 'Bor',
             'GRINDING' => 'Gerinda',

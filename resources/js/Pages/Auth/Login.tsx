@@ -67,88 +67,42 @@ export default function Login() {
     };
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#09090b',
-            fontFamily: 'Inter, sans-serif',
-            color: '#fafafa',
-            padding: '16px',
-            position: 'relative'
-        }}>
+        <div className="min-h-screen flex items-center justify-center bg-pg-bg text-pg-text p-4 relative">
             {/* Language Switcher */}
-            <div style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                display: 'inline-flex',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                border: '1px solid rgba(255,255,255,0.08)',
-                backgroundColor: 'rgba(255,255,255,0.04)',
-                zIndex: 10
-            }}>
+            <div className="absolute top-4 right-4 inline-flex rounded-lg overflow-hidden border border-white/8 bg-white/4 z-10">
                 <button
                     type="button"
                     onClick={() => changeLanguage('en')}
-                    style={{
-                        padding: '6px 12px',
-                        backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
-                        border: 'none',
-                        color: '#fff',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontSize: '12px'
-                    }}
+                    className={`px-3 py-1.5 border-0 text-white font-semibold cursor-pointer text-xs ${language === 'en' ? 'bg-pg-primary' : 'bg-transparent'}`}
                 >
                     EN
                 </button>
                 <button
                     type="button"
                     onClick={() => changeLanguage('id')}
-                    style={{
-                        padding: '6px 12px',
-                        backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
-                        border: 'none',
-                        color: '#fff',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontSize: '12px'
-                    }}
+                    className={`px-3 py-1.5 border-0 text-white font-semibold cursor-pointer text-xs ${language === 'id' ? 'bg-pg-primary' : 'bg-transparent'}`}
                 >
                     ID
                 </button>
             </div>
 
             <div className="login-card animate-in w-full max-w-[420px] bg-zinc-900/80 backdrop-blur-xl rounded-2xl border border-white/8 p-6 sm:p-10 shadow-2xl">
-                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                    <h1 style={{
-                        fontSize: '32px',
-                        fontWeight: 800,
-                        letterSpacing: '-0.025em',
-                        background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
+                <div className="text-center mb-8">
+                    <h1 className="text-3xl font-extrabold tracking-tight mb-2" style={{
+                        background: 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)',
                         WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        marginBottom: '8px'
+                        WebkitTextFillColor: 'transparent'
                     }}>
                         {t.title}
                     </h1>
-                    <p style={{ color: '#a1a1aa', fontSize: '14px' }}>
+                    <p className="text-pg-text-secondary text-sm">
                         {t.subtitle}
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: '20px' }}>
-                        <label htmlFor="username" style={{
-                            display: 'block',
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            color: '#a1a1aa',
-                            marginBottom: '6px'
-                        }}>
+                    <div className="mb-5">
+                        <label htmlFor="username" className="block text-sm font-semibold text-pg-text-secondary mb-1.5">
                             {t.username_label}
                         </label>
                         <input
@@ -157,36 +111,19 @@ export default function Login() {
                             autoComplete="username"
                             value={data.username}
                             onChange={(e) => setData('username', e.target.value)}
-                            className="focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
-                            style={{
-                                width: '100%',
-                                padding: '12px 16px',
-                                backgroundColor: '#0a0a0c',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                borderRadius: '10px',
-                                color: '#fafafa',
-                                fontSize: '15px',
-                                outline: 'none',
-                                transition: 'border-color 0.2s'
-                            }}
+                            className="w-full px-4 py-3 bg-pg-input border border-white/10 rounded-xl text-pg-text text-[15px] outline-none transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
                             placeholder={t.username_placeholder}
                             required
                         />
                         {errors.username && (
-                            <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
+                            <span className="text-pg-danger text-xs mt-1.5 block">
                                 {t[errors.username as keyof typeof t] || errors.username}
                             </span>
                         )}
                     </div>
 
-                    <div style={{ marginBottom: '32px' }}>
-                        <label htmlFor="password" style={{
-                            display: 'block',
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            color: '#a1a1aa',
-                            marginBottom: '6px'
-                        }}>
+                    <div className="mb-8">
+                        <label htmlFor="password" className="block text-sm font-semibold text-pg-text-secondary mb-1.5">
                             {t.password_label}
                         </label>
                         <input
@@ -195,23 +132,12 @@ export default function Login() {
                             autoComplete="current-password"
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
-                            className="focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
-                            style={{
-                                width: '100%',
-                                padding: '12px 16px',
-                                backgroundColor: '#0a0a0c',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                borderRadius: '10px',
-                                color: '#fafafa',
-                                fontSize: '15px',
-                                outline: 'none',
-                                transition: 'border-color 0.2s'
-                            }}
+                            className="w-full px-4 py-3 bg-pg-input border border-white/10 rounded-xl text-pg-text text-[15px] outline-none transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
                             placeholder="••••••••"
                             required
                         />
                         {errors.password && (
-                            <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
+                            <span className="text-pg-danger text-xs mt-1.5 block">
                                 {t[errors.password as keyof typeof t] || errors.password}
                             </span>
                         )}
@@ -220,8 +146,7 @@ export default function Login() {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white font-semibold rounded-xl text-base shadow-lg shadow-indigo-500/30 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                        style={{ marginBottom: '20px' }}
+                        className="w-full mb-5 py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white font-semibold rounded-xl text-base shadow-lg shadow-indigo-500/30 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                     >
                         {processing ? (
                             <div className="flex items-center justify-center gap-2">
@@ -239,12 +164,12 @@ export default function Login() {
 
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between items-center text-sm">
                     <div>
-                        <span style={{ color: '#a1a1aa' }}>{t.new_company} </span>
-                        <Link href="/register" style={{ color: '#818cf8', textDecoration: 'none', fontWeight: 600 }}>
+                        <span className="text-pg-text-secondary">{t.new_company} </span>
+                        <Link href="/register" style={{ color: 'var(--color-pg-primary-hover)', textDecoration: 'none', fontWeight: 600 }}>
                             {t.register}
                         </Link>
                     </div>
-                    <Link href="/forgot-password" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '13px' }}>
+                    <Link href="/forgot-password" style={{ color: 'var(--color-pg-text-secondary)', textDecoration: 'none', fontSize: '13px' }}>
                         {t.forgot_password}
                     </Link>
                 </div>
