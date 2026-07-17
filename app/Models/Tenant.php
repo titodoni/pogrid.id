@@ -16,10 +16,17 @@ class Tenant extends Model
         'subscription_status',
         'trial_ends_at',
         'workflow_settings',
+        'attribution_source',
+        'attribution_medium',
+        'attribution_campaign',
+        'attribution_content',
+        'attribution_ref',
+        'attributed_at',
     ];
 
     protected $casts = [
         'trial_ends_at' => 'datetime',
+        'attributed_at' => 'datetime',
         'workflow_settings' => 'array',
     ];
 

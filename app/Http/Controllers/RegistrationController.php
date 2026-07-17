@@ -28,9 +28,20 @@ class RegistrationController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'utm_source' => ['nullable', 'string', 'max:255'],
+            'utm_medium' => ['nullable', 'string', 'max:255'],
+            'utm_campaign' => ['nullable', 'string', 'max:255'],
+            'utm_content' => ['nullable', 'string', 'max:255'],
+            'ref' => ['nullable', 'string', 'max:255'],
         ]);
 
         $slug = strtolower($request->slug);
+
+        $hasAttribution = $request->filled('utm_source')
+            || $request->filled('utm_medium')
+            || $request->filled('utm_campaign')
+            || $request->filled('utm_content')
+            || $request->filled('ref');
 
         // Create Tenant
         $tenant = Tenant::create([
@@ -38,6 +49,12 @@ class RegistrationController extends Controller
             'slug' => $slug,
             'subscription_status' => 'active',
             'trial_ends_at' => now()->addDays(30),
+            'attribution_source' => $request->input('utm_source'),
+            'attribution_medium' => $request->input('utm_medium'),
+            'attribution_campaign' => $request->input('utm_campaign'),
+            'attribution_content' => $request->input('utm_content'),
+            'attribution_ref' => $request->input('ref'),
+            'attributed_at' => $hasAttribution ? now() : null,
         ]);
 
         // Establish tenant context for new user creation
@@ -63,6 +80,6 @@ class RegistrationController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect("/c/{$slug}");
+        return redirect('/selamat-datang');
     }
 }

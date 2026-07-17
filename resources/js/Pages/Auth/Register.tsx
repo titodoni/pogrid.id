@@ -46,7 +46,19 @@ const translations = {
     }
 };
 
+function readAttribution(): Record<string, string> {
+    if (typeof window === 'undefined') return {};
+    const p = new URLSearchParams(window.location.search);
+    const out: Record<string, string> = {};
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'ref'].forEach((k) => {
+        const v = p.get(k);
+        if (v) out[k] = v;
+    });
+    return out;
+}
+
 export default function Register() {
+    const attribution = readAttribution();
     const { data, setData, post, processing, errors } = useForm({
         company_name: '',
         slug: '',
@@ -54,13 +66,18 @@ export default function Register() {
         email: '',
         password: '',
         password_confirmation: '',
+        utm_source: attribution.utm_source || '',
+        utm_medium: attribution.utm_medium || '',
+        utm_campaign: attribution.utm_campaign || '',
+        utm_content: attribution.utm_content || '',
+        ref: attribution.ref || '',
     });
 
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
         if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
+            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'id';
         }
-        return 'en';
+        return 'id';
     });
 
     const changeLanguage = (lang: 'en' | 'id') => {
@@ -92,7 +109,7 @@ export default function Register() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/register');
+        post('/register', { preserveScroll: true });
     };
 
     return (
@@ -549,6 +566,25 @@ export default function Register() {
                         )}
                     </button>
                 </form>
+
+                <p style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    marginTop: '16px',
+                    marginBottom: 0,
+                    fontSize: '12px',
+                    color: 'var(--color-pg-text-muted)',
+                    textAlign: 'center',
+                    lineHeight: 1.4,
+                }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    {language === 'id' ? 'Gratis 30 hari · Tanpa kartu kredit · Data bengkel aman' : 'Free 30-day trial · No credit card · Your data is safe'}
+                </p>
 
                 <div style={{
                     display: 'flex',

@@ -27,7 +27,7 @@ class AdminManagementTest extends TestCase
             'password_confirmation' => 'password123',
         ]);
 
-        $response->assertRedirect('/c/delta');
+        $response->assertRedirect('/selamat-datang');
         $this->assertAuthenticated();
 
         // Assert Tenant created

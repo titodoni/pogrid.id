@@ -11,9 +11,9 @@ use App\Http\Controllers\WorkerDashboardController;
 use App\Http\Controllers\PpicDashboardController;
 use Illuminate\Support\Facades\Route;
 
-// Redirect home page to login
+// Marketing landing page (guest-facing product homepage)
 Route::get('/', function () {
-    return redirect('/login');
+    return Inertia\Inertia::render('Landing/Landing');
 });
 
 // Guard A: Standard Web Auth
@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
 
     // Owner Dashboard & Control routes
     Route::get('/dashboard', [OwnerDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/selamat-datang', [OwnerDashboardController::class, 'welcome'])->name('onboarding');
     Route::post('/items/{itemId}/cancel', [OwnerDashboardController::class, 'cancelItem']);
     Route::post('/items/{itemId}/terminate', [OwnerDashboardController::class, 'terminateMidway']);
     Route::post('/items/batch-action', [OwnerDashboardController::class, 'batchAction']);

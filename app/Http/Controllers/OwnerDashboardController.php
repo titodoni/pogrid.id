@@ -35,6 +35,22 @@ class OwnerDashboardController extends Controller
         return redirect('/login');
     }
 
+    public function welcome()
+    {
+        $tenant = Tenant::find(TenantManager::getTenantId());
+
+        if (! $tenant) {
+            return redirect('/login');
+        }
+
+        return Inertia::render('Owner/Onboarding', [
+            'tenant' => [
+                'company_name' => $tenant->company_name,
+                'slug' => $tenant->slug,
+            ],
+        ]);
+    }
+
     public function updateCompany(Request $request)
     {
         $request->validate([
