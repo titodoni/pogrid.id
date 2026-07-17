@@ -169,6 +169,27 @@ export default function Register() {
                 flexDirection: 'column',
                 boxSizing: 'border-box'
             }}>
+                <Link href="/login" style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    color: '#a1a1aa',
+                    textDecoration: 'none',
+                    fontSize: '13px',
+                    marginBottom: '16px',
+                    alignSelf: 'flex-start',
+                    transition: 'color 0.2s',
+                }}
+                onMouseOver={(e) => e.currentTarget.style.color = '#ffffff'}
+                onMouseOut={(e) => e.currentTarget.style.color = '#a1a1aa'}
+                >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    {language === 'id' ? 'Kembali' : 'Back'}
+                </Link>
+
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <h1 style={{
                         fontSize: '28px',
