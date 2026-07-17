@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Events\ProductionTerminated;
 use App\Jobs\GenerateSunkCostInvoiceJob;
+use App\Models\Alert;
 use App\Models\Item;
+use App\Models\ItemProgress;
 use App\Models\Po;
+use App\Models\TenantStageTemplate;
 use App\Models\Post;
 use App\Models\Role;
 use App\Models\Tenant;
@@ -110,10 +113,22 @@ class OwnerDashboardController extends Controller
                 ];
             });
 
+        $stageTemplates = TenantStageTemplate::where('tenant_id', TenantManager::getTenantId())
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'description' => $t->description,
+                'stages' => $t->stages,
+            ]);
+
         return Inertia::render('Owner/CreatePo', [
             'tenant' => $user->tenant,
             'auth_user' => $user,
             'recent_pos' => $recentPos,
+            'stage_templates' => $stageTemplates,
         ]);
     }
 
@@ -434,6 +449,77 @@ class OwnerDashboardController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+    public function listStageTemplates()
+    {
+        $templates = TenantStageTemplate::where('tenant_id', TenantManager::getTenantId())
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'description' => $t->description,
+                'stages' => $t->stages,
+                'sort_order' => $t->sort_order,
+            ]);
+
+        return response()->json(['templates' => $templates]);
+    }
+
+    public function createStageTemplate(Request $request)
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'stages' => ['required', 'array', 'min:1'],
+            'stages.*' => ['required', 'string'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $template = TenantStageTemplate::create([
+            'tenant_id' => TenantManager::getTenantId(),
+            'name' => $request->name,
+            'description' => $request->description,
+            'stages' => $request->stages,
+            'sort_order' => $request->sort_order ?? 0,
+        ]);
+
+        return back()->with('success', 'Stage template created successfully.');
+    }
+
+    public function updateStageTemplate(Request $request, $templateId)
+    {
+        $template = TenantStageTemplate::where('tenant_id', TenantManager::getTenantId())
+            ->findOrFail($templateId);
+
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'stages' => ['required', 'array', 'min:1'],
+            'stages.*' => ['required', 'string'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $template->update([
+            'name' => $request->name,
+            'description' => $request->description,
+            'stages' => $request->stages,
+            'sort_order' => $request->sort_order ?? 0,
+        ]);
+
+        return back()->with('success', 'Stage template updated successfully.');
+    }
+
+    public function deleteStageTemplate(Request $request, $templateId)
+    {
+        $template = TenantStageTemplate::where('tenant_id', TenantManager::getTenantId())
+            ->findOrFail($templateId);
+
+        $template->delete();
+
+        return back()->with('success', 'Stage template deleted successfully.');
     }
 
     public function changePassword(Request $request)
