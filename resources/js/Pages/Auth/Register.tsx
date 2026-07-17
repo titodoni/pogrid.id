@@ -71,30 +71,22 @@ export default function Register() {
     const t = translations[language];
 
     const generateSlug = (companyName: string) => {
-        // Strip business prefixes: PT., PT, CV., CV, UD., UD
         let cleaned = companyName.replace(/^(PT|CV|UD)\.?\s+/i, '').trim();
         if (!cleaned) return '';
-        
-        // Remove all non-alphanumeric except spaces
         cleaned = cleaned.replace(/[^a-zA-Z0-9\s]/g, '');
         let words = cleaned.split(/\s+/);
         let generated = '';
-        
         if (words.length > 1) {
             if (words[0].length <= 4) {
                 generated = words[0];
             } else if (words[0].toLowerCase().startsWith('dsk')) {
                 generated = 'DSK';
             } else {
-                // Extract first letter of each word (initials)
                 generated = words.map(w => w[0]).join('');
             }
         } else {
-            // Take first 4 characters of single word
             generated = cleaned.substring(0, 4);
         }
-        
-        // Uppercase, limit 10 chars, strip dashes/spaces/symbols
         return generated.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 10);
     };
 
@@ -107,14 +99,13 @@ export default function Register() {
         <div style={{
             minHeight: '100vh',
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: '#09090b',
-            fontFamily: 'Inter, sans-serif',
-            color: '#fafafa',
-            padding: '16px',
-            position: 'relative'
+            backgroundImage: 'radial-gradient(circle at top, rgba(99, 102, 241, 0.08) 0%, transparent 60%)',
+            padding: '24px 16px',
+            position: 'relative',
+            fontFamily: 'system-ui, -apple-system, sans-serif'
         }}>
             {/* Language Switcher */}
             <div style={{
@@ -123,22 +114,24 @@ export default function Register() {
                 right: '16px',
                 display: 'inline-flex',
                 borderRadius: '8px',
-                overflow: 'hidden',
-                border: '1px solid rgba(255,255,255,0.08)',
-                backgroundColor: 'rgba(255,255,255,0.02)',
-                zIndex: 10
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                padding: '2px',
+                zIndex: 10,
             }}>
                 <button
                     type="button"
                     onClick={() => changeLanguage('en')}
                     style={{
                         padding: '6px 12px',
-                        backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
                         border: 'none',
-                        color: '#fff',
-                        fontWeight: 600,
+                        borderRadius: '6px',
                         cursor: 'pointer',
-                        fontSize: '12px'
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
+                        color: language === 'en' ? '#ffffff' : '#a1a1aa',
+                        transition: 'all 0.2s',
                     }}
                 >
                     EN
@@ -148,49 +141,69 @@ export default function Register() {
                     onClick={() => changeLanguage('id')}
                     style={{
                         padding: '6px 12px',
-                        backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
                         border: 'none',
-                        color: '#fff',
-                        fontWeight: 600,
+                        borderRadius: '6px',
                         cursor: 'pointer',
-                        fontSize: '12px'
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
+                        color: language === 'id' ? '#ffffff' : '#a1a1aa',
+                        transition: 'all 0.2s',
                     }}
                 >
                     ID
                 </button>
             </div>
 
-            <div className="login-card animate-in w-full max-w-[480px] bg-zinc-900/80 backdrop-blur-xl rounded-2xl border border-white/8 p-6 sm:p-10 shadow-2xl">
+            {/* Login Card */}
+            <div className="login-card" style={{
+                width: '100%',
+                maxWidth: '480px',
+                backgroundColor: 'rgba(20, 20, 23, 0.85)',
+                backdropFilter: 'blur(20px)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                padding: '40px 32px',
+                boxShadow: '0 24px 48px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                boxSizing: 'border-box'
+            }}>
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <h1 style={{
-                        fontSize: '32px',
+                        fontSize: '28px',
                         fontWeight: 800,
                         letterSpacing: '-0.025em',
+                        margin: '0 0 6px 0',
                         background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
-                        marginBottom: '8px'
                     }}>
                         {t.title}
                     </h1>
-                    <p style={{ color: '#a1a1aa', fontSize: '14px' }}>
+                    <p style={{
+                        fontSize: '13px',
+                        color: '#a1a1aa',
+                        margin: 0,
+                        lineHeight: '1.4',
+                    }}>
                         {t.subtitle}
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {/* Section: Company Details */}
-                    <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                        <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#818cf8', margin: '0 0 12px 0' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '20px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                        <h3 style={{ fontSize: '13.5px', fontWeight: 700, color: '#818cf8', margin: '0' }}>
                             {t.company_details}
                         </h3>
-                        <div>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             <label htmlFor="company_name" style={{
                                 display: 'block',
-                                fontSize: '13px',
+                                fontSize: '12px',
                                 fontWeight: 600,
                                 color: '#a1a1aa',
-                                marginBottom: '6px'
                             }}>
                                 {t.company_name_label}
                             </label>
@@ -208,32 +221,41 @@ export default function Register() {
                                 }}
                                 style={{
                                     width: '100%',
-                                    padding: '12px 16px',
-                                    backgroundColor: '#0a0a0c',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    height: '44px',
+                                    padding: '0 14px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
                                     borderRadius: '10px',
-                                    color: '#fafafa',
-                                    fontSize: '15px',
+                                    color: '#ffffff',
+                                    fontSize: '14px',
                                     outline: 'none',
-                                    transition: 'border-color 0.2s'
+                                    boxSizing: 'border-box',
+                                    transition: 'all 0.2s',
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = '#6366f1';
+                                    e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.target.style.boxShadow = 'none';
                                 }}
                                 placeholder={t.company_name_placeholder}
                                 required
                             />
                             {errors.company_name && (
-                                <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
+                                <span style={{ color: '#f87171', fontSize: '11px', marginTop: '4px', display: 'block' }}>
                                     {errors.company_name}
                                 </span>
                             )}
                         </div>
 
-                        <div style={{ marginTop: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             <label htmlFor="slug" style={{
                                 display: 'block',
-                                fontSize: '13px',
+                                fontSize: '12px',
                                 fontWeight: 600,
                                 color: '#a1a1aa',
-                                marginBottom: '6px'
                             }}>
                                 {t.slug_label}
                             </label>
@@ -248,23 +270,33 @@ export default function Register() {
                                 }}
                                 style={{
                                     width: '100%',
-                                    padding: '12px 16px',
-                                    backgroundColor: '#0a0a0c',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    height: '44px',
+                                    padding: '0 14px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
                                     borderRadius: '10px',
-                                    color: '#fafafa',
-                                    fontSize: '15px',
+                                    color: '#ffffff',
+                                    fontSize: '14px',
                                     outline: 'none',
-                                    transition: 'border-color 0.2s'
+                                    boxSizing: 'border-box',
+                                    transition: 'all 0.2s',
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = '#6366f1';
+                                    e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.target.style.boxShadow = 'none';
                                 }}
                                 placeholder={t.slug_placeholder}
                                 required
                             />
-                             <span style={{ fontSize: '11px', color: '#71717a', marginTop: '6px', display: 'block' }}>
+                            <span style={{ fontSize: '11px', color: '#71717a', lineHeight: '1.4' }}>
                                 {t.slug_desc}
                             </span>
                             {errors.slug && (
-                                <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
+                                <span style={{ color: '#f87171', fontSize: '11px', marginTop: '4px', display: 'block' }}>
                                     {errors.slug}
                                 </span>
                             )}
@@ -272,18 +304,17 @@ export default function Register() {
                     </div>
 
                     {/* Section: Admin Administrator Details */}
-                    <div style={{ marginBottom: '32px' }}>
-                        <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#818cf8', margin: '0 0 12px 0' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <h3 style={{ fontSize: '13.5px', fontWeight: 700, color: '#818cf8', margin: '0' }}>
                             {t.admin_account}
                         </h3>
                         
-                        <div style={{ marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             <label htmlFor="name" style={{
                                 display: 'block',
-                                fontSize: '13px',
+                                fontSize: '12px',
                                 fontWeight: 600,
                                 color: '#a1a1aa',
-                                marginBottom: '6px'
                             }}>
                                 {t.full_name_label}
                             </label>
@@ -294,32 +325,41 @@ export default function Register() {
                                 onChange={(e) => setData('name', e.target.value)}
                                 style={{
                                     width: '100%',
-                                    padding: '12px 16px',
-                                    backgroundColor: '#0a0a0c',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    height: '44px',
+                                    padding: '0 14px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
                                     borderRadius: '10px',
-                                    color: '#fafafa',
-                                    fontSize: '15px',
+                                    color: '#ffffff',
+                                    fontSize: '14px',
                                     outline: 'none',
-                                    transition: 'border-color 0.2s'
+                                    boxSizing: 'border-box',
+                                    transition: 'all 0.2s',
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = '#6366f1';
+                                    e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.target.style.boxShadow = 'none';
                                 }}
                                 placeholder={t.full_name_placeholder}
                                 required
                             />
                             {errors.name && (
-                                <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
+                                <span style={{ color: '#f87171', fontSize: '11px', marginTop: '4px', display: 'block' }}>
                                     {errors.name}
                                 </span>
                             )}
                         </div>
 
-                        <div style={{ marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             <label htmlFor="email" style={{
                                 display: 'block',
-                                fontSize: '13px',
+                                fontSize: '12px',
                                 fontWeight: 600,
                                 color: '#a1a1aa',
-                                marginBottom: '6px'
                             }}>
                                 {t.email_label}
                             </label>
@@ -330,32 +370,41 @@ export default function Register() {
                                 onChange={(e) => setData('email', e.target.value)}
                                 style={{
                                     width: '100%',
-                                    padding: '12px 16px',
-                                    backgroundColor: '#0a0a0c',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    height: '44px',
+                                    padding: '0 14px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
                                     borderRadius: '10px',
-                                    color: '#fafafa',
-                                    fontSize: '15px',
+                                    color: '#ffffff',
+                                    fontSize: '14px',
                                     outline: 'none',
-                                    transition: 'border-color 0.2s'
+                                    boxSizing: 'border-box',
+                                    transition: 'all 0.2s',
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = '#6366f1';
+                                    e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.target.style.boxShadow = 'none';
                                 }}
                                 placeholder={t.email_placeholder}
                                 required
                             />
                             {errors.email && (
-                                <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
+                                <span style={{ color: '#f87171', fontSize: '11px', marginTop: '4px', display: 'block' }}>
                                     {errors.email}
                                 </span>
                             )}
                         </div>
 
-                        <div style={{ marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             <label htmlFor="password" style={{
                                 display: 'block',
-                                fontSize: '13px',
+                                fontSize: '12px',
                                 fontWeight: 600,
                                 color: '#a1a1aa',
-                                marginBottom: '6px'
                             }}>
                                 {t.password_label}
                             </label>
@@ -366,32 +415,41 @@ export default function Register() {
                                 onChange={(e) => setData('password', e.target.value)}
                                 style={{
                                     width: '100%',
-                                    padding: '12px 16px',
-                                    backgroundColor: '#0a0a0c',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    height: '44px',
+                                    padding: '0 14px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
                                     borderRadius: '10px',
-                                    color: '#fafafa',
-                                    fontSize: '15px',
+                                    color: '#ffffff',
+                                    fontSize: '14px',
                                     outline: 'none',
-                                    transition: 'border-color 0.2s'
+                                    boxSizing: 'border-box',
+                                    transition: 'all 0.2s',
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = '#6366f1';
+                                    e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.target.style.boxShadow = 'none';
                                 }}
                                 placeholder="••••••••"
                                 required
                             />
                             {errors.password && (
-                                <span style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', display: 'block' }}>
+                                <span style={{ color: '#f87171', fontSize: '11px', marginTop: '4px', display: 'block' }}>
                                     {errors.password}
                                 </span>
                             )}
                         </div>
 
-                        <div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             <label htmlFor="password_confirmation" style={{
                                 display: 'block',
-                                fontSize: '13px',
+                                fontSize: '12px',
                                 fontWeight: 600,
                                 color: '#a1a1aa',
-                                marginBottom: '6px'
                             }}>
                                 {t.confirm_password_label}
                             </label>
@@ -402,14 +460,24 @@ export default function Register() {
                                 onChange={(e) => setData('password_confirmation', e.target.value)}
                                 style={{
                                     width: '100%',
-                                    padding: '12px 16px',
-                                    backgroundColor: '#0a0a0c',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    height: '44px',
+                                    padding: '0 14px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
                                     borderRadius: '10px',
-                                    color: '#fafafa',
-                                    fontSize: '15px',
+                                    color: '#ffffff',
+                                    fontSize: '14px',
                                     outline: 'none',
-                                    transition: 'border-color 0.2s'
+                                    boxSizing: 'border-box',
+                                    transition: 'all 0.2s',
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = '#6366f1';
+                                    e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.target.style.boxShadow = 'none';
                                 }}
                                 placeholder="••••••••"
                                 required
@@ -420,14 +488,38 @@ export default function Register() {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white font-semibold rounded-xl text-base shadow-lg shadow-indigo-500/30 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                        style={{ marginBottom: '20px' }}
+                        style={{
+                            width: '100%',
+                            height: '46px',
+                            borderRadius: '10px',
+                            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            fontWeight: 600,
+                            border: 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            marginTop: '10px',
+                        }}
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)';
+                            e.currentTarget.style.boxShadow = '0 6px 16px rgba(99, 102, 241, 0.35)';
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.25)';
+                        }}
                     >
                         {processing ? (
-                            <div className="flex items-center justify-center gap-2">
-                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <svg style={{ animation: 'spin 1s linear infinite', height: '18px', width: '18px', color: '#ffffff' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                                 <span>{t.registering}</span>
                             </div>
@@ -437,7 +529,15 @@ export default function Register() {
                     </button>
                 </form>
 
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between items-center text-sm">
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '6px',
+                    marginTop: '24px',
+                    fontSize: '13px',
+                }}>
                     <span style={{ color: '#a1a1aa' }}>{t.already_have_account} </span>
                     <Link href="/login" style={{ color: '#818cf8', textDecoration: 'none', fontWeight: 600 }}>
                         {t.sign_in}
