@@ -318,6 +318,22 @@ const translations = {
         tab_matrix: "Matrix",
         tab_team: "Team",
         tab_archive: "Archive",
+        stage_templates: "Stage Templates",
+        stage_templates_subtitle: "Manage custom stage templates for quick PO creation.",
+        add_template: "Add Template",
+        template_name: "Template Name",
+        template_description: "Description (optional)",
+        template_stages: "Stages",
+        template_name_placeholder: "e.g. CNC + Welding",
+        template_desc_placeholder: "e.g. Standard CNC job with welding",
+        save_template: "Save Template",
+        delete_template: "Delete",
+        delete_template_confirm: "Are you sure you want to delete this template?",
+        edit_template: "Edit Template",
+        no_templates: "No custom templates yet.",
+        select_stages_hint: "Select the stages this template includes:",
+        template_saved: "Template saved successfully.",
+        template_deleted: "Template deleted successfully.",
     },
     id: {
         owner_command_center: "Dasbor Utama",
@@ -412,6 +428,22 @@ const translations = {
         tab_matrix: "Kinerja",
         tab_team: "Tim",
         tab_archive: "Arsip",
+        stage_templates: "Template Tahapan",
+        stage_templates_subtitle: "Kelola template tahapan kustom untuk pembuatan PO cepat.",
+        add_template: "Tambah Template",
+        template_name: "Nama Template",
+        template_description: "Deskripsi (opsional)",
+        template_stages: "Tahapan",
+        template_name_placeholder: "Contoh: CNC + Las",
+        template_desc_placeholder: "Contoh: Pekerjaan CNC standar dengan pengelasan",
+        save_template: "Simpan Template",
+        delete_template: "Hapus",
+        delete_template_confirm: "Apakah Anda yakin ingin menghapus template ini?",
+        edit_template: "Edit Template",
+        no_templates: "Belum ada template kustom.",
+        select_stages_hint: "Pilih tahapan yang termasuk dalam template ini:",
+        template_saved: "Template berhasil disimpan.",
+        template_deleted: "Template berhasil dihapus.",
     }
 };
 
@@ -975,6 +1007,27 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
     // ── User Management (Task 1) ──────────────────────────────────────────────
     const [userRoleFilter, setUserRoleFilter] = useState<string>('ALL');
     const [editingUser, setEditingUser] = useState<User | null>(null);
+
+    // ── Stage Templates ────────────────────────────────────────────────────────
+    const [stageTemplates, setStageTemplates] = useState<{ id: number; name: string; description: string | null; stages: string[] }[]>([]);
+    const [showTemplateModal, setShowTemplateModal] = useState(false);
+    const [editingTemplate, setEditingTemplate] = useState<{ id: number; name: string; description: string | null; stages: string[] } | null>(null);
+    const [templateFormName, setTemplateFormName] = useState('');
+    const [templateFormDesc, setTemplateFormDesc] = useState('');
+    const [templateFormStages, setTemplateFormStages] = useState<string[]>([]);
+    const [isSavingTemplate, setIsSavingTemplate] = useState(false);
+    const [deletingTemplateId, setDeletingTemplateId] = useState<number | null>(null);
+
+    const ALL_STAGES_TEMPLATE = ['Design', 'Material', 'Machining', 'Fabrication', 'Assembly', 'Surface Treatment', 'QC', 'Delivery', 'Vendor'];
+
+    useEffect(() => {
+        fetch('/stage-templates')
+            .then(res => res.json())
+            .then(data => {
+                if (data.templates) setStageTemplates(data.templates);
+            })
+            .catch(() => {});
+    }, []);
     const [editName, setEditName] = useState('');
     const [editRole, setEditRole] = useState('');
     const [editPostId, setEditPostId] = useState<string>('');
@@ -1422,6 +1475,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         </span>
                     </button>
                 )}
+                <Link
+                    href="/dashboard/rework-logbook"
+                    className="tab"
+                    style={{ textDecoration: 'none' }}
+                >
+                    <span className="tab-label-full">Logbook</span>
+                    <span className="tab-label-short">Logbook</span>
+                </Link>
                 <Link
                     href={`/c/${tenant?.slug || ''}/archive`}
                     className="tab"
@@ -3888,6 +3949,93 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 </div>
                             </form>
                         </div>
+
+                        {/* ── Stage Templates Section ───────────────────────── */}
+                        <div className="mt-8 bg-slate-900/60 border border-white/6 rounded-2xl p-6">
+                            <div className="mb-4 flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-base font-extrabold text-pg-text m-0 mb-1">{t.stage_templates}</h3>
+                                    <p className="text-xs text-pg-text-muted m-0">{t.stage_templates_subtitle}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEditingTemplate(null);
+                                        setTemplateFormName('');
+                                        setTemplateFormDesc('');
+                                        setTemplateFormStages([]);
+                                        setShowTemplateModal(true);
+                                    }}
+                                    className="px-3 py-1.5 rounded-lg text-white text-xs font-bold border-none transition-all duration-200 cursor-pointer"
+                                    style={{ backgroundColor: 'var(--color-pg-primary)' }}
+                                >
+                                    + {t.add_template}
+                                </button>
+                            </div>
+
+                            {stageTemplates.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <p className="text-sm text-pg-text-muted m-0">{t.no_templates}</p>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-2">
+                                    {stageTemplates.map(tmpl => (
+                                        <div key={tmpl.id} className="flex items-center justify-between bg-black/20 rounded-xl p-3 border border-white/4">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-sm font-bold text-pg-text">{tmpl.name}</span>
+                                                    {tmpl.description && (
+                                                        <span className="text-xs text-pg-text-muted truncate">{tmpl.description}</span>
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {tmpl.stages.map(s => (
+                                                        <span key={s} className="text-[10px] px-1.5 py-0.5 rounded"
+                                                            style={{ backgroundColor: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>
+                                                            {s}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 ml-3 shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setEditingTemplate(tmpl);
+                                                        setTemplateFormName(tmpl.name);
+                                                        setTemplateFormDesc(tmpl.description || '');
+                                                        setTemplateFormStages([...tmpl.stages]);
+                                                        setShowTemplateModal(true);
+                                                    }}
+                                                    className="px-2.5 py-1 rounded-lg text-xs font-bold border border-white/8 cursor-pointer transition-all duration-200"
+                                                    style={{ color: 'var(--color-pg-text)', backgroundColor: 'rgba(255,255,255,0.05)' }}
+                                                >
+                                                    {t.edit_template}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (confirm(` ${t.delete_template_confirm}`)) {
+                                                            router.post(`/stage-templates/${tmpl.id}/delete`, {}, {
+                                                                preserveState: true,
+                                                                preserveScroll: true,
+                                                                onSuccess: () => {
+                                                                    setStageTemplates(prev => prev.filter(st => st.id !== tmpl.id));
+                                                                },
+                                                            });
+                                                        }
+                                                    }}
+                                                    className="px-2.5 py-1 rounded-lg text-xs font-bold border-none cursor-pointer transition-all duration-200"
+                                                    style={{ color: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)' }}
+                                                >
+                                                    {t.delete_template}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 );
             })()}
@@ -4590,6 +4738,112 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     </div>
                 );
             })()}
+
+            {/* ── Template Create/Edit Modal ─────────────────────────────── */}
+            {showTemplateModal && (
+                <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[60]"
+                    onClick={e => { if (e.target === e.currentTarget) setShowTemplateModal(false); }}>
+                    <div className="bg-pg-card border border-white/8 rounded-2xl p-6 shadow-2xl w-full max-w-[480px] max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-5">
+                            <h3 className="text-base font-extrabold text-pg-text m-0">
+                                {editingTemplate ? t.edit_template : t.add_template}
+                            </h3>
+                            <button onClick={() => setShowTemplateModal(false)}
+                                className="bg-transparent border-none text-pg-text-muted text-xl cursor-pointer leading-none px-1">&times;</button>
+                        </div>
+
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            if (!templateFormName.trim() || templateFormStages.length === 0) return;
+                            setIsSavingTemplate(true);
+                            const url = editingTemplate
+                                ? `/stage-templates/${editingTemplate.id}/update`
+                                : '/stage-templates';
+                            router.post(url, {
+                                name: templateFormName.trim(),
+                                description: templateFormDesc.trim() || '',
+                                stages: templateFormStages,
+                            }, {
+                                preserveState: true,
+                                preserveScroll: true,
+                                onSuccess: () => {
+                                    setShowTemplateModal(false);
+                                    setTemplateFormName('');
+                                    setTemplateFormDesc('');
+                                    setTemplateFormStages([]);
+                                    setIsSavingTemplate(false);
+                                    fetch('/stage-templates')
+                                        .then(res => res.json())
+                                        .then(data => {
+                                            if (data.templates) setStageTemplates(data.templates);
+                                        })
+                                        .catch(() => {});
+                                },
+                                onError: () => setIsSavingTemplate(false),
+                                onFinish: () => setIsSavingTemplate(false),
+                            });
+                        }}>
+                            <div className="flex flex-col gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-pg-text-muted mb-1.5">{t.template_name}</label>
+                                    <input type="text" value={templateFormName}
+                                        onChange={e => setTemplateFormName(e.target.value)}
+                                        placeholder={t.template_name_placeholder}
+                                        className="w-full px-3 py-2.5 bg-pg-bg border border-white/8 rounded-xl text-white text-sm outline-none box-border"
+                                        required />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-pg-text-muted mb-1.5">{t.template_description}</label>
+                                    <input type="text" value={templateFormDesc}
+                                        onChange={e => setTemplateFormDesc(e.target.value)}
+                                        placeholder={t.template_desc_placeholder}
+                                        className="w-full px-3 py-2.5 bg-pg-bg border border-white/8 rounded-xl text-white text-sm outline-none box-border" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-pg-text-muted mb-2">{t.select_stages_hint}</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {ALL_STAGES_TEMPLATE.map(stage => {
+                                            const isSelected = templateFormStages.includes(stage);
+                                            return (
+                                                <button key={stage} type="button"
+                                                    onClick={() => {
+                                                        setTemplateFormStages(prev =>
+                                                            prev.includes(stage)
+                                                                ? prev.filter(s => s !== stage)
+                                                                : [...prev, stage]
+                                                        );
+                                                    }}
+                                                    className="px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-all duration-150 cursor-pointer"
+                                                    style={{
+                                                        borderColor: isSelected ? '#818cf8' : 'rgba(255,255,255,0.08)',
+                                                        backgroundColor: isSelected ? 'rgba(99,102,241,0.2)' : 'transparent',
+                                                        color: isSelected ? '#818cf8' : '#a1a1aa',
+                                                    }}>
+                                                    {stage}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex gap-3 justify-end mt-6">
+                                <button type="button" onClick={() => setShowTemplateModal(false)}
+                                    className="px-4 py-2.5 bg-white/5 border border-white/8 text-zinc-300 rounded-lg font-semibold cursor-pointer">
+                                    {t.cancel}
+                                </button>
+                                <button type="submit" disabled={isSavingTemplate || !templateFormName.trim() || templateFormStages.length === 0}
+                                    className="px-5 py-2.5 border-none text-white rounded-xl font-semibold cursor-pointer"
+                                    style={{
+                                        background: isSavingTemplate ? '#4f46e5' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                                        opacity: (isSavingTemplate || !templateFormName.trim() || templateFormStages.length === 0) ? 0.6 : 1,
+                                    }}>
+                                    {isSavingTemplate ? '...' : t.save_template}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {selectedItemIds.size > 0 && (
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[50] flex items-center gap-3 px-5 py-3 bg-gray-800 border border-white/10 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">

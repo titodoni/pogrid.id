@@ -212,6 +212,14 @@ class DatabaseSeeder extends Seeder
             'post_id' => $posts['Helper']->id,
         ]);
 
+        User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Dian Purnama',
+            'pin' => Hash::make('0000'),
+            'role_id' => $roles['PPIC']->id,
+            'post_id' => $posts['PPIC']->id,
+        ]);
+
         // 6. Create Purchase Orders (POs)
         $po1 = Po::create([
             'tenant_id' => $tenant->id,

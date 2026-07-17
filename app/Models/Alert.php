@@ -14,6 +14,7 @@ class Alert extends Model
     protected $fillable = [
         'tenant_id',
         'item_id',
+        'user_id',
         'severity',
         'reason_type',
         'message',
@@ -29,5 +30,10 @@ class Alert extends Model
     public function item(): BelongsTo
     {
         return $this->belongsTo(Item::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

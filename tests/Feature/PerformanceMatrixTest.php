@@ -401,4 +401,68 @@ class PerformanceMatrixTest extends TestCase
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'application/pdf');
     }
+
+    public function test_csv_export_downloads_correct_document()
+    {
+        TenantManager::bypass();
+        Po::create([
+            'tenant_id' => $this->tenant->id,
+            'po_number' => 'PO-CSV-1',
+            'client_name' => 'CSV Client',
+            'global_deadline' => now()->addDays(5)->toDateString(),
+            'status' => 'PENDING',
+        ]);
+        TenantManager::enableScope();
+        TenantManager::setTenantId($this->tenant->id);
+
+        $this->actingAs($this->owner);
+        $response = $this->get("/c/{$this->tenant->slug}/export-csv?range=month");
+
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('.csv', $response->headers->get('content-disposition'));
+    }
+
+    public function test_xlsx_export_downloads_correct_document()
+    {
+        TenantManager::bypass();
+        Po::create([
+            'tenant_id' => $this->tenant->id,
+            'po_number' => 'PO-XLSX-1',
+            'client_name' => 'XLSX Client',
+            'global_deadline' => now()->addDays(5)->toDateString(),
+            'status' => 'PENDING',
+        ]);
+        TenantManager::enableScope();
+        TenantManager::setTenantId($this->tenant->id);
+
+        $this->actingAs($this->owner);
+        $response = $this->get("/c/{$this->tenant->slug}/export-xlsx?range=month");
+
+        $response->assertStatus(200);
+    }
+
+    public function test_csv_export_blocked_for_floor_roles()
+    {
+        $this->actingAs($this->worker);
+        $response = $this->get("/c/{$this->tenant->slug}/export-csv?range=month");
+
+        $response->assertStatus(403);
+    }
+
+    public function test_xlsx_export_blocked_for_floor_roles()
+    {
+        $this->actingAs($this->worker);
+        $response = $this->get("/c/{$this->tenant->slug}/export-xlsx?range=month");
+
+        $response->assertStatus(403);
+    }
+
+    public function test_pdf_export_blocked_for_floor_roles()
+    {
+        $this->actingAs($this->worker);
+        $response = $this->get("/c/{$this->tenant->slug}/export-pdf?range=month");
+
+        $response->assertStatus(403);
+    }
 }

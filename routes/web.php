@@ -53,11 +53,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/company/update', [OwnerDashboardController::class, 'updateCompany']);
     Route::post('/company/workflow-settings', [OwnerDashboardController::class, 'updateWorkflowSettings']);
 
+    // Tenant Stage Templates
+    Route::get('/stage-templates', [OwnerDashboardController::class, 'listStageTemplates']);
+    Route::post('/stage-templates', [OwnerDashboardController::class, 'createStageTemplate']);
+    Route::post('/stage-templates/{templateId}/update', [OwnerDashboardController::class, 'updateStageTemplate']);
+    Route::post('/stage-templates/{templateId}/delete', [OwnerDashboardController::class, 'deleteStageTemplate']);
+
     // Change Password
     Route::post('/change-password', [OwnerDashboardController::class, 'changePassword']);
 
     // PIN Reset Approval (admin only)
     Route::post('/pin-reset/{alertId}/approve', [PinResetController::class, 'approvePinReset']);
+
+    // Rework Logbook
+    Route::get('/dashboard/rework-logbook', [OwnerDashboardController::class, 'reworkLogbook'])->name('rework.logbook');
 });
 
 // Guard B: Unified Tenant Gateway at c/{slug}

@@ -17,6 +17,7 @@ interface Props {
         is_owner: boolean;
     };
     recent_pos?: RecentPo[];
+    stage_templates?: { id: number; name: string; description: string | null; stages: string[] }[];
 }
 
 interface RecentPo {
@@ -188,7 +189,7 @@ const labelStyle: React.CSSProperties = {
 
 const DRAFT_KEY = 'pogrid_po_draft';
 
-export default function CreatePo({ tenant, auth_user, recent_pos = [] }: Props) {
+export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_templates = [] }: Props) {
     const { errors } = usePage().props;
 
     const [localError, setLocalError] = useState<string | null>(null);
@@ -741,7 +742,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [] }: Props) 
                                         display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '10px',
                                         padding: '6px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '10px',
                                     }}>
-                                        {TEMPLATES.map(tmpl => {
+                                        {[...TEMPLATES, ...stage_templates.map(st => ({ key: `tenant-${st.id}`, labelEn: st.name, labelId: st.name, stages: st.stages }))].map(tmpl => {
                                             const isActive = item.required_stages.length === tmpl.stages.length &&
                                                 tmpl.stages.every(s => item.required_stages.includes(s));
                                             return (

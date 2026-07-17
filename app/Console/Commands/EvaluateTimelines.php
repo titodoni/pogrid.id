@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Events\AlertEscalated;
+use App\Events\TimelineAlertCreated;
 use App\Models\Alert;
 use App\Models\Item;
 use App\Models\Tenant;
@@ -40,7 +41,7 @@ class EvaluateTimelines extends Command
                 $daysRemaining = $now->diffInDays($deadline, false);
 
                 if ($now->greaterThan($deadline)) {
-                    Alert::updateOrCreate(
+                    $alert = Alert::updateOrCreate(
                         [
                             'tenant_id' => $tenant->id,
                             'item_id' => $item->id,
@@ -49,8 +50,11 @@ class EvaluateTimelines extends Command
                         ],
                         ['is_resolved' => false]
                     );
+                    if ($alert->wasRecentlyCreated) {
+                        broadcast(new TimelineAlertCreated($alert))->toOthers();
+                    }
                 } elseif ($daysRemaining <= 3 && (float) $item->progress_percent < 70.00) {
-                    Alert::updateOrCreate(
+                    $alert = Alert::updateOrCreate(
                         [
                             'tenant_id' => $tenant->id,
                             'item_id' => $item->id,
@@ -59,6 +63,9 @@ class EvaluateTimelines extends Command
                         ],
                         ['is_resolved' => false]
                     );
+                    if ($alert->wasRecentlyCreated) {
+                        broadcast(new TimelineAlertCreated($alert))->toOthers();
+                    }
                 } else {
                     Alert::where('item_id', $item->id)
                         ->where('is_resolved', false)

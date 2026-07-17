@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\KendalaReported;
+use App\Events\QcReworkLogged;
 use App\Models\Alert;
 use App\Models\DeliveryOrder;
 use App\Models\DoItem;
@@ -20,7 +21,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Writer\XLSX\Manager\Style\StyleManager;
 use OpenSpout\Writer\XLSX\Writer;
 
 class WorkerDashboardController extends Controller
@@ -100,6 +100,12 @@ class WorkerDashboardController extends Controller
         }
 
         // 4. Determine dashboard views by office vs floor roles division
+        if (strtoupper($user->role_name) === 'PPIC') {
+            $ppicController = app(PpicDashboardController::class);
+
+            return $ppicController->index($request, $slug);
+        }
+
         if ($user->role_level === 'office') {
             $pos = Po::with([
                 'items' => function ($q) {
@@ -131,6 +137,8 @@ class WorkerDashboardController extends Controller
             ]);
         }
 
+        $roleName = strtoupper($user->role_name);
+
         // Otherwise, render floor operators dashboard
         $query = Item::with([
             'itemProgresses',
@@ -139,8 +147,6 @@ class WorkerDashboardController extends Controller
                 $q->where('is_resolved', false);
             },
         ])->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty');
-
-        $roleName = strtoupper($user->role_name);
 
         if ($roleName === 'FINANCE') {
             $query->where(function ($q) {
@@ -432,106 +438,113 @@ class WorkerDashboardController extends Controller
 
         $filename = "performance-matrix-{$range}-".now()->format('Ymd').'.xlsx';
 
-        $writer = new Writer;
-        $writer->openToBrowser($filename);
+        $headers = [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
 
-        // ── Sheet 1: KPI Summary ──
-        $sheet1 = $writer->getCurrentSheet();
-        $sheet1->setName('KPI Summary');
-        $styleHeader = (new StyleManager(new Style))
-            ->getStyle();
-        // Use simple bold style
-        $boldStyle = (new Style)
-            ->setFontBold();
+        $callback = function () use ($telemetry) {
+            $writer = new Writer;
+            $writer->openToFile('php://output');
 
-        $writer->addRow(Row::fromValues(['Metric', 'Value', 'Note'], $boldStyle));
-        $writer->addRow(Row::fromValues(['OTDR (%)', $telemetry['otdr'], '']));
-        $writer->addRow(Row::fromValues(['Manufacture Delivered', $telemetry['manufacture']['delivered'], 'Target: '.$telemetry['manufacture']['target']]));
-        $writer->addRow(Row::fromValues(['Buyout Completed', $telemetry['buyout']['completed'], 'Target: '.$telemetry['buyout']['target']]));
-        $writer->addRow(Row::fromValues(['Service Completed', $telemetry['service']['completed'], 'Target: '.$telemetry['service']['target']]));
-        $writer->addRow(Row::fromValues(['Active Risks (Red)', $telemetry['risks']['red'], '']));
-        $writer->addRow(Row::fromValues(['Active Risks (Yellow)', $telemetry['risks']['yellow'], '']));
-        $writer->addRow(Row::fromValues(['Avg Delay (Days)', $telemetry['avg_delay_days'], '']));
-        $writer->addRow(Row::fromValues(['Urgent Active POs', $telemetry['urgent_active'], '']));
-        $writer->addRow(Row::fromValues(['Uninvoiced Items', $telemetry['finance_health']['uninvoiced_count'], '']));
-        $writer->addRow(Row::fromValues(['Unpaid Items', $telemetry['finance_health']['unpaid_count'], '']));
+            $boldStyle = (new Style)
+                ->withFontBold(true);
 
-        // ── Sheet 2: All Items Directory ──
-        $writer->addNewSheetAndMakeItCurrent();
-        $sheet2 = $writer->getCurrentSheet();
-        $sheet2->setName('All Items');
+            // ── Sheet 1: KPI Summary ──
+            $sheet1 = $writer->getCurrentSheet();
+            $sheet1->setName('KPI Summary');
 
-        $writer->addRow(Row::fromValues([
-            'PO Number', 'Client', 'Item Name', 'Status', 'PO Status', 'Progress (%)',
-            'Deadline', 'Days Overdue', 'Current Stage', 'Reason',
-            'Target Qty', 'Delivered Qty', 'Invoice Status', 'Payment Status',
-            'On Time', 'Urgent',
-        ], $boldStyle));
+            $writer->addRow(Row::fromValuesWithStyle(['Metric', 'Value', 'Note'], $boldStyle));
+            $writer->addRow(Row::fromValues(['OTDR (%)', $telemetry['otdr'], '']));
+            $writer->addRow(Row::fromValues(['Manufacture Delivered', $telemetry['manufacture']['delivered'], 'Target: '.$telemetry['manufacture']['target']]));
+            $writer->addRow(Row::fromValues(['Buyout Completed', $telemetry['buyout']['completed'], 'Target: '.$telemetry['buyout']['target']]));
+            $writer->addRow(Row::fromValues(['Service Completed', $telemetry['service']['completed'], 'Target: '.$telemetry['service']['target']]));
+            $writer->addRow(Row::fromValues(['Active Risks (Red)', $telemetry['risks']['red'], '']));
+            $writer->addRow(Row::fromValues(['Active Risks (Yellow)', $telemetry['risks']['yellow'], '']));
+            $writer->addRow(Row::fromValues(['Avg Delay (Days)', $telemetry['avg_delay_days'], '']));
+            $writer->addRow(Row::fromValues(['Urgent Active POs', $telemetry['urgent_active'], '']));
+            $writer->addRow(Row::fromValues(['Uninvoiced Items', $telemetry['finance_health']['uninvoiced_count'], '']));
+            $writer->addRow(Row::fromValues(['Unpaid Items', $telemetry['finance_health']['unpaid_count'], '']));
 
-        foreach ($telemetry['all_items'] as $item) {
-            $writer->addRow(Row::fromValues([
-                $item['po_number'],
-                $item['client_name'],
-                $item['item_name'],
-                $item['status'],
-                $item['po_status'],
-                $item['progress_percent'],
-                $item['global_deadline'],
-                $item['days_overdue'],
-                $item['current_stage'] ?? '',
-                $item['reason'] ?? '',
-                $item['target_qty'],
-                $item['delivered_qty'],
-                $item['invoice_status'],
-                $item['payment_status'],
-                $item['is_on_time'] ? 'Yes' : 'No',
-                $item['is_urgent'] ? 'Yes' : 'No',
-            ]));
-        }
+            // ── Sheet 2: All Items Directory ──
+            $writer->addNewSheetAndMakeItCurrent();
+            $sheet2 = $writer->getCurrentSheet();
+            $sheet2->setName('All Items');
 
-        // ── Sheet 3: Client Health ──
-        $writer->addNewSheetAndMakeItCurrent();
-        $sheet3 = $writer->getCurrentSheet();
-        $sheet3->setName('Client Health');
+            $writer->addRow(Row::fromValuesWithStyle([
+                'PO Number', 'Client', 'Item Name', 'Status', 'PO Status', 'Progress (%)',
+                'Deadline', 'Days Overdue', 'Current Stage', 'Reason',
+                'Target Qty', 'Delivered Qty', 'Invoice Status', 'Payment Status',
+                'On Time', 'Urgent',
+            ], $boldStyle));
 
-        $writer->addRow(Row::fromValues([
-            'Client', 'Active POs', 'Completed Total', 'On-Time Rate (%)',
-            'Overdue Items', 'Uninvoiced', 'Unpaid', 'Risk Score',
-        ], $boldStyle));
+            foreach ($telemetry['all_items'] as $item) {
+                $writer->addRow(Row::fromValues([
+                    $item['po_number'],
+                    $item['client_name'],
+                    $item['item_name'],
+                    $item['status'],
+                    $item['po_status'],
+                    $item['progress_percent'],
+                    $item['global_deadline'],
+                    $item['days_overdue'],
+                    $item['current_stage'] ?? '',
+                    $item['reason'] ?? '',
+                    $item['target_qty'],
+                    $item['delivered_qty'],
+                    $item['invoice_status'],
+                    $item['payment_status'],
+                    $item['is_on_time'] ? 'Yes' : 'No',
+                    $item['is_urgent'] ? 'Yes' : 'No',
+                ]));
+            }
 
-        foreach ($telemetry['client_health'] as $client) {
-            $writer->addRow(Row::fromValues([
-                $client['client_name'],
-                $client['active_pos'],
-                $client['completed_total'],
-                $client['on_time_rate'] ?? 'N/A',
-                $client['overdue_items'],
-                $client['uninvoiced_count'],
-                $client['unpaid_count'],
-                $client['risk_score'],
-            ]));
-        }
+            // ── Sheet 3: Client Health ──
+            $writer->addNewSheetAndMakeItCurrent();
+            $sheet3 = $writer->getCurrentSheet();
+            $sheet3->setName('Client Health');
 
-        // ── Sheet 4: Stage Metrics ──
-        $writer->addNewSheetAndMakeItCurrent();
-        $sheet4 = $writer->getCurrentSheet();
-        $sheet4->setName('Stage Metrics');
+            $writer->addRow(Row::fromValuesWithStyle([
+                'Client', 'Active POs', 'Completed Total', 'On-Time Rate (%)',
+                'Overdue Items', 'Uninvoiced', 'Unpaid', 'Risk Score',
+            ], $boldStyle));
 
-        $writer->addRow(Row::fromValues([
-            'Stage', 'Active Items', 'Stuck Count', 'Rework Count', 'Avg Cycle Time (Days)',
-        ], $boldStyle));
+            foreach ($telemetry['client_health'] as $client) {
+                $writer->addRow(Row::fromValues([
+                    $client['client_name'],
+                    $client['active_pos'],
+                    $client['completed_total'],
+                    $client['on_time_rate'] ?? 'N/A',
+                    $client['overdue_items'],
+                    $client['uninvoiced_count'],
+                    $client['unpaid_count'],
+                    $client['risk_score'],
+                ]));
+            }
 
-        foreach ($telemetry['stage_metrics'] as $stage) {
-            $writer->addRow(Row::fromValues([
-                $stage['stage'],
-                $stage['active_items'],
-                $stage['stuck_count'],
-                $stage['rework_count'],
-                $stage['avg_cycle_time'],
-            ]));
-        }
+            // ── Sheet 4: Stage Metrics ──
+            $writer->addNewSheetAndMakeItCurrent();
+            $sheet4 = $writer->getCurrentSheet();
+            $sheet4->setName('Stage Metrics');
 
-        $writer->close();
+            $writer->addRow(Row::fromValuesWithStyle([
+                'Stage', 'Active Items', 'Stuck Count', 'Rework Count', 'Avg Cycle Time (Days)',
+            ], $boldStyle));
+
+            foreach ($telemetry['stage_metrics'] as $stage) {
+                $writer->addRow(Row::fromValues([
+                    $stage['stage'],
+                    $stage['active_items'],
+                    $stage['stuck_count'],
+                    $stage['rework_count'],
+                    $stage['avg_cycle_time'],
+                ]));
+            }
+
+            $writer->close();
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     private function resolveTenantAuth(Request $request, $slug): array
@@ -1553,14 +1566,17 @@ class WorkerDashboardController extends Controller
         }
 
         // Create a YELLOW alert with structured reason_type
-        Alert::create([
+        $alert = Alert::create([
             'tenant_id' => TenantManager::getTenantId(),
             'item_id' => $item->id,
+            'user_id' => $user->id,
             'severity' => 'YELLOW',
             'reason_type' => 'QC Rework',
             'message' => "QC Rework: {$request->reject_qty} items rejected on stage '{$progress->stage_name}' for item '{$item->item_name}' (PO: {$po->po_number}).",
             'is_resolved' => false,
         ]);
+
+        broadcast(new QcReworkLogged($alert))->toOthers();
 
         return back()->with('success', 'QC Rework logged and Rework stage spawned.');
     }

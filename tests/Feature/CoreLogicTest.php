@@ -1939,4 +1939,85 @@ class CoreLogicTest extends TestCase
         $this->assertEquals('Machining', $item->itemProgresses()->first()->stage_name);
         $this->assertEquals(['Machining'], $item->required_stages);
     }
+
+    public function test_rework_logbook_returns_expected_data()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-RL-1',
+            'client_name' => 'Client RL',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Rework Item',
+            'target_qty' => 10,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Machining'],
+            'status' => 'PENDING',
+        ]);
+
+        $user = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'QC Tester',
+            'role_id' => 6,
+            'post_id' => 8,
+            'pin' => bcrypt('1234'),
+        ]);
+
+        // Create two rework alerts
+        Alert::create([
+            'tenant_id' => $this->tenant1->id,
+            'item_id' => $item->id,
+            'user_id' => $user->id,
+            'severity' => 'YELLOW',
+            'reason_type' => 'QC Rework',
+            'message' => "QC Rework: 3 items rejected on stage 'Machining' for item 'Rework Item' (PO: PO-RL-1).",
+            'is_resolved' => false,
+        ]);
+
+        Alert::create([
+            'tenant_id' => $this->tenant1->id,
+            'item_id' => $item->id,
+            'user_id' => $user->id,
+            'severity' => 'YELLOW',
+            'reason_type' => 'QC Rework',
+            'message' => "QC Rework: 2 items rejected on stage 'QC' for item 'Rework Item' (PO: PO-RL-1).",
+            'is_resolved' => true,
+        ]);
+
+        // Authenticate as owner/admin to access the logbook
+        $admin = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Admin',
+            'role_id' => 1,
+            'post_id' => 11,
+            'username' => 'admin_rl',
+            'password' => bcrypt('password'),
+        ]);
+        $this->actingAs($admin);
+
+        $response = $this->get('/dashboard/rework-logbook');
+        $response->assertStatus(200);
+
+        // Inertia renders the page
+        $response->assertInertia(fn ($page) => $page
+            ->component('Owner/ReworkLogbook')
+            ->has('rework_events', 2)
+            ->has('summary')
+            ->where('summary.total_events', 2)
+            ->where('summary.total_rework_qty', 5)
+            ->where('summary.resolved_count', 1)
+            ->where('summary.unresolved_count', 1)
+            ->where('summary.rework_rate_pct', 200)
+            ->where('summary.inspected_items', 1)
+            ->has('summary.top_stages')
+            ->has('summary.monthly_trend', 6)
+            ->has('summary.client_breakdown')
+            ->has('summary.item_breakdown')
+        );
+    }
 }
