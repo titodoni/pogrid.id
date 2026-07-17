@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Item;
 use App\Models\ItemProgress;
 use App\Models\Po;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\TenantStageTemplate;
 use App\Models\User;
@@ -294,5 +295,166 @@ class BacklogFeatureRegressionTest extends TestCase
         $response = $this->get('/stage-templates');
         $response->assertStatus(200);
         $this->assertStringNotContainsString('Foreign Template', $response->getContent());
+    }
+
+    public function test_worker_my_kpi_returns_completed_stages()
+    {
+        TenantManager::bypass();
+        $po = Po::create([
+            'tenant_id' => $this->tenant->id,
+            'po_number' => 'PO-KPI-1',
+            'client_name' => 'KPI Client',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'COMPLETED',
+        ]);
+        $item = Item::create([
+            'tenant_id' => $this->tenant->id,
+            'po_id' => $po->id,
+            'item_name' => 'KPI Bracket',
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Machining'],
+            'target_qty' => 5,
+            'status' => 'COMPLETED',
+            'progress_percent' => 100,
+        ]);
+        $progress = ItemProgress::create([
+            'tenant_id' => $this->tenant->id,
+            'item_id' => $item->id,
+            'stage_name' => 'Machining',
+            'status' => 'COMPLETED',
+            'completed_qty' => 5,
+            'target_qty' => 5,
+            'progress_percent' => 100,
+        ]);
+        // created_at/updated_at are not fillable on ItemProgress, so set them
+        // directly to exercise the cycle-time math in myKpi().
+        $progress->created_at = now()->subDays(5)->startOfDay();
+        $progress->updated_at = now()->startOfDay();
+        $progress->save();
+        TenantManager::enableScope();
+        TenantManager::setTenantId($this->tenant->id);
+
+        $this->actingAs($this->worker);
+        $response = $this->get("/c/{$this->tenant->slug}/my-kpi");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Worker/MyKpi')
+            ->has('completed_stages', 1)
+            ->has('summary')
+            ->has('stage_breakdown')
+            ->has('monthly_trend')
+            ->where('summary.total_completed', 1)
+            ->where('summary.avg_cycle_days', 5)
+        );
+    }
+
+    /**
+     * GIT-73 — myKpi role filtering: a DRAFTER worker must only see completed
+     * stages whose name matches drafter keywords (design/gambar/draft) and must
+     * NOT see machining/fabrication stages. This guards the STAGE_ROLE_MAP filter
+     * in WorkerDashboardController::myKpi.
+     */
+    public function test_worker_my_kpi_filters_completed_stages_by_role()
+    {
+        TenantManager::bypass();
+
+        $drafterRole = Role::where('name', 'DRAFTER')->firstOrFail();
+
+        $drafter = User::create([
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Drafter Ari',
+            'role_id' => $drafterRole->id,
+            'post_id' => 1,
+            'pin' => bcrypt('1234'),
+        ]);
+
+        $po = Po::create([
+            'tenant_id' => $this->tenant->id,
+            'po_number' => 'PO-KPI-ROLE',
+            'client_name' => 'Role Client',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'COMPLETED',
+        ]);
+
+        $itemDesign = Item::create([
+            'tenant_id' => $this->tenant->id,
+            'po_id' => $po->id,
+            'item_name' => 'Design Part',
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Design', 'Machining'],
+            'target_qty' => 4,
+            'status' => 'COMPLETED',
+            'progress_percent' => 100,
+        ]);
+
+        // A drafter-completed stage (matches DRAFTER keyword "design")
+        $designProgress = ItemProgress::create([
+            'tenant_id' => $this->tenant->id,
+            'item_id' => $itemDesign->id,
+            'stage_name' => 'Design',
+            'status' => 'COMPLETED',
+            'completed_qty' => 4,
+            'target_qty' => 4,
+            'progress_percent' => 100,
+        ]);
+        $designProgress->created_at = now()->subDays(4)->startOfDay();
+        $designProgress->updated_at = now()->startOfDay();
+        $designProgress->save();
+
+        // A machining-completed stage that a drafter must NOT see
+        $machiningProgress = ItemProgress::create([
+            'tenant_id' => $this->tenant->id,
+            'item_id' => $itemDesign->id,
+            'stage_name' => 'Machining',
+            'status' => 'COMPLETED',
+            'completed_qty' => 4,
+            'target_qty' => 4,
+            'progress_percent' => 100,
+        ]);
+        $machiningProgress->created_at = now()->subDays(3)->startOfDay();
+        $machiningProgress->updated_at = now()->startOfDay();
+        $machiningProgress->save();
+
+        TenantManager::enableScope();
+        TenantManager::setTenantId($this->tenant->id);
+
+        $this->actingAs($drafter);
+        $response = $this->get("/c/{$this->tenant->slug}/my-kpi");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Worker/MyKpi')
+            ->has('completed_stages', 1)
+            ->where('summary.total_completed', 1)
+            ->where('completed_stages.0.stage_name', 'Design')
+        );
+    }
+
+    /**
+     * GIT-73 — myKpi tenant isolation: a worker from a different tenant must be
+     * rejected with 403, never see another tenant's completed stages.
+     */
+    public function test_worker_my_kpi_blocks_cross_tenant_worker()
+    {
+        TenantManager::bypass();
+        $otherTenant = Tenant::create([
+            'company_name' => 'Rival Co',
+            'slug' => 'rival-co',
+        ]);
+        $intruder = User::create([
+            'tenant_id' => $otherTenant->id,
+            'name' => 'Intruder',
+            'role_id' => 5,
+            'post_id' => 7,
+            'pin' => bcrypt('1234'),
+        ]);
+        TenantManager::enableScope();
+        TenantManager::setTenantId($this->tenant->id);
+
+        $this->actingAs($intruder);
+        $response = $this->get("/c/{$this->tenant->slug}/my-kpi");
+
+        $response->assertStatus(403);
     }
 }

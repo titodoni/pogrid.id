@@ -82,6 +82,7 @@ Route::prefix('c/{slug}')->group(function () {
         Route::get('/profile', [ProfileController::class, 'index']);
         Route::get('/trouble-reports', [WorkerDashboardController::class, 'listTroubles'])->name('worker.troubles');
         Route::get('/archive', [WorkerDashboardController::class, 'archive'])->name('worker.archive');
+        Route::get('/my-kpi', [WorkerDashboardController::class, 'myKpi'])->name('worker.my-kpi');
         Route::post('/progress/{progressId}/update', [WorkerDashboardController::class, 'updateProgress']);
         Route::post('/progress/{progressId}/cancel-last-update', [WorkerDashboardController::class, 'cancelLastUpdate']);
         Route::post('/progress/{progressId}/kendala', [WorkerDashboardController::class, 'reportKendala']);

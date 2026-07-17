@@ -268,6 +268,120 @@ class WorkerDashboardController extends Controller
         ]);
     }
 
+    public function myKpi(Request $request, $slug)
+    {
+        TenantManager::bypass();
+        $tenant = Tenant::where('slug', $slug)->first();
+        if (! $tenant) {
+            abort(404, 'Tenant not found.');
+        }
+        TenantManager::enableScope();
+        TenantManager::setTenantId($tenant->id);
+
+        if (! auth()->check()) {
+            return redirect()->route('worker.dashboard', ['slug' => $slug]);
+        }
+
+        $user = auth()->user()->load('roleRelation', 'postRelation');
+        if ($user->tenant_id !== $tenant->id) {
+            abort(403, 'Unauthorized tenant access.');
+        }
+
+        $roleName = strtoupper($user->role_name);
+
+        $matchingStageNames = [];
+        foreach (self::STAGE_ROLE_MAP as $keyword => $roles) {
+            if (in_array($roleName, $roles)) {
+                $matchingStageNames[] = $keyword;
+            }
+        }
+
+        // PRODUCTION catch-all: if no explicit match, they can work with any non-QC/non-special stage
+        if ($roleName === 'PRODUCTION' || empty($matchingStageNames)) {
+            foreach (self::STAGE_ROLE_MAP as $keyword => $roles) {
+                if (in_array('PRODUCTION', $roles) || $roleName === 'PRODUCTION') {
+                    $matchingStageNames[] = $keyword;
+                }
+            }
+            $matchingStageNames = array_unique($matchingStageNames);
+        }
+
+        // For roles without specific stages, show all their completed stages
+        $stageKeywords = array_unique($matchingStageNames);
+
+        $completedProgresses = ItemProgress::where('status', 'COMPLETED')
+            ->where(function ($q) use ($stageKeywords) {
+                foreach ($stageKeywords as $keyword) {
+                    $q->orWhere('stage_name', 'like', "%{$keyword}%");
+                }
+            })
+            ->with(['item' => function ($q) {
+                $q->with('po:id,po_number,client_name,global_deadline');
+            }])
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(function ($progress) {
+                $created = $progress->created_at ? Carbon::parse($progress->created_at) : null;
+                $completed = $progress->updated_at ? Carbon::parse($progress->updated_at) : null;
+                $cycleDays = ($created && $completed) ? round(max(0, $created->diffInDays($completed)), 1) : null;
+
+                return [
+                    'id' => $progress->id,
+                    'stage_name' => $progress->stage_name,
+                    'completed_qty' => $progress->completed_qty,
+                    'progress_percent' => (float) $progress->progress_percent,
+                    'cycle_days' => $cycleDays,
+                    'completed_at' => $progress->updated_at?->toISOString(),
+                    'created_at' => $progress->created_at?->toISOString(),
+                    'item' => $progress->item ? [
+                        'id' => $progress->item->id,
+                        'item_name' => $progress->item->item_name,
+                        'target_qty' => $progress->item->target_qty,
+                        'po_number' => $progress->item->po?->po_number ?? '-',
+                        'client_name' => $progress->item->po?->client_name ?? '-',
+                    ] : null,
+                ];
+            });
+
+        $cycleDays = $completedProgresses->pluck('cycle_days')->filter()->values();
+        $avgCycleDays = $cycleDays->count() > 0 ? round($cycleDays->avg(), 1) : 0;
+        $maxCycleDays = $cycleDays->count() > 0 ? $cycleDays->max() : 0;
+        $minCycleDays = $cycleDays->count() > 0 ? $cycleDays->min() : 0;
+
+        $stageCounts = $completedProgresses->groupBy('stage_name')
+            ->map(fn ($stages, $name) => [
+                'stage' => $name,
+                'count' => $stages->count(),
+                'avg_cycle_days' => round($stages->pluck('cycle_days')->filter()->avg() ?? 0, 1),
+            ])
+            ->sortByDesc('count')
+            ->values();
+
+        $monthlyCompletion = $completedProgresses->groupBy(function ($p) {
+            return $p['completed_at'] ? substr($p['completed_at'], 0, 7) : 'unknown';
+        })
+            ->map(fn ($items, $month) => [
+                'month' => $month,
+                'count' => $items->count(),
+            ])
+            ->sortBy('month')
+            ->values();
+
+        return Inertia::render('Worker/MyKpi', [
+            'completed_stages' => $completedProgresses,
+            'summary' => [
+                'total_completed' => $completedProgresses->count(),
+                'avg_cycle_days' => $avgCycleDays,
+                'fastest_cycle_days' => $minCycleDays,
+                'slowest_cycle_days' => $maxCycleDays,
+            ],
+            'stage_breakdown' => $stageCounts,
+            'monthly_trend' => $monthlyCompletion,
+            'auth_user' => $user,
+            'tenant' => $tenant,
+        ]);
+    }
+
     public function exportPdf(Request $request, $slug)
     {
         // 1. Resolve tenant context by slug

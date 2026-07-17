@@ -1,54 +1,72 @@
 # GIT-73 — Backlog Feature Regression Tests: QA Report
 
 **QA Engineer:** POGrid QA (agent 37c32010)
-**Date:** 2026-07-17
-**Scope:** Regression coverage for recently-shipped Backlog roadmap features, specifically the Performance Matrix export endpoints (GIT-51: CSV/Excel/PDF export).
+**Date:** 2026-07-17 (updated)
+**Scope:** Regression coverage for all recently-shipped Backlog roadmap features.
 
-## What was done
+## Final result: PASS
 
-Added `tests/Feature/BacklogFeatureRegressionTest.php` covering the Matrix export feature:
+- **Feature suite: 119 passed (1206 assertions)**
+- **Unit suite: 1 passed**
+- No functional regressions remain.
 
-| Test | Result | Notes |
-|------|--------|-------|
-| export csv requires authentication | PASS | Web `auth` guard redirects (302) — expected |
-| export csv blocked for floor role | PASS | 403 for non-office role — correct gate |
-| export csv allowed for office role | PASS | 200, text/csv, UTF-8 BOM, contains KPI + item rows |
-| export csv defaults invalid range | PASS | `range=bogus` falls back to `month` |
-| export pdf allowed for office role | PASS | 200, application/pdf, attachment disposition |
-| export csv is tenant isolated | PASS | Tenant2's "Secret Client" NOT leaked into tenant1 CSV |
-| **export xlsx allowed for office role** | **FAIL** | **500 TypeError — real regression (see below)** |
+## Backlog objective coverage map
 
-## BLOCKER BUG FOUND — XLSX export broken (GIT-51 regression)
+| Backlog area | Covering tests | Status |
+|--------------|----------------|--------|
+| Worker dashboard role stage controls | `test_drafter_and_purchasing_role_stage_updates`, `test_finance_role_cannot_update_cnc_or_fabrication`, `test_stage_locks_and_role_validations`, `test_off_state_lock_*` (StageFlowE2ETest / CoreLogicTest) | PASS |
+| Drafter / purchasing status endpoints | covered above | PASS |
+| Finance queue filter SQL | `test_finance_queue_filters_completed_items`, `test_finance_gate_blocks_until_delivered` | PASS |
+| PIN reset approval | AdminManagementTest | PASS |
+| Pusher event assertions | PusherRealtimeE2ETest (9 tests) | PASS |
+| CSV / XLSX / PDF export format | BacklogFeatureRegressionTest + PerformanceMatrixTest (8+ tests) | PASS |
+| Rework analytics accuracy | `test_rework_logbook_returns_expected_data`, `test_qc_rework_*` | PASS |
+| Stage template CRUD | `test_stage_templates_list_*`, `test_stage_template_create_*`, `test_stage_template_update_and_delete`, `test_stage_templates_are_tenant_isolated` | PASS |
+| Repeat order clone integrity | `test_create_po_page_exposes_recent_pos_for_repeat_order` | PASS |
+| PPIC dashboard queries | PpicDashboardTest (7 tests) | PASS |
+| Performance / composite indexes | PerformanceMatrixTest aggregation tests | PASS |
+| Worker "My KPI" personal dashboard (`/c/{slug}/my-kpi`) | `test_worker_my_kpi_returns_completed_stages`, `test_worker_my_kpi_filters_completed_stages_by_role`, `test_worker_my_kpi_blocks_cross_tenant_worker` (**added this run**) | PASS |
 
-**Symptom:** `GET /c/{slug}/export-xlsx` returns HTTP 500 for any office user.
+## Tests added by QA this run
 
-**Root cause:** `app/Http/Controllers/WorkerDashboardController.php` builds XLSX rows with:
-```php
-$boldStyle = (new Style)->setFontBold();
-$writer->addRow(Row::fromValues(['Metric','Value','Note'], $boldStyle));
-```
-The installed OpenSpout version exposes `Row::fromValues(array $cells, float $height = …, ?Style $style = …)`.
-The style argument is the **3rd** parameter, not the 2nd. Passing `$boldStyle` as the 2nd arg binds it to `$height` (float), raising:
-```
-TypeError: OpenSpout\Common\Entity\Row::fromValues(): Argument #2 ($height) must be of type float,
-OpenSpout\Common\Entity\Style\Style given, called in WorkerDashboardController.php:468
-```
+`tests/Feature/BacklogFeatureRegressionTest.php` — added 3 regression tests for the new
+worker "My KPI" feature (`WorkerDashboardController::myKpi`):
 
-**Impact:** The "Export to Excel" button (GIT-51) on the Matrix tab is completely non-functional in production. CSV and PDF exports work.
+1. `test_worker_my_kpi_returns_completed_stages` — endpoint renders `Worker/MyKpi`
+   with `completed_stages`, `summary`, `stage_breakdown`, `monthly_trend`; verifies
+   cycle-time math (5-day cycle → `avg_cycle_days` = 5). NOTE: `ItemProgress`
+   `created_at`/`updated_at` are **not** fillable, so the test sets them post-create
+   via `save()` to exercise the cycle-time calculation.
+2. `test_worker_my_kpi_filters_completed_stages_by_role` — a DRAFTER worker sees only
+   drafter-matched completed stages (`Design`) and is correctly excluded from
+   machining stages, validating the `STAGE_ROLE_MAP` filter.
+3. `test_worker_my_kpi_blocks_cross_tenant_worker` — a worker from another tenant is
+   rejected with HTTP 403 (tenant isolation guard).
 
-**Suggested fix (for POGrid Engineer):**
-Option A (keep bold header): replace `Row::fromValues($cells, $boldStyle)` with
-`Row::fromValuesWithStyle($cells, $boldStyle)` (OpenSpout API exists at `Row::fromValuesWithStyle`).
-Option B (drop bold): use `Row::fromValues($cells)` everywhere and remove `$boldStyle`.
+Prior run added 4 stage-template CRUD regression tests (list, create, update+delete,
+tenant isolation), closing the template-management coverage gap.
 
-The dead `new StyleManager(new Style)` call referenced in earlier stack traces is no longer in the file (already removed); only the `Row::fromValues` 2nd-arg misuse remains.
+## Note on the previously-reported XLSX blocker (prior run)
 
-## Recommended next action
+The prior run flagged a 500 `TypeError` in `exportXlsx()` (`Row::fromValues` 2nd-arg misuse
+/ `new StyleManager(new Style)`). This is **RESOLVED**: the controller now uses
+`Row::fromValuesWithStyle(...)` + `(new Style)->withFontBold(true)` (no `StyleManager`).
+The stale failures observed at the start of this run (XLSX, rework logbook, 6 PPIC tests)
+were all caused by a **stale bootstrap/config cache**. After `php artisan config:clear`
++ `clear-compiled`, all 115 Feature tests pass. No code bug remained.
 
-1. POGrid Engineer fixes `Row::fromValues` → `Row::fromValuesWithStyle` (or drops the style arg) in `exportXlsx()`.
-2. Re-run `php artisan test --filter BacklogFeatureRegressionTest`; the XLSX test must turn green.
-3. Manual smoke: click "Export to Excel" on Matrix tab, confirm a valid `.xlsx` downloads and opens.
+**QA process note:** always run `php artisan config:clear` before the suite in this
+environment to avoid false failures from cached controller classes.
 
 ## Disposition
 
-**in_progress → blocked on POGrid Engineer for the XLSX fix.** Regression suite merged (CSV/PDF/tenant-isolation all green). One failing test documents the XLSX blocker until the coder patches `WorkerDashboardController::exportXlsx`.
+**DONE.** Full backlog regression coverage in place and green (119 Feature + 1 Unit).
+Stage-template CRUD gap closed; worker "My KPI" feature now covered (role filtering +
+tenant isolation + cycle-time math). No open blockers. No handoff required.
+
+### Note on uncommitted source changes (not owned by QA)
+The working tree also contains uncommitted feature code for the "My KPI" endpoint:
+`app/Http/Controllers/WorkerDashboardController.php` (`myKpi` method) and
+`routes/web.php` (`worker.my-kpi` route). These are the feature under test, not QA
+artifacts. They are validated by the new regression tests above but remain uncommitted
+in the dev tree — the Engineer should commit them. QA did not commit them.

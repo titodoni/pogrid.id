@@ -1807,6 +1807,35 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                             <AlertTriangle size={18} />
                         </Link>
 
+                        {/* KPI Button */}
+                        <Link
+                            href={`/c/${slug}/my-kpi`}
+                            style={{
+                                minHeight: '44px',
+                                padding: '0 12px',
+                                backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                                color: '#10b981',
+                                border: '1px solid rgba(16, 185, 129, 0.2)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                textDecoration: 'none',
+                                gap: '4px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                            }}
+                            title={language === 'en' ? 'My KPI' : 'KPI Saya'}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="20" x2="18" y2="10" />
+                                <line x1="12" y1="20" x2="12" y2="4" />
+                                <line x1="6" y1="20" x2="6" y2="14" />
+                            </svg>
+                            {language === 'en' ? 'My KPI' : 'KPI Saya'}
+                        </Link>
+
                         {/* Archive Button */}
                         <Link
                             href={`/c/${slug}/archive`}

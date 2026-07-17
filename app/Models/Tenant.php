@@ -1,7 +1,5 @@
 <?php
 
-namespace App\Models\Tenant; // Wait, namespace should be App\Models
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;

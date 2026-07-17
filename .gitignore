@@ -30,3 +30,16 @@ Thumbs.db
 /.bob
 /skills-lock.json
 
+# Private & Public Keys
+pogrid_deploy_key
+pogrid_deploy_key.pub
+
+# Setup / Installers
+composer-setup.php
+composer.phar
+
+# Local scratch/log files
+*_log.txt
+log_output.txt
+list.txt
+testacc.txt
