@@ -93,9 +93,9 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
 
     return (
         <div className="dashboard-root" style={{
-            backgroundColor: '#09090b',
+            backgroundColor: 'var(--color-pg-bg)',
             fontFamily: 'Inter, sans-serif',
-            color: '#fafafa',
+            color: 'var(--color-pg-text)',
         }}>
             {/* Header matching all user screens */}
             <header className="responsive-header" style={{
@@ -106,11 +106,11 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                 flexShrink: 0,
             }}>
                 <div>
-                    <div className="greeting-name" style={{ fontSize: '13px', color: '#818cf8', fontWeight: 600, marginBottom: '2px' }}>
+                    <div className="greeting-name" style={{ fontSize: '13px', color: 'var(--color-pg-primary-hover)', fontWeight: 600, marginBottom: '2px' }}>
                         {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
                     </div>
                     <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.title}</h1>
-                    <p style={{ fontSize: '12px', color: '#71717a', margin: '2px 0 0 0' }}>
+                    <p style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', margin: '2px 0 0 0' }}>
                         {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         {' · '}
                         {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
@@ -122,7 +122,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                             onClick={() => changeLanguage('en')}
                             style={{
                                 padding: '4px 8px',
-                                backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
+                                backgroundColor: language === 'en' ? 'var(--color-pg-primary)' : 'transparent',
                                 border: 'none',
                                 borderRadius: '6px',
                                 color: '#fff',
@@ -137,7 +137,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                             onClick={() => changeLanguage('id')}
                             style={{
                                 padding: '4px 8px',
-                                backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
+                                backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
                                 border: 'none',
                                 borderRadius: '6px',
                                 color: '#fff',
@@ -155,7 +155,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                         style={{
                             padding: '8px',
                             backgroundColor: 'rgba(255,255,255,0.04)',
-                            color: '#a1a1aa',
+                            color: 'var(--color-pg-text-secondary)',
                             border: '1px solid rgba(255,255,255,0.06)',
                             borderRadius: '8px',
                             cursor: 'pointer',
@@ -173,7 +173,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                         onClick={() => router.post('/logout')}
                         style={{
                             padding: '8px 14px',
-                            backgroundColor: '#f87171',
+                            backgroundColor: 'var(--color-pg-danger)',
                             color: '#fff',
                             fontWeight: 600,
                             border: 'none',
@@ -200,7 +200,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '6px',
-                            color: '#818cf8',
+                            color: 'var(--color-pg-primary-hover)',
                             fontSize: '13px',
                             fontWeight: 600,
                             textDecoration: 'none',
@@ -222,13 +222,13 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                     boxShadow: '0 4px 30px rgba(0, 0, 0, 0.5)',
                 }}>
                     <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px 0' }}>{t.title}</h2>
-                    <p style={{ fontSize: '13px', color: '#71717a', margin: '0 0 20px 0' }}>{t.subtitle}</p>
+                    <p style={{ fontSize: '13px', color: 'var(--color-pg-text-muted)', margin: '0 0 20px 0' }}>{t.subtitle}</p>
 
                     {alerts.length === 0 ? (
                         <div style={{
                             textAlign: 'center',
                             padding: '40px 20px',
-                            color: '#71717a',
+                            color: 'var(--color-pg-text-muted)',
                             fontSize: '14px',
                             border: '1px dashed rgba(255, 255, 255, 0.08)',
                             borderRadius: '10px',
@@ -245,10 +245,10 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                             }}>
                                 <thead>
                                     <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                        <th style={{ padding: '12px 8px', color: '#a1a1aa', fontWeight: 600 }}>{t.date}</th>
-                                        <th style={{ padding: '12px 8px', color: '#a1a1aa', fontWeight: 600 }}>{t.severity}</th>
-                                        <th style={{ padding: '12px 8px', color: '#a1a1aa', fontWeight: 600 }}>{t.message}</th>
-                                        <th style={{ padding: '12px 8px', color: '#a1a1aa', fontWeight: 600 }}>{t.status}</th>
+                                        <th style={{ padding: '12px 8px', color: 'var(--color-pg-text-secondary)', fontWeight: 600 }}>{t.date}</th>
+                                        <th style={{ padding: '12px 8px', color: 'var(--color-pg-text-secondary)', fontWeight: 600 }}>{t.severity}</th>
+                                        <th style={{ padding: '12px 8px', color: 'var(--color-pg-text-secondary)', fontWeight: 600 }}>{t.message}</th>
+                                        <th style={{ padding: '12px 8px', color: 'var(--color-pg-text-secondary)', fontWeight: 600 }}>{t.status}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -262,10 +262,10 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                                             minute: '2-digit'
                                         });
 
-                                        const sevColor = alert.severity === 'RED' ? '#f87171'
-                                            : alert.severity === 'YELLOW' ? '#fbbf24'
-                                            : alert.severity === 'BLUE' ? '#6366f1'
-                                            : '#fb923c';
+                                        const sevColor = alert.severity === 'RED' ? 'var(--color-pg-danger)'
+                                            : alert.severity === 'YELLOW' ? 'var(--color-pg-warning)'
+                                            : alert.severity === 'BLUE' ? 'var(--color-pg-primary)'
+                                            : 'var(--color-pg-orange)';
 
                                         return (
                                             <tr key={alert.id} style={{
@@ -296,7 +296,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                                                             fontSize: '9px',
                                                             fontWeight: 800,
                                                             backgroundColor: '#fbbf2440',
-                                                            color: '#fbbf24',
+                                                            color: 'var(--color-pg-warning)',
                                                             border: '1px solid #fbbf2480',
                                                             marginLeft: '4px',
                                                             animation: 'pulse 1.5s ease-in-out infinite',
@@ -305,7 +305,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td style={{ padding: '14px 8px', color: '#fafafa', lineHeight: '1.4' }}>
+                                                <td style={{ padding: '14px 8px', color: 'var(--color-pg-text)', lineHeight: '1.4' }}>
                                                     {alert.message}
                                                 </td>
                                                 <td style={{ padding: '14px 8px' }}>
@@ -314,7 +314,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                                                             display: 'inline-flex',
                                                             alignItems: 'center',
                                                             gap: '4px',
-                                                            color: '#34d399',
+                                                            color: 'var(--color-pg-success)',
                                                             fontWeight: 600,
                                                             fontSize: '12px'
                                                         }}>
@@ -325,7 +325,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                                                             display: 'inline-flex',
                                                             alignItems: 'center',
                                                             gap: '4px',
-                                                            color: '#f87171',
+                                                            color: 'var(--color-pg-danger)',
                                                             fontWeight: 600,
                                                             fontSize: '12px'
                                                         }}>

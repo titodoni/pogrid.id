@@ -471,7 +471,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                 borderRadius: '50%',
                 backgroundColor: dotColor,
                 display: 'inline-block',
-                boxShadow: dotColor !== '#71717a' ? `0 0 6px ${dotColor}` : 'none'
+                boxShadow: dotColor !== 'var(--color-pg-text-muted)' ? `0 0 6px ${dotColor}` : 'none'
             }} />
             {text}
         </span>
@@ -1314,7 +1314,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         }}
                         style={{
                             padding: '8px',
-                            backgroundColor: 'rgba(255,255,255,0.05)',
+                            backgroundColor: 'var(--color-pg-border-subtle)',
                             color: 'var(--color-pg-text-secondary)',
                             border: '1px solid rgba(255,255,255,0.08)',
                             borderRadius: '8px',
@@ -1325,13 +1325,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         }}
                         title={language === 'en' ? 'Search POs, Items, Clients...' : 'Cari PO, Barang, Klien...'}
                         onMouseOver={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.15)';
+                            e.currentTarget.style.backgroundColor = 'var(--color-pg-primary-glow)';
                             e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.3)';
                             e.currentTarget.style.color = 'var(--color-pg-primary-hover)';
                         }}
                         onMouseOut={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)';
-                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                            e.currentTarget.style.backgroundColor = 'var(--color-pg-border-subtle)';
+                            e.currentTarget.style.borderColor = 'var(--color-pg-border)';
                             e.currentTarget.style.color = 'var(--color-pg-text-secondary)';
                         }}
                     >
@@ -1343,7 +1343,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             onClick={() => setShowThemeDropdown(!showThemeDropdown)}
                             style={{
                                 padding: '8px',
-                                backgroundColor: 'rgba(255,255,255,0.05)',
+                                backgroundColor: 'var(--color-pg-border-subtle)',
                                 color: 'var(--color-pg-text-secondary)',
                                 border: '1px solid rgba(255,255,255,0.08)',
                                 borderRadius: '8px',
@@ -1372,12 +1372,12 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 gap: '4px',
                             }}>
                                 {[
-                                    { id: 'theme-default', name: 'Titanium Slate', color: '#6366f1' },
-                                    { id: 'theme-linear', name: 'Obsidian Graphite', color: '#6366f1' },
-                                    { id: 'theme-vercel', name: 'Monochrome Void', color: '#6366f1' },
-                                    { id: 'theme-stripe', name: 'Stripe Navy', color: '#6366f1' },
-                                    { id: 'theme-github', name: 'GitHub Slate', color: '#6366f1' },
-                                    { id: 'theme-nordic', name: 'Nordic Polar', color: '#6366f1' },
+                                    { id: 'theme-default', name: 'Titanium Slate', color: 'var(--color-pg-primary)' },
+                                    { id: 'theme-linear', name: 'Obsidian Graphite', color: 'var(--color-pg-primary)' },
+                                    { id: 'theme-vercel', name: 'Monochrome Void', color: 'var(--color-pg-primary)' },
+                                    { id: 'theme-stripe', name: 'Stripe Navy', color: 'var(--color-pg-primary)' },
+                                    { id: 'theme-github', name: 'GitHub Slate', color: 'var(--color-pg-primary)' },
+                                    { id: 'theme-nordic', name: 'Nordic Polar', color: 'var(--color-pg-primary)' },
                                 ].map((tOption) => (
                                     <button
                                         key={tOption.id}
@@ -1417,7 +1417,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         onClick={() => setShowSettingsDropdown(false)}
                         style={{
                             padding: '8px',
-                            backgroundColor: 'rgba(255,255,255,0.05)',
+                            backgroundColor: 'var(--color-pg-border-subtle)',
                             color: 'var(--color-pg-text-secondary)',
                             border: '1px solid rgba(255,255,255,0.08)',
                             borderRadius: '8px',
@@ -1437,7 +1437,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             onClick={openAddAdmin}
                             style={{
                                 padding: '8px 12px',
-                                backgroundColor: 'rgba(255,255,255,0.05)',
+                                backgroundColor: 'var(--color-pg-border-subtle)',
                                 color: 'var(--color-pg-text-secondary)',
                                 border: '1px solid rgba(255,255,255,0.08)',
                                 borderRadius: '8px',
@@ -1812,13 +1812,19 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         <div style={{ fontSize: '14px', color: '#e4e4e7', fontWeight: 600 }}>
                                                             {issue.itemName} &middot; <span style={{ color: 'var(--color-pg-orange)', fontWeight: 700 }}>Stage: {issue.stage}</span>
                                                         </div>
-                                                        <div style={{ fontSize: '13px', color: 'var(--color-pg-text-secondary)' }}>
-                                                            <strong style={{ color: 'var(--color-pg-danger)' }}>
-                                                                {language === 'id' ? 'Penyebab: ' : 'Why: '}
-                                                            </strong>
-                                                            {issue.reason ? formatReasonType(issue.reason, language) : ''}
-                                                            {issue.note ? ` (${issue.note})` : ''}
-                                                        </div>
+                                                        {issue.reason ? (
+                                                            <div style={{ fontSize: '13px', color: 'var(--color-pg-text-secondary)' }}>
+                                                                <strong style={{ color: 'var(--color-pg-danger)' }}>
+                                                                    {language === 'id' ? 'Penyebab: ' : 'Why: '}
+                                                                </strong>
+                                                                {formatReasonType(issue.reason, language)}
+                                                                {issue.note ? ` (${issue.note})` : ''}
+                                                            </div>
+                                                        ) : (
+                                                            <div style={{ fontSize: '13px', color: 'var(--color-pg-text-secondary)' }}>
+                                                                {issue.message}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <div style={{ fontSize: '14px', color: '#e4e4e7' }}>
@@ -1896,7 +1902,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'all' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                    backgroundColor: activePoFilter === 'all' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                     color: activePoFilter === 'all' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
@@ -1913,7 +1919,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'marked' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                    backgroundColor: activePoFilter === 'marked' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                     color: activePoFilter === 'marked' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
@@ -1930,7 +1936,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'delayed' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                    backgroundColor: activePoFilter === 'delayed' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                     color: activePoFilter === 'delayed' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
@@ -1947,7 +1953,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'ontime' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                    backgroundColor: activePoFilter === 'ontime' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                     color: activePoFilter === 'ontime' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
@@ -1964,7 +1970,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     border: '1px solid rgba(255,255,255,0.08)',
-                                    backgroundColor: activePoFilter === 'close_due' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                    backgroundColor: activePoFilter === 'close_due' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                     color: activePoFilter === 'close_due' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
@@ -2076,7 +2082,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                             item.item_type === 'MANUFACTURE' 
                                                                                 ? (language === 'id' ? 'Produksi Internal' : 'Manufactured') 
                                                                                 : (language === 'id' ? 'Beli Jadi (Buyout)' : 'Buyout'),
-                                                                            '#71717a'
+                                                                            'var(--color-pg-text-muted)'
                                                                         )}
                                                                         {item.drafter_status && renderStatusBadge(
                                                                             item.drafter_status === 'APPROVED' 
@@ -2102,7 +2108,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 : (language === 'id' ? 'Belum Dikirim' : 'Pending Delivery'),
                                                                             item.delivery_status === 'DELIVERED' ? 'var(--color-pg-success)' :
                                                                                 item.delivery_status === 'PARTIAL' ? 'var(--color-pg-warning)' :
-                                                                                '#71717a'
+                                                                                'var(--color-pg-text-muted)'
                                                                         )}
                                                                         {item.invoice_status && renderStatusBadge(
                                                                             item.invoice_status === 'INVOICED'
@@ -2112,7 +2118,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 : (language === 'id' ? 'Belum Difakturkan' : 'Uninvoiced'),
                                                                             item.invoice_status === 'INVOICED' ? 'var(--color-pg-success)' :
                                                                                 item.invoice_status === 'PARTIAL' ? 'var(--color-pg-orange)' :
-                                                                                '#71717a'
+                                                                                'var(--color-pg-text-muted)'
                                                                         )}
                                                                         {item.payment_status && renderStatusBadge(
                                                                             item.payment_status === 'PAID'
@@ -2122,7 +2128,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                 : (language === 'id' ? 'Belum Bayar' : 'Unpaid'),
                                                                             item.payment_status === 'PAID' ? 'var(--color-pg-success)' :
                                                                                 item.payment_status === 'PARTIAL_PAID' ? 'var(--color-pg-primary-hover)' :
-                                                                                '#71717a'
+                                                                                'var(--color-pg-text-muted)'
                                                                         )}
                                                                         {renderStatusBadge(
                                                                             (() => {
@@ -2186,13 +2192,13 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                      const diffTime = deadlineClean.getTime() - todayClean.getTime();
                                                                                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                                                                                      
-                                                                                     let color = '#34d399'; // Normal: Green
+                                                                                     let color = 'var(--color-pg-success)'; // Normal: Green
                                                                                      let label = language === 'id' ? 'Aman' : 'On Track';
                                                                                      if (diffDays < 0) {
                                                                                          color = '#ef4444'; // Delayed: Red
                                                                                          label = language === 'id' ? 'Terlambat' : 'Delayed';
                                                                                      } else if (diffDays <= 3) {
-                                                                                         color = '#fbbf24'; // Close: Yellow
+                                                                                         color = 'var(--color-pg-warning)'; // Close: Yellow
                                                                                          label = language === 'id' ? 'Mendekati Tenggat' : 'Closing In';
                                                                                      }
                                                                                      
@@ -2200,7 +2206,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                          <div style={{ 
                                                                                              fontSize: '15px', 
                                                                                              fontWeight: 800, 
-                                                                                             color: '#fafafa',
+                                                                                             color: 'var(--color-pg-text)',
                                                                                              marginTop: '2px',
                                                                                              marginBottom: '4px',
                                                                                              display: 'flex',
@@ -2208,7 +2214,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                              gap: '6px',
                                                                                              flexWrap: 'wrap'
                                                                                          }}>
-                                                                                             <span style={{ color: '#a1a1aa', fontWeight: 'normal', fontSize: '13px' }}>Deadline:</span>
+                                                                                             <span style={{ color: 'var(--color-pg-text-secondary)', fontWeight: 'normal', fontSize: '13px' }}>Deadline:</span>
                                                                                              <span style={{ color }}>{formatDeadline(po.global_deadline, language)}</span>
                                                                                              <span style={{ 
                                                                                                  fontSize: '9px', 
@@ -2309,7 +2315,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                     {item.item_progresses.map((stage) => (
                                                                                         <span key={stage.id} className="badge" style={{
                                                                                             backgroundColor: stage.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.1)'
-                                                                                                : stage.status === 'STUCK' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255,255,255,0.05)',
+                                                                                                : stage.status === 'STUCK' ? 'rgba(239, 68, 68, 0.1)' : 'var(--color-pg-border-subtle)',
                                                                                             color: stage.status === 'COMPLETED' ? 'var(--color-pg-success)'
                                                                                                 : stage.status === 'STUCK' ? '#ef4444' : 'var(--color-pg-text-secondary)',
                                                                                             border: '1px solid rgba(255,255,255,0.05)',
@@ -2482,7 +2488,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     onClick={togglePresentationMode}
                                     style={{
                                         padding: '8px 16px',
-                                        backgroundColor: 'rgba(255,255,255,0.05)',
+                                        backgroundColor: 'var(--color-pg-border-subtle)',
                                         color: '#e4e4e7',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
@@ -2497,7 +2503,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     href={`/c/${tenant?.slug}/export-csv?range=${selected_range || 'month'}`}
                                     style={{
                                         padding: '8px 16px',
-                                        background: 'rgba(255,255,255,0.05)',
+                                        background: 'var(--color-pg-border-subtle)',
                                         color: '#e4e4e7',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
@@ -2514,7 +2520,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     href={`/c/${tenant?.slug}/export-xlsx?range=${selected_range || 'month'}`}
                                     style={{
                                         padding: '8px 16px',
-                                        background: 'rgba(255,255,255,0.05)',
+                                        background: 'var(--color-pg-border-subtle)',
                                         color: '#e4e4e7',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px',
@@ -2815,7 +2821,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'client' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                        backgroundColor: directoryFilter === 'client' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                         color: directoryFilter === 'client' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
                                 >
@@ -2830,7 +2836,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'marked' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                        backgroundColor: directoryFilter === 'marked' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                         color: directoryFilter === 'marked' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
                                 >
@@ -2845,7 +2851,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'delayed' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                        backgroundColor: directoryFilter === 'delayed' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                         color: directoryFilter === 'delayed' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
                                 >
@@ -2860,7 +2866,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'ontime' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                        backgroundColor: directoryFilter === 'ontime' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                         color: directoryFilter === 'ontime' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
                                 >
@@ -2875,7 +2881,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid rgba(255,255,255,0.08)',
-                                        backgroundColor: directoryFilter === 'close_due' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
+                                        backgroundColor: directoryFilter === 'close_due' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                         color: directoryFilter === 'close_due' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
                                 >
@@ -3308,9 +3314,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 <h3 className="text-sm font-bold text-pg-text mb-4">{t.production_overdue_trends}</h3>
                                 <div className="w-full overflow-x-auto">
                                     <svg width="100%" height="200" viewBox="0 0 500 200" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
-                                        <line x1="40" y1="20" x2="480" y2="20" stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
-                                        <line x1="40" y1="70" x2="480" y2="70" stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
-                                        <line x1="40" y1="120" x2="480" y2="120" stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
+                                        <line x1="40" y1="20" x2="480" y2="20" stroke="var(--color-pg-border-subtle)" strokeDasharray="3,3" />
+                                        <line x1="40" y1="70" x2="480" y2="70" stroke="var(--color-pg-border-subtle)" strokeDasharray="3,3" />
+                                        <line x1="40" y1="120" x2="480" y2="120" stroke="var(--color-pg-border-subtle)" strokeDasharray="3,3" />
                                         <line x1="40" y1="170" x2="480" y2="170" stroke="rgba(255,255,255,0.1)" />
                                         {(() => {
                                             const trend = telemetry.trend_data || [];
@@ -3348,7 +3354,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                     {pathD && <path d={pathD} fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />}
                                                     {linePoints.map((p: any, idx: number) => (
                                                         <g key={`pt-${idx}`}>
-                                                            <circle cx={p.x} cy={p.y} r="4" fill="#ef4444" stroke="#09090b" strokeWidth="1" />
+                                                            <circle cx={p.x} cy={p.y} r="4" fill="#ef4444" stroke="var(--color-pg-bg)" strokeWidth="1" />
                                                             <text x={p.x} y={p.y - 6} textAnchor="middle" fill="#ef4444" fontSize="8" fontWeight="600">{p.val}</text>
                                                         </g>
                                                     ))}
@@ -3811,8 +3817,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         fontSize: '12px',
                                         fontWeight: 600,
                                         border: '1px solid',
-                                        borderColor: userRoleFilter === 'ALL' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.08)',
-                                        backgroundColor: userRoleFilter === 'ALL' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255,255,255,0.05)',
+                                        borderColor: userRoleFilter === 'ALL' ? 'var(--color-pg-primary)' : 'var(--color-pg-border)',
+                                        backgroundColor: userRoleFilter === 'ALL' ? 'var(--color-pg-primary-glow)' : 'var(--color-pg-border-subtle)',
                                         color: userRoleFilter === 'ALL' ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s ease',
@@ -3834,10 +3840,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 border: '1px solid',
                                                 borderColor: userRoleFilter === role
                                                     ? (roleColorMap[role]?.color || 'var(--color-pg-text-muted)')
-                                                    : 'rgba(255,255,255,0.08)',
+                                                    : 'var(--color-pg-border)',
                                                 backgroundColor: userRoleFilter === role
                                                     ? (roleColorMap[role]?.bg || 'rgba(255,255,255,0.06)')
-                                                    : 'rgba(255,255,255,0.05)',
+                                                    : 'var(--color-pg-border-subtle)',
                                                 color: userRoleFilter === role
                                                     ? (roleColorMap[role]?.color || 'var(--color-pg-text-muted)')
                                                     : 'var(--color-pg-text-secondary)',
@@ -3969,7 +3975,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 }}
                                                 className="rounded-xl p-4 cursor-pointer transition-all duration-200"
                                                 style={{
-                                                    backgroundColor: isSelected ? 'rgba(99, 102, 241, 0.08)' : 'rgba(255,255,255,0.02)',
+                                                    backgroundColor: isSelected ? 'var(--color-pg-primary-glow)' : 'var(--color-pg-border-subtle)',
                                                     border: '1px solid',
                                                     borderColor: isSelected ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.06)',
                                                 }}
@@ -4076,7 +4082,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 <div className="flex flex-wrap gap-1">
                                                     {tmpl.stages.map(s => (
                                                         <span key={s} className="text-[10px] px-1.5 py-0.5 rounded"
-                                                            style={{ backgroundColor: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>
+                                                            style={{ backgroundColor: 'var(--color-pg-primary-glow)', color: 'var(--color-pg-primary-hover)' }}>
                                                             {s}
                                                         </span>
                                                     ))}
@@ -4093,7 +4099,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         setShowTemplateModal(true);
                                                     }}
                                                     className="px-2.5 py-1 rounded-lg text-xs font-bold border border-white/8 cursor-pointer transition-all duration-200"
-                                                    style={{ color: 'var(--color-pg-text)', backgroundColor: 'rgba(255,255,255,0.05)' }}
+                                                    style={{ color: 'var(--color-pg-text)', backgroundColor: 'var(--color-pg-border-subtle)' }}
                                                 >
                                                     {t.edit_template}
                                                 </button>
@@ -4218,7 +4224,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             onClick={() => setEditLoginMethod(method)}
                                             className="flex-1 py-2 rounded-lg border text-xs font-bold cursor-pointer"
                                             style={{
-                                                borderColor: editLoginMethod === method ? '#3b82f6' : 'rgba(255,255,255,0.08)',
+                                                borderColor: editLoginMethod === method ? '#3b82f6' : 'var(--color-pg-border)',
                                                 backgroundColor: editLoginMethod === method ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.03)',
                                                 color: editLoginMethod === method ? '#3b82f6' : 'var(--color-pg-text-secondary)',
                                             }}
@@ -4394,7 +4400,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             onClick={() => setNewUserLoginMethod(method)}
                                             className="flex-1 py-2 rounded-lg border text-xs font-bold cursor-pointer"
                                             style={{
-                                                borderColor: newUserLoginMethod === method ? '#3b82f6' : 'rgba(255,255,255,0.08)',
+                                                borderColor: newUserLoginMethod === method ? '#3b82f6' : 'var(--color-pg-border)',
                                                 backgroundColor: newUserLoginMethod === method ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.03)',
                                                 color: newUserLoginMethod === method ? '#3b82f6' : 'var(--color-pg-text-secondary)',
                                             }}
@@ -4900,9 +4906,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                     }}
                                                     className="px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-all duration-150 cursor-pointer"
                                                     style={{
-                                                        borderColor: isSelected ? '#818cf8' : 'rgba(255,255,255,0.08)',
+                                                        borderColor: isSelected ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-border)',
                                                         backgroundColor: isSelected ? 'rgba(99,102,241,0.2)' : 'transparent',
-                                                        color: isSelected ? '#818cf8' : '#a1a1aa',
+                                                        color: isSelected ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
                                                     }}>
                                                     {stage}
                                                 </button>

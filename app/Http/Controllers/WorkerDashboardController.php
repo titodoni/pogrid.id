@@ -80,7 +80,7 @@ class WorkerDashboardController extends Controller
         if (! auth()->check()) {
             $workers = User::where('tenant_id', $tenant->id)
                 ->whereNotNull('pin')
-                ->with('roleRelation:id,name', 'postRelation:id,name')
+                ->with('roleRelation:id,name,display_name,display_name_id', 'postRelation:id,name,display_name,display_name_id')
                 ->get(['id', 'name', 'role_id', 'post_id']);
 
             return Inertia::render('Worker/Login', [
@@ -146,21 +146,27 @@ class WorkerDashboardController extends Controller
             'alerts' => function ($q) {
                 $q->where('is_resolved', false);
             },
-        ])->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty');
+        ])
+        ->join('pos', 'items.po_id', '=', 'pos.id')
+        ->select('items.*')
+        ->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty')
+        ->orderBy('items.is_urgent', 'desc')
+        ->orderBy('pos.is_urgent', 'desc')
+        ->orderBy('pos.global_deadline', 'asc');
 
         if ($roleName === 'FINANCE') {
             $query->where(function ($q) {
-                $q->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])
+                $q->whereNotIn('items.status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])
                     ->orWhere(function ($sub) {
-                        $sub->where('status', 'COMPLETED')
+                        $sub->where('items.status', 'COMPLETED')
                             ->where(function ($subFinance) {
-                                $subFinance->where('invoice_status', '!=', 'INVOICED')
-                                    ->orWhere('payment_status', '!=', 'PAID');
+                                $subFinance->where('items.invoice_status', '!=', 'INVOICED')
+                                    ->orWhere('items.payment_status', '!=', 'PAID');
                             });
                     });
             });
         } else {
-            $query->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED']);
+            $query->whereNotIn('items.status', ['COMPLETED', 'CANCELLED', 'TERMINATED']);
         }
 
         $items = $query->get();

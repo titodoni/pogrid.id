@@ -75,12 +75,12 @@ const translations = {
 };
 
 const themeOptions = [
-    { id: 'theme-default', name: 'Titanium Slate', translationKey: 'theme_default', primaryCol: '#6366f1', bgCol: '#09090b', cardBg: '#18181b', textCol: '#fafafa' },
-    { id: 'theme-linear', name: 'Obsidian Graphite', translationKey: 'theme_linear', primaryCol: '#6366f1', bgCol: '#0b0a13', cardBg: '#12111f', textCol: '#f3f0ff' },
-    { id: 'theme-vercel', name: 'Monochrome Void', translationKey: 'theme_vercel', primaryCol: '#6366f1', bgCol: '#000000', cardBg: '#0a0a0a', textCol: '#ffffff' },
-    { id: 'theme-stripe', name: 'Stripe Navy', translationKey: 'theme_stripe', primaryCol: '#6366f1', bgCol: '#0b132b', cardBg: '#1c2541', textCol: '#f1f5f9' },
-    { id: 'theme-github', name: 'GitHub Slate', translationKey: 'theme_github', primaryCol: '#6366f1', bgCol: '#0d1117', cardBg: '#161b22', textCol: '#c9d1d9' },
-    { id: 'theme-nordic', name: 'Nordic Polar', translationKey: 'theme_nordic', primaryCol: '#6366f1', bgCol: '#2e3440', cardBg: '#3b4252', textCol: '#eceff4' },
+    { id: 'theme-default', name: 'Titanium Slate', translationKey: 'theme_default', primaryCol: 'var(--color-pg-primary)', bgCol: 'var(--color-pg-bg)', cardBg: 'var(--color-pg-surface)', textCol: 'var(--color-pg-text)' },
+    { id: 'theme-linear', name: 'Obsidian Graphite', translationKey: 'theme_linear', primaryCol: 'var(--color-pg-primary)', bgCol: '#0b0a13', cardBg: '#12111f', textCol: '#f3f0ff' },
+    { id: 'theme-vercel', name: 'Monochrome Void', translationKey: 'theme_vercel', primaryCol: 'var(--color-pg-primary)', bgCol: '#000000', cardBg: '#0a0a0a', textCol: '#ffffff' },
+    { id: 'theme-stripe', name: 'Stripe Navy', translationKey: 'theme_stripe', primaryCol: 'var(--color-pg-primary)', bgCol: '#0b132b', cardBg: '#1c2541', textCol: '#f1f5f9' },
+    { id: 'theme-github', name: 'GitHub Slate', translationKey: 'theme_github', primaryCol: 'var(--color-pg-primary)', bgCol: '#0d1117', cardBg: '#161b22', textCol: '#c9d1d9' },
+    { id: 'theme-nordic', name: 'Nordic Polar', translationKey: 'theme_nordic', primaryCol: 'var(--color-pg-primary)', bgCol: '#2e3440', cardBg: '#3b4252', textCol: '#eceff4' },
 ];
 
 export default function Profile({ tenant, auth_user }: Props) {

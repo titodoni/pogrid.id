@@ -8,6 +8,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\WorkerAuthController;
 use App\Http\Controllers\WorkerDashboardController;
+use App\Http\Controllers\PpicDashboardController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect home page to login
@@ -90,5 +91,7 @@ Route::prefix('c/{slug}')->group(function () {
         Route::post('/items/{itemId}/drafter-status', [WorkerDashboardController::class, 'updateDrafterStatus']);
         Route::post('/items/{itemId}/purchasing-status', [WorkerDashboardController::class, 'updatePurchasingStatus']);
         Route::post('/items/{itemId}/finance', [WorkerDashboardController::class, 'updateFinanceStatus']);
+        Route::post('/ppic/pos/{poId}/update', [PpicDashboardController::class, 'updatePo']);
+        Route::post('/ppic/items/{itemId}/priority', [PpicDashboardController::class, 'updateItemPriority']);
     });
 });

@@ -510,4 +510,41 @@ class AdminManagementTest extends TestCase
             $this->assertCount(0, $items);
         });
     }
+
+    public function test_worker_login_rate_limiting()
+    {
+        $tenant = Tenant::create([
+            'company_name' => 'Delta Machining',
+            'slug' => 'delta',
+        ]);
+
+        $worker = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Worker Pin Limit',
+            'role_id' => 3, // Machining
+            'post_id' => 4,
+            'pin' => bcrypt('1234'),
+        ]);
+
+        // Hit the login 5 times
+        for ($i = 0; $i < 5; $i++) {
+            $response = $this->post("/c/{$tenant->slug}/login", [
+                'user_id' => $worker->id,
+                'pin' => '9999',
+            ]);
+            $response->assertSessionHasErrors('pin');
+        }
+
+        // The 6th attempt should be throttled (X-Inertia redirects with too_many_attempts error)
+        $response = $this->post("/c/{$tenant->slug}/login", [
+            'user_id' => $worker->id,
+            'pin' => '1234',
+        ], [
+            'X-Inertia' => 'true',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors(['pin' => 'too_many_attempts']);
+        $response->assertSessionHas('retry_after');
+    }
 }

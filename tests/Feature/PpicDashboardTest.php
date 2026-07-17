@@ -301,4 +301,66 @@ class PpicDashboardTest extends TestCase
             ->where('delivery_forecast.overdue_count', 1)
         );
     }
+
+    public function test_ppic_user_can_update_po_deadline_and_urgency()
+    {
+        TenantManager::setTenantId($this->tenant->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-1001',
+            'client_name' => 'Client Alpha',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'PENDING',
+            'is_urgent' => false,
+        ]);
+
+        $response = $this->actingAs($this->ppicUser)
+            ->post("/c/{$this->tenant->slug}/ppic/pos/{$po->id}/update", [
+                'global_deadline' => now()->addDays(5)->toDateString(),
+                'is_urgent' => true,
+            ]);
+
+        $response->assertRedirect();
+        $this->assertEquals(now()->addDays(5)->toDateString(), $po->fresh()->global_deadline->toDateString());
+        $this->assertTrue($po->fresh()->is_urgent);
+    }
+
+    public function test_ppic_user_can_toggle_item_priority()
+    {
+        TenantManager::setTenantId($this->tenant->id);
+
+        $po = Po::create([
+            'po_number' => 'PO-1001',
+            'client_name' => 'Client Alpha',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'PENDING',
+        ]);
+
+        $item = Item::create([
+            'po_id' => $po->id,
+            'item_name' => 'Urgent Part',
+            'target_qty' => 5,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Machining'],
+            'status' => 'IN_PROGRESS',
+            'is_urgent' => false,
+        ]);
+
+        $response = $this->actingAs($this->ppicUser)
+            ->post("/c/{$this->tenant->slug}/ppic/items/{$item->id}/priority", [
+                'is_urgent' => true,
+            ]);
+
+        $response->assertRedirect();
+        $this->assertTrue($item->fresh()->is_urgent);
+
+        $response = $this->actingAs($this->ppicUser)
+            ->post("/c/{$this->tenant->slug}/ppic/items/{$item->id}/priority", [
+                'is_urgent' => false,
+            ]);
+
+        $response->assertRedirect();
+        $this->assertFalse($item->fresh()->is_urgent);
+    }
 }
+

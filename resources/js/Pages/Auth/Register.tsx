@@ -101,7 +101,7 @@ export default function Register() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#09090b',
+            backgroundColor: 'var(--color-pg-bg)',
             backgroundImage: 'radial-gradient(circle at top, rgba(99, 102, 241, 0.08) 0%, transparent 60%)',
             padding: '24px 16px',
             position: 'relative',
@@ -115,7 +115,7 @@ export default function Register() {
                 display: 'inline-flex',
                 borderRadius: '8px',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                backgroundColor: 'var(--color-pg-border-subtle)',
                 padding: '2px',
                 zIndex: 10,
             }}>
@@ -129,8 +129,8 @@ export default function Register() {
                         cursor: 'pointer',
                         fontSize: '11px',
                         fontWeight: 600,
-                        backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
-                        color: language === 'en' ? '#ffffff' : '#a1a1aa',
+                        backgroundColor: language === 'en' ? 'var(--color-pg-primary)' : 'transparent',
+                        color: language === 'en' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                         transition: 'all 0.2s',
                     }}
                 >
@@ -146,8 +146,8 @@ export default function Register() {
                         cursor: 'pointer',
                         fontSize: '11px',
                         fontWeight: 600,
-                        backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
-                        color: language === 'id' ? '#ffffff' : '#a1a1aa',
+                        backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
+                        color: language === 'id' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                         transition: 'all 0.2s',
                     }}
                 >
@@ -173,7 +173,7 @@ export default function Register() {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '4px',
-                    color: '#a1a1aa',
+                    color: 'var(--color-pg-text-secondary)',
                     textDecoration: 'none',
                     fontSize: '13px',
                     marginBottom: '16px',
@@ -181,7 +181,7 @@ export default function Register() {
                     transition: 'color 0.2s',
                 }}
                 onMouseOver={(e) => e.currentTarget.style.color = '#ffffff'}
-                onMouseOut={(e) => e.currentTarget.style.color = '#a1a1aa'}
+                onMouseOut={(e) => e.currentTarget.style.color = 'var(--color-pg-text-secondary)'}
                 >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -204,7 +204,7 @@ export default function Register() {
                     </h1>
                     <p style={{
                         fontSize: '13px',
-                        color: '#a1a1aa',
+                        color: 'var(--color-pg-text-secondary)',
                         margin: 0,
                         lineHeight: '1.4',
                     }}>
@@ -215,7 +215,7 @@ export default function Register() {
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {/* Section: Company Details */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '20px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                        <h3 style={{ fontSize: '13.5px', fontWeight: 700, color: '#818cf8', margin: '0' }}>
+                        <h3 style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--color-pg-primary-hover)', margin: '0' }}>
                             {t.company_details}
                         </h3>
                         
@@ -224,7 +224,7 @@ export default function Register() {
                                 display: 'block',
                                 fontSize: '12px',
                                 fontWeight: 600,
-                                color: '#a1a1aa',
+                                color: 'var(--color-pg-text-secondary)',
                             }}>
                                 {t.company_name_label}
                             </label>
@@ -254,18 +254,18 @@ export default function Register() {
                                     transition: 'all 0.2s',
                                 }}
                                 onFocus={(e) => {
-                                    e.target.style.borderColor = '#6366f1';
+                                    e.target.style.borderColor = 'var(--color-pg-primary)';
                                     e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
                                 }}
                                 onBlur={(e) => {
-                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.target.style.borderColor = 'var(--color-pg-border)';
                                     e.target.style.boxShadow = 'none';
                                 }}
                                 placeholder={t.company_name_placeholder}
                                 required
                             />
                             {errors.company_name && (
-                                <span style={{ color: '#f87171', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                                <span style={{ color: 'var(--color-pg-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
                                     {errors.company_name}
                                 </span>
                             )}
@@ -276,7 +276,7 @@ export default function Register() {
                                 display: 'block',
                                 fontSize: '12px',
                                 fontWeight: 600,
-                                color: '#a1a1aa',
+                                color: 'var(--color-pg-text-secondary)',
                             }}>
                                 {t.slug_label}
                             </label>
@@ -303,21 +303,21 @@ export default function Register() {
                                     transition: 'all 0.2s',
                                 }}
                                 onFocus={(e) => {
-                                    e.target.style.borderColor = '#6366f1';
+                                    e.target.style.borderColor = 'var(--color-pg-primary)';
                                     e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
                                 }}
                                 onBlur={(e) => {
-                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.target.style.borderColor = 'var(--color-pg-border)';
                                     e.target.style.boxShadow = 'none';
                                 }}
                                 placeholder={t.slug_placeholder}
                                 required
                             />
-                            <span style={{ fontSize: '11px', color: '#71717a', lineHeight: '1.4' }}>
+                            <span style={{ fontSize: '11px', color: 'var(--color-pg-text-muted)', lineHeight: '1.4' }}>
                                 {t.slug_desc}
                             </span>
                             {errors.slug && (
-                                <span style={{ color: '#f87171', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                                <span style={{ color: 'var(--color-pg-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
                                     {errors.slug}
                                 </span>
                             )}
@@ -326,7 +326,7 @@ export default function Register() {
 
                     {/* Section: Admin Administrator Details */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <h3 style={{ fontSize: '13.5px', fontWeight: 700, color: '#818cf8', margin: '0' }}>
+                        <h3 style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--color-pg-primary-hover)', margin: '0' }}>
                             {t.admin_account}
                         </h3>
                         
@@ -335,7 +335,7 @@ export default function Register() {
                                 display: 'block',
                                 fontSize: '12px',
                                 fontWeight: 600,
-                                color: '#a1a1aa',
+                                color: 'var(--color-pg-text-secondary)',
                             }}>
                                 {t.full_name_label}
                             </label>
@@ -358,18 +358,18 @@ export default function Register() {
                                     transition: 'all 0.2s',
                                 }}
                                 onFocus={(e) => {
-                                    e.target.style.borderColor = '#6366f1';
+                                    e.target.style.borderColor = 'var(--color-pg-primary)';
                                     e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
                                 }}
                                 onBlur={(e) => {
-                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.target.style.borderColor = 'var(--color-pg-border)';
                                     e.target.style.boxShadow = 'none';
                                 }}
                                 placeholder={t.full_name_placeholder}
                                 required
                             />
                             {errors.name && (
-                                <span style={{ color: '#f87171', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                                <span style={{ color: 'var(--color-pg-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
                                     {errors.name}
                                 </span>
                             )}
@@ -380,7 +380,7 @@ export default function Register() {
                                 display: 'block',
                                 fontSize: '12px',
                                 fontWeight: 600,
-                                color: '#a1a1aa',
+                                color: 'var(--color-pg-text-secondary)',
                             }}>
                                 {t.email_label}
                             </label>
@@ -403,18 +403,18 @@ export default function Register() {
                                     transition: 'all 0.2s',
                                 }}
                                 onFocus={(e) => {
-                                    e.target.style.borderColor = '#6366f1';
+                                    e.target.style.borderColor = 'var(--color-pg-primary)';
                                     e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
                                 }}
                                 onBlur={(e) => {
-                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.target.style.borderColor = 'var(--color-pg-border)';
                                     e.target.style.boxShadow = 'none';
                                 }}
                                 placeholder={t.email_placeholder}
                                 required
                             />
                             {errors.email && (
-                                <span style={{ color: '#f87171', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                                <span style={{ color: 'var(--color-pg-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
                                     {errors.email}
                                 </span>
                             )}
@@ -425,7 +425,7 @@ export default function Register() {
                                 display: 'block',
                                 fontSize: '12px',
                                 fontWeight: 600,
-                                color: '#a1a1aa',
+                                color: 'var(--color-pg-text-secondary)',
                             }}>
                                 {t.password_label}
                             </label>
@@ -448,18 +448,18 @@ export default function Register() {
                                     transition: 'all 0.2s',
                                 }}
                                 onFocus={(e) => {
-                                    e.target.style.borderColor = '#6366f1';
+                                    e.target.style.borderColor = 'var(--color-pg-primary)';
                                     e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
                                 }}
                                 onBlur={(e) => {
-                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.target.style.borderColor = 'var(--color-pg-border)';
                                     e.target.style.boxShadow = 'none';
                                 }}
                                 placeholder="••••••••"
                                 required
                             />
                             {errors.password && (
-                                <span style={{ color: '#f87171', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                                <span style={{ color: 'var(--color-pg-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
                                     {errors.password}
                                 </span>
                             )}
@@ -470,7 +470,7 @@ export default function Register() {
                                 display: 'block',
                                 fontSize: '12px',
                                 fontWeight: 600,
-                                color: '#a1a1aa',
+                                color: 'var(--color-pg-text-secondary)',
                             }}>
                                 {t.confirm_password_label}
                             </label>
@@ -493,11 +493,11 @@ export default function Register() {
                                     transition: 'all 0.2s',
                                 }}
                                 onFocus={(e) => {
-                                    e.target.style.borderColor = '#6366f1';
+                                    e.target.style.borderColor = 'var(--color-pg-primary)';
                                     e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
                                 }}
                                 onBlur={(e) => {
-                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                    e.target.style.borderColor = 'var(--color-pg-border)';
                                     e.target.style.boxShadow = 'none';
                                 }}
                                 placeholder="••••••••"
@@ -559,8 +559,8 @@ export default function Register() {
                     marginTop: '24px',
                     fontSize: '13px',
                 }}>
-                    <span style={{ color: '#a1a1aa' }}>{t.already_have_account} </span>
-                    <Link href="/login" style={{ color: '#818cf8', textDecoration: 'none', fontWeight: 600 }}>
+                    <span style={{ color: 'var(--color-pg-text-secondary)' }}>{t.already_have_account} </span>
+                    <Link href="/login" style={{ color: 'var(--color-pg-primary-hover)', textDecoration: 'none', fontWeight: 600 }}>
                         {t.sign_in}
                     </Link>
                 </div>

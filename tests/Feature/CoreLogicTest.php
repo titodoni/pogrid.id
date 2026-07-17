@@ -2020,4 +2020,83 @@ class CoreLogicTest extends TestCase
             ->has('summary.item_breakdown')
         );
     }
+
+    public function test_worker_dashboard_items_sorted_by_po_urgency_and_deadline()
+    {
+        TenantManager::setTenantId($this->tenant1->id);
+
+        $worker = User::create([
+            'tenant_id' => $this->tenant1->id,
+            'name' => 'Floor Operator',
+            'role_id' => 3, // Machining
+            'post_id' => 4,
+            'pin' => bcrypt('1234'),
+        ]);
+
+        // PO 1: Normal, deadline in 10 days
+        $po1 = Po::create([
+            'po_number' => 'PO-NORMAL-10',
+            'client_name' => 'Client A',
+            'global_deadline' => now()->addDays(10),
+            'status' => 'PENDING',
+            'is_urgent' => false,
+        ]);
+        $item1 = Item::create([
+            'po_id' => $po1->id,
+            'item_name' => 'Normal Item 10',
+            'target_qty' => 5,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Machining'],
+            'status' => 'PENDING',
+        ]);
+
+        // PO 2: Normal, deadline in 2 days (should be ahead of PO 1 because of closer deadline)
+        $po2 = Po::create([
+            'po_number' => 'PO-NORMAL-2',
+            'client_name' => 'Client B',
+            'global_deadline' => now()->addDays(2),
+            'status' => 'PENDING',
+            'is_urgent' => false,
+        ]);
+        $item2 = Item::create([
+            'po_id' => $po2->id,
+            'item_name' => 'Normal Item 2',
+            'target_qty' => 5,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Machining'],
+            'status' => 'PENDING',
+        ]);
+
+        // PO 3: Urgent, deadline in 5 days (should be at the very top because it is URGENT, even though PO 2 has a closer deadline)
+        $po3 = Po::create([
+            'po_number' => 'PO-URGENT-5',
+            'client_name' => 'Client C',
+            'global_deadline' => now()->addDays(5),
+            'status' => 'PENDING',
+            'is_urgent' => true,
+        ]);
+        $item3 = Item::create([
+            'po_id' => $po3->id,
+            'item_name' => 'Urgent Item 5',
+            'target_qty' => 5,
+            'item_type' => 'MANUFACTURE',
+            'required_stages' => ['Machining'],
+            'status' => 'PENDING',
+        ]);
+
+        $response = $this->actingAs($worker)->get("/c/{$this->tenant1->slug}");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Worker/Dashboard')
+            ->has('items', 3)
+            // Urgent item first
+            ->where('items.0.item_name', 'Urgent Item 5')
+            // Then closer normal deadline
+            ->where('items.1.item_name', 'Normal Item 2')
+            // Then further normal deadline
+            ->where('items.2.item_name', 'Normal Item 10')
+        );
+    }
 }
+

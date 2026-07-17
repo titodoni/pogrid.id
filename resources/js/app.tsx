@@ -5,7 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import FlashMessages from './Components/FlashMessages';
-import './bootstrap';
+import { initializeEcho } from './bootstrap';
 
 const defaultLayout = (page: React.ReactNode) => (
     <>
@@ -22,6 +22,11 @@ createInertiaApp({
         return page;
     },
     setup({ el, App, props }) {
+        const pusherConfig = props.initialPage.props.pusher as { key: string; cluster: string } | undefined;
+        if (pusherConfig?.key) {
+            initializeEcho(pusherConfig.key, pusherConfig.cluster);
+        }
         createRoot(el).render(<App {...props} />);
     },
 });
+

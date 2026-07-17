@@ -169,10 +169,10 @@ interface PoItem {
 const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '10px 14px',
-    backgroundColor: '#0a0a0c',
+    backgroundColor: 'var(--color-pg-input)',
     border: '1px solid rgba(255,255,255,0.08)',
     borderRadius: '10px',
-    color: '#fafafa',
+    color: 'var(--color-pg-text)',
     fontSize: '14px',
     outline: 'none',
     boxSizing: 'border-box',
@@ -182,7 +182,7 @@ const inputStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
     display: 'block',
     fontSize: '13px',
-    color: '#a1a1aa',
+    color: 'var(--color-pg-text-secondary)',
     marginBottom: '6px',
     fontWeight: 600,
 };
@@ -374,10 +374,10 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
 
     if (auth_user?.is_owner) {
         return (
-            <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#fafafa', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-pg-bg)', color: 'var(--color-pg-text)', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ textAlign: 'center', maxWidth: '420px', padding: '40px 20px' }}>
                     <h1 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 12px 0' }}>{t.access_restricted}</h1>
-                    <p style={{ fontSize: '14px', color: '#71717a', margin: '0 0 24px 0' }}>
+                    <p style={{ fontSize: '14px', color: 'var(--color-pg-text-muted)', margin: '0 0 24px 0' }}>
                         {t.owner_restrict_desc}
                     </p>
                     <button onClick={goBack} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', border: 'none', color: '#fff', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 12px -2px rgba(99, 102, 241, 0.3)' }}>
@@ -389,12 +389,12 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
     }
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#09090b', color: '#fafafa', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-pg-bg)', color: 'var(--color-pg-text)', fontFamily: 'Inter, sans-serif' }}>
             {/* Header */}
             <header className="responsive-header" style={{
                 padding: '12px 16px',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                backgroundColor: '#09090b',
+                backgroundColor: 'var(--color-pg-bg)',
                 zIndex: 40,
             }}>
                 <button onClick={goBack} style={{
@@ -402,9 +402,9 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                     alignItems: 'center',
                     gap: '6px',
                     padding: '8px 12px',
-                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    backgroundColor: 'var(--color-pg-border-subtle)',
                     border: '1px solid rgba(255,255,255,0.08)',
-                    color: '#a1a1aa',
+                    color: 'var(--color-pg-text-secondary)',
                     borderRadius: '10px',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -445,7 +445,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                 {/* Title */}
                 <div style={{ marginBottom: '28px' }}>
                     <h1 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>{t.title}</h1>
-                    <p style={{ fontSize: '14px', color: '#71717a', margin: 0 }}>{t.subtitle}</p>
+                    <p style={{ fontSize: '14px', color: 'var(--color-pg-text-muted)', margin: 0 }}>{t.subtitle}</p>
                 </div>
 
                 {/* Draft restored indicator */}
@@ -460,7 +460,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                         alignItems: 'center',
                         justifyContent: 'space-between',
                     }}>
-                        <span style={{ color: '#34d399', fontSize: '14px', fontWeight: 600 }}>
+                        <span style={{ color: 'var(--color-pg-success)', fontSize: '14px', fontWeight: 600 }}>
                             {t.draft_restored}
                         </span>
                         <button
@@ -469,7 +469,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                             style={{
                                 background: 'none',
                                 border: 'none',
-                                color: '#34d399',
+                                color: 'var(--color-pg-success)',
                                 cursor: 'pointer',
                                 fontSize: '13px',
                                 fontWeight: 600,
@@ -485,14 +485,14 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                 {/* Repeat order shortcut */}
                 {recent_pos.length > 0 && (
                     <div style={{
-                        backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                        backgroundColor: 'var(--color-pg-primary-glow)',
                         border: '1px solid rgba(99, 102, 241, 0.2)',
                         borderRadius: '12px',
                         padding: '16px',
                         marginBottom: '24px',
                     }}>
-                        <label style={{ ...labelStyle, color: '#818cf8' }}>{t.repeat_order}</label>
-                        <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 10px 0' }}>{t.repeat_order_desc}</p>
+                        <label style={{ ...labelStyle, color: 'var(--color-pg-primary-hover)' }}>{t.repeat_order}</label>
+                        <p style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', margin: '0 0 10px 0' }}>{t.repeat_order_desc}</p>
                         <select
                             defaultValue=""
                             onChange={(e) => applyRepeatOrder(e.target.value)}
@@ -506,7 +506,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                             ))}
                         </select>
                         {repeatNotice && (
-                            <p style={{ fontSize: '13px', color: '#34d399', margin: '10px 0 0 0', fontWeight: 600 }}>
+                            <p style={{ fontSize: '13px', color: 'var(--color-pg-success)', margin: '10px 0 0 0', fontWeight: 600 }}>
                                 {repeatNotice}
                             </p>
                         )}
@@ -521,7 +521,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                         borderRadius: '12px',
                         padding: '16px',
                         marginBottom: '24px',
-                        color: '#f87171',
+                        color: 'var(--color-pg-danger)',
                     }}>
                         <h4 style={{ margin: '0 0 8px 0', fontWeight: 700 }}>Validation Error</h4>
                         <ul style={{ margin: 0, paddingLeft: '20px' }}>
@@ -578,7 +578,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                 padding: '10px 14px',
                                 backgroundColor: 'rgba(96, 165, 250, 0.1)',
                                 border: '1px solid rgba(96, 165, 250, 0.2)',
-                                color: '#60a5fa',
+                                color: 'var(--color-pg-accent)',
                                 borderRadius: '8px',
                                 fontSize: '13px',
                                 fontWeight: 600,
@@ -636,7 +636,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                 {/* Line Items */}
                 <div style={{ marginBottom: '24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#60a5fa', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.line_items}</h3>
+                        <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-pg-accent)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.line_items}</h3>
                         <button type="button" onClick={addItem} style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -644,7 +644,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                             padding: '8px 16px',
                             backgroundColor: 'rgba(99, 102, 241, 0.12)',
                             border: '1px solid rgba(99, 102, 241, 0.2)',
-                            color: '#818cf8',
+                            color: 'var(--color-pg-primary-hover)',
                             borderRadius: '10px',
                             fontSize: '13px',
                             fontWeight: 600,
@@ -670,7 +670,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                     right: '12px',
                                     backgroundColor: 'transparent',
                                     border: 'none',
-                                    color: '#f87171',
+                                    color: 'var(--color-pg-danger)',
                                     fontSize: '12px',
                                     fontWeight: 600,
                                     cursor: 'pointer',
@@ -689,14 +689,14 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                 marginBottom: '16px',
                             }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px' }}>{t.item_name}</label>
+                                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px' }}>{t.item_name}</label>
                                     <input type="text" value={item.item_name} onChange={(e) => updateItem(index, 'item_name', e.target.value)} required placeholder="e.g. Shaft Steel" style={{
                                         width: '100%',
                                         padding: '8px 12px',
-                                        backgroundColor: '#0a0a0c',
+                                        backgroundColor: 'var(--color-pg-input)',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '10px',
-                                        color: '#fafafa',
+                                        color: 'var(--color-pg-text)',
                                         fontSize: '13px',
                                         outline: 'none',
                                         boxSizing: 'border-box',
@@ -704,14 +704,14 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                     }} />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px' }}>{t.item_type}</label>
+                                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px' }}>{t.item_type}</label>
                                     <select value={item.item_type} onChange={(e) => updateItem(index, 'item_type', e.target.value)} style={{
                                         width: '100%',
                                         padding: '8px 12px',
-                                        backgroundColor: '#0a0a0c',
+                                        backgroundColor: 'var(--color-pg-input)',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '10px',
-                                        color: '#fafafa',
+                                        color: 'var(--color-pg-text)',
                                         fontSize: '13px',
                                         outline: 'none',
                                         minHeight: '40px',
@@ -722,14 +722,14 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                     </select>
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px' }}>{t.quantity}</label>
+                                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px' }}>{t.quantity}</label>
                                     <input type="number" min={1} value={item.target_qty} onChange={(e) => updateItem(index, 'target_qty', parseInt(e.target.value) || 1)} style={{
                                         width: '100%',
                                         padding: '8px 12px',
-                                        backgroundColor: '#0a0a0c',
+                                        backgroundColor: 'var(--color-pg-input)',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '10px',
-                                        color: '#fafafa',
+                                        color: 'var(--color-pg-text)',
                                         fontSize: '13px',
                                         outline: 'none',
                                         boxSizing: 'border-box',
@@ -737,7 +737,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                     }} />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>{t.stage_templates}</label>
+                                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '6px' }}>{t.stage_templates}</label>
                                     <div style={{
                                         display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '10px',
                                         padding: '6px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '10px',
@@ -757,7 +757,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                                         border: isActive ? '1px solid #818cf8' : '1px solid rgba(255,255,255,0.08)',
                                                         borderRadius: '6px',
                                                         backgroundColor: isActive ? 'rgba(99,102,241,0.2)' : 'transparent',
-                                                        color: isActive ? '#818cf8' : '#a1a1aa',
+                                                        color: isActive ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
                                                         cursor: 'pointer',
                                                     }}
                                                 >
@@ -767,7 +767,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                         })}
                                     </div>
 
-                                    <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px' }}>{t.stages}</label>
+                                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px' }}>{t.stages}</label>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
                                         {ALL_STAGES.map(stage => {
                                             const isStageDisabled = 
@@ -780,7 +780,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                                     alignItems: 'center', 
                                                     gap: '4px', 
                                                     fontSize: '12px', 
-                                                    color: isStageDisabled ? '#71717a' : '#e2e8f0', 
+                                                    color: isStageDisabled ? 'var(--color-pg-text-muted)' : '#e2e8f0', 
                                                     cursor: isStageDisabled ? 'not-allowed' : 'pointer',
                                                     opacity: isStageDisabled ? 0.5 : 1
                                                 }}>
@@ -813,14 +813,14 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                     borderTop: '1px solid rgba(255,255,255,0.05)',
                                 }}>
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px' }}>{t.vendor_name}</label>
+                                        <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px' }}>{t.vendor_name}</label>
                                         <input type="text" value={item.vendor_name || ''} onChange={(e) => updateItem(index, 'vendor_name', e.target.value)} placeholder={t.vendor_name} style={{
                                             width: '100%',
                                             padding: '8px 12px',
-                                            backgroundColor: '#0a0a0c',
+                                            backgroundColor: 'var(--color-pg-input)',
                                             border: '1px solid rgba(255,255,255,0.08)',
                                             borderRadius: '10px',
-                                            color: '#fafafa',
+                                            color: 'var(--color-pg-text)',
                                             fontSize: '13px',
                                             outline: 'none',
                                             boxSizing: 'border-box',
@@ -828,14 +828,14 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                         }} />
                                     </div>
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px' }}>{t.vendor_phone}</label>
+                                        <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px' }}>{t.vendor_phone}</label>
                                         <input type="text" value={item.vendor_phone || ''} onChange={(e) => updateItem(index, 'vendor_phone', e.target.value)} placeholder={t.vendor_phone} style={{
                                             width: '100%',
                                             padding: '8px 12px',
-                                            backgroundColor: '#0a0a0c',
+                                            backgroundColor: 'var(--color-pg-input)',
                                             border: '1px solid rgba(255,255,255,0.08)',
                                             borderRadius: '10px',
-                                            color: '#fafafa',
+                                            color: 'var(--color-pg-text)',
                                             fontSize: '13px',
                                             outline: 'none',
                                             boxSizing: 'border-box',
@@ -858,7 +858,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                 }}>
                     <button type="button" onClick={goBack} style={{
                         padding: '10px 20px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        backgroundColor: 'var(--color-pg-border-subtle)',
                         border: '1px solid rgba(255, 255, 255, 0.08)',
                         color: '#e2e8f0',
                         borderRadius: '8px',
@@ -906,7 +906,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                 <button type="button" onClick={goBack} style={{
                     flex: 1,
                     padding: '12px 16px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    backgroundColor: 'var(--color-pg-border-subtle)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
                     color: '#e2e8f0',
                     borderRadius: '8px',

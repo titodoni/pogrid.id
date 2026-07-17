@@ -108,9 +108,9 @@ export default function Archive({ items, auth_user, tenant }: Props) {
 
     return (
         <div className="dashboard-root" style={{
-            backgroundColor: '#09090b',
+            backgroundColor: 'var(--color-pg-bg)',
             fontFamily: 'Inter, sans-serif',
-            color: '#fafafa',
+            color: 'var(--color-pg-text)',
         }}>
             <header className="responsive-header" style={{
                 padding: '12px 16px',
@@ -120,11 +120,11 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                 flexShrink: 0,
             }}>
                 <div>
-                    <div className="greeting-name" style={{ fontSize: '13px', color: '#818cf8', fontWeight: 600, marginBottom: '2px' }}>
+                    <div className="greeting-name" style={{ fontSize: '13px', color: 'var(--color-pg-primary-hover)', fontWeight: 600, marginBottom: '2px' }}>
                         {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
                     </div>
                     <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.title}</h1>
-                    <p style={{ fontSize: '12px', color: '#71717a', margin: '2px 0 0 0' }}>
+                    <p style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', margin: '2px 0 0 0' }}>
                         {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         {' · '}
                         {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
@@ -136,7 +136,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                             onClick={() => changeLanguage('en')}
                             style={{
                                 padding: '4px 8px',
-                                backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
+                                backgroundColor: language === 'en' ? 'var(--color-pg-primary)' : 'transparent',
                                 border: 'none',
                                 borderRadius: '6px',
                                 color: '#fff',
@@ -151,7 +151,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                             onClick={() => changeLanguage('id')}
                             style={{
                                 padding: '4px 8px',
-                                backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
+                                backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
                                 border: 'none',
                                 borderRadius: '6px',
                                 color: '#fff',
@@ -169,7 +169,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                         style={{
                             padding: '8px',
                             backgroundColor: 'rgba(255,255,255,0.04)',
-                            color: '#a1a1aa',
+                            color: 'var(--color-pg-text-secondary)',
                             border: '1px solid rgba(255,255,255,0.06)',
                             borderRadius: '8px',
                             cursor: 'pointer',
@@ -187,7 +187,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                         onClick={() => router.post('/logout')}
                         style={{
                             padding: '8px 14px',
-                            backgroundColor: '#f87171',
+                            backgroundColor: 'var(--color-pg-danger)',
                             color: '#fff',
                             fontWeight: 600,
                             border: 'none',
@@ -213,7 +213,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '6px',
-                                color: '#818cf8',
+                                color: 'var(--color-pg-primary-hover)',
                                 fontSize: '13px',
                                 fontWeight: 600,
                                 textDecoration: 'none',
@@ -235,13 +235,13 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                         boxShadow: '0 4px 30px rgba(0, 0, 0, 0.5)',
                     }}>
                         <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px 0' }}>{t.title}</h2>
-                        <p style={{ fontSize: '13px', color: '#71717a', margin: '0 0 20px 0' }}>{t.subtitle}</p>
+                        <p style={{ fontSize: '13px', color: 'var(--color-pg-text-muted)', margin: '0 0 20px 0' }}>{t.subtitle}</p>
 
                         {items.length === 0 ? (
                             <div style={{
                                 textAlign: 'center',
                                 padding: '40px 20px',
-                                color: '#71717a',
+                                color: 'var(--color-pg-text-muted)',
                                 fontSize: '14px',
                                 border: '1px dashed rgba(255, 255, 255, 0.08)',
                                 borderRadius: '10px',
@@ -256,7 +256,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                                         <div
                                             key={item.id}
                                             style={{
-                                                backgroundColor: 'rgba(255,255,255,0.02)',
+                                                backgroundColor: 'var(--color-pg-border-subtle)',
                                                 border: '1px solid rgba(255,255,255,0.06)',
                                                 borderRadius: '12px',
                                                 padding: '14px 16px',
@@ -268,7 +268,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                                                         {item.item_name}
                                                     </h3>
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
-                                                        <span style={{ fontSize: '13px', color: '#818cf8', fontWeight: 700 }}>
+                                                        <span style={{ fontSize: '13px', color: 'var(--color-pg-primary-hover)', fontWeight: 700 }}>
                                                             {item.po?.client_name || 'N/A'}
                                                         </span>
                                                         <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -289,7 +289,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                                                         padding: '2px 6px',
                                                         borderRadius: '6px',
                                                         backgroundColor: 'rgba(52, 211, 153, 0.12)',
-                                                        color: '#34d399',
+                                                        color: 'var(--color-pg-success)',
                                                     }}>
                                                         {parseFloat(item.progress_percent).toFixed(0)}%
                                                     </span>
@@ -300,7 +300,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                                                             padding: '2px 6px',
                                                             borderRadius: '6px',
                                                             backgroundColor: 'rgba(99, 102, 241, 0.12)',
-                                                            color: '#818cf8',
+                                                            color: 'var(--color-pg-primary-hover)',
                                                         }}>
                                                             {t.delivered}
                                                         </span>
@@ -309,13 +309,13 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                                             </div>
 
                                             <div style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
-                                                <div style={{ fontSize: '11px', color: '#a1a1aa' }}>
+                                                <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>
                                                     {t.qty}: <strong style={{ color: '#e4e4e7' }}>{item.target_qty} pcs</strong>
                                                 </div>
-                                                <div style={{ fontSize: '11px', color: '#a1a1aa' }}>
+                                                <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>
                                                     {t.completed}: <strong style={{ color: '#e4e4e7' }}>{sc.completed}/{sc.total} stages</strong>
                                                 </div>
-                                                <div style={{ fontSize: '11px', color: '#a1a1aa' }}>
+                                                <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>
                                                     {formatDeadline(item.po?.global_deadline, language)}
                                                 </div>
                                                 <span style={{
@@ -324,7 +324,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                                                     padding: '2px 6px',
                                                     borderRadius: '4px',
                                                     backgroundColor: 'rgba(255,255,255,0.06)',
-                                                    color: '#a1a1aa',
+                                                    color: 'var(--color-pg-text-secondary)',
                                                 }}>
                                                     {item.item_type === 'MANUFACTURE' ? t.manufactured : t.buyout}
                                                 </span>

@@ -257,7 +257,33 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
     const [currentTime, setCurrentTime] = useState(new Date());
     const [activeTab, setActiveTab] = useState<TabKey>('schedule');
 
+    const [editingPo, setEditingPo] = useState<ScheduleEntry | null>(null);
+    const [deadlineVal, setDeadlineVal] = useState<string>('');
+    const [isUrgentVal, setIsUrgentVal] = useState<boolean>(false);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
+
     const t = translations[language];
+
+    const handleSavePo = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingPo) return;
+
+        setIsSaving(true);
+        router.post(`/c/${slug}/ppic/pos/${editingPo.id}/update`, {
+            global_deadline: deadlineVal,
+            is_urgent: isUrgentVal,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                setEditingPo(null);
+                setIsSaving(false);
+            },
+            onError: () => {
+                setIsSaving(false);
+            }
+        });
+    };
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 30000);
@@ -414,13 +440,135 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
 
             {/* Content Area */}
             <div className="dashboard-scroll" style={{ padding: '12px' }}>
-                {activeTab === 'schedule' && <ScheduleTab schedule={schedule} language={language} t={t as any} />}
+                {activeTab === 'schedule' && (
+                    <ScheduleTab 
+                        schedule={schedule} 
+                        language={language} 
+                        t={t as any} 
+                        slug={slug}
+                        onEditPo={(po) => {
+                            setEditingPo(po);
+                            setDeadlineVal(po.global_deadline);
+                            setIsUrgentVal(po.is_urgent);
+                        }}
+                    />
+                )}
                 {activeTab === 'load' && <LoadTab workCenterLoad={work_center_load} language={language} t={t as any} />}
                 {activeTab === 'material' && <MaterialTab readiness={material_readiness} language={language} t={t as any} />}
                 {activeTab === 'bottlenecks' && <BottlenecksTab bottlenecks={bottlenecks} language={language} t={t as any} />}
                 {activeTab === 'forecast' && <ForecastTab forecast={delivery_forecast} language={language} t={t as any} />}
                 {activeTab === 'capacity' && <CapacityTab capacities={capacity_view} language={language} t={t as any} />}
             </div>
+
+            {/* Modal for PO Rescheduling */}
+            {editingPo && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(9, 9, 11, 0.85)',
+                    backdropFilter: 'blur(8px)',
+                    zIndex: 50,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '16px',
+                }}>
+                    <div style={{
+                        backgroundColor: '#18181b',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '12px',
+                        width: '100%',
+                        maxWidth: '450px',
+                        padding: '20px',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)',
+                    }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#f4f4f5', margin: '0 0 4px 0' }}>
+                            {language === 'en' ? 'Reschedule PO' : 'Jadwal Ulang PO'}
+                        </h3>
+                        <p style={{ fontSize: '12px', color: '#a1a1aa', margin: '0 0 16px 0' }}>
+                            {editingPo.po_number} · {editingPo.client_name}
+                        </p>
+
+                        <form onSubmit={handleSavePo}>
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase', marginBottom: '6px' }}>
+                                    {language === 'en' ? 'Global Deadline' : 'Batas Waktu Global'}
+                                </label>
+                                <input 
+                                    type="date" 
+                                    value={deadlineVal} 
+                                    onChange={(e) => setDeadlineVal(e.target.value)}
+                                    required
+                                    style={{
+                                        width: '100%',
+                                        backgroundColor: '#09090b',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '8px',
+                                        color: '#fafafa',
+                                        padding: '10px 12px',
+                                        fontSize: '14px',
+                                        outline: 'none',
+                                    }}
+                                />
+                            </div>
+
+                            <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <input 
+                                    type="checkbox" 
+                                    id="is_urgent_checkbox"
+                                    checked={isUrgentVal}
+                                    onChange={(e) => setIsUrgentVal(e.target.checked)}
+                                    style={{
+                                        width: '18px',
+                                        height: '18px',
+                                        cursor: 'pointer',
+                                    }}
+                                />
+                                <label htmlFor="is_urgent_checkbox" style={{ fontSize: '13px', fontWeight: 600, color: '#fafafa', cursor: 'pointer', userSelect: 'none' }}>
+                                    {language === 'en' ? 'Mark PO as Urgent' : 'Tandai PO Urgen'}
+                                </label>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                <button 
+                                    type="button" 
+                                    onClick={() => setEditingPo(null)}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                                        backgroundColor: 'transparent',
+                                        color: '#a1a1aa',
+                                        fontWeight: 700,
+                                        fontSize: '12px',
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    {language === 'en' ? 'Cancel' : 'Batal'}
+                                </button>
+                                <button 
+                                    type="submit"
+                                    disabled={isSaving}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        border: 'none',
+                                        backgroundColor: '#6366f1',
+                                        color: '#ffffff',
+                                        fontWeight: 700,
+                                        fontSize: '12px',
+                                        cursor: isSaving ? 'not-allowed' : 'pointer',
+                                        opacity: isSaving ? 0.7 : 1,
+                                        boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
+                                    }}
+                                >
+                                    {isSaving ? (language === 'en' ? 'Saving...' : 'Menyimpan...') : (language === 'en' ? 'Save Changes' : 'Simpan Perubahan')}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -434,7 +582,7 @@ function KpiCard({ value, label, color, bgColor, borderColor }: { value: number;
     );
 }
 
-function ScheduleTab({ schedule, language, t }: { schedule: ScheduleEntry[]; language: 'en' | 'id'; t: Record<string, string> }) {
+function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: ScheduleEntry[]; language: 'en' | 'id'; t: Record<string, string>; onEditPo: (po: ScheduleEntry) => void; slug: string }) {
     if (schedule.length === 0) {
         return <p style={{ color: '#71717a', padding: '24px', textAlign: 'center', fontSize: '14px' }}>{t.no_data}</p>;
     }
@@ -455,9 +603,35 @@ function ScheduleTab({ schedule, language, t }: { schedule: ScheduleEntry[]; lan
                             </div>
                             <div style={{ fontSize: '11px', fontWeight: 600, color: '#71717a', marginTop: '2px' }}>{po.po_number}</div>
                         </div>
-                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                            <WarningPill deadlineDateStr={po.global_deadline} reworkMessage={null} lang={language} />
-                            <div style={{ fontSize: '11px', color: '#71717a', marginTop: '2px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <button 
+                                    onClick={() => onEditPo(po)}
+                                    title={language === 'en' ? 'Reschedule PO' : 'Jadwal Ulang PO'}
+                                    style={{
+                                        border: 'none',
+                                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                        color: '#a1a1aa',
+                                        padding: '4px 6px',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        fontSize: '10px',
+                                        fontWeight: 700,
+                                    }}
+                                    onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.15)'; e.currentTarget.style.color = '#818cf8'; }}
+                                    onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'; e.currentTarget.style.color = '#a1a1aa'; }}
+                                >
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                                    </svg>
+                                    {language === 'en' ? 'Reschedule' : 'Jadwal'}
+                                </button>
+                                <WarningPill deadlineDateStr={po.global_deadline} reworkMessage={null} lang={language} />
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#71717a' }}>
                                 {po.completed_items}/{po.total_items} {t.items.toLowerCase()}
                             </div>
                         </div>
@@ -478,10 +652,40 @@ function ScheduleTab({ schedule, language, t }: { schedule: ScheduleEntry[]; lan
                         <div key={item.id} style={{
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                             padding: '6px 8px', marginTop: '4px',
-                            backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '6px',
+                            backgroundColor: item.is_urgent ? 'rgba(251, 146, 60, 0.04)' : 'rgba(255,255,255,0.02)',
+                            borderRadius: '6px',
                             fontSize: '12px',
+                            border: item.is_urgent ? '1px solid rgba(251, 146, 60, 0.15)' : 'none',
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1 }}>
+                                <button
+                                    onClick={() => router.post(`/c/${slug}/ppic/items/${item.id}/priority`, {
+                                        is_urgent: !item.is_urgent,
+                                    }, { preserveState: true, preserveScroll: true })}
+                                    title={item.is_urgent
+                                        ? (language === 'en' ? 'Remove Urgent' : 'Hapus Urgen')
+                                        : (language === 'en' ? 'Mark Urgent' : 'Tandai Urgen')}
+                                    style={{
+                                        border: 'none',
+                                        background: 'none',
+                                        cursor: 'pointer',
+                                        padding: '2px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        color: item.is_urgent ? '#fb923c' : '#52525b',
+                                        fontSize: '14px',
+                                        flexShrink: 0,
+                                        transition: 'color 0.2s',
+                                    }}
+                                    onMouseOver={(e) => { if (!item.is_urgent) e.currentTarget.style.color = '#fb923c'; }}
+                                    onMouseOut={(e) => { if (!item.is_urgent) e.currentTarget.style.color = '#52525b'; }}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill={item.is_urgent ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                                        <line x1="12" y1="9" x2="12" y2="13" />
+                                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                                    </svg>
+                                </button>
                                 <span style={{ color: '#fafafa', fontWeight: 600, wordBreak: 'break-word' }}>{item.item_name}</span>
                                 {item.current_stage && (
                                     <span style={{

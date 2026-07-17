@@ -20,7 +20,7 @@ class WorkerAuthController extends Controller
 
         $workers = User::where('tenant_id', $tenant->id)
             ->whereNotNull('pin')
-            ->with('roleRelation:id,name', 'postRelation:id,name')
+            ->with('roleRelation:id,name,display_name,display_name_id', 'postRelation:id,name,display_name,display_name_id')
             ->get(['id', 'name', 'role_id', 'post_id']);
 
         return Inertia::render('Worker/Login', [

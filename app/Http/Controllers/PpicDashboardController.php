@@ -95,6 +95,7 @@ class PpicDashboardController extends Controller
                     'delivered_qty' => (int) $item->delivered_qty,
                     'has_alert' => $hasAlert,
                     'severity' => $hasRed ? 'RED' : ($hasYellow ? 'YELLOW' : null),
+                    'is_urgent' => (bool) $item->is_urgent,
                 ];
             }
 
@@ -355,4 +356,55 @@ class PpicDashboardController extends Controller
 
         return $capacities;
     }
+
+    public function updatePo(Request $request, $slug, $poId)
+    {
+        $request->validate([
+            'global_deadline' => ['required', 'date'],
+            'is_urgent' => ['required', 'boolean'],
+        ]);
+
+        TenantManager::bypass();
+        $tenant = Tenant::where('slug', $slug)->firstOrFail();
+        $po = Po::where('id', $poId)->where('tenant_id', $tenant->id)->firstOrFail();
+        TenantManager::enableScope();
+        TenantManager::setTenantId($tenant->id);
+
+        $po->update([
+            'global_deadline' => Carbon::parse($request->global_deadline),
+            'is_urgent' => (bool)$request->is_urgent,
+        ]);
+
+        return back()->with('flash', [
+            'success' => 'po_updated_successfully',
+        ]);
+    }
+
+    public function updateItemPriority(Request $request, $slug, $itemId)
+    {
+        $request->validate([
+            'is_urgent' => ['required', 'boolean'],
+        ]);
+
+        TenantManager::bypass();
+        $tenant = Tenant::where('slug', $slug)->firstOrFail();
+        $item = Item::where('id', $itemId)->firstOrFail();
+
+        // Safety check to ensure item belongs to current tenant PO
+        if ($item->po->tenant_id !== $tenant->id) {
+            abort(403);
+        }
+
+        TenantManager::enableScope();
+        TenantManager::setTenantId($tenant->id);
+
+        $item->update([
+            'is_urgent' => (bool)$request->is_urgent,
+        ]);
+
+        return back()->with('flash', [
+            'success' => 'item_priority_updated_successfully',
+        ]);
+    }
 }
+

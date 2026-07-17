@@ -30,6 +30,7 @@ class Item extends Model
         'drafter_status',
         'delivery_status',
         'invoiced_qty',
+        'is_urgent',
     ];
 
     protected $casts = [
@@ -38,6 +39,7 @@ class Item extends Model
         'purchasing_status' => 'string',
         'drafter_status' => 'string',
         'invoiced_qty' => 'integer',
+        'is_urgent' => 'boolean',
     ];
 
     protected $appends = ['delivered_qty'];

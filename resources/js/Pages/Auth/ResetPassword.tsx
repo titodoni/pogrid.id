@@ -63,7 +63,7 @@ export default function ResetPassword({ token }: Props) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#09090b',
+            backgroundColor: 'var(--color-pg-bg)',
             backgroundImage: 'radial-gradient(circle at top, rgba(99, 102, 241, 0.08) 0%, transparent 60%)',
             padding: '16px',
             position: 'relative',
@@ -77,7 +77,7 @@ export default function ResetPassword({ token }: Props) {
                 display: 'inline-flex',
                 borderRadius: '8px',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                backgroundColor: 'var(--color-pg-border-subtle)',
                 padding: '2px',
                 zIndex: 10,
             }}>
@@ -91,8 +91,8 @@ export default function ResetPassword({ token }: Props) {
                         cursor: 'pointer',
                         fontSize: '11px',
                         fontWeight: 600,
-                        backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
-                        color: language === 'en' ? '#ffffff' : '#a1a1aa',
+                        backgroundColor: language === 'en' ? 'var(--color-pg-primary)' : 'transparent',
+                        color: language === 'en' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                         transition: 'all 0.2s',
                     }}
                 >
@@ -108,8 +108,8 @@ export default function ResetPassword({ token }: Props) {
                         cursor: 'pointer',
                         fontSize: '11px',
                         fontWeight: 600,
-                        backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
-                        color: language === 'id' ? '#ffffff' : '#a1a1aa',
+                        backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
+                        color: language === 'id' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                         transition: 'all 0.2s',
                     }}
                 >
@@ -135,7 +135,7 @@ export default function ResetPassword({ token }: Props) {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '4px',
-                    color: '#a1a1aa',
+                    color: 'var(--color-pg-text-secondary)',
                     textDecoration: 'none',
                     fontSize: '13px',
                     marginBottom: '16px',
@@ -143,7 +143,7 @@ export default function ResetPassword({ token }: Props) {
                     transition: 'color 0.2s',
                 }}
                 onMouseOver={(e) => e.currentTarget.style.color = '#ffffff'}
-                onMouseOut={(e) => e.currentTarget.style.color = '#a1a1aa'}
+                onMouseOut={(e) => e.currentTarget.style.color = 'var(--color-pg-text-secondary)'}
                 >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -166,7 +166,7 @@ export default function ResetPassword({ token }: Props) {
                     </h1>
                     <p style={{
                         fontSize: '13px',
-                        color: '#a1a1aa',
+                        color: 'var(--color-pg-text-secondary)',
                         margin: 0,
                         lineHeight: '1.4',
                     }}>
@@ -182,7 +182,7 @@ export default function ResetPassword({ token }: Props) {
                             display: 'block',
                             fontSize: '12px',
                             fontWeight: 600,
-                            color: '#a1a1aa',
+                            color: 'var(--color-pg-text-secondary)',
                         }}>
                             {t.email_label}
                         </label>
@@ -206,18 +206,18 @@ export default function ResetPassword({ token }: Props) {
                                 transition: 'all 0.2s',
                             }}
                             onFocus={(e) => {
-                                e.target.style.borderColor = '#6366f1';
+                                e.target.style.borderColor = 'var(--color-pg-primary)';
                                 e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
                             }}
                             onBlur={(e) => {
-                                e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                e.target.style.borderColor = 'var(--color-pg-border)';
                                 e.target.style.boxShadow = 'none';
                             }}
                             placeholder={t.email_placeholder}
                             required
                         />
                         {errors.email && (
-                            <span style={{ color: '#f87171', fontSize: '11px', marginTop: '6px', display: 'block' }}>
+                            <span style={{ color: 'var(--color-pg-danger)', fontSize: '11px', marginTop: '6px', display: 'block' }}>
                                 {errors.email}
                             </span>
                         )}
@@ -228,7 +228,7 @@ export default function ResetPassword({ token }: Props) {
                             display: 'block',
                             fontSize: '12px',
                             fontWeight: 600,
-                            color: '#a1a1aa',
+                            color: 'var(--color-pg-text-secondary)',
                         }}>
                             {t.password_label}
                         </label>
@@ -252,18 +252,18 @@ export default function ResetPassword({ token }: Props) {
                                 transition: 'all 0.2s',
                             }}
                             onFocus={(e) => {
-                                e.target.style.borderColor = '#6366f1';
+                                e.target.style.borderColor = 'var(--color-pg-primary)';
                                 e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
                             }}
                             onBlur={(e) => {
-                                e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                e.target.style.borderColor = 'var(--color-pg-border)';
                                 e.target.style.boxShadow = 'none';
                             }}
                             placeholder="••••••••"
                             required
                         />
                         {errors.password && (
-                            <span style={{ color: '#f87171', fontSize: '11px', marginTop: '6px', display: 'block' }}>
+                            <span style={{ color: 'var(--color-pg-danger)', fontSize: '11px', marginTop: '6px', display: 'block' }}>
                                 {errors.password}
                             </span>
                         )}
@@ -274,7 +274,7 @@ export default function ResetPassword({ token }: Props) {
                             display: 'block',
                             fontSize: '12px',
                             fontWeight: 600,
-                            color: '#a1a1aa',
+                            color: 'var(--color-pg-text-secondary)',
                         }}>
                             {t.confirm_password_label}
                         </label>
@@ -298,18 +298,18 @@ export default function ResetPassword({ token }: Props) {
                                 transition: 'all 0.2s',
                             }}
                             onFocus={(e) => {
-                                e.target.style.borderColor = '#6366f1';
+                                e.target.style.borderColor = 'var(--color-pg-primary)';
                                 e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
                             }}
                             onBlur={(e) => {
-                                e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                e.target.style.borderColor = 'var(--color-pg-border)';
                                 e.target.style.boxShadow = 'none';
                             }}
                             placeholder="••••••••"
                             required
                         />
                         {errors.password_confirmation && (
-                            <span style={{ color: '#f87171', fontSize: '11px', marginTop: '6px', display: 'block' }}>
+                            <span style={{ color: 'var(--color-pg-danger)', fontSize: '11px', marginTop: '6px', display: 'block' }}>
                                 {errors.password_confirmation}
                             </span>
                         )}
@@ -367,7 +367,7 @@ export default function ResetPassword({ token }: Props) {
                     marginTop: '24px',
                     fontSize: '13px',
                 }}>
-                    <Link href="/login" style={{ color: '#818cf8', textDecoration: 'none', fontWeight: 600 }}>
+                    <Link href="/login" style={{ color: 'var(--color-pg-primary-hover)', textDecoration: 'none', fontWeight: 600 }}>
                         {t.back_to_login}
                     </Link>
                 </div>
