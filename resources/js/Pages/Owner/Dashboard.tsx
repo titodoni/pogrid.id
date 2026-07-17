@@ -664,8 +664,30 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
     const [presentationSlide, setPresentationSlide] = useState(0);
     const [presentationAutoPlay, setPresentationAutoPlay] = useState(false);
     const [matrixFilter, setMatrixFilter] = useState<{ type: string; value: string; label: string } | null>(null);
+    const [exportOpen, setExportOpen] = useState(false);
     const [directoryFilter, setDirectoryFilter] = useState<'client' | 'marked' | 'delayed' | 'ontime' | 'close_due'>('client');
     const [activePoFilter, setActivePoFilter] = useState<'all' | 'marked' | 'delayed' | 'ontime' | 'close_due'>('all');
+    const [clientSort, setClientSort] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'active_pos', direction: 'desc' });
+    const [bottleneckSort, setBottleneckSort] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'stuck_count', direction: 'desc' });
+
+    const handleClientSort = (key: string) => {
+        setClientSort(prev => {
+            if (prev.key === key) {
+                return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+            }
+            return { key, direction: 'desc' };
+        });
+    };
+
+    const handleBottleneckSort = (key: string) => {
+        setBottleneckSort(prev => {
+            if (prev.key === key) {
+                return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+            }
+            return { key, direction: 'desc' };
+        });
+    };
+
     const [currentTime, setCurrentTime] = useState(new Date());
     const [toastQueue, setToastQueue] = useState<Array<{ message: string; severity: string; id: number; timestamp: number }>>([]);
 
@@ -673,6 +695,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
         const timer = setInterval(() => setCurrentTime(new Date()), 30000);
         return () => clearInterval(timer);
     }, []);
+
+    useEffect(() => {
+        setMatrixFilter(null);
+    }, [selected_range]);
 
     useEffect(() => {
         const tenantId = (tenant as any)?.id;
@@ -1604,77 +1630,286 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                 </Link>
             </div>
 
-            {/* State Summary Bar — compact */}
-            <div style={{
-                display: 'flex',
-                gap: '4px',
-                marginBottom: '0',
-                flexWrap: 'wrap'
-            }}>
-                {(() => {
-                    const issues = getUnifiedIssuesList();
-                    const delayed = issues.filter(i => i.type === 'DELAYED').length;
-                    const close = issues.filter(i => i.type === 'URGENT').length;
-                    const reworks = issues.filter(i => i.type === 'REWORK').length;
-                    const troubles = issues.filter(i => i.type === 'TROUBLE' || i.type === 'STUCK').length;
-                    const total = issues.length;
-                    return (
-                        <>
-                            <button
-                                onClick={() => changeTab('alerts')}
-                                className="summary-pill summary-pill-gray"
-                            >
-                                {total} {language === 'en' ? 'Issues' : 'Isu'}
-                            </button>
-                            {delayed > 0 && (
-                                <button
-                                    onClick={() => {
-                                        changeTab('active');
-                                        setActivePoFilter('delayed');
-                                    }}
-                                    className="summary-pill summary-pill-red"
-                                >
-                                    {delayed} {language === 'en' ? 'Delayed' : 'Terlambat'}
-                                </button>
-                            )}
-                            {close > 0 && (
-                                <button
-                                    onClick={() => {
-                                        changeTab('active');
-                                        setActivePoFilter('close_due');
-                                    }}
-                                    className="summary-pill summary-pill-orange"
-                                >
-                                    {close} {language === 'en' ? 'Closing' : 'Dekat'}
-                                </button>
-                            )}
-                            {reworks > 0 && (
-                                <button
-                                    onClick={() => {
-                                        changeTab('active');
-                                        setActivePoFilter('marked');
-                                    }}
-                                    className="summary-pill summary-pill-orange"
-                                >
-                                    {reworks} Rework
-                                </button>
-                            )}
-                            {troubles > 0 && (
-                                <button
-                                    onClick={() => changeTab('alerts')}
-                                    className="summary-pill summary-pill-red"
-                                >
-                                    {troubles} {language === 'en' ? 'Stuck' : 'Macet'}
-                                </button>
-                            )}
-                        </>
-                    );
-                })()}
-            </div>
+            {/* Removed State Summary Bar from sticky header */}
             </div>
             </div>
 
             <div className="dashboard-scroll" style={{ padding: '16px' }}>
+                {/* Premium Card Summary Section based on prior web app layout */}
+                {(activeTab === 'alerts' || activeTab === 'active' || activeTab === 'completed') && (() => {
+                    const activePOs = pos.filter(po => po.status !== 'COMPLETED' && po.status !== 'DELIVERED' && po.status !== 'CLOSED');
+                    const overduePOs = activePOs.filter(po => {
+                        const { diffDays } = calculateDeadlineDiff(po.global_deadline);
+                        return diffDays < 0;
+                    });
+                    const overdueCount = overduePOs.length;
+
+                    const nearDeadlinePOs = activePOs.filter(po => {
+                        const { diffDays } = calculateDeadlineDiff(po.global_deadline);
+                        return diffDays >= 0 && diffDays <= 3;
+                    });
+                    const nearDeadlineCount = nearDeadlinePOs.length;
+
+                    const openTroublesCount = alerts.length;
+
+                    const completedPOs = pos.filter(po => po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED');
+                    const completedInRange = completedPOs.filter(po => {
+                        if (!po.updated_at) return false;
+                        const compDate = new Date(po.updated_at);
+                        const today = new Date();
+                        if (selected_range === 'week') {
+                            const sevenDaysAgo = new Date();
+                            sevenDaysAgo.setDate(today.getDate() - 7);
+                            return compDate >= sevenDaysAgo;
+                        } else if (selected_range === 'year') {
+                            return compDate.getFullYear() === today.getFullYear();
+                        } else { // month
+                            return compDate.getMonth() === today.getMonth() && compDate.getFullYear() === today.getFullYear();
+                        }
+                    });
+                    const completedCount = completedInRange.length;
+
+                    const avgDelayDays = overdueCount > 0 
+                        ? Math.round(overduePOs.reduce((sum, po) => sum + Math.abs(calculateDeadlineDiff(po.global_deadline).diffDays), 0) / overdueCount) 
+                        : 0;
+
+                    const worstDelayDays = overdueCount > 0 
+                        ? Math.max(...overduePOs.map(po => Math.abs(calculateDeadlineDiff(po.global_deadline).diffDays))) 
+                        : 0;
+
+                    const prev = (telemetry?.previous || {}) as any;
+                    const otdrDelta: number | null = (telemetry && prev?.otdr != null)
+                        ? Math.round((telemetry.otdr - prev.otdr) * 10) / 10
+                        : null;
+
+                    const renderSummaryCard = (
+                        title: string,
+                        value: number | string,
+                        subtitle: string,
+                        accentColor: string,
+                        onClick: () => void,
+                        isActive: boolean
+                    ) => {
+                        return (
+                            <div
+                                onClick={onClick}
+                                style={{
+                                    backgroundColor: 'var(--color-pg-card)',
+                                    border: isActive ? `1.5px solid ${accentColor}` : '1px solid var(--color-pg-border)',
+                                    borderTop: `4px solid ${accentColor}`,
+                                    borderRadius: '12px',
+                                    padding: '16px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    position: 'relative',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: isActive ? `0 0 10px ${accentColor}30` : 'none',
+                                    transform: isActive ? 'translateY(-2px)' : 'none',
+                                }}
+                                className="hover-grow"
+                            >
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '16px',
+                                    right: '16px',
+                                    color: 'var(--color-pg-text-secondary)',
+                                    fontSize: '14px',
+                                    opacity: 0.6,
+                                }}>
+                                    →
+                                </div>
+                                <div style={{
+                                    fontSize: '32px',
+                                    fontWeight: 800,
+                                    color: 'var(--color-pg-text)',
+                                    lineHeight: 1.1,
+                                    marginBottom: '4px',
+                                }}>
+                                    {value}
+                                </div>
+                                <div style={{
+                                    fontSize: '14px',
+                                    fontWeight: 700,
+                                    color: 'var(--color-pg-text)',
+                                    marginBottom: '2px',
+                                }}>
+                                    {title}
+                                </div>
+                                <div style={{
+                                    fontSize: '11px',
+                                    color: 'var(--color-pg-text-secondary)',
+                                    lineHeight: 1.3,
+                                }}>
+                                    {subtitle}
+                                </div>
+                            </div>
+                        );
+                    };
+
+                    return (
+                        <div style={{ marginBottom: '24px' }}>
+                            {/* Filter and OTDR row */}
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '16px',
+                                flexWrap: 'wrap',
+                                gap: '12px'
+                            }}>
+                                <div style={{ display: 'flex', gap: '8px', backgroundColor: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                    {['month', 'week', 'year'].map(r => (
+                                        <button
+                                            key={r}
+                                            onClick={() => handleRangeChange(r)}
+                                            style={{
+                                                padding: '6px 12px',
+                                                backgroundColor: selected_range === r ? 'var(--color-pg-primary)' : 'transparent',
+                                                color: selected_range === r ? '#fff' : 'var(--color-pg-text-secondary)',
+                                                border: 'none',
+                                                borderRadius: '6px',
+                                                fontWeight: 600,
+                                                fontSize: '12px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease',
+                                            }}
+                                        >
+                                            {r === 'week' ? (language === 'id' ? '7 Hari' : '7 Days') : r === 'month' ? (language === 'id' ? 'Bulan Ini' : 'This Month') : (language === 'id' ? 'Semua' : 'All')}
+                                        </button>
+                                    ))}
+                                </div>
+                                {telemetry && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                        <div style={{ fontSize: '24px', fontWeight: 800, color: telemetry.otdr >= 80 ? 'var(--color-pg-success)' : telemetry.otdr >= 60 ? 'var(--color-pg-warning)' : '#ef4444' }}>
+                                            {telemetry.otdr}%
+                                        </div>
+                                        {otdrDelta !== null && (
+                                            <div style={{ fontSize: '11px', fontWeight: 700, color: otdrDelta >= 0 ? 'var(--color-pg-success)' : '#ef4444' }}>
+                                                {otdrDelta >= 0 ? '▲ +' : '▼ '}{otdrDelta}% <span style={{ color: 'var(--color-pg-text-muted)', fontWeight: 400 }}>{language === 'id' ? 'vs periode lalu' : 'vs last period'}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 4 Cards Grid */}
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                gap: '14px',
+                                marginBottom: '16px'
+                            }}>
+                                {renderSummaryCard(
+                                    language === 'id' ? 'Terlambat' : 'Overdue',
+                                    overdueCount,
+                                    language === 'id' ? 'PO melewati deadline' : 'POs past deadline',
+                                    '#ef4444',
+                                    () => {
+                                        changeTab('active');
+                                        setActivePoFilter('delayed');
+                                    },
+                                    activeTab === 'active' && activePoFilter === 'delayed'
+                                )}
+
+                                {renderSummaryCard(
+                                    language === 'id' ? 'Deadline Dekat' : 'Near Deadline',
+                                    nearDeadlineCount,
+                                    language === 'id' ? '≤ 3 hari lagi' : '≤ 3 days left',
+                                    '#f97316',
+                                    () => {
+                                        changeTab('active');
+                                        setActivePoFilter('close_due');
+                                    },
+                                    activeTab === 'active' && activePoFilter === 'close_due'
+                                )}
+
+                                {renderSummaryCard(
+                                    language === 'id' ? 'Masalah Terbuka' : 'Open Troubles',
+                                    openTroublesCount,
+                                    language === 'id' ? 'Belum terselesaikan' : 'Unresolved issues',
+                                    '#fbbf24',
+                                    () => {
+                                        changeTab('alerts');
+                                    },
+                                    activeTab === 'alerts'
+                                )}
+
+                                {renderSummaryCard(
+                                    language === 'id' ? 'Selesai' : 'Completed',
+                                    completedCount,
+                                    language === 'id' ? (selected_range === 'week' ? 'Selesai 7 hari ini' : selected_range === 'year' ? 'Selesai tahun ini' : 'Selesai bulan ini') : (selected_range === 'week' ? 'Done this week' : selected_range === 'year' ? 'Done this year' : 'Done this month'),
+                                    '#10b981',
+                                    () => {
+                                        changeTab('completed');
+                                    },
+                                    activeTab === 'completed'
+                                )}
+                            </div>
+
+                            {/* Horizontal Stats Bar */}
+                            <div style={{
+                                backgroundColor: 'var(--color-pg-card)',
+                                border: '1px solid var(--color-pg-border)',
+                                borderRadius: '12px',
+                                padding: '16px 20px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                flexWrap: 'wrap',
+                                gap: '20px'
+                            }}>
+                                {/* Average Delay */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 200px' }}>
+                                    <div style={{
+                                        width: '40px',
+                                        height: '40px',
+                                        borderRadius: '50%',
+                                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#ef4444',
+                                        flexShrink: 0,
+                                    }}>
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="12" cy="12" r="10" />
+                                            <polyline points="12 6 12 12 16 14" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', fontWeight: 500 }}>
+                                            {language === 'id' ? 'Rata-rata Keterlambatan' : 'Average Delay'}
+                                        </div>
+                                        <div style={{ fontSize: '20px', fontWeight: 800, color: '#ef4444', marginTop: '2px' }}>
+                                            {avgDelayDays} <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-pg-text-secondary)' }}>{language === 'id' ? 'hari' : 'days'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Overdue PO Count */}
+                                <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 120px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', fontWeight: 500 }}>
+                                        {language === 'id' ? 'PO Terlambat' : 'Overdue POs'}
+                                    </div>
+                                    <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-pg-text)', marginTop: '2px' }}>
+                                        {overdueCount}
+                                    </div>
+                                </div>
+
+                                {/* Worst delay */}
+                                <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 120px', textAlign: 'right' }}>
+                                    <div style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', fontWeight: 500 }}>
+                                        {language === 'id' ? 'Terburuk' : 'Worst Delay'}
+                                    </div>
+                                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#ef4444', marginTop: '2px' }}>
+                                        {worstDelayDays} <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-pg-text-secondary)' }}>{language === 'id' ? 'hari' : 'days'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
             {/* Alert Matrix Panel */}
             {activeTab === 'alerts' && (() => {
                 const unifiedIssues = getUnifiedIssuesList();
@@ -2409,8 +2644,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                 let narrative = '';
                 if (language === 'id') {
                     narrative = `Periode ini, pabrik menyelesaikan ${telemetry.otdr}% pesanan tepat waktu`;
-                    if (otdrDelta != null) {
-                        narrative += otdrDelta >= 0
+                    if (otdrDelta != null && otdrDelta !== 0) {
+                        narrative += otdrDelta > 0
                             ? ` — naik ${Math.abs(otdrDelta)}% dari periode lalu`
                             : ` — turun ${Math.abs(otdrDelta)}% dari periode lalu`;
                     }
@@ -2428,8 +2663,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     }
                 } else {
                     narrative = `This period, the factory completed ${telemetry.otdr}% of orders on time`;
-                    if (otdrDelta != null) {
-                        narrative += otdrDelta >= 0
+                    if (otdrDelta != null && otdrDelta !== 0) {
+                        narrative += otdrDelta > 0
                             ? ` — up ${Math.abs(otdrDelta)}% vs last period`
                             : ` — down ${Math.abs(otdrDelta)}% vs last period`;
                     }
@@ -2458,10 +2693,51 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                 const pipelineStages = (telemetry.stage_metrics || [])
                     .filter((m: any) => !m.stage.toLowerCase().includes('rework'));
 
+                // ── Delay display fix (negative = ahead of schedule) ──
+                const delayDays = telemetry.avg_delay_days;
+                const delayColor = delayDays <= 0 ? 'var(--color-pg-success)'
+                    : delayDays <= 3 ? 'var(--color-pg-warning)'
+                    : '#ef4444';
+                const delayDisplay = delayDays < 0
+                    ? `${Math.abs(delayDays)} ${language === 'id' ? 'Hari Lebih Cepat' : 'Days Early'}`
+                    : delayDays === 0
+                    ? (language === 'id' ? 'Tepat Waktu' : 'On Time')
+                    : `${delayDays} ${language === 'id' ? 'Hari' : 'Days'}`;
+
+                // ── Status badge helper (dedup from table+mobile) ────
+                const getStatusBadge = (item: any) => {
+                    if (['COMPLETED', 'DELIVERED', 'CLOSED'].includes(item.po_status)) {
+                        if (item.invoice_status === 'UNINVOICED')
+                            return { label: language === 'id' ? 'Belum Difakturkan' : 'Finance: Uninvoiced', color: 'var(--color-pg-warning)', bg: 'rgba(234,179,8,0.1)' };
+                        if (item.invoice_status === 'PARTIAL')
+                            return { label: (language === 'id' ? 'Faktur Sebagian' : 'Finance: Partial Invoice') + ` (${item.invoiced_qty}/${item.target_qty})`, color: '#a855f7', bg: 'rgba(168,85,247,0.1)' };
+                        if (item.payment_status === 'UNPAID')
+                            return { label: language === 'id' ? 'Belum Dibayar' : 'Finance: Unpaid', color: 'var(--color-pg-orange)', bg: 'rgba(249,115,22,0.1)' };
+                        if (item.payment_status === 'PARTIAL_PAID')
+                            return { label: language === 'id' ? 'Dibayar Sebagian' : 'Finance: Partial Paid', color: 'var(--color-pg-primary)', bg: 'rgba(99,102,241,0.1)' };
+                        return { label: language === 'id' ? 'Selesai & Lunas' : 'Closed / Settled', color: 'var(--color-pg-success)', bg: 'rgba(16,185,129,0.1)' };
+                    }
+                    return { label: item.current_stage || '-', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' };
+                };
+
+                // ── Pipeline health key ──────────────────────────────
+                const getHealthKey = (metric: any): string => {
+                    if (metric.stuck_count > 0) return 'stuck';
+                    if (metric.avg_cycle_time > 3) return 'slow';
+                    if (metric.avg_cycle_time > 1) return 'watch';
+                    return 'normal';
+                };
+                const healthDotColor: Record<string, string> = {
+                    stuck: '#ef4444',
+                    slow: 'var(--color-pg-orange)',
+                    watch: 'var(--color-pg-warning)',
+                    normal: 'var(--color-pg-success)',
+                };
+
                 return (
                     <div className="performance-matrix-container" style={{ marginBottom: '40px' }}>
 
-                        {/* ── Filter Bar ───────────────────────────────────────── */}
+                        {/* ── Control Row ──────────────────────────────────── */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
                             <div style={{ display: 'flex', gap: '8px', backgroundColor: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
                                 {['week', 'month', 'year'].map(r => (
@@ -2483,9 +2759,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     </button>
                                 ))}
                             </div>
-                            <div style={{ display: 'flex', gap: '8px' }}>
+                            <div className="export-dropdown-wrap">
                                 <button
-                                    onClick={togglePresentationMode}
+                                    onClick={() => setExportOpen(v => !v)}
                                     style={{
                                         padding: '8px 16px',
                                         backgroundColor: 'var(--color-pg-border-subtle)',
@@ -2495,115 +2771,67 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         fontWeight: 600,
                                         fontSize: '12px',
                                         cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
                                     }}
                                 >
-                                    {isPresentationMode ? t.exit_presentation : t.presentation_mode}
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    {language === 'id' ? 'Ekspor' : 'Export'} ▾
                                 </button>
-                                <a
-                                    href={`/c/${tenant?.slug}/export-csv?range=${selected_range || 'month'}`}
-                                    style={{
-                                        padding: '8px 16px',
-                                        background: 'var(--color-pg-border-subtle)',
-                                        color: '#e4e4e7',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        fontWeight: 600,
-                                        fontSize: '12px',
-                                        textDecoration: 'none',
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                    }}
-                                >
-                                    {t.export_csv}
-                                </a>
-                                <a
-                                    href={`/c/${tenant?.slug}/export-xlsx?range=${selected_range || 'month'}`}
-                                    style={{
-                                        padding: '8px 16px',
-                                        background: 'var(--color-pg-border-subtle)',
-                                        color: '#e4e4e7',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px',
-                                        fontWeight: 600,
-                                        fontSize: '12px',
-                                        textDecoration: 'none',
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                    }}
-                                >
-                                    {t.export_xlsx}
-                                </a>
-                                <a
-                                    href={`/c/${tenant?.slug}/export-pdf?range=${selected_range || 'month'}`}
-                                    target="_blank"
-                                    style={{
-                                        padding: '8px 16px',
-                                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                                        color: '#fff',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        fontWeight: 600,
-                                        fontSize: '12px',
-                                        textDecoration: 'none',
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                    }}
-                                >
-                                    {t.export_pdf}
-                                </a>
+                                {exportOpen && (
+                                    <>
+                                        <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setExportOpen(false)} />
+                                        <div className="export-dropdown-menu">
+                                            <a href={`/c/${tenant?.slug}/export-csv?range=${selected_range || 'month'}`} onClick={() => setExportOpen(false)}>
+                                                📄 CSV
+                                            </a>
+                                            <a href={`/c/${tenant?.slug}/export-xlsx?range=${selected_range || 'month'}`} onClick={() => setExportOpen(false)}>
+                                                📊 Excel
+                                            </a>
+                                            <a href={`/c/${tenant?.slug}/export-pdf?range=${selected_range || 'month'}`} target="_blank" onClick={() => setExportOpen(false)}>
+                                                📑 PDF
+                                            </a>
+                                            <hr />
+                                            <button onClick={() => { togglePresentationMode(); setExportOpen(false); }}>
+                                                🖥️ {isPresentationMode ? t.exit_presentation : t.presentation_mode}
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
 
-                        {/* ── Section 0: Narasi Otomatis ────────────────────────── */}
-                        <div style={{
-                            backgroundColor: 'rgba(37,99,235,0.06)',
-                            border: '1px solid rgba(37,99,235,0.2)',
-                            borderRadius: '12px',
-                            padding: '14px 18px',
-                            marginBottom: '20px',
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            gap: '12px',
-                        }}>
-                            <span style={{ fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>📊</span>
-                            <div>
-                                <div style={{ fontSize: '10px', color: 'var(--color-pg-primary-hover)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
-                                    {language === 'id' ? 'Ringkasan Kinerja' : 'Performance Summary'} · {rangeLabel}
+                        {/* ── Executive Banner ──────────────────────────────── */}
+                        <div className="exec-banner">
+                            <div className="exec-banner__accent" />
+                            <div className="exec-banner__body">
+                                <div className="exec-banner__label">
+                                    {language === 'id' ? 'Ringkasan Kinerja' : 'Performance Summary'} · {rangeLabel.toUpperCase()}
                                 </div>
-                                <p style={{ margin: 0, fontSize: '13px', color: '#e4e4e7', lineHeight: 1.65 }}>{narrative}</p>
+                                <p className="exec-banner__text">{narrative}</p>
                             </div>
                         </div>
 
-                        {/* ── Section 1: KPI Cards with Period Delta ────────────── */}
-                        <div className="kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px', marginBottom: '22px' }}>
-
+                        {/* ── KPI Cards ─────────────────────────────────────── */}
+                        <div className="kpi-grid-v2">
                             {/* OTDR */}
                             <div
                                 onClick={() => setMatrixFilter(prev =>
                                     prev?.type === 'kpi_otdr' ? null : { type: 'kpi_otdr', value: `${telemetry.otdr}%`, label: language === 'id' ? 'Tepat Waktu' : 'On-Time' }
                                 )}
-                                className="kpi-card"
-                                style={{
-                                    backgroundColor: 'rgba(15,23,42,0.6)',
-                                    border: matrixFilter?.type === 'kpi_otdr' ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.06)',
-                                    boxShadow: matrixFilter?.type === 'kpi_otdr' ? '0 0 10px rgba(59, 130, 246, 0.4)' : 'none',
-                                    borderRadius: '12px',
-                                    padding: '16px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '2px',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                }}
+                                className="kpi-card-v2"
+                                data-variant={telemetry.otdr >= 80 ? 'success' : telemetry.otdr >= 60 ? 'warning' : 'danger'}
+                                data-selected={matrixFilter?.type === 'kpi_otdr' ? 'true' : undefined}
                             >
-                                <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.on_time_delivery}</span>
-                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: telemetry.otdr >= 80 ? 'var(--color-pg-success)' : telemetry.otdr >= 60 ? 'var(--color-pg-warning)' : '#ef4444' }}>
-                                    {telemetry.otdr}%
+                                <span className="kpi-label">{t.on_time_delivery}</span>
+                                <span className="kpi-value" style={{ color: telemetry.otdr >= 80 ? 'var(--color-pg-success)' : telemetry.otdr >= 60 ? 'var(--color-pg-warning)' : '#ef4444' }}>
+                                    {telemetry.otdr}<span className="kpi-unit">%</span>
                                 </span>
-                                {otdrDelta != null && (
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: otdrDelta >= 0 ? 'var(--color-pg-success)' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
+                                {otdrDelta != null && otdrDelta !== 0 && (
+                                    <span className="kpi-delta" style={{ color: otdrDelta >= 0 ? 'var(--color-pg-success)' : '#ef4444' }}>
                                         {otdrDelta >= 0 ? '▲' : '▼'} {Math.abs(otdrDelta)}%{' '}
-                                        <span style={{ color: '#52525b', fontWeight: 400 }}>vs {rangeLabel}</span>
+                                        <span className="kpi-delta-vs">vs {rangeLabel}</span>
                                     </span>
                                 )}
                             </div>
@@ -2613,28 +2841,18 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 onClick={() => setMatrixFilter(prev =>
                                     prev?.type === 'kpi_parts' ? null : { type: 'kpi_parts', value: `${deliveredCurr} Pcs`, label: language === 'id' ? 'Selesai Diproduksi' : 'Delivered Manufactured' }
                                 )}
-                                className="kpi-card"
-                                style={{
-                                    backgroundColor: 'rgba(15,23,42,0.6)',
-                                    border: matrixFilter?.type === 'kpi_parts' ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.06)',
-                                    boxShadow: matrixFilter?.type === 'kpi_parts' ? '0 0 10px rgba(59, 130, 246, 0.4)' : 'none',
-                                    borderRadius: '12px',
-                                    padding: '16px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '2px',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                }}
+                                className="kpi-card-v2"
+                                data-variant="info"
+                                data-selected={matrixFilter?.type === 'kpi_parts' ? 'true' : undefined}
                             >
-                                <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.parts_manufactured}</span>
-                                <span style={{ fontSize: '24px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: '#3b82f6' }}>
-                                    {deliveredCurr} <span style={{ fontSize: '15px', color: '#52525b', fontWeight: 500 }}>/ {telemetry.manufacture?.target ?? 0} Pcs</span>
+                                <span className="kpi-label">{t.parts_manufactured}</span>
+                                <span className="kpi-value" style={{ color: '#3b82f6' }}>
+                                    {deliveredCurr} <span className="kpi-sub">/ {telemetry.manufacture?.target ?? 0} Pcs</span>
                                 </span>
-                                {deliveredDelta != null && (
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: deliveredDelta >= 0 ? 'var(--color-pg-success)' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
+                                {deliveredDelta != null && deliveredDelta !== 0 && (
+                                    <span className="kpi-delta" style={{ color: deliveredDelta >= 0 ? 'var(--color-pg-success)' : '#ef4444' }}>
                                         {deliveredDelta >= 0 ? '▲' : '▼'} {Math.abs(deliveredDelta)}%{' '}
-                                        <span style={{ color: '#52525b', fontWeight: 400 }}>vs {rangeLabel}</span>
+                                        <span className="kpi-delta-vs">vs {rangeLabel}</span>
                                     </span>
                                 )}
                             </div>
@@ -2644,28 +2862,18 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 onClick={() => setMatrixFilter(prev =>
                                     prev?.type === 'kpi_delay' ? null : { type: 'kpi_delay', value: `${telemetry.avg_delay_days} hari`, label: language === 'id' ? 'Keterlambatan' : 'Overdue' }
                                 )}
-                                className="kpi-card"
-                                style={{
-                                    backgroundColor: 'rgba(15,23,42,0.6)',
-                                    border: matrixFilter?.type === 'kpi_delay' ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.06)',
-                                    boxShadow: matrixFilter?.type === 'kpi_delay' ? '0 0 10px rgba(59, 130, 246, 0.4)' : 'none',
-                                    borderRadius: '12px',
-                                    padding: '16px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '2px',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                }}
+                                className="kpi-card-v2"
+                                data-variant={delayDays <= 0 ? 'success' : delayDays <= 3 ? 'warning' : 'danger'}
+                                data-selected={matrixFilter?.type === 'kpi_delay' ? 'true' : undefined}
                             >
-                                <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>{t.avg_delay}</span>
-                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: telemetry.avg_delay_days === 0 ? 'var(--color-pg-success)' : telemetry.avg_delay_days <= 3 ? 'var(--color-pg-warning)' : '#ef4444' }}>
-                                    {telemetry.avg_delay_days} <span style={{ fontSize: '15px', fontWeight: 500, color: '#52525b' }}>{language === 'id' ? 'Hari' : 'Days'}</span>
+                                <span className="kpi-label">{t.avg_delay}</span>
+                                <span className="kpi-value" style={{ color: delayColor }}>
+                                    {delayDisplay}
                                 </span>
-                                {delayDelta != null && (
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: delayDelta <= 0 ? 'var(--color-pg-success)' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
+                                {delayDelta != null && delayDelta !== 0 && (
+                                    <span className="kpi-delta" style={{ color: delayDelta <= 0 ? 'var(--color-pg-success)' : '#ef4444' }}>
                                         {delayDelta >= 0 ? '▲' : '▼'} {Math.abs(delayDelta)}{' '}
-                                        <span style={{ color: '#52525b', fontWeight: 400 }}>vs {rangeLabel}</span>
+                                        <span className="kpi-delta-vs">vs {rangeLabel}</span>
                                     </span>
                                 )}
                             </div>
@@ -2675,27 +2883,17 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                 onClick={() => setMatrixFilter(prev =>
                                     prev?.type === 'kpi_urgent' ? null : { type: 'kpi_urgent', value: `${telemetry.urgent_active || 0} PO`, label: language === 'id' ? 'Mendesak' : 'Urgent' }
                                 )}
-                                className="kpi-card"
-                                style={{
-                                    backgroundColor: 'rgba(15,23,42,0.6)',
-                                    border: matrixFilter?.type === 'kpi_urgent' ? '2px solid #3b82f6' : (telemetry.urgent_active || 0) > 0 ? 'rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.06)',
-                                    boxShadow: matrixFilter?.type === 'kpi_urgent' ? '0 0 10px rgba(59, 130, 246, 0.4)' : 'none',
-                                    borderRadius: '12px',
-                                    padding: '16px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '2px',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                }}
+                                className="kpi-card-v2"
+                                data-variant={(telemetry.urgent_active || 0) > 0 ? 'danger' : 'success'}
+                                data-selected={matrixFilter?.type === 'kpi_urgent' ? 'true' : undefined}
                             >
-                                <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>
+                                <span className="kpi-label">
                                     {language === 'id' ? 'PO Mendesak Aktif' : 'Urgent Active POs'}
                                 </span>
-                                <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: '4px', color: (telemetry.urgent_active || 0) > 0 ? '#ef4444' : 'var(--color-pg-success)' }}>
+                                <span className="kpi-value" style={{ color: (telemetry.urgent_active || 0) > 0 ? '#ef4444' : 'var(--color-pg-success)' }}>
                                     {telemetry.urgent_active || 0}
                                 </span>
-                                <span style={{ fontSize: '11px', color: '#52525b', marginTop: '2px' }}>
+                                <span className="kpi-delta" style={{ color: 'var(--color-pg-text-muted)' }}>
                                     {(telemetry.urgent_active || 0) > 0
                                         ? (language === 'id' ? 'Butuh perhatian segera' : 'Needs immediate attention')
                                         : (language === 'id' ? 'Tidak ada PO mendesak' : 'No urgent POs')}
@@ -2703,16 +2901,14 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             </div>
                         </div>
 
-                        {/* ── Section 2: Pipeline Flow Visualization ───────────── */}
+                        {/* ── Production Pipeline ──────────────────────────── */}
                         <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', marginBottom: '22px' }}>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '16px' }}>
-                                <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-pg-text)', margin: 0 }}>
+                                <h3 className="section-label-v2" style={{ margin: 0 }}>
                                     {language === 'id' ? 'Alur Produksi' : 'Production Pipeline'}
                                 </h3>
-                                <span className="pipeline-legend" style={{ fontSize: '11px', color: '#52525b' }}>
-                                    {language === 'id'
-                                        ? '🔴 macet · 🟠 lambat (>3 hari) · 🟡 pantau (>1 hari) · 🟢 normal'
-                                        : '🔴 stuck · 🟠 slow (>3d) · 🟡 watch (>1d) · 🟢 normal'}
+                                <span className="section-label-v2__sub">
+                                    {language === 'id' ? 'klik tahap untuk filter direktori' : 'click stage to filter directory'}
                                 </span>
                             </div>
                             <div className="pipeline-scroll-container" style={{ display: 'flex', overflowX: 'auto', alignItems: 'center', gap: '0', paddingBottom: '8px', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
@@ -2722,6 +2918,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     </span>
                                 ) : pipelineStages.map((metric: any, idx: number) => {
                                     const health = getStageHealth(metric);
+                                    const healthKey = getHealthKey(metric);
                                     const isSelected = matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage;
                                     return (
                                         <React.Fragment key={`pipeline-${idx}`}>
@@ -2731,22 +2928,16 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         ? null
                                                         : { type: 'stage', value: metric.stage, label: language === 'id' ? 'Tahap' : 'Stage' }
                                                 )}
+                                                className="pipeline-stage-v2"
+                                                data-health={healthKey}
+                                                data-selected={isSelected ? 'true' : undefined}
                                                 style={{
-                                                    flexShrink: 0,
-                                                    minWidth: '106px',
                                                     backgroundColor: health.bg,
                                                     border: isSelected ? '2px solid #3b82f6' : `1px solid ${health.border}`,
-                                                    boxShadow: isSelected ? '0 0 10px rgba(59, 130, 246, 0.4)' : 'none',
-                                                    transform: isSelected ? 'scale(1.03)' : 'scale(1)',
-                                                    borderRadius: '10px',
-                                                    padding: '10px 12px',
-                                                    textAlign: 'center',
-                                                    position: 'relative',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s ease',
-                                                    scrollSnapAlign: 'start',
                                                 }}
                                             >
+                                                {/* Mobile: health dot */}
+                                                <span className="stage-health-dot-mobile" style={{ background: healthDotColor[healthKey] }} />
                                                 {metric.stuck_count > 0 && (
                                                     <span style={{
                                                         position: 'absolute',
@@ -2774,14 +2965,19 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 <div style={{ fontSize: '10px', color: '#52525b', marginTop: '2px' }}>
                                                     {language === 'id' ? 'item aktif' : 'active'}
                                                 </div>
-                                                {metric.avg_cycle_time > 0 && (
-                                                    <div style={{ fontSize: '10px', color: health.label, marginTop: '5px', fontWeight: 600, borderTop: `1px solid ${health.border}`, paddingTop: '5px' }}>
-                                                        {metric.avg_cycle_time}d avg
-                                                    </div>
-                                                )}
+                                                <div style={{ fontSize: '10px', color: health.label, marginTop: '5px', fontWeight: 600, borderTop: `1px solid ${health.border}`, paddingTop: '5px' }}>
+                                                    {language === 'id'
+                                                        ? `Rata-rata: ${metric.avg_cycle_time > 0 ? `${metric.avg_cycle_time.toFixed(1)} Hari` : '-'}`
+                                                        : `Avg: ${metric.avg_cycle_time > 0 ? `${metric.avg_cycle_time.toFixed(1)} Days` : '-'}`
+                                                    }
+                                                </div>
                                             </div>
                                             {idx < pipelineStages.length - 1 && (
-                                                <div className="pipeline-arrow" style={{ color: 'var(--color-pg-border)', fontSize: '22px', padding: '0 3px', flexShrink: 0, userSelect: 'none' }}>→</div>
+                                                <div className="pipeline-chevron">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M7.5 4.5L13 10L7.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                </div>
                                             )}
                                         </React.Fragment>
                                     );
@@ -2793,7 +2989,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 mb-5.5">
                             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                                 <div className="flex items-center gap-2.5">
-                                    <h3 className="text-base font-bold text-pg-text m-0">
+                                    <h3 className="section-label-v2" style={{ margin: 0 }}>
                                         {matrixFilter ? (language === 'id' ? 'Hasil Filter Data' : 'Filtered Data Directory') : (language === 'id' ? 'Direktori PO & Item' : 'PO & Item Directory')}
                                     </h3>
                                     {matrixFilter && (
@@ -2957,6 +3153,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                     break;
                                                 case 'reason':
                                                     items = allItems.filter((item: any) =>
+                                                        item.reason_type === value ||
                                                         item.reason?.toLowerCase().includes(value.toLowerCase())
                                                     );
                                                     break;
@@ -3043,38 +3240,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                     </tr>
                                                                     {clientItems.map((item: any, idx: number) => {
                                                                         const progress = parseFloat(item.progress_percent);
-                                                                        
-                                                                        // Determine status badge
-                                                                        let displayStatus = item.current_stage || '-';
-                                                                        let statusColor = 'var(--color-pg-text-secondary)';
-                                                                        let statusBg = 'rgba(255,255,255,0.03)';
-                                                                        
-                                                                        if (item.po_status === 'COMPLETED' || item.po_status === 'DELIVERED' || item.po_status === 'CLOSED') {
-                                                                            if (item.invoice_status === 'UNINVOICED') {
-                                                                                displayStatus = language === 'id' ? 'Belum Difakturkan' : 'Finance: Uninvoiced';
-                                                                                statusColor = 'var(--color-pg-warning)';
-                                                                                statusBg = 'rgba(234,179,8,0.1)';
-                                                                            } else if (item.invoice_status === 'PARTIAL') {
-                                                                                displayStatus = (language === 'id' ? 'Faktur Sebagian' : 'Finance: Partial Invoice') + ` (${item.invoiced_qty}/${item.target_qty})`;
-                                                                                statusColor = '#a855f7';
-                                                                                statusBg = 'rgba(168,85,247,0.1)';
-                                                                            } else if (item.payment_status === 'UNPAID') {
-                                                                                displayStatus = language === 'id' ? 'Belum Dibayar' : 'Finance: Unpaid';
-                                                                                statusColor = 'var(--color-pg-orange)';
-                                                                                statusBg = 'rgba(249,115,22,0.1)';
-                                                                            } else if (item.payment_status === 'PARTIAL_PAID') {
-                                                                                displayStatus = language === 'id' ? 'Dibayar Sebagian' : 'Finance: Partial Paid';
-                                                                                statusColor = 'var(--color-pg-primary)';
-                                                                                statusBg = 'rgba(99,102,241,0.1)';
-                                                                            } else {
-                                                                                displayStatus = language === 'id' ? 'Selesai & Lunas' : 'Closed / Settled';
-                                                                                statusColor = 'var(--color-pg-success)';
-                                                                                statusBg = 'rgba(16,185,129,0.1)';
-                                                                            }
-                                                                        } else {
-                                                                            statusColor = '#3b82f6';
-                                                                            statusBg = 'rgba(59,130,246,0.1)';
-                                                                        }
+                                                                        const { label: displayStatus, color: statusColor, bg: statusBg } = getStatusBadge(item);
 
                                                                         return (
                                                                             <tr key={`delay-${cName}-${idx}`} className="border-b border-white/4 text-zinc-300">
@@ -3166,37 +3332,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                 {clientItems.map((item: any, idx: number) => {
                                                                     const progress = parseFloat(item.progress_percent);
                                                                     
-                                                                    // Determine status badge
-                                                                    let displayStatus = item.current_stage || '-';
-                                                                    let statusColor = 'var(--color-pg-text-secondary)';
-                                                                    let statusBg = 'rgba(255,255,255,0.03)';
-                                                                    
-                                                                     if (item.po_status === 'COMPLETED' || item.po_status === 'DELIVERED' || item.po_status === 'CLOSED') {
-                                                                         if (item.invoice_status === 'UNINVOICED') {
-                                                                             displayStatus = language === 'id' ? 'Belum Difakturkan' : 'Finance: Uninvoiced';
-                                                                             statusColor = 'var(--color-pg-warning)';
-                                                                             statusBg = 'rgba(234,179,8,0.1)';
-                                                                         } else if (item.invoice_status === 'PARTIAL') {
-                                                                             displayStatus = (language === 'id' ? 'Faktur Sebagian' : 'Finance: Partial Invoice') + ` (${item.invoiced_qty}/${item.target_qty})`;
-                                                                             statusColor = '#a855f7';
-                                                                             statusBg = 'rgba(168,85,247,0.1)';
-                                                                         } else if (item.payment_status === 'UNPAID') {
-                                                                             displayStatus = language === 'id' ? 'Belum Dibayar' : 'Finance: Unpaid';
-                                                                             statusColor = 'var(--color-pg-orange)';
-                                                                             statusBg = 'rgba(249,115,22,0.1)';
-                                                                         } else if (item.payment_status === 'PARTIAL_PAID') {
-                                                                             displayStatus = language === 'id' ? 'Dibayar Sebagian' : 'Finance: Partial Paid';
-                                                                             statusColor = 'var(--color-pg-primary)';
-                                                                             statusBg = 'rgba(99,102,241,0.1)';
-                                                                         } else {
-                                                                             displayStatus = language === 'id' ? 'Selesai & Lunas' : 'Closed / Settled';
-                                                                             statusColor = 'var(--color-pg-success)';
-                                                                             statusBg = 'rgba(16,185,129,0.1)';
-                                                                         }
-                                                                     } else {
-                                                                        statusColor = '#3b82f6';
-                                                                        statusBg = 'rgba(59,130,246,0.1)';
-                                                                    }
+                                                                    const { label: displayStatus, color: statusColor, bg: statusBg } = getStatusBadge(item);
 
                                                                     return (
                                                                         <div key={`mobile-item-${cName}-${idx}`} className="bg-pg-card border border-white/6 rounded-xl p-2.5 flex flex-col gap-1.5">
@@ -3272,8 +3408,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     style={{
                                         backgroundColor: matrixFilter?.type === 'finance_uninvoiced' ? 'rgba(37,99,235,0.1)' : 'transparent',
                                     }}
-                                >
-                                    <span className="text-xl">💼</span>
+                                  >
+                                    <span className="finance-indicator" style={{ background: 'var(--color-pg-warning)' }} />
                                     <div>
                                         <div className="text-[10px] text-pg-text-muted font-bold uppercase tracking-wider mb-0.5">
                                             {language === 'id' ? 'Belum Difakturkan' : 'Uninvoiced Items'}
@@ -3293,7 +3429,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         backgroundColor: matrixFilter?.type === 'finance_unpaid' ? 'rgba(37,99,235,0.1)' : 'transparent',
                                     }}
                                 >
-                                    <span className="text-xl">💰</span>
+                                    <span className="finance-indicator" style={{ background: 'var(--color-pg-orange)' }} />
                                     <div>
                                         <div className="text-[10px] text-pg-text-muted font-bold uppercase tracking-wider mb-0.5">
                                             {language === 'id' ? 'Belum Dibayar' : 'Unpaid Items'}
@@ -3311,7 +3447,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5 mb-5.5">
                             {/* Output and Overdue Trends */}
                             <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5">
-                                <h3 className="text-sm font-bold text-pg-text mb-4">{t.production_overdue_trends}</h3>
+                                <h3 className="section-label-v2" style={{ marginBottom: '16px' }}>{t.production_overdue_trends}</h3>
                                 <div className="w-full overflow-x-auto">
                                     <svg width="100%" height="200" viewBox="0 0 500 200" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
                                         <line x1="40" y1="20" x2="480" y2="20" stroke="var(--color-pg-border-subtle)" strokeDasharray="3,3" />
@@ -3333,8 +3469,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 const barHeight = (d.output / maxY) * chartHeight;
                                                 const y = topOffset + chartHeight - barHeight;
                                                 return (
-                                                    <g key={`bar-${idx}`}>
-                                                        <rect x={x} y={y} width={barWidth} height={barHeight} fill="#3b82f6" rx="2" style={{ transition: 'all 0.3s' }} />
+                                                    <g key={`bar-${idx}`} className="group cursor-pointer">
+                                                        <rect x={x} y={y} width={barWidth} height={barHeight} fill="#3b82f6" rx="2" style={{ transition: 'all 0.3s' }} className="hover:opacity-80" />
+                                                        <title>{`${d.label}: ${d.output} Pcs`}</title>
                                                         <text x={x + barWidth / 2} y={y - 4} textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="600">{d.output}</text>
                                                     </g>
                                                 );
@@ -3343,7 +3480,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 const step = width / count;
                                                 const x = leftOffset + idx * step + step / 2;
                                                 const y = topOffset + chartHeight - (d.overdue / maxY) * chartHeight;
-                                                return { x, y, val: d.overdue };
+                                                return { x, y, val: d.overdue, label: d.label };
                                             });
                                             let pathD = '';
                                             if (linePoints.length > 0) {
@@ -3353,8 +3490,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 <g>
                                                     {pathD && <path d={pathD} fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />}
                                                     {linePoints.map((p: any, idx: number) => (
-                                                        <g key={`pt-${idx}`}>
-                                                            <circle cx={p.x} cy={p.y} r="4" fill="#ef4444" stroke="var(--color-pg-bg)" strokeWidth="1" />
+                                                        <g key={`pt-${idx}`} className="group cursor-pointer">
+                                                            <circle cx={p.x} cy={p.y} r="4" fill="#ef4444" stroke="var(--color-pg-bg)" strokeWidth="1" className="hover:scale-125" style={{ transformOrigin: `${p.x}px ${p.y}px`, transition: 'transform 0.15s ease' }} />
+                                                            <title>{`${p.label}: ${p.val} PO`}</title>
                                                             <text x={p.x} y={p.y - 6} textAnchor="middle" fill="#ef4444" fontSize="8" fontWeight="600">{p.val}</text>
                                                         </g>
                                                     ))}
@@ -3393,7 +3531,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                             
                             {/* Why Delayed Pie */}
                             <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5">
-                                <h3 className="text-sm font-bold text-pg-text mb-4">{t.why_delayed_reasons}</h3>
+                                <h3 className="section-label-v2" style={{ marginBottom: '16px' }}>{t.why_delayed_reasons}</h3>
                                 <div className="flex items-center justify-center gap-6 flex-wrap">
                                     {(() => {
                                         const reasons = telemetry.delay_reasons || {};
@@ -3414,17 +3552,23 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             const strokeLength = C * (pct / 100);
                                             const offset = C - (accumulatedPercentage / 100) * C;
                                             accumulatedPercentage += pct;
+                                            const isSelected = matrixFilter?.type === 'reason' && matrixFilter?.value === key;
                                             return (
                                                 <circle
                                                     key={`slice-${idx}`}
                                                     cx="60" cy="60" r="50"
                                                     fill="transparent"
                                                     stroke={colors[idx % colors.length]}
-                                                    strokeWidth="14"
+                                                    strokeWidth={isSelected ? 18 : 14}
                                                     strokeDasharray={`${strokeLength} ${C - strokeLength}`}
                                                     strokeDashoffset={offset}
                                                     transform="rotate(-90 60 60)"
-                                                    style={{ transition: 'all 0.3s' }}
+                                                    style={{ transition: 'all 0.3s', cursor: 'pointer', opacity: matrixFilter && !isSelected ? 0.45 : 1 }}
+                                                    onClick={() => setMatrixFilter(prev =>
+                                                        prev?.type === 'reason' && prev?.value === key
+                                                            ? null
+                                                            : { type: 'reason', value: key, label: language === 'id' ? 'Alasan Kendala' : 'Delay Reason' }
+                                                    )}
                                                 />
                                             );
                                         });
@@ -3474,52 +3618,77 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                         {/* ── Bottleneck Detail Table ───────────────────────────── */}
                         <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 mb-5.5">
-                            <h3 className="text-sm font-bold text-pg-text mb-4">{t.bottleneck_analyzer}</h3>
+                            <h3 className="section-label-v2" style={{ marginBottom: '16px' }}>{t.bottleneck_analyzer}</h3>
                             <div className="w-full overflow-x-auto">
                                 <div className="bottleneck-table-container">
                                     <table className="w-full border-collapse text-sm">
                                         <thead>
                                             <tr className="border-b border-white/8">
-                                                <th className="text-left px-4 py-2.5 text-pg-text-muted font-semibold">{t.stage}</th>
-                                                <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">{t.active_items}</th>
-                                                <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">{t.stuck_incidents}</th>
-                                                <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">{t.rework_count}</th>
-                                                <th className="text-right px-4 py-2.5 text-pg-text-muted font-semibold">{t.avg_cycle_time}</th>
+                                                <th onClick={() => handleBottleneckSort('stage')} className="text-left px-4 py-2.5 text-pg-text-muted font-semibold cursor-pointer select-none hover:text-white transition-colors">
+                                                    {t.stage} {bottleneckSort.key === 'stage' ? (bottleneckSort.direction === 'asc' ? '▲' : '▼') : '↕'}
+                                                </th>
+                                                <th onClick={() => handleBottleneckSort('active_items')} className="text-center px-4 py-2.5 text-pg-text-muted font-semibold cursor-pointer select-none hover:text-white transition-colors">
+                                                    {t.active_items} {bottleneckSort.key === 'active_items' ? (bottleneckSort.direction === 'asc' ? '▲' : '▼') : '↕'}
+                                                </th>
+                                                <th onClick={() => handleBottleneckSort('stuck_count')} className="text-center px-4 py-2.5 text-pg-text-muted font-semibold cursor-pointer select-none hover:text-white transition-colors">
+                                                    {t.stuck_incidents} {bottleneckSort.key === 'stuck_count' ? (bottleneckSort.direction === 'asc' ? '▲' : '▼') : '↕'}
+                                                </th>
+                                                <th onClick={() => handleBottleneckSort('rework_count')} className="text-center px-4 py-2.5 text-pg-text-muted font-semibold cursor-pointer select-none hover:text-white transition-colors">
+                                                    {t.rework_count} {bottleneckSort.key === 'rework_count' ? (bottleneckSort.direction === 'asc' ? '▲' : '▼') : '↕'}
+                                                </th>
+                                                <th onClick={() => handleBottleneckSort('avg_cycle_time')} className="text-right px-4 py-2.5 text-pg-text-muted font-semibold cursor-pointer select-none hover:text-white transition-colors">
+                                                    {t.avg_cycle_time} {bottleneckSort.key === 'avg_cycle_time' ? (bottleneckSort.direction === 'asc' ? '▲' : '▼') : '↕'}
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {telemetry.stage_metrics && telemetry.stage_metrics.map((metric: any, idx: number) => (
-                                                <tr
-                                                    key={`stage-${idx}`}
-                                                    onClick={() => setMatrixFilter(prev =>
-                                                        prev?.type === 'stage' && prev?.value === metric.stage
-                                                            ? null
-                                                            : { type: 'stage', value: metric.stage, label: language === 'id' ? 'Tahap' : 'Stage' }
-                                                    )}
-                                                    className="border-b border-white/4 text-zinc-300 cursor-pointer transition-all duration-200"
-                                                    style={{
-                                                        backgroundColor: matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage ? 'rgba(37,99,235,0.1)' : 'transparent',
-                                                    }}
-                                                >
-                                                    <td className="px-4 py-2.5 font-bold">
-                                                        <span style={{ color: matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage ? '#3b82f6' : 'inherit' }}>
-                                                            {metric.stage.toUpperCase()}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-4 py-2.5 text-center">{metric.active_items}</td>
-                                                    <td className="px-4 py-2.5 text-center">
-                                                        {metric.stuck_count > 0
-                                                            ? <span className="badge bg-red-500/15 text-red-500">{metric.stuck_count} stuck</span>
-                                                            : '0'}
-                                                    </td>
-                                                    <td className="px-4 py-2.5 text-center">
-                                                        {metric.rework_count > 0
-                                                            ? <span className="badge bg-amber-500/15 text-pg-warning">{metric.rework_count} rework</span>
-                                                            : '0'}
-                                                    </td>
-                                                    <td className="px-4 py-2.5 text-right font-bold text-blue-500">{metric.avg_cycle_time.toFixed(2)}</td>
-                                                </tr>
-                                            ))}
+                                            {(() => {
+                                                const sortedMetrics = [...(telemetry.stage_metrics || [])].sort((a, b) => {
+                                                    const key = bottleneckSort.key;
+                                                    let aVal = a[key] ?? 0;
+                                                    let bVal = b[key] ?? 0;
+                                                    if (typeof aVal === 'string') {
+                                                        return bottleneckSort.direction === 'asc'
+                                                            ? aVal.localeCompare(bVal)
+                                                            : bVal.localeCompare(aVal);
+                                                    }
+                                                    return bottleneckSort.direction === 'asc'
+                                                        ? aVal - bVal
+                                                        : bVal - aVal;
+                                                });
+                                                return sortedMetrics.map((metric: any, idx: number) => (
+                                                    <tr
+                                                        key={`stage-${idx}`}
+                                                        onClick={() => setMatrixFilter(prev =>
+                                                            prev?.type === 'stage' && prev?.value === metric.stage
+                                                                ? null
+                                                                : { type: 'stage', value: metric.stage, label: language === 'id' ? 'Tahap' : 'Stage' }
+                                                        )}
+                                                        className="border-b border-white/4 text-zinc-300 cursor-pointer transition-all duration-200"
+                                                        style={{
+                                                            backgroundColor: matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage ? 'rgba(37,99,235,0.1)' : 'transparent',
+                                                        }}
+                                                    >
+                                                        <td className="px-4 py-2.5 font-bold">
+                                                            <span style={{ color: matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage ? '#3b82f6' : 'inherit' }}>
+                                                                {metric.stage.toUpperCase()}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-2.5 text-center">{metric.active_items}</td>
+                                                        <td className="px-4 py-2.5 text-center">
+                                                            {metric.stuck_count > 0
+                                                                ? <span className="badge bg-red-500/15 text-red-500">{metric.stuck_count} stuck</span>
+                                                                : '0'}
+                                                        </td>
+                                                        <td className="px-4 py-2.5 text-center">
+                                                            {metric.rework_count > 0
+                                                                ? <span className="badge bg-amber-500/15 text-pg-warning">{metric.rework_count} rework</span>
+                                                                : '0'}
+                                                        </td>
+                                                        <td className="px-4 py-2.5 text-right font-bold text-blue-500">{metric.avg_cycle_time > 0 ? metric.avg_cycle_time.toFixed(1) : "-"}</td>
+                                                    </tr>
+                                                ));
+                                            })()}
                                         </tbody>
                                     </table>
                                 </div>
@@ -3546,7 +3715,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         {metric.stage.toUpperCase()}
                                                     </span>
                                                     <span className="text-xs font-bold text-blue-500">
-                                                        {metric.avg_cycle_time.toFixed(2)} {language === 'id' ? 'Hari' : 'Days'}
+                                                        {metric.avg_cycle_time > 0 ? `${metric.avg_cycle_time.toFixed(1)} ${language === 'id' ? 'Hari' : 'Days'}` : '-'}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-wrap gap-2 text-[11px] text-pg-text-secondary">
@@ -3581,10 +3750,10 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         {telemetry.client_health && telemetry.client_health.length > 0 && (
                             <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 mb-4">
                                 <div className="flex items-baseline gap-2.5 mb-4">
-                                    <h3 className="text-base font-bold text-pg-text m-0">
+                                    <h3 className="section-label-v2" style={{ margin: 0 }}>
                                         {language === 'id' ? 'Papan Kinerja Klien' : 'Client Performance Board'}
                                     </h3>
-                                    <span className="text-[11px] text-zinc-600">
+                                    <span className="section-label-v2__sub">
                                         {language === 'id' ? 'diurutkan berdasarkan risiko tertinggi' : 'sorted by highest risk'}
                                     </span>
                                 </div>
@@ -3593,150 +3762,180 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         <table className="w-full border-collapse text-sm">
                                             <thead>
                                                 <tr className="border-b border-white/8">
-                                                    <th className="text-left px-4 py-2.5 text-pg-text-muted font-semibold">
-                                                        {language === 'id' ? 'Klien' : 'Client'}
+                                                    <th onClick={() => handleClientSort('client_name')} className="text-left px-4 py-2.5 text-pg-text-muted font-semibold cursor-pointer select-none hover:text-white transition-colors">
+                                                        {language === 'id' ? 'Klien' : 'Client'} {clientSort.key === 'client_name' ? (clientSort.direction === 'asc' ? '▲' : '▼') : '↕'}
                                                     </th>
-                                                    <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">
-                                                        {language === 'id' ? 'PO Aktif' : 'Active POs'}
+                                                    <th onClick={() => handleClientSort('active_pos')} className="text-center px-4 py-2.5 text-pg-text-muted font-semibold cursor-pointer select-none hover:text-white transition-colors">
+                                                        {language === 'id' ? 'PO Aktif' : 'Active POs'} {clientSort.key === 'active_pos' ? (clientSort.direction === 'asc' ? '▲' : '▼') : '↕'}
                                                     </th>
-                                                    <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">
-                                                        {language === 'id' ? 'Ketepatan Waktu' : 'On-Time Rate'}
+                                                    <th onClick={() => handleClientSort('on_time_rate')} className="text-center px-4 py-2.5 text-pg-text-muted font-semibold cursor-pointer select-none hover:text-white transition-colors">
+                                                        {language === 'id' ? 'Ketepatan Waktu' : 'On-Time Rate'} {clientSort.key === 'on_time_rate' ? (clientSort.direction === 'asc' ? '▲' : '▼') : '↕'}
                                                     </th>
-                                                    <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">
-                                                        {language === 'id' ? 'Item Terlambat' : 'Overdue Items'}
+                                                    <th onClick={() => handleClientSort('overdue_items')} className="text-center px-4 py-2.5 text-pg-text-muted font-semibold cursor-pointer select-none hover:text-white transition-colors">
+                                                        {language === 'id' ? 'Item Terlambat' : 'Overdue Items'} {clientSort.key === 'overdue_items' ? (clientSort.direction === 'asc' ? '▲' : '▼') : '↕'}
                                                     </th>
-                                                    <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">
-                                                        {language === 'id' ? 'Belum Faktur' : 'Uninvoiced'}
+                                                    <th onClick={() => handleClientSort('uninvoiced_count')} className="text-center px-4 py-2.5 text-pg-text-muted font-semibold cursor-pointer select-none hover:text-white transition-colors">
+                                                        {language === 'id' ? 'Belum Faktur' : 'Uninvoiced'} {clientSort.key === 'uninvoiced_count' ? (clientSort.direction === 'asc' ? '▲' : '▼') : '↕'}
                                                     </th>
-                                                    <th className="text-center px-4 py-2.5 text-pg-text-muted font-semibold">
-                                                        {language === 'id' ? 'Belum Bayar' : 'Unpaid'}
+                                                    <th onClick={() => handleClientSort('unpaid_count')} className="text-center px-4 py-2.5 text-pg-text-muted font-semibold cursor-pointer select-none hover:text-white transition-colors">
+                                                        {language === 'id' ? 'Belum Bayar' : 'Unpaid'} {clientSort.key === 'unpaid_count' ? (clientSort.direction === 'asc' ? '▲' : '▼') : '↕'}
                                                     </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {telemetry.client_health.map((client: any, idx: number) => {
-                                                    const otdrColor = client.on_time_rate == null
-                                                        ? 'var(--color-pg-text-muted)'
-                                                        : client.on_time_rate >= 80 ? 'var(--color-pg-success)'
-                                                        : client.on_time_rate >= 60 ? 'var(--color-pg-warning)'
-                                                        : '#ef4444';
-                                                    const hasRisk = client.overdue_items > 0 || client.uninvoiced_count > 0 || client.unpaid_count > 0;
-                                                    return (
-                                                        <tr key={`client-${idx}`} className="border-b border-white/4 text-zinc-300"
-                                                            style={{ backgroundColor: hasRisk ? 'rgba(239,68,68,0.015)' : 'transparent' }}>
-                                                            <td
-                                                                onClick={() => setMatrixFilter({ type: 'client', value: client.client_name, label: language === 'id' ? 'Klien' : 'Client' })}
-                                                                className="px-4 py-2.75 font-bold cursor-pointer underline text-pg-primary-hover"
-                                                            >
-                                                                {client.client_name}
-                                                            </td>
-                                                            <td className="px-4 py-2.75 text-center text-pg-text-secondary">{client.active_pos}</td>
-                                                            <td className="px-4 py-2.75 text-center">
-                                                                {client.on_time_rate != null
-                                                                    ? <span className="font-bold" style={{ color: otdrColor }}>{client.on_time_rate}%</span>
-                                                                    : <span className="text-zinc-600 text-[11px]">N/A</span>}
-                                                            </td>
-                                                            <td
-                                                                onClick={() => client.overdue_items > 0 && setMatrixFilter({ type: 'client_overdue', value: client.client_name, label: language === 'id' ? 'Overdue Klien' : 'Client Overdue' })}
-                                                                className="px-4 py-2.75 text-center"
-                                                                style={{ cursor: client.overdue_items > 0 ? 'pointer' : 'default' }}
-                                                            >
-                                                                {client.overdue_items > 0
-                                                                    ? <span className="badge bg-red-500/15 text-red-500">{client.overdue_items}</span>
-                                                                    : <span className="text-pg-text-muted">-</span>}
-                                                            </td>
-                                                            <td
-                                                                onClick={() => client.uninvoiced_count > 0 && setMatrixFilter({ type: 'client_uninvoiced', value: client.client_name, label: language === 'id' ? 'Belum Difakturkan Klien' : 'Client Uninvoiced' })}
-                                                                className="px-4 py-2.75 text-center"
-                                                                style={{ cursor: client.uninvoiced_count > 0 ? 'pointer' : 'default' }}
-                                                            >
-                                                                {client.uninvoiced_count > 0
-                                                                    ? <span className="badge bg-amber-500/15 text-pg-warning">{client.uninvoiced_count}</span>
-                                                                    : <span className="text-pg-text-muted">-</span>}
-                                                            </td>
-                                                            <td
-                                                                onClick={() => client.unpaid_count > 0 && setMatrixFilter({ type: 'client_unpaid', value: client.client_name, label: language === 'id' ? 'Belum Dibayar Klien' : 'Client Unpaid' })}
-                                                                className="px-4 py-2.75 text-center"
-                                                                style={{ cursor: client.unpaid_count > 0 ? 'pointer' : 'default' }}
-                                                            >
-                                                                {client.unpaid_count > 0
-                                                                    ? <span className="badge bg-orange-500/15 text-pg-orange">{client.unpaid_count}</span>
-                                                                    : <span className="text-pg-text-muted">-</span>}
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
+                                                {(() => {
+                                                    const sortedClients = [...(telemetry.client_health || [])].sort((a, b) => {
+                                                        const key = clientSort.key;
+                                                        let aVal = a[key] ?? 0;
+                                                        let bVal = b[key] ?? 0;
+                                                        if (typeof aVal === 'string') {
+                                                            return clientSort.direction === 'asc'
+                                                                ? aVal.localeCompare(bVal)
+                                                                : bVal.localeCompare(aVal);
+                                                        }
+                                                        return clientSort.direction === 'asc'
+                                                            ? aVal - bVal
+                                                            : bVal - aVal;
+                                                    });
+                                                    return sortedClients.map((client: any, idx: number) => {
+                                                        const otdrColor = client.on_time_rate == null
+                                                            ? 'var(--color-pg-text-muted)'
+                                                            : client.on_time_rate >= 80 ? 'var(--color-pg-success)'
+                                                            : client.on_time_rate >= 60 ? 'var(--color-pg-warning)'
+                                                            : '#ef4444';
+                                                        const hasRisk = client.overdue_items > 0 || client.uninvoiced_count > 0 || client.unpaid_count > 0;
+                                                        return (
+                                                            <tr key={`client-${idx}`} className="border-b border-white/4 text-zinc-300"
+                                                                style={{ backgroundColor: hasRisk ? 'rgba(239,68,68,0.015)' : 'transparent' }}>
+                                                                <td
+                                                                    onClick={() => setMatrixFilter({ type: 'client', value: client.client_name, label: language === 'id' ? 'Klien' : 'Client' })}
+                                                                    className="px-4 py-2.75 font-bold cursor-pointer underline text-pg-primary-hover"
+                                                                >
+                                                                    {client.client_name}
+                                                                </td>
+                                                                <td className="px-4 py-2.75 text-center text-pg-text-secondary">{client.active_pos}</td>
+                                                                <td className="px-4 py-2.75 text-center">
+                                                                    {client.on_time_rate != null
+                                                                        ? <span className="font-bold" style={{ color: otdrColor }}>{client.on_time_rate}%</span>
+                                                                        : <span className="text-zinc-600 text-[11px]">N/A</span>}
+                                                                </td>
+                                                                <td
+                                                                    onClick={() => client.overdue_items > 0 && setMatrixFilter({ type: 'client_overdue', value: client.client_name, label: language === 'id' ? 'Overdue Klien' : 'Client Overdue' })}
+                                                                    className="px-4 py-2.75 text-center"
+                                                                    style={{ cursor: client.overdue_items > 0 ? 'pointer' : 'default' }}
+                                                                >
+                                                                    {client.overdue_items > 0
+                                                                        ? <span className="badge bg-red-500/15 text-red-500">{client.overdue_items}</span>
+                                                                        : <span className="text-pg-text-muted">-</span>}
+                                                                </td>
+                                                                <td
+                                                                    onClick={() => client.uninvoiced_count > 0 && setMatrixFilter({ type: 'client_uninvoiced', value: client.client_name, label: language === 'id' ? 'Belum Difakturkan Klien' : 'Client Uninvoiced' })}
+                                                                    className="px-4 py-2.75 text-center"
+                                                                    style={{ cursor: client.uninvoiced_count > 0 ? 'pointer' : 'default' }}
+                                                                >
+                                                                    {client.uninvoiced_count > 0
+                                                                        ? <span className="badge bg-amber-500/15 text-pg-warning">{client.uninvoiced_count}</span>
+                                                                        : <span className="text-pg-text-muted">-</span>}
+                                                                </td>
+                                                                <td
+                                                                    onClick={() => client.unpaid_count > 0 && setMatrixFilter({ type: 'client_unpaid', value: client.client_name, label: language === 'id' ? 'Belum Dibayar Klien' : 'Client Unpaid' })}
+                                                                    className="px-4 py-2.75 text-center"
+                                                                    style={{ cursor: client.unpaid_count > 0 ? 'pointer' : 'default' }}
+                                                                >
+                                                                    {client.unpaid_count > 0
+                                                                        ? <span className="badge bg-orange-500/15 text-pg-orange">{client.unpaid_count}</span>
+                                                                        : <span className="text-pg-text-muted">-</span>}
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    });
+                                                })()}
                                             </tbody>
                                         </table>
                                     </div>
 
                                     <div className="client-mobile-list">
-                                        {telemetry.client_health.map((client: any, idx: number) => {
-                                            const otdrColor = client.on_time_rate == null
-                                                ? 'var(--color-pg-text-muted)'
-                                                : client.on_time_rate >= 80 ? 'var(--color-pg-success)'
-                                                : client.on_time_rate >= 60 ? 'var(--color-pg-warning)'
-                                                : '#ef4444';
-                                            return (
-                                                <div
-                                                    key={`client-mobile-${idx}`}
-                                                    className="bg-pg-card border border-white/6 rounded-xl p-3 flex flex-col gap-2"
-                                                >
-                                                    <div className="flex justify-between items-center">
-                                                        <span
-                                                            onClick={() => setMatrixFilter({ type: 'client', value: client.client_name, label: language === 'id' ? 'Klien' : 'Client' })}
-                                                            className="font-extrabold text-sm cursor-pointer underline text-pg-primary-hover"
-                                                        >
-                                                            {client.client_name}
-                                                        </span>
-                                                        <span className="text-xs font-bold" style={{ color: otdrColor }}>
-                                                            {client.on_time_rate != null ? `${client.on_time_rate}% OTD` : 'N/A OTD'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="text-[11px] text-pg-text-secondary">
-                                                        {language === 'id' ? 'PO Aktif' : 'Active POs'}: <strong>{client.active_pos}</strong>
-                                                    </div>
-                                                    <div className="flex justify-between items-center border-t border-white/4 pt-2 text-[11px]">
-                                                        <div
-                                                            onClick={() => client.overdue_items > 0 && setMatrixFilter({ type: 'client_overdue', value: client.client_name, label: language === 'id' ? 'Overdue Klien' : 'Client Overdue' })}
-                                                            className="flex flex-col items-center gap-0.75 flex-1"
-                                                            style={{ cursor: client.overdue_items > 0 ? 'pointer' : 'default' }}
-                                                        >
-                                                            <span className="text-pg-text-muted text-[10px]">{language === 'id' ? 'Terlambat' : 'Overdue'}</span>
-                                                            {client.overdue_items > 0 ? (
-                                                                <span className="badge bg-red-500/15 text-red-500 px-1.5 py-0.5">{client.overdue_items}</span>
-                                                            ) : (
-                                                                <span className="text-pg-text-muted">-</span>
-                                                            )}
+                                        {(() => {
+                                            const sortedClients = [...(telemetry.client_health || [])].sort((a, b) => {
+                                                const key = clientSort.key;
+                                                let aVal = a[key] ?? 0;
+                                                let bVal = b[key] ?? 0;
+                                                if (typeof aVal === 'string') {
+                                                    return clientSort.direction === 'asc'
+                                                        ? aVal.localeCompare(bVal)
+                                                        : bVal.localeCompare(aVal);
+                                                }
+                                                return clientSort.direction === 'asc'
+                                                    ? aVal - bVal
+                                                    : bVal - aVal;
+                                            });
+                                            return sortedClients.map((client: any, idx: number) => {
+                                                const otdrColor = client.on_time_rate == null
+                                                    ? 'var(--color-pg-text-muted)'
+                                                    : client.on_time_rate >= 80 ? 'var(--color-pg-success)'
+                                                    : client.on_time_rate >= 60 ? 'var(--color-pg-warning)'
+                                                    : '#ef4444';
+                                                return (
+                                                    <div
+                                                        key={`client-mobile-${idx}`}
+                                                        className="bg-pg-card border border-white/6 rounded-xl p-3 flex flex-col gap-2"
+                                                    >
+                                                        <div className="flex justify-between items-center">
+                                                            <span
+                                                                onClick={() => setMatrixFilter({ type: 'client', value: client.client_name, label: language === 'id' ? 'Klien' : 'Client' })}
+                                                                className="font-extrabold text-sm cursor-pointer underline text-pg-primary-hover"
+                                                            >
+                                                                {client.client_name}
+                                                            </span>
+                                                            <span className="text-xs font-bold" style={{ color: otdrColor }}>
+                                                                {client.on_time_rate != null ? `${client.on_time_rate}% OTD` : 'N/A OTD'}
+                                                            </span>
                                                         </div>
-                                                        <div
-                                                            onClick={() => client.uninvoiced_count > 0 && setMatrixFilter({ type: 'client_uninvoiced', value: client.client_name, label: language === 'id' ? 'Belum Difakturkan Klien' : 'Client Uninvoiced' })}
-                                                            className="flex flex-col items-center gap-0.75 flex-1"
-                                                            style={{ cursor: client.uninvoiced_count > 0 ? 'pointer' : 'default' }}
-                                                        >
-                                                            <span className="text-pg-text-muted text-[10px]">{language === 'id' ? 'Faktur' : 'Invoice'}</span>
-                                                            {client.uninvoiced_count > 0 ? (
-                                                                <span className="badge bg-amber-500/15 text-pg-warning px-1.5 py-0.5">{client.uninvoiced_count}</span>
-                                                            ) : (
-                                                                <span className="text-pg-text-muted">-</span>
-                                                            )}
+                                                        <div className="text-[11px] text-pg-text-secondary">
+                                                            {language === 'id' ? 'PO Aktif' : 'Active POs'}: <strong>{client.active_pos}</strong>
                                                         </div>
-                                                        <div
-                                                            onClick={() => client.unpaid_count > 0 && setMatrixFilter({ type: 'client_unpaid', value: client.client_name, label: language === 'id' ? 'Belum Dibayar Klien' : 'Client Unpaid' })}
-                                                            className="flex flex-col items-center gap-0.75 flex-1"
-                                                            style={{ cursor: client.unpaid_count > 0 ? 'pointer' : 'default' }}
-                                                        >
-                                                            <span className="text-pg-text-muted text-[10px]">{language === 'id' ? 'Bayar' : 'Paid'}</span>
-                                                            {client.unpaid_count > 0 ? (
-                                                                <span className="badge bg-orange-500/15 text-pg-orange px-1.5 py-0.5">{client.unpaid_count}</span>
-                                                            ) : (
-                                                                <span className="text-pg-text-muted">-</span>
-                                                            )}
+                                                        <div className="flex justify-between items-center border-t border-white/4 pt-2 text-[11px]">
+                                                            <div
+                                                                onClick={() => client.overdue_items > 0 && setMatrixFilter({ type: 'client_overdue', value: client.client_name, label: language === 'id' ? 'Overdue Klien' : 'Client Overdue' })}
+                                                                className="flex flex-col items-center gap-0.75 flex-1"
+                                                                style={{ cursor: client.overdue_items > 0 ? 'pointer' : 'default' }}
+                                                            >
+                                                                <span className="text-pg-text-muted text-[10px]">{language === 'id' ? 'Terlambat' : 'Overdue'}</span>
+                                                                {client.overdue_items > 0 ? (
+                                                                    <span className="badge bg-red-500/15 text-red-500 px-1.5 py-0.5">{client.overdue_items}</span>
+                                                                ) : (
+                                                                    <span className="text-pg-text-muted">-</span>
+                                                                )}
+                                                            </div>
+                                                            <div
+                                                                onClick={() => client.uninvoiced_count > 0 && setMatrixFilter({ type: 'client_uninvoiced', value: client.client_name, label: language === 'id' ? 'Belum Difakturkan Klien' : 'Client Uninvoiced' })}
+                                                                className="flex flex-col items-center gap-0.75 flex-1"
+                                                                style={{ cursor: client.uninvoiced_count > 0 ? 'pointer' : 'default' }}
+                                                            >
+                                                                <span className="text-pg-text-muted text-[10px]">{language === 'id' ? 'Faktur' : 'Invoice'}</span>
+                                                                {client.uninvoiced_count > 0 ? (
+                                                                    <span className="badge bg-amber-500/15 text-pg-warning px-1.5 py-0.5">{client.uninvoiced_count}</span>
+                                                                ) : (
+                                                                    <span className="text-pg-text-muted">-</span>
+                                                                )}
+                                                            </div>
+                                                            <div
+                                                                onClick={() => client.unpaid_count > 0 && setMatrixFilter({ type: 'client_unpaid', value: client.client_name, label: language === 'id' ? 'Belum Dibayar Klien' : 'Client Unpaid' })}
+                                                                className="flex flex-col items-center gap-0.75 flex-1"
+                                                                style={{ cursor: client.unpaid_count > 0 ? 'pointer' : 'default' }}
+                                                            >
+                                                                <span className="text-pg-text-muted text-[10px]">{language === 'id' ? 'Bayar' : 'Paid'}</span>
+                                                                {client.unpaid_count > 0 ? (
+                                                                    <span className="badge bg-orange-500/15 text-pg-orange px-1.5 py-0.5">{client.unpaid_count}</span>
+                                                                ) : (
+                                                                    <span className="text-pg-text-muted">-</span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            );
-                                        })}
+                                                );
+                                            });
+                                        })()}
                                     </div>
                                 </div>
                             </div>
@@ -4829,6 +5028,19 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     </div>
                 );
             })()}
+
+            {/* Version Footer */}
+            <div style={{
+                textAlign: 'center',
+                padding: '24px 16px 8px',
+                fontSize: '11px',
+                color: 'var(--color-pg-text-muted)',
+                opacity: 0.6,
+                borderTop: '1px solid var(--color-pg-border-subtle)',
+                marginTop: '32px',
+            }}>
+                beta1 (2026-07-17)
+            </div>
 
             {/* ── Template Create/Edit Modal ─────────────────────────────── */}
             {showTemplateModal && (

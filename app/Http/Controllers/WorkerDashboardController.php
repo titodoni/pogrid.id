@@ -710,10 +710,14 @@ class WorkerDashboardController extends Controller
         // ── 2. Output Volumes ─────────────────────────────────────────────────
         // Use real DoItem.delivered_qty for MANUFACTURE items in range.
         // BUY_OUT and SERVICE still use progress-estimate (no DO flow for them).
-        $items = Item::where('created_at', '>=', $startDate)
-            ->where('created_at', '<=', $endDate)
-            ->with(['doItems'])
-            ->get();
+        $items = Item::where(function ($query) use ($startDate, $endDate) {
+            $query->whereBetween('created_at', [$startDate, $endDate])
+                ->orWhereHas('doItems', function ($q) use ($startDate, $endDate) {
+                    $q->whereBetween('updated_at', [$startDate, $endDate]);
+                });
+        })
+        ->with(['doItems'])
+        ->get();
 
         $deliveredManufacture = 0;
         $targetManufacture = 0;
@@ -725,26 +729,46 @@ class WorkerDashboardController extends Controller
         foreach ($items as $item) {
             $prog = (float) $item->progress_percent;
             if ($item->item_type === 'MANUFACTURE') {
-                // Real delivered quantity from DoItems
-                $deliveredManufacture += $item->doItems->sum('delivered_qty');
-                $targetManufacture += $item->target_qty;
+                $deliveredManufacture += $item->doItems
+                    ->filter(fn ($doItem) => $doItem->updated_at >= $startDate && $doItem->updated_at <= $endDate)
+                    ->sum('delivered_qty');
+                if ($item->created_at >= $startDate && $item->created_at <= $endDate) {
+                    $targetManufacture += $item->target_qty;
+                }
             } elseif ($item->item_type === 'BUY_OUT') {
-                $outputBuyout += $item->target_qty * ($prog / 100.0);
-                $targetBuyout += $item->target_qty;
+                if ($item->created_at >= $startDate && $item->created_at <= $endDate) {
+                    $outputBuyout += $item->target_qty * ($prog / 100.0);
+                    $targetBuyout += $item->target_qty;
+                }
             } elseif ($item->item_type === 'SERVICE') {
-                $outputService += $item->target_qty * ($prog / 100.0);
-                $targetService += $item->target_qty;
+                if ($item->created_at >= $startDate && $item->created_at <= $endDate) {
+                    $outputService += $item->target_qty * ($prog / 100.0);
+                    $targetService += $item->target_qty;
+                }
             }
         }
 
         // Previous period manufacture for delta comparison
-        $prevItems = Item::where('created_at', '>=', $prevStartDate)
-            ->where('created_at', '<=', $prevEndDate)
-            ->where('item_type', 'MANUFACTURE')
-            ->with(['doItems'])
-            ->get();
-        $prevDeliveredManufacture = $prevItems->sum(fn ($i) => $i->doItems->sum('delivered_qty'));
-        $prevTargetManufacture = $prevItems->sum('target_qty');
+        $prevItems = Item::where(function ($query) use ($prevStartDate, $prevEndDate) {
+            $query->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+                ->orWhereHas('doItems', function ($q) use ($prevStartDate, $prevEndDate) {
+                    $q->whereBetween('updated_at', [$prevStartDate, $prevEndDate]);
+                });
+        })
+        ->where('item_type', 'MANUFACTURE')
+        ->with(['doItems'])
+        ->get();
+
+        $prevDeliveredManufacture = 0;
+        $prevTargetManufacture = 0;
+        foreach ($prevItems as $item) {
+            $prevDeliveredManufacture += $item->doItems
+                ->filter(fn ($doItem) => $doItem->updated_at >= $prevStartDate && $doItem->updated_at <= $prevEndDate)
+                ->sum('delivered_qty');
+            if ($item->created_at >= $prevStartDate && $item->created_at <= $prevEndDate) {
+                $prevTargetManufacture += $item->target_qty;
+            }
+        }
 
         // ── 3. Active Risks ───────────────────────────────────────────────────
         $unresolvedAlerts = Alert::where('is_resolved', false)->get();
@@ -851,7 +875,7 @@ class WorkerDashboardController extends Controller
             // Completed stages average cycle time
             $completedStages = ItemProgress::whereIn('stage_name', $sourceStages)
                 ->where('status', 'COMPLETED')
-                ->whereNotNull('updated_at')
+                ->whereBetween('updated_at', [$startDate, $endDate])
                 ->get();
 
             $totalDays = 0.0;
@@ -859,7 +883,7 @@ class WorkerDashboardController extends Controller
             foreach ($completedStages as $cs) {
                 $created = Carbon::parse($cs->created_at);
                 $updated = Carbon::parse($cs->updated_at);
-                $totalDays += $updated->diffInHours($created) / 24.0;
+                $totalDays += abs($updated->diffInHours($created)) / 24.0;
                 $completedCount++;
             }
             $avgCycleTime = $completedCount > 0 ? round($totalDays / $completedCount, 2) : 0.00;
@@ -929,7 +953,7 @@ class WorkerDashboardController extends Controller
                     $reason = "Stuck on stage '{$stuckProgress->stage_name}'";
                 }
 
-                $daysOverdue = now()->startOfDay()->gt($deadline) ? now()->startOfDay()->diffInDays($deadline) : 0;
+                $daysOverdue = now()->startOfDay()->gt($deadline) ? abs(now()->startOfDay()->diffInDays($deadline)) : 0;
 
                 $delayedItemsData[] = [
                     'id' => $item->id,
@@ -956,6 +980,13 @@ class WorkerDashboardController extends Controller
         $allItemsData = [];
         $allItems = Item::with(['po.deliveryOrders', 'itemProgresses', 'doItems', 'alerts'])
             ->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty')
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])
+                    ->orWhere(function ($sub) use ($startDate, $endDate) {
+                        $sub->whereIn('status', ['COMPLETED', 'CANCELLED', 'TERMINATED'])
+                            ->whereBetween('updated_at', [$startDate, $endDate]);
+                    });
+            })
             ->get();
 
         foreach ($allItems as $item) {
@@ -973,11 +1004,11 @@ class WorkerDashboardController extends Controller
                 $latestDoDate = $po->deliveryOrders->max('delivery_date');
                 $completionDate = $latestDoDate ? Carbon::parse($latestDoDate)->startOfDay() : $po->updated_at->startOfDay();
                 if ($completionDate->gt($deadline)) {
-                    $daysOverdue = $completionDate->diffInDays($deadline);
+                    $daysOverdue = abs($completionDate->diffInDays($deadline));
                 }
             } else {
                 if (now()->startOfDay()->gt($deadline)) {
-                    $daysOverdue = now()->startOfDay()->diffInDays($deadline);
+                    $daysOverdue = abs(now()->startOfDay()->diffInDays($deadline));
                 }
             }
 
@@ -1024,6 +1055,7 @@ class WorkerDashboardController extends Controller
 
             // Get delay reason (if any)
             $reason = null;
+            $reasonType = null;
             if ($daysOverdue > 0 || $currentStage === 'Finance') {
                 $stuckProgress = $item->itemProgresses->firstWhere('status', 'STUCK');
                 $stuckAlert = $item->alerts->first(fn ($a) => ! $a->is_resolved && $a->severity === 'RED');
@@ -1031,16 +1063,53 @@ class WorkerDashboardController extends Controller
 
                 if ($stuckAlert) {
                     $reason = $stuckAlert->message;
+                    $activeAlert = $stuckAlert;
                 } elseif ($reworkAlert) {
                     $reason = $reworkAlert->message;
+                    $activeAlert = $reworkAlert;
                 } elseif ($stuckProgress) {
                     $reason = "Stuck on stage '{$stuckProgress->stage_name}'";
+                    $activeAlert = null;
                 } elseif ($item->invoice_status === 'UNINVOICED') {
                     $reason = 'Uninvoiced';
+                    $activeAlert = null;
                 } elseif ($item->payment_status === 'UNPAID') {
                     $reason = 'Unpaid';
+                    $activeAlert = null;
                 } else {
                     $reason = 'Delayed';
+                    $activeAlert = null;
+                }
+
+                if ($activeAlert) {
+                    if ($activeAlert->reason_type) {
+                        $reasonType = match (true) {
+                            str_contains($activeAlert->reason_type, 'Machine') || str_contains($activeAlert->reason_type, 'Mesin') => 'Machine Broken',
+                            str_contains($activeAlert->reason_type, 'Material') => 'Material Delay',
+                            str_contains($activeAlert->reason_type, 'Rework') || str_contains($activeAlert->reason_type, 'QC') => 'QC Rework',
+                            str_contains($activeAlert->reason_type, 'Power') || str_contains($activeAlert->reason_type, 'Listrik') => 'Power Outage',
+                            str_contains($activeAlert->reason_type, 'Human') || str_contains($activeAlert->reason_type, 'Kesalahan') => 'Human Error',
+                            str_contains($activeAlert->reason_type, 'Sick') || str_contains($activeAlert->reason_type, 'Sakit') => 'Operator Sick',
+                            default => 'Other',
+                        };
+                    } else {
+                        $msg = strtolower($activeAlert->message);
+                        $reasonType = match (true) {
+                            str_contains($msg, 'machine') || str_contains($msg, 'mesin') || str_contains($msg, 'broken') || str_contains($msg, 'rusak') => 'Machine Broken',
+                            str_contains($msg, 'material') || str_contains($msg, 'bahan') || str_contains($msg, 'shortage') || str_contains($msg, 'habis') || str_contains($msg, 'vendor') => 'Material Delay',
+                            str_contains($msg, 'rework') || str_contains($msg, 'reject') || str_contains($msg, 'qc') => 'QC Rework',
+                            str_contains($msg, 'power') || str_contains($msg, 'listrik') => 'Power Outage',
+                            str_contains($msg, 'absent') || str_contains($msg, 'absen') || str_contains($msg, 'sakit') || str_contains($msg, 'sick') => 'Operator Sick',
+                            str_contains($msg, 'human') || str_contains($msg, 'error') || str_contains($msg, 'kesalahan') => 'Human Error',
+                            default => 'Other',
+                        };
+                    }
+                } elseif ($stuckProgress) {
+                    $reasonType = 'Other';
+                } elseif ($item->invoice_status === 'UNINVOICED') {
+                    $reasonType = 'Uninvoiced';
+                } elseif ($item->payment_status === 'UNPAID') {
+                    $reasonType = 'Unpaid';
                 }
             }
 
@@ -1064,6 +1133,7 @@ class WorkerDashboardController extends Controller
                 'global_deadline' => $po->global_deadline->toDateString(),
                 'days_overdue' => $daysOverdue,
                 'reason' => $reason,
+                'reason_type' => $reasonType,
                 'status' => $item->status,
                 'po_status' => $po->status,
                 'is_urgent' => (bool) $po->is_urgent,
@@ -1202,12 +1272,12 @@ class WorkerDashboardController extends Controller
                 $latestDoDate = $po->deliveryOrders->max('delivery_date');
                 $completionDate = $latestDoDate ? Carbon::parse($latestDoDate)->startOfDay() : $po->updated_at->startOfDay();
                 if ($completionDate->gt($deadline)) {
-                    $totalDelayDays += $completionDate->diffInDays($deadline);
+                    $totalDelayDays += abs($completionDate->diffInDays($deadline));
                     $delayedCount++;
                 }
             } else {
                 if (now()->startOfDay()->gt($deadline)) {
-                    $totalDelayDays += now()->startOfDay()->diffInDays($deadline);
+                    $totalDelayDays += abs(now()->startOfDay()->diffInDays($deadline));
                     $delayedCount++;
                 }
             }
