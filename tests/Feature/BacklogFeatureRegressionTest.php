@@ -6,6 +6,7 @@ use App\Models\Item;
 use App\Models\ItemProgress;
 use App\Models\Po;
 use App\Models\Tenant;
+use App\Models\TenantStageTemplate;
 use App\Models\User;
 use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -212,5 +213,86 @@ class BacklogFeatureRegressionTest extends TestCase
         $content = $response->streamedContent();
         // Tenant1 has no seeded items -> must NOT leak tenant2's client
         $this->assertStringNotContainsString('Secret Client', $content);
+    }
+
+    // ── Stage Template CRUD (backlog: template management) ──────────────────
+    // The Owner Dashboard UI calls GET/POST /stage-templates and
+    // /stage-templates/{id}/update|delete. These must be backed by working
+    // controller actions or the Stage Template Manager panel 500s.
+
+    public function test_stage_templates_list_returns_ok_for_owner()
+    {
+        $this->actingAs($this->owner);
+        $response = $this->get('/stage-templates');
+        $response->assertStatus(200);
+    }
+
+    public function test_stage_template_create_persists_record()
+    {
+        $this->actingAs($this->owner);
+        $response = $this->post('/stage-templates', [
+            'name' => 'Standard CNC Flow',
+            'description' => 'Machining then QC then delivery',
+            'stages' => ['Machining', 'QC', 'Delivery'],
+        ]);
+
+        $this->assertContains($response->getStatusCode(), [200, 201, 302]);
+        $this->assertDatabaseHas('tenant_stage_templates', [
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Standard CNC Flow',
+        ]);
+    }
+
+    public function test_stage_template_update_and_delete()
+    {
+        $this->actingAs($this->owner);
+
+        $template = TenantStageTemplate::create([
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Old Name',
+            'description' => 'old',
+            'stages' => ['Machining', 'QC'],
+            'sort_order' => 0,
+        ]);
+
+        $update = $this->post("/stage-templates/{$template->id}/update", [
+            'name' => 'New Name',
+            'description' => 'new',
+            'stages' => ['Design', 'Machining', 'QC', 'Delivery'],
+        ]);
+        $this->assertContains($update->getStatusCode(), [200, 201, 302]);
+        $this->assertDatabaseHas('tenant_stage_templates', [
+            'id' => $template->id,
+            'name' => 'New Name',
+        ]);
+
+        $delete = $this->post("/stage-templates/{$template->id}/delete");
+        $this->assertContains($delete->getStatusCode(), [200, 201, 302]);
+        $this->assertDatabaseMissing('tenant_stage_templates', [
+            'id' => $template->id,
+        ]);
+    }
+
+    public function test_stage_templates_are_tenant_isolated()
+    {
+        TenantManager::bypass();
+        $tenant2 = Tenant::create([
+            'company_name' => 'Other Tmpl Co',
+            'slug' => 'other-tmpl-co',
+        ]);
+        TenantStageTemplate::create([
+            'tenant_id' => $tenant2->id,
+            'name' => 'Foreign Template',
+            'description' => 'should not be visible',
+            'stages' => ['QC'],
+            'sort_order' => 0,
+        ]);
+        TenantManager::enableScope();
+        TenantManager::setTenantId($this->tenant->id);
+
+        $this->actingAs($this->owner);
+        $response = $this->get('/stage-templates');
+        $response->assertStatus(200);
+        $this->assertStringNotContainsString('Foreign Template', $response->getContent());
     }
 }
