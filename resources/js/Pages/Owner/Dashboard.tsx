@@ -665,6 +665,9 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
     const [presentationAutoPlay, setPresentationAutoPlay] = useState(false);
     const [matrixFilter, setMatrixFilter] = useState<{ type: string; value: string; label: string } | null>(null);
     const [exportOpen, setExportOpen] = useState(false);
+    const [dirCollapsed, setDirCollapsed] = useState(false);
+    const [clientBoardCollapsed, setClientBoardCollapsed] = useState(false);
+    const [bottleneckCollapsed, setBottleneckCollapsed] = useState(false);
     const [directoryFilter, setDirectoryFilter] = useState<'client' | 'marked' | 'delayed' | 'ontime' | 'close_due'>('client');
     const [activePoFilter, setActivePoFilter] = useState<'all' | 'marked' | 'delayed' | 'ontime' | 'close_due'>('all');
     const [clientSort, setClientSort] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'active_pos', direction: 'desc' });
@@ -3004,7 +3007,18 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         </span>
                                     )}
                                 </div>
+                                <button
+                                    onClick={() => setDirCollapsed(!dirCollapsed)}
+                                    className="text-xs font-semibold text-pg-text-secondary hover:text-white bg-transparent border border-white/10 hover:border-white/20 rounded-md px-2.5 py-1 cursor-pointer transition-colors"
+                                >
+                                    {dirCollapsed
+                                        ? (language === 'id' ? '▼ Tampilkan' : '▼ Expand')
+                                        : (language === 'id' ? '▲ Sembunyikan' : '▲ Collapse')
+                                    }
+                                </button>
                             </div>
+                            {!dirCollapsed && (
+                                <div className="mt-4">
                             
                             {/* Pill Filters */}
                             <div className="flex gap-2 flex-wrap mb-4">
@@ -3395,6 +3409,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     );
                                 })()}
                             </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* ── Section 5: Finance Health Strip ──────────────────── */}
@@ -3618,7 +3634,20 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
                         {/* ── Bottleneck Detail Table ───────────────────────────── */}
                         <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 mb-5.5">
-                            <h3 className="section-label-v2" style={{ marginBottom: '16px' }}>{t.bottleneck_analyzer}</h3>
+                            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                                <h3 className="section-label-v2" style={{ margin: 0 }}>{t.bottleneck_analyzer}</h3>
+                                <button
+                                    onClick={() => setBottleneckCollapsed(!bottleneckCollapsed)}
+                                    className="text-xs font-semibold text-pg-text-secondary hover:text-white bg-transparent border border-white/10 hover:border-white/20 rounded-md px-2.5 py-1 cursor-pointer transition-colors"
+                                >
+                                    {bottleneckCollapsed
+                                        ? (language === 'id' ? '▼ Tampilkan' : '▼ Expand')
+                                        : (language === 'id' ? '▲ Sembunyikan' : '▲ Collapse')
+                                    }
+                                </button>
+                            </div>
+                            {!bottleneckCollapsed && (
+                                <div className="mt-4">
                             <div className="w-full overflow-x-auto">
                                 <div className="bottleneck-table-container">
                                     <table className="w-full border-collapse text-sm">
@@ -3742,6 +3771,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                     })}
                                 </div>
                             </div>
+                            </div>
+                            )}
                         </div>
 
 
@@ -3749,14 +3780,27 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                         {/* ── Section 4: Papan Kinerja Klien ───────────────────── */}
                         {telemetry.client_health && telemetry.client_health.length > 0 && (
                             <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 mb-4">
-                                <div className="flex items-baseline gap-2.5 mb-4">
-                                    <h3 className="section-label-v2" style={{ margin: 0 }}>
-                                        {language === 'id' ? 'Papan Kinerja Klien' : 'Client Performance Board'}
-                                    </h3>
-                                    <span className="section-label-v2__sub">
-                                        {language === 'id' ? 'diurutkan berdasarkan risiko tertinggi' : 'sorted by highest risk'}
-                                    </span>
+                                <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                                    <div className="flex items-baseline gap-2.5">
+                                        <h3 className="section-label-v2" style={{ margin: 0 }}>
+                                            {language === 'id' ? 'Papan Kinerja Klien' : 'Client Performance Board'}
+                                        </h3>
+                                        <span className="section-label-v2__sub">
+                                            {language === 'id' ? 'diurutkan berdasarkan risiko tertinggi' : 'sorted by highest risk'}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => setClientBoardCollapsed(!clientBoardCollapsed)}
+                                        className="text-xs font-semibold text-pg-text-secondary hover:text-white bg-transparent border border-white/10 hover:border-white/20 rounded-md px-2.5 py-1 cursor-pointer transition-colors"
+                                    >
+                                        {clientBoardCollapsed
+                                            ? (language === 'id' ? '▼ Tampilkan' : '▼ Expand')
+                                            : (language === 'id' ? '▲ Sembunyikan' : '▲ Collapse')
+                                        }
+                                    </button>
                                 </div>
+                                {!clientBoardCollapsed && (
+                                    <div className="mt-4">
                                 <div className="w-full overflow-x-auto">
                                     <div className="client-table-container">
                                         <table className="w-full border-collapse text-sm">
@@ -3938,6 +3982,8 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                         })()}
                                     </div>
                                 </div>
+                                </div>
+                                )}
                             </div>
                         )}
 
