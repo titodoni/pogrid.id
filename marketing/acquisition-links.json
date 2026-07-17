@@ -1,0 +1,78 @@
+{
+  "base_app_signup": "https://app.pogrid.id/register",
+  "base_landing": "https://pogrid.id",
+  "generated_at": "2026-07-17",
+  "channels": [
+    {
+      "id": "whatsapp_communities",
+      "name": "WhatsApp Komunitas Owner Bengkel",
+      "owner": "ERASMUS (CEO)",
+      "audience": "Grup WA owner/pemilik bengkel makloon & perbengkelan Indonesia",
+      "message_template": "Halo rekan bengkel 👋 Pernah kehilangan track order pelanggan sampai telat? Kami buat POgrid.id — tiap karyawan laporkan progres dari HP, owner lihat dashboard langsung. Gratis 30 hari: {signup_url}",
+      "links": [
+        {
+          "label": "WA share (general)",
+          "utm_source": "whatsapp",
+          "utm_medium": "community",
+          "utm_campaign": "owner_groups",
+          "signup_url": "https://app.pogrid.id/register?utm_source=whatsapp&utm_medium=community&utm_campaign=owner_groups"
+        }
+      ]
+    },
+    {
+      "id": "instagram_tiktok",
+      "name": "Instagram & TikTok Konten Bisnis Lokal",
+      "owner": "ERASMUS (CEO)",
+      "audience": "Pemilik UMKM manufaktur, akun tips bengkel, konten 'kisah bengkel'",
+      "message_template": "Cara bengkel Indonesia berhenti kehilangan order karena lupa posisi 📍 POgrid.id = progres real-time dari HP karyawan. Coba gratis: {signup_url}",
+      "links": [
+        {
+          "label": "IG bio link",
+          "utm_source": "instagram",
+          "utm_medium": "social",
+          "utm_campaign": "local_business_content",
+          "signup_url": "https://app.pogrid.id/register?utm_source=instagram&utm_medium=social&utm_campaign=local_business_content"
+        },
+        {
+          "label": "TikTok bio link",
+          "utm_source": "tiktok",
+          "utm_medium": "social",
+          "utm_campaign": "local_business_content",
+          "signup_url": "https://app.pogrid.id/register?utm_source=tiktok&utm_medium=social&utm_campaign=local_business_content"
+        }
+      ]
+    },
+    {
+      "id": "marketplace_sellers",
+      "name": "Grup Seller Tokopedia / Shopee",
+      "owner": "ERASMUS (CEO)",
+      "audience": "Seller marketplace yang outsource produksi ke bengkel makloon",
+      "message_template": "Seller Tokopedia/Shopee: supplier makloon sering telat karena 'lupa' posisi order? Pantau progres bengkel Anda di POgrid.id. Gratis trial: {signup_url}",
+      "links": [
+        {
+          "label": "Marketplace seller groups",
+          "utm_source": "marketplace",
+          "utm_medium": "seller_group",
+          "utm_campaign": "tokopedia_shopee_sellers",
+          "signup_url": "https://app.pogrid.id/register?utm_source=marketplace&utm_medium=seller_group&utm_campaign=tokopedia_shopee_sellers"
+        }
+      ]
+    },
+    {
+      "id": "direct_outreach",
+      "name": "Direct Outreach (WA/email ke bengkel target)",
+      "owner": "ERASMUS (CEO)",
+      "audience": "Bengkel makloon teridentifikasi di Jabodetabek/Jawa Barat/Jatim",
+      "message_template": "Halo {nama_bengkel}, kami bantu bengkel seperti Anda lacak tiap PO secara real-time dari HP karyawan. Demo 5 menit / trial gratis: {signup_url}",
+      "links": [
+        {
+          "label": "Direct 1:1 outreach",
+          "utm_source": "direct",
+          "utm_medium": "outreach",
+          "utm_campaign": "targeted_bengkel",
+          "signup_url": "https://app.pogrid.id/register?utm_source=direct&utm_medium=outreach&utm_campaign=targeted_bengkel"
+        }
+      ]
+    }
+  ]
+}
