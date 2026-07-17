@@ -493,6 +493,195 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
     const [showSearchModal, setShowSearchModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [copiedItemId, setCopiedItemId] = useState<number | null>(null);
+
+    const getPieceLocations = (item: any) => {
+        const stages = [...(item.item_progresses || [])];
+        if (stages.length === 0) return [];
+        
+        // Filter out non-physical stages (Design/Gambar/Draft stages do not track physical pieces)
+        const physicalStages = stages.filter((s: any) => {
+            const name = s.stage_name.toLowerCase();
+            return !name.includes('design') && !name.includes('gambar') && !name.includes('draft');
+        });
+        
+        const locations = [];
+        const target = item.target_qty || 0;
+        const delivered = item.delivered_qty || 0;
+        
+        if (delivered > 0) {
+            locations.push({
+                stage_name: language === 'id' ? 'Terkirim' : 'Delivered',
+                qty: delivered,
+                color: 'var(--color-pg-success)',
+                bg: 'rgba(16, 185, 129, 0.1)'
+            });
+        }
+        
+        // Find completed counts for physical stages.
+        // Piece count in stage i = (completed in stage i) - (max completed in any stage > i)
+        // Pieces not started = target - max completed in any physical stage
+        const completedMap = physicalStages.map((s: any) => s.completed_qty || 0);
+        const maxCompletedAnywhere = completedMap.length > 0 ? Math.max(...completedMap, delivered) : delivered;
+        
+        for (let i = physicalStages.length - 1; i >= 0; i--) {
+            const currentStage = physicalStages[i];
+            const currentCompleted = currentStage.completed_qty || 0;
+            
+            // Find max completed in any subsequent physical stage (indices > i) or delivered
+            let maxSubsequent = delivered;
+            for (let j = i + 1; j < physicalStages.length; j++) {
+                if (physicalStages[j].completed_qty > maxSubsequent) {
+                    maxSubsequent = physicalStages[j].completed_qty;
+                }
+            }
+            
+            // Deduct to find current pending count in this stage
+            const qtyInCurrent = Math.max(0, currentCompleted - maxSubsequent);
+            
+            if (qtyInCurrent > 0) {
+                // Determine stage color
+                let color = '#3b82f6';
+                let bg = 'rgba(59, 130, 246, 0.1)';
+                if (currentStage.status === 'STUCK') {
+                    color = '#ef4444';
+                    bg = 'rgba(239, 68, 68, 0.1)';
+                } else if (currentStage.stage_name.toLowerCase().includes('qc')) {
+                    color = 'var(--color-pg-orange)';
+                    bg = 'rgba(249, 115, 22, 0.1)';
+                }
+                
+                locations.push({
+                    stage_name: currentStage.stage_name,
+                    qty: qtyInCurrent,
+                    color,
+                    bg
+                });
+            }
+        }
+        
+        // Add "Queued" if there are pieces not started
+        const queuedQty = target - maxCompletedAnywhere;
+        if (queuedQty > 0) {
+            locations.push({
+                stage_name: language === 'id' ? 'Menunggu Produksi' : 'Queued/Pending',
+                qty: queuedQty,
+                color: 'var(--color-pg-text-muted)',
+                bg: 'rgba(255, 255, 255, 0.05)'
+            });
+        }
+        
+        return locations;
+    };
+
+    const calculateDynamicETA = (item: any, telemetry: any, lang: 'en' | 'id') => {
+        if (['COMPLETED', 'DELIVERED', 'CLOSED', 'CANCELLED', 'TERMINATED'].includes(item.status)) {
+            return null;
+        }
+        
+        const incompleteStages = (item.item_progresses || []).filter((s: any) => s.status !== 'COMPLETED');
+        if (incompleteStages.length === 0) return null;
+        
+        const metrics = telemetry?.stage_metrics || [];
+        let totalEstimatedDays = 0;
+        
+        incompleteStages.forEach((stage: any) => {
+            const nameLower = stage.stage_name.toLowerCase();
+            let targetCategory = '';
+            if (nameLower.includes('design') || nameLower.includes('gambar') || nameLower.includes('draft')) {
+                targetCategory = 'Drafter';
+            } else if (nameLower.includes('material') || nameLower.includes('bahan') || nameLower.includes('purchasing') || nameLower.includes('vendor')) {
+                targetCategory = 'Purchasing';
+            } else if (nameLower.includes('qc')) {
+                targetCategory = 'QC';
+            } else if (nameLower.includes('delivery') || nameLower.includes('pengiriman') || nameLower.includes('finance') || nameLower.includes('billing')) {
+                targetCategory = 'Finance';
+            } else {
+                targetCategory = 'Production';
+            }
+            
+            const metric = metrics.find((m: any) => m.stage === targetCategory);
+            const cycleTime = (metric && metric.avg_cycle_time > 0) ? metric.avg_cycle_time : 1.0;
+            
+            const progress = parseFloat(stage.progress_percent) || 0;
+            const remainingFactor = Math.max(0, (100 - progress) / 100);
+            
+            totalEstimatedDays += cycleTime * remainingFactor;
+        });
+        
+        if (totalEstimatedDays === 0) return null;
+        
+        const etaDate = new Date();
+        etaDate.setTime(etaDate.getTime() + totalEstimatedDays * 24 * 60 * 60 * 1000);
+        
+        const day = etaDate.getDate();
+        const monthNamesEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthNamesId = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        const month = lang === 'en' ? monthNamesEn[etaDate.getMonth()] : monthNamesId[etaDate.getMonth()];
+        const hours = String(etaDate.getHours()).padStart(2, '0');
+        const minutes = String(etaDate.getMinutes()).padStart(2, '0');
+        
+        const formattedDate = `${day} ${month} ${etaDate.getFullYear()}, ~${hours}:${minutes}`;
+        const daysCeil = Math.ceil(totalEstimatedDays);
+        const relativeText = lang === 'en' 
+            ? `in ~${daysCeil} day${daysCeil > 1 ? 's' : ''}` 
+            : `dalam ~${daysCeil} hari`;
+            
+        return {
+            formattedDate,
+            relativeText,
+            totalEstimatedDays
+        };
+    };
+
+    const copyItemStatusToClipboard = (item: any, po: any, lang: 'en' | 'id') => {
+        const target = item.target_qty || 0;
+        const delivered = item.delivered_qty || 0;
+        const locations = getPieceLocations(item);
+        const eta = calculateDynamicETA(item, telemetry, lang);
+        
+        let locationStr = '';
+        if (locations && locations.length > 0) {
+            locationStr = locations.map((loc: any) => `- ${loc.stage_name}: ${loc.qty} pcs`).join('\n');
+        } else {
+            locationStr = lang === 'en' ? '- Pending production' : '- Menunggu produksi';
+        }
+        
+        let etaStr = '';
+        if (['COMPLETED', 'DELIVERED', 'CLOSED'].includes(item.status)) {
+            etaStr = lang === 'en' ? 'Completed & Fully Shipped' : 'Selesai & Dikirim Sepenuhnya';
+        } else if (item.status === 'CANCELLED') {
+            etaStr = lang === 'en' ? 'Cancelled' : 'Dibatalkan';
+        } else if (item.status === 'TERMINATED') {
+            etaStr = lang === 'en' ? 'Terminated Midway' : 'Dihentikan Tengah Jalan';
+        } else if (eta) {
+            etaStr = lang === 'en' 
+                ? `Estimated Delivery: ${eta.formattedDate} (${eta.relativeText})` 
+                : `Estimasi Pengiriman: ${eta.formattedDate} (${eta.relativeText})`;
+        } else {
+            etaStr = lang === 'en' ? 'TBD' : 'Menunggu Jadwal';
+        }
+        
+        const text = lang === 'en' 
+            ? `*Status Update: ${item.item_name}* (PO: ${po.po_number})
+- Client: ${po.client_name}
+- Total Quantity: ${target} pcs
+- Shipped: ${delivered} pcs
+- Current Piece Locations:
+${locationStr}
+- ${etaStr}` 
+            : `*Pembaruan Status: ${item.item_name}* (PO: ${po.po_number})
+- Klien: ${po.client_name}
+- Total Jumlah: ${target} pcs
+- Terkirim: ${delivered} pcs
+- Lokasi Bagian Saat Ini:
+${locationStr}
+- ${etaStr}`;
+
+        navigator.clipboard.writeText(text);
+        setCopiedItemId(item.id);
+        setTimeout(() => setCopiedItemId(null), 2000);
+    };
 
     const [workflowMode, setWorkflowMode] = useState<'strict' | 'loose' | 'custom'>(() => {
         return tenant?.workflow_settings?.workflow_mode || 'loose';
@@ -2271,134 +2460,97 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                 {po.items.length === 0 ? (
                                                     <div style={{ fontSize: '14px', color: 'var(--color-pg-text-muted)', padding: '12px 0' }}>No items in this PO.</div>
                                                 ) : (
-                                                    <>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '4px' }}>
-                                                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#9ca3af', cursor: 'pointer', userSelect: 'none' }}>
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={selectedItemIds.size === po.items.length}
-                                                                    onChange={() => toggleSelectAll(po.items)}
-                                                                    className="mr-1 accent-indigo-500"
-                                                                />
-                                                                Select All
-                                                            </label>
-                                                        </div>
-                                                        {po.items.map((item) => {
+                                                    po.items.map((item) => {
                                                         const progress = parseFloat(item.progress_percent);
                                                         const hasProgress = progress > 0;
                                                         const isCancelled = item.status === 'CANCELLED';
                                                         const isTerminated = item.status === 'TERMINATED';
                                                         const itemExpanded = expandedItems.has(item.id);
 
+                                                        const itemAlerts = alerts.filter(a => a.item_id === item.id && !a.is_resolved);
+                                                        const hasRework = itemAlerts.some(a => a.severity === 'YELLOW');
+                                                        const sc = getItemStateColor(po.global_deadline, hasRework, item.status);
+
                                                         return (
-                                                            <div key={item.id} id={`item-card-${item.id}`} className="item-compact" style={{
-                                                        ...(() => {
-                                                            const itemAlerts = alerts.filter(a => a.item_id === item.id && !a.is_resolved);
-                                                            const hasRework = itemAlerts.some(a => a.severity === 'YELLOW');
-                                                            const sc = getItemStateColor(po.global_deadline, hasRework, item.status);
-                                                            return {
-                                                                opacity: (isCancelled || isTerminated) ? 0.6 : 1,
-                                                                borderLeft: '3px solid ' + sc.border,
-                                                                backgroundColor: sc.bg,
-                                                                boxShadow: sc.glow !== 'transparent' ? '0 0 12px ' + sc.glow : 'none'
-                                                            };
-                                                        })()
-                                                    }}>
-                                                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={selectedItemIds.has(item.id)}
-                                                                    onChange={() => toggleItemSelection(item.id)}
-                                                                    style={{ marginTop: '14px' }}
-                                                                    className="accent-indigo-500"
-                                                                />
-                                                                <button className="item-compact-summary" onClick={() => toggleItem(item.id)} style={{ flex: 1 }}>
+                                                            <div 
+                                                                key={item.id} 
+                                                                id={`item-card-${item.id}`} 
+                                                                className="item-compact" 
+                                                                style={{
+                                                                    opacity: (isCancelled || isTerminated) ? 0.6 : 1,
+                                                                    borderLeft: '3px solid ' + sc.border,
+                                                                    backgroundColor: sc.bg,
+                                                                    boxShadow: sc.glow !== 'transparent' ? '0 0 12px ' + sc.glow : 'none',
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    marginBottom: '8px',
+                                                                    borderRadius: '12px',
+                                                                    border: '1px solid var(--color-pg-border)',
+                                                                    overflow: 'hidden'
+                                                                }}
+                                                            >
+                                                                {/* Summary row - Clickable to expand */}
+                                                                <button 
+                                                                    className="item-compact-summary" 
+                                                                    onClick={() => toggleItem(item.id)} 
+                                                                    style={{ 
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '12px',
+                                                                        width: '100%',
+                                                                        padding: '12px 16px',
+                                                                        background: 'transparent',
+                                                                        border: 'none',
+                                                                        color: '#fafafa',
+                                                                        cursor: 'pointer',
+                                                                        textAlign: 'left'
+                                                                    }}
+                                                                >
                                                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                                                             <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{item.item_name}</span>
-                                                                        {renderStatusBadge(
-                                                                            item.item_type === 'MANUFACTURE' 
-                                                                                ? (language === 'id' ? 'Produksi Internal' : 'Manufactured') 
-                                                                                : (language === 'id' ? 'Beli Jadi (Buyout)' : 'Buyout'),
-                                                                            'var(--color-pg-text-muted)'
-                                                                        )}
-                                                                        {item.drafter_status && renderStatusBadge(
-                                                                            item.drafter_status === 'APPROVED' 
-                                                                                ? (language === 'id' ? 'Gambar Disetujui' : 'Drawing Approved')
-                                                                                : (language === 'id' ? `Gambar: ${item.drafter_status}` : `Drawing: ${item.drafter_status}`),
-                                                                            item.drafter_status === 'APPROVED' ? 'var(--color-pg-success)' : 'var(--color-pg-primary)'
-                                                                        )}
-                                                                        {item.purchasing_status && renderStatusBadge(
-                                                                            item.purchasing_status === 'READY'
-                                                                                ? (language === 'id' ? 'Bahan Baku Siap' : 'Material Ready')
-                                                                                : item.purchasing_status === 'PROSES'
-                                                                                ? (language === 'id' ? 'Bahan Dipesan' : 'Material Ordered')
-                                                                                : (language === 'id' ? `Material: ${item.purchasing_status}` : `Material: ${item.purchasing_status}`),
-                                                                            item.purchasing_status === 'READY' ? 'var(--color-pg-success)' :
-                                                                                item.purchasing_status === 'PROSES' ? 'var(--color-pg-warning)' :
-                                                                                '#3b82f6'
-                                                                        )}
-                                                                        {item.delivery_status && renderStatusBadge(
-                                                                            item.delivery_status === 'DELIVERED'
-                                                                                ? (language === 'id' ? 'Terkirim' : 'Delivered')
-                                                                                : item.delivery_status === 'PARTIAL'
-                                                                                ? (language === 'id' ? `Terkirim Sebagian (${item.delivered_qty}/${item.target_qty})` : `Partially Delivered (${item.delivered_qty}/${item.target_qty})`)
-                                                                                : (language === 'id' ? 'Belum Dikirim' : 'Pending Delivery'),
-                                                                            item.delivery_status === 'DELIVERED' ? 'var(--color-pg-success)' :
-                                                                                item.delivery_status === 'PARTIAL' ? 'var(--color-pg-warning)' :
+                                                                            
+                                                                            {/* Clean, minimalist primary status badges only */}
+                                                                            {renderStatusBadge(
+                                                                                item.item_type === 'MANUFACTURE' 
+                                                                                    ? (language === 'id' ? 'Produksi' : 'Manufactured') 
+                                                                                    : (language === 'id' ? 'Beli Jadi' : 'Buyout'),
                                                                                 'var(--color-pg-text-muted)'
-                                                                        )}
-                                                                        {item.invoice_status && renderStatusBadge(
-                                                                            item.invoice_status === 'INVOICED'
-                                                                                ? (language === 'id' ? 'Difakturkan' : 'Invoiced')
-                                                                                : item.invoice_status === 'PARTIAL'
-                                                                                ? (language === 'id' ? `Faktur Sebagian (${item.invoiced_qty}/${item.target_qty})` : `Partially Invoiced (${item.invoiced_qty}/${item.target_qty})`)
-                                                                                : (language === 'id' ? 'Belum Difakturkan' : 'Uninvoiced'),
-                                                                            item.invoice_status === 'INVOICED' ? 'var(--color-pg-success)' :
-                                                                                item.invoice_status === 'PARTIAL' ? 'var(--color-pg-orange)' :
-                                                                                'var(--color-pg-text-muted)'
-                                                                        )}
-                                                                        {item.payment_status && renderStatusBadge(
-                                                                            item.payment_status === 'PAID'
-                                                                                ? (language === 'id' ? 'Lunas' : 'Paid')
-                                                                                : item.payment_status === 'PARTIAL_PAID'
-                                                                                ? (language === 'id' ? 'Bayar Sebagian' : 'Partial Paid')
-                                                                                : (language === 'id' ? 'Belum Bayar' : 'Unpaid'),
-                                                                            item.payment_status === 'PAID' ? 'var(--color-pg-success)' :
-                                                                                item.payment_status === 'PARTIAL_PAID' ? 'var(--color-pg-primary-hover)' :
-                                                                                'var(--color-pg-text-muted)'
-                                                                        )}
-                                                                        {renderStatusBadge(
-                                                                            (() => {
-                                                                                switch (item.status) {
-                                                                                    case 'IN_PROGRESS': return language === 'id' ? 'Proses Produksi' : 'In Production';
-                                                                                    case 'PENDING': return language === 'id' ? 'Belum Mulai' : 'Pending';
-                                                                                    case 'COMPLETED': return language === 'id' ? 'Selesai' : 'Completed';
-                                                                                    case 'CANCELLED': return language === 'id' ? 'Dibatalkan' : 'Cancelled';
-                                                                                    case 'TERMINATED': return language === 'id' ? 'Dihentikan' : 'Terminated';
-                                                                                    case 'DELIVERED': return language === 'id' ? 'Terkirim' : 'Delivered';
-                                                                                    case 'CLOSED': return language === 'id' ? 'Selesai & Lunas' : 'Closed';
-                                                                                    default: return item.status;
-                                                                                }
-                                                                            })(),
-                                                                            isCancelled ? 'var(--color-pg-danger)'
-                                                                                : isTerminated ? 'var(--color-pg-danger)'
-                                                                                : progress >= 100 ? 'var(--color-pg-success)' : '#3b82f6'
-                                                                        )}
+                                                                            )}
+
+                                                                            {renderStatusBadge(
+                                                                                (() => {
+                                                                                    switch (item.status) {
+                                                                                        case 'IN_PROGRESS': return language === 'id' ? 'Proses Produksi' : 'In Production';
+                                                                                        case 'PENDING': return language === 'id' ? 'Belum Mulai' : 'Pending';
+                                                                                        case 'COMPLETED': return language === 'id' ? 'Selesai' : 'Completed';
+                                                                                        case 'CANCELLED': return language === 'id' ? 'Dibatalkan' : 'Cancelled';
+                                                                                        case 'TERMINATED': return language === 'id' ? 'Dihentikan' : 'Terminated';
+                                                                                        case 'DELIVERED': return language === 'id' ? 'Terkirim' : 'Delivered';
+                                                                                        case 'CLOSED': return language === 'id' ? 'Selesai & Lunas' : 'Closed';
+                                                                                        default: return item.status;
+                                                                                    }
+                                                                                })(),
+                                                                                isCancelled ? 'var(--color-pg-danger)'
+                                                                                    : isTerminated ? 'var(--color-pg-danger)'
+                                                                                    : progress >= 100 ? 'var(--color-pg-success)' : '#3b82f6'
+                                                                            )}
+
                                                                             {(() => {
-                                                                                const itemAlerts = alerts.filter(a => a.item_id === item.id && !a.is_resolved);
                                                                                 const reworkAlert = itemAlerts.find(a => a.severity === 'YELLOW');
                                                                                 const reworkVal = reworkAlert ? (reworkAlert.message ? `Rework: ${reworkAlert.message}` : 'Rework') : null;
                                                                                 return <WarningPill deadlineDateStr={po.global_deadline} reworkMessage={reworkVal} lang={language} />;
                                                                             })()}
                                                                         </div>
                                                                     </div>
-                                                                    <div className="progress-bar-mini" style={{ maxWidth: '100px' }}>
+
+                                                                    <div className="progress-bar-mini" style={{ maxWidth: '100px', flexShrink: 0 }}>
                                                                         <div className="progress-bar-mini-fill" style={{
                                                                             width: `${progress}%`,
                                                                             backgroundColor: isCancelled ? 'var(--color-pg-danger)' : 'var(--color-pg-primary)'
                                                                         }} />
                                                                     </div>
+
                                                                     <span className="item-pct-label" style={{ 
                                                                         fontSize: '12px', 
                                                                         fontWeight: 700, 
@@ -2406,147 +2558,400 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                         display: 'flex',
                                                                         flexDirection: 'column',
                                                                         gap: '2px',
-                                                                        alignItems: 'flex-end'
+                                                                        alignItems: 'flex-end',
+                                                                        flexShrink: 0
                                                                     }}>
                                                                         <span>{progress.toFixed(0)}%</span>
                                                                         <span style={{ fontSize: '10px', color: 'var(--color-pg-text-muted)', fontWeight: 'normal' }}>
                                                                             ({item.delivered_qty || 0} / {item.target_qty || 0} pcs)
                                                                         </span>
                                                                     </span>
-                                                                    <ChevronDown size={14} expanded={itemExpanded} />
+
+                                                                    <ChevronDown size={14} expanded={itemExpanded} style={{ flexShrink: 0 }} />
                                                                 </button>
+
+                                                                {/* Expanded detail section - placed directly inside the main card container, below the summary */}
                                                                 {itemExpanded && (
-                                                                    <div className="item-compact-detail">
-                                                                        <div className="responsive-split" style={{ marginBottom: '12px', gap: '8px' }}>
+                                                                    <div className="item-compact-detail" style={{ padding: '0 16px 16px' }}>
+                                                                        <div style={{
+                                                                            display: 'flex',
+                                                                            justifyContent: 'space-between',
+                                                                            alignItems: 'flex-start',
+                                                                            flexWrap: 'wrap',
+                                                                            gap: '12px',
+                                                                            marginBottom: '12px',
+                                                                            paddingBottom: '12px',
+                                                                            borderBottom: '1px solid rgba(255,255,255,0.06)'
+                                                                        }}>
                                                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                                                 <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-pg-primary-hover)' }}>
                                                                                     Client: {po.client_name}
                                                                                 </div>
-                                                                        {(() => {
-                                                                                     const deadline = new Date(po.global_deadline);
-                                                                                     const deadlineClean = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
-                                                                                     const today = new Date();
-                                                                                     const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                                                                                     const diffTime = deadlineClean.getTime() - todayClean.getTime();
-                                                                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                                                                     
-                                                                                     let color = 'var(--color-pg-success)'; // Normal: Green
-                                                                                     let label = language === 'id' ? 'Aman' : 'On Track';
-                                                                                     if (diffDays < 0) {
-                                                                                         color = '#ef4444'; // Delayed: Red
-                                                                                         label = language === 'id' ? 'Terlambat' : 'Delayed';
-                                                                                     } else if (diffDays <= 3) {
-                                                                                         color = 'var(--color-pg-warning)'; // Close: Yellow
-                                                                                         label = language === 'id' ? 'Mendekati Tenggat' : 'Closing In';
-                                                                                     }
-                                                                                     
-                                                                                     return (
-                                                                                         <div style={{ 
-                                                                                             fontSize: '15px', 
-                                                                                             fontWeight: 800, 
-                                                                                             color: 'var(--color-pg-text)',
-                                                                                             marginTop: '2px',
-                                                                                             marginBottom: '4px',
-                                                                                             display: 'flex',
-                                                                                             alignItems: 'center',
-                                                                                             gap: '6px',
-                                                                                             flexWrap: 'wrap'
-                                                                                         }}>
-                                                                                             <span style={{ color: 'var(--color-pg-text-secondary)', fontWeight: 'normal', fontSize: '13px' }}>Deadline:</span>
-                                                                                             <span style={{ color }}>{formatDeadline(po.global_deadline, language)}</span>
-                                                                                             <span style={{ 
-                                                                                                 fontSize: '9px', 
-                                                                                                 padding: '2px 6px', 
-                                                                                                 borderRadius: '4px', 
-                                                                                                 backgroundColor: `${color}1a`, // ~10% opacity
-                                                                                                 color, 
-                                                                                                 border: `1px solid ${color}33`,
-                                                                                                 fontWeight: 800,
-                                                                                                 textTransform: 'uppercase',
-                                                                                                 letterSpacing: '0.05em'
-                                                                                             }}>
-                                                                                                 {label}
-                                                                                             </span>
-                                                                                         </div>
-                                                                                     );
-                                                                                 })()}
-                                                                                <div style={{ fontSize: '12px', fontWeight: 600, color: '#a5b4fc' }}>
+                                                                                {(() => {
+                                                                                    const { diffDays } = calculateDeadlineDiff(po.global_deadline);
+                                                                                    let color = 'var(--color-pg-text-secondary)';
+                                                                                    let label = '';
+                                                                                    
+                                                                                    if (diffDays < 0) {
+                                                                                        color = '#ef4444'; // Delayed: Red
+                                                                                        label = language === 'id' ? 'Terlambat' : 'Delayed';
+                                                                                    } else if (diffDays <= 3) {
+                                                                                        color = 'var(--color-pg-warning)'; // Close: Yellow
+                                                                                        label = language === 'id' ? 'Mendekati Tenggat' : 'Closing In';
+                                                                                    }
+                                                                                    
+                                                                                    return (
+                                                                                        <div style={{ 
+                                                                                            fontSize: '13px', 
+                                                                                            fontWeight: 600, 
+                                                                                            color: 'var(--color-pg-text)',
+                                                                                            display: 'flex',
+                                                                                            alignItems: 'center',
+                                                                                            gap: '6px'
+                                                                                        }}>
+                                                                                            <span style={{ color: 'var(--color-pg-text-muted)', fontWeight: 'normal' }}>Deadline:</span>
+                                                                                            <span style={{ color }}>{formatDeadline(po.global_deadline, language)}</span>
+                                                                                            {label && (
+                                                                                                <span style={{ 
+                                                                                                    fontSize: '9px', 
+                                                                                                    padding: '2px 6px', 
+                                                                                                    borderRadius: '4px', 
+                                                                                                    backgroundColor: `${color}1a`,
+                                                                                                    color, 
+                                                                                                    border: `1px solid ${color}33`,
+                                                                                                    fontWeight: 800,
+                                                                                                    textTransform: 'uppercase'
+                                                                                                }}>
+                                                                                                    {label}
+                                                                                                </span>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    );
+                                                                                })()}
+                                                                                <div style={{ fontSize: '12px', fontWeight: 500, color: '#a5b4fc', marginTop: '2px' }}>
                                                                                     Qty: {item.target_qty} pcs {item.delivered_qty > 0 ? `| Delivered: ${item.delivered_qty} pcs` : ''}
                                                                                 </div>
-                                                                                {item.vendor_name && (
-                                                                                    <div style={{ fontSize: '11px', color: 'var(--color-pg-success)' }}>
-                                                                                        Vendor: {item.vendor_name} ({item.vendor_phone})
+                                                                            </div>
+
+                                                                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                                                                <button
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        copyItemStatusToClipboard(item, po, language);
+                                                                                    }}
+                                                                                    className="btn-status-copy"
+                                                                                    style={{
+                                                                                        padding: '5px 10px',
+                                                                                        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                                                                                        color: '#fff',
+                                                                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                                                        borderRadius: '6px',
+                                                                                        cursor: 'pointer',
+                                                                                        fontSize: '11px',
+                                                                                        fontWeight: 600,
+                                                                                        display: 'flex',
+                                                                                        alignItems: 'center',
+                                                                                        gap: '4px'
+                                                                                    }}
+                                                                                >
+                                                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                                                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                                                                    </svg>
+                                                                                    {copiedItemId === item.id 
+                                                                                        ? (language === 'id' ? 'Tersalin!' : 'Copied!') 
+                                                                                        : (language === 'id' ? 'Salin Status' : 'Copy Status')}
+                                                                                </button>
+
+                                                                                {!isOwner && !isCancelled && !isTerminated && (
+                                                                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                                                                        <button
+                                                                                            onClick={(e) => { e.stopPropagation(); handleCancel(item.id); }}
+                                                                                            disabled={hasProgress}
+                                                                                            title={hasProgress ? "Cannot cancel. Progress has started." : ""}
+                                                                                            style={{
+                                                                                                padding: '5px 10px',
+                                                                                                backgroundColor: hasProgress ? 'var(--color-pg-border)' : 'rgba(239, 68, 68, 0.1)',
+                                                                                                color: hasProgress ? '#52525b' : '#ef4444',
+                                                                                                border: 'none',
+                                                                                                borderRadius: '6px',
+                                                                                                cursor: hasProgress ? 'not-allowed' : 'pointer',
+                                                                                                fontSize: '11px',
+                                                                                                fontWeight: 600,
+                                                                                            }}
+                                                                                        >
+                                                                                            Cancel
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={(e) => { e.stopPropagation(); handleTerminate(item.id); }}
+                                                                                            style={{
+                                                                                                padding: '5px 10px',
+                                                                                                backgroundColor: '#ef4444',
+                                                                                                color: '#fff',
+                                                                                                border: 'none',
+                                                                                                borderRadius: '6px',
+                                                                                                cursor: 'pointer',
+                                                                                                fontSize: '11px',
+                                                                                                fontWeight: 600,
+                                                                                                display: 'flex',
+                                                                                                alignItems: 'center',
+                                                                                                gap: '4px'
+                                                                                            }}
+                                                                                        >
+                                                                                            <Stop size={10} /> HALT
+                                                                                        </button>
                                                                                     </div>
                                                                                 )}
                                                                             </div>
+                                                                        </div>
 
-                                                                            {(!isCancelled && !isTerminated) && (
-                                                                                <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-                                                                                    <button
-                                                                                        onClick={(e) => { e.stopPropagation(); handleCancel(item.id); }}
-                                                                                        disabled={hasProgress}
-                                                                                        title={hasProgress ? "Cannot cancel. Progress has started. Use Terminate Midway instead." : ""}
-                                                                                        style={{
-                                                                                            padding: '5px 10px',
-                                                                                            backgroundColor: hasProgress ? 'var(--color-pg-border)' : 'rgba(239, 68, 68, 0.1)',
-                                                                                            color: hasProgress ? '#52525b' : '#ef4444',
-                                                                                            border: 'none',
-                                                                                            borderRadius: '6px',
-                                                                                            cursor: hasProgress ? 'not-allowed' : 'pointer',
-                                                                                            fontSize: '11px',
-                                                                                            fontWeight: 600,
-                                                                                        }}
-                                                                                    >
-                                                                                        Cancel
-                                                                                    </button>
-                                                                                    <button
-                                                                                        onClick={(e) => { e.stopPropagation(); handleTerminate(item.id); }}
-                                                                                        style={{
-                                                                                            padding: '5px 10px',
-                                                                                            backgroundColor: '#ef4444',
-                                                                                            color: '#fff',
-                                                                                            border: 'none',
-                                                                                            borderRadius: '6px',
-                                                                                            cursor: 'pointer',
-                                                                                            fontSize: '11px',
-                                                                                            fontWeight: 600,
-                                                                                            display: 'flex',
-                                                                                            alignItems: 'center',
-                                                                                            gap: '4px'
-                                                                                        }}
-                                                                                    >
-                                                                                        <Stop size={10} /> HALT
-                                                                                    </button>
+                                                                        {/* Secondary Statuses Micro-Dashboard Grid */}
+                                                                        <div style={{
+                                                                            display: 'grid',
+                                                                            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                                                                            gap: '10px',
+                                                                            margin: '12px 0',
+                                                                            padding: '12px',
+                                                                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                                                                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                                                                            borderRadius: '8px'
+                                                                        }}>
+                                                                            {/* Design / Draft */}
+                                                                            {item.drafter_status && (
+                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                                                                    <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                                        {language === 'id' ? 'Gambar/Draft' : 'Design/Draft'}
+                                                                                    </span>
+                                                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: item.drafter_status === 'APPROVED' ? 'var(--color-pg-success)' : 'var(--color-pg-primary-hover)' }}>
+                                                                                        {item.drafter_status === 'APPROVED' ? (language === 'id' ? 'Disetujui' : 'Approved') : item.drafter_status}
+                                                                                    </span>
+                                                                                </div>
+                                                                            )}
+                                                                            
+                                                                            {/* Material Readiness */}
+                                                                            {item.purchasing_status && (
+                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                                                                    <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                                        {language === 'id' ? 'Bahan Baku' : 'Material'}
+                                                                                    </span>
+                                                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: item.purchasing_status === 'READY' ? 'var(--color-pg-success)' : item.purchasing_status === 'PROSES' ? 'var(--color-pg-warning)' : 'var(--color-pg-primary-hover)' }}>
+                                                                                        {item.purchasing_status === 'READY' ? (language === 'id' ? 'Siap' : 'Ready') : item.purchasing_status === 'PROSES' ? (language === 'id' ? 'Dipesan' : 'Ordered') : item.purchasing_status}
+                                                                                    </span>
+                                                                                </div>
+                                                                            )}
+
+                                                                            {/* Delivery State */}
+                                                                            {item.delivery_status && (
+                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                                                                    <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                                        {language === 'id' ? 'Pengiriman' : 'Delivery'}
+                                                                                    </span>
+                                                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: item.delivery_status === 'DELIVERED' ? 'var(--color-pg-success)' : item.delivery_status === 'PARTIAL' ? 'var(--color-pg-warning)' : 'var(--color-pg-text-muted)' }}>
+                                                                                        {item.delivery_status === 'DELIVERED' ? (language === 'id' ? 'Terkirim' : 'Delivered') : item.delivery_status === 'PARTIAL' ? (language === 'id' ? 'Sebagian' : 'Partial') : (language === 'id' ? 'Belum Dikirim' : 'Pending')}
+                                                                                    </span>
+                                                                                </div>
+                                                                            )}
+
+                                                                            {/* Invoicing State */}
+                                                                            {item.invoice_status && (
+                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                                                                    <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                                        {language === 'id' ? 'Faktur' : 'Invoicing'}
+                                                                                    </span>
+                                                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: item.invoice_status === 'INVOICED' ? 'var(--color-pg-success)' : item.invoice_status === 'PARTIAL' ? 'var(--color-pg-orange)' : 'var(--color-pg-text-muted)' }}>
+                                                                                        {item.invoice_status === 'INVOICED' ? (language === 'id' ? 'Difakturkan' : 'Invoiced') : item.invoice_status === 'PARTIAL' ? (language === 'id' ? 'Sebagian' : 'Partial') : (language === 'id' ? 'Belum Difakturkan' : 'Pending')}
+                                                                                    </span>
+                                                                                </div>
+                                                                            )}
+
+                                                                            {/* Payment State */}
+                                                                            {item.payment_status && (
+                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                                                                    <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                                        {language === 'id' ? 'Pembayaran' : 'Payment'}
+                                                                                    </span>
+                                                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: item.payment_status === 'PAID' ? 'var(--color-pg-success)' : item.payment_status === 'PARTIAL_PAID' ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-muted)' }}>
+                                                                                        {item.payment_status === 'PAID' ? (language === 'id' ? 'Lunas' : 'Paid') : item.payment_status === 'PARTIAL_PAID' ? (language === 'id' ? 'Sebagian' : 'Partial') : (language === 'id' ? 'Belum Bayar' : 'Unpaid')}
+                                                                                    </span>
                                                                                 </div>
                                                                             )}
                                                                         </div>
 
-                                                                        {/* Progress Bar */}
-                                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                        {/* Piece Distribution & Forecast */}
+                                                                        {item.item_type === 'MANUFACTURE' && !isCancelled && !isTerminated && (
                                                                             <div style={{
-                                                                                flexGrow: 1,
-                                                                                height: '6px',
-                                                                                backgroundColor: 'var(--color-pg-bg)',
-                                                                                borderRadius: '3px',
-                                                                                overflow: 'hidden'
+                                                                                marginTop: '12px',
+                                                                                padding: '10px',
+                                                                                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                                                                                border: '1px solid rgba(255, 255, 255, 0.05)',
+                                                                                borderRadius: '8px',
                                                                             }}>
-                                                                                <div style={{
-                                                                                    width: `${progress}%`,
-                                                                                    height: '100%',
-                                                                                    backgroundColor: isCancelled ? 'var(--color-pg-danger)' : 'var(--color-pg-primary)',
-                                                                                    borderRadius: '3px',
-                                                                                    transition: 'width 0.3s ease'
-                                                                                }} />
+                                                                                {/* Piece Locations Header */}
+                                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                                                                    <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                                        {language === 'id' ? 'Distribusi Bagian' : 'Piece Distribution'}
+                                                                                    </span>
+                                                                                    {/* Dynamic Forecast (ETA) */}
+                                                                                    {(() => {
+                                                                                        const eta = calculateDynamicETA(item, telemetry, language);
+                                                                                        if (!eta) return null;
+                                                                                        return (
+                                                                                            <span style={{ fontSize: '11px', fontWeight: 600, color: eta.totalEstimatedDays <= 3 ? 'var(--color-pg-warning)' : '#818cf8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ width: '14px', height: '14px', display: 'inline-block' }}>
+                                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                                                </svg>
+                                                                                                ETA: {eta.relativeText} ({eta.formattedDate.split(',')[0]})
+                                                                                            </span>
+                                                                                        );
+                                                                                    })()}
+                                                                                </div>
+                                                                                
+                                                                                {/* Pipeline Segment Bar */}
+                                                                                {(() => {
+                                                                                    const locations = getPieceLocations(item);
+                                                                                    if (locations.length === 0) return null;
+                                                                                    
+                                                                                    return (
+                                                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                                                            {/* Segmented bar */}
+                                                                                            <div style={{
+                                                                                                display: 'flex',
+                                                                                                height: '10px',
+                                                                                                borderRadius: '5px',
+                                                                                                overflow: 'hidden',
+                                                                                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                                                                                width: '100%'
+                                                                                            }}>
+                                                                                                {locations.map((loc: any, lIdx: number) => {
+                                                                                                    const pct = (loc.qty / item.target_qty) * 100;
+                                                                                                    return (
+                                                                                                        <div 
+                                                                                                            key={`seg-${lIdx}`} 
+                                                                                                            style={{
+                                                                                                                width: `${pct}%`,
+                                                                                                                backgroundColor: loc.color === '#ef4444' ? '#ef4444' : loc.color === 'var(--color-pg-success)' ? 'var(--color-pg-success)' : '#3b82f6',
+                                                                                                                height: '100%',
+                                                                                                                transition: 'all 0.3s ease'
+                                                                                                            }}
+                                                                                                            title={`${loc.stage_name}: ${loc.qty} pcs`}
+                                                                                                        />
+                                                                                                    );
+                                                                                                })}
+                                                                                            </div>
+                                                                                            
+                                                                                            {/* Labels list */}
+                                                                                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                                                                                {locations.map((loc: any, lIdx: number) => (
+                                                                                                    <span 
+                                                                                                        key={`lbl-${lIdx}`} 
+                                                                                                        className="badge"
+                                                                                                        style={{
+                                                                                                            backgroundColor: loc.bg,
+                                                                                                            color: loc.color,
+                                                                                                            fontSize: '10px',
+                                                                                                            padding: '2px 6px',
+                                                                                                            borderRadius: '4px',
+                                                                                                            border: 'none',
+                                                                                                            fontWeight: 600
+                                                                                                        }}
+                                                                                                    >
+                                                                                                        {loc.stage_name}: {loc.qty} pcs
+                                                                                                    </span>
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    );
+                                                                                })()}
                                                                             </div>
-                                                                            <span style={{ fontSize: '12px', fontWeight: 700, width: '36px', textAlign: 'right' }}>
-                                                                                {progress.toFixed(0)}%
-                                                                            </span>
-                                                                        </div>
+                                                                        )}
+
+                                                                        {/* Alerts & Operational Troubles Section */}
+                                                                        {(() => {
+                                                                            if (itemAlerts.length === 0) return null;
+                                                                            
+                                                                            return (
+                                                                                <div style={{
+                                                                                    marginTop: '12px',
+                                                                                    padding: '10px',
+                                                                                    backgroundColor: 'rgba(239, 68, 68, 0.03)',
+                                                                                    border: '1px solid rgba(239, 68, 68, 0.1)',
+                                                                                    borderRadius: '8px',
+                                                                                }}>
+                                                                                    <div style={{ fontSize: '11px', fontWeight: 600, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ width: '14px', height: '14px', display: 'inline-block' }}>
+                                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                                                        </svg>
+                                                                                        {language === 'id' ? 'Laporan Kendala & Rework' : 'Trouble Reports & Rework'}
+                                                                                    </div>
+                                                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                                                        {itemAlerts.map((alert: any) => {
+                                                                                            const isRework = alert.severity === 'YELLOW' || alert.reason_type === 'QC Rework';
+                                                                                            const severityColor = isRework ? 'var(--color-pg-warning)' : '#ef4444';
+                                                                                            const badgeText = isRework 
+                                                                                                ? (language === 'id' ? 'Rework QC' : 'QC Rework')
+                                                                                                : (language === 'id' ? 'Kendala' : 'Trouble');
+                                                                                            
+                                                                                            return (
+                                                                                                <div 
+                                                                                                    key={alert.id}
+                                                                                                    style={{
+                                                                                                        fontSize: '12px',
+                                                                                                        color: 'var(--color-pg-text)',
+                                                                                                        display: 'flex',
+                                                                                                        flexDirection: 'column',
+                                                                                                        gap: '3px',
+                                                                                                        padding: '8px',
+                                                                                                        backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                                                                                                        borderRadius: '6px',
+                                                                                                        borderLeft: `3px solid ${severityColor}`,
+                                                                                                        textAlign: 'left'
+                                                                                                    }}
+                                                                                                >
+                                                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                                                        <span className="badge" style={{ backgroundColor: `${severityColor}22`, color: severityColor, fontSize: '10px', padding: '1px 5px', border: 'none', fontWeight: 700 }}>
+                                                                                                            {badgeText}
+                                                                                                        </span>
+                                                                                                        <span style={{ fontSize: '10px', color: 'var(--color-pg-text-muted)' }}>
+                                                                                                            {formatAlertTime(alert.created_at, language)}
+                                                                                                        </span>
+                                                                                                    </div>
+                                                                                                    <div style={{ fontWeight: 500 }}>
+                                                                                                        {alert.message}
+                                                                                                    </div>
+                                                                                                    {alert.rework_reason && (
+                                                                                                        <div style={{ 
+                                                                                                            marginTop: '4px', 
+                                                                                                            padding: '6px', 
+                                                                                                            backgroundColor: 'rgba(251, 191, 36, 0.08)', 
+                                                                                                            border: '1px solid rgba(251, 191, 36, 0.15)',
+                                                                                                            borderRadius: '4px',
+                                                                                                            color: 'var(--color-pg-warning)',
+                                                                                                            fontSize: '11px',
+                                                                                                            fontWeight: 500,
+                                                                                                        }}>
+                                                                                                            <strong>{language === 'id' ? 'Alasan: ' : 'Reason: '}</strong>{alert.rework_reason}
+                                                                                                        </div>
+                                                                                                    )}
+                                                                                                    {alert.user?.name && (
+                                                                                                        <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                                                                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ width: '12px', height: '12px', display: 'inline-block' }}>
+                                                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                                                                            </svg>
+                                                                                                            {language === 'id' ? 'Dilaporkan oleh' : 'Reported by'}: <span style={{ fontWeight: 600, color: 'var(--color-pg-text)' }}>{alert.user.name}</span>
+                                                                                                        </div>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            );
+                                                                                        })}
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        })()}
 
                                                                         {/* Stages display */}
                                                                         {item.item_progresses && item.item_progresses.length > 0 && (
-                                                                            <div style={{ marginTop: '10px' }}>
-                                                                                <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', marginBottom: '6px' }}>
+                                                                            <div style={{ marginTop: '12px' }}>
+                                                                                <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', marginBottom: '6px', fontWeight: 600 }}>
                                                                                     Stages
                                                                                 </div>
                                                                                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -2601,14 +3006,11 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                         )}
                                                                     </div>
                                                                 )}
-                                                            </div>
-                                                        </div>
-                                                        );
-                                                    })
-                                                }
-                                            </>
-                                        )
-                                    }
+                                                             </div>
+                                                         );
+                                                     })
+                                                 )
+                                             }
                                             </div>
                                         )}
                                     </div>

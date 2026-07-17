@@ -49,7 +49,7 @@ export default function SearchModal({
         >
             <div style={{
                 backgroundColor: '#18181b',
-                border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid var(--color-pg-border)',
                 borderRadius: '16px',
                 padding: '24px',
                 boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)',
@@ -88,8 +88,8 @@ export default function SearchModal({
                         style={{
                             width: '100%',
                             padding: '12px 16px 12px 42px',
-                            backgroundColor: '#09090b',
-                            border: '1px solid rgba(255,255,255,0.08)',
+                            backgroundColor: 'var(--color-pg-bg)',
+                            border: '1px solid var(--color-pg-border)',
                             borderRadius: '10px',
                             color: '#fff',
                             fontSize: '14px',
@@ -124,7 +124,7 @@ export default function SearchModal({
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             {results.alerts.length > 0 && (
                                 <div>
-                                    <h4 style={{ fontSize: '11px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                    <h4 style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
                                         {language === 'en' ? 'Alerts & Operational Issues' : 'Kendala & Masalah Operasional'}
                                     </h4>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -162,7 +162,7 @@ export default function SearchModal({
 
                             {results.pos.length > 0 && (
                                 <div>
-                                    <h4 style={{ fontSize: '11px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                    <h4 style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
                                         {language === 'en' ? 'Purchase Orders (POs)' : 'Daftar PO'}
                                     </h4>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -215,7 +215,7 @@ export default function SearchModal({
 
                             {results.items.length > 0 && (
                                 <div>
-                                    <h4 style={{ fontSize: '11px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                    <h4 style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
                                         {language === 'en' ? 'Items & Components' : 'Barang & Komponen'}
                                     </h4>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -265,7 +265,7 @@ export default function SearchModal({
 
                             {results.clients.length > 0 && (
                                 <div>
-                                    <h4 style={{ fontSize: '11px', color: '#818cf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                    <h4 style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
                                         {language === 'en' ? 'Clients' : 'Klien'}
                                     </h4>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>

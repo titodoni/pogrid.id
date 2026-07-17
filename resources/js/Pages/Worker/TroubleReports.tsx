@@ -100,8 +100,8 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
             {/* Header matching all user screens */}
             <header className="responsive-header" style={{
                 padding: '12px 16px',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                backgroundColor: 'rgba(9, 9, 11, 0.6)',
+                borderBottom: '1px solid var(--color-pg-border)',
+                backgroundColor: 'var(--color-pg-surface)',
                 backdropFilter: 'blur(8px)',
                 flexShrink: 0,
             }}>
@@ -117,7 +117,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '2px', borderRadius: '8px', marginRight: '8px' }}>
+                    <div style={{ display: 'flex', gap: '4px', backgroundColor: 'var(--color-pg-border-subtle)', padding: '2px', borderRadius: '8px', marginRight: '8px' }}>
                         <button
                             onClick={() => changeLanguage('en')}
                             style={{
@@ -154,9 +154,9 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                         href={`/c/${slug}/profile`}
                         style={{
                             padding: '8px',
-                            backgroundColor: 'rgba(255,255,255,0.04)',
+                            backgroundColor: 'var(--color-pg-border-subtle)',
                             color: 'var(--color-pg-text-secondary)',
-                            border: '1px solid rgba(255,255,255,0.06)',
+                            border: '1px solid var(--color-pg-border)',
                             borderRadius: '8px',
                             cursor: 'pointer',
                             fontSize: '16px',
@@ -207,7 +207,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                             padding: '8px 16px',
                             borderRadius: '10px',
                             backgroundColor: 'rgba(99, 102, 241, 0.12)',
-                            border: '1px solid rgba(99, 102, 241, 0.2)',
+                            border: '1px solid var(--color-pg-primary-glow)',
                         }}
                     >
                         <ChevronLeft size={16} /> {t.back}
@@ -215,11 +215,11 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                 </div>
 
                 <div style={{
-                    backgroundColor: 'rgba(24, 24, 27, 0.7)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    backgroundColor: 'var(--color-pg-surface)',
+                    border: '1px solid var(--color-pg-border)',
                     borderRadius: '14px',
                     padding: '20px',
-                    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.5)',
+                    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.12)',
                 }}>
                     <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px 0' }}>{t.title}</h2>
                     <p style={{ fontSize: '13px', color: 'var(--color-pg-text-muted)', margin: '0 0 20px 0' }}>{t.subtitle}</p>
@@ -230,7 +230,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                             padding: '40px 20px',
                             color: 'var(--color-pg-text-muted)',
                             fontSize: '14px',
-                            border: '1px dashed rgba(255, 255, 255, 0.08)',
+                            border: '1px dashed var(--color-pg-border)',
                             borderRadius: '10px',
                         }}>
                             {t.no_reports}
@@ -244,7 +244,7 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                                 fontSize: '13px',
                             }}>
                                 <thead>
-                                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                                    <tr style={{ borderBottom: '1px solid var(--color-pg-border)' }}>
                                         <th style={{ padding: '12px 8px', color: 'var(--color-pg-text-secondary)', fontWeight: 600 }}>{t.date}</th>
                                         <th style={{ padding: '12px 8px', color: 'var(--color-pg-text-secondary)', fontWeight: 600 }}>{t.severity}</th>
                                         <th style={{ padding: '12px 8px', color: 'var(--color-pg-text-secondary)', fontWeight: 600 }}>{t.message}</th>
@@ -269,10 +269,10 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
 
                                         return (
                                             <tr key={alert.id} style={{
-                                                borderBottom: '1px solid rgba(255,255,255,0.04)',
+                                                borderBottom: '1px solid var(--color-pg-border-subtle)',
                                                 backgroundColor: alert.is_resolved ? 'transparent' : 'rgba(239, 68, 68, 0.02)',
                                             }}>
-                                                <td style={{ padding: '14px 8px', color: '#e4e4e7', whiteSpace: 'nowrap' }}>
+                                                <td style={{ padding: '14px 8px', color: 'var(--color-pg-text)', whiteSpace: 'nowrap' }}>
                                                     {dateStr}
                                                 </td>
                                                 <td style={{ padding: '14px 8px' }}>

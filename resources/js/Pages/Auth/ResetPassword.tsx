@@ -64,10 +64,10 @@ export default function ResetPassword({ token }: Props) {
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: 'var(--color-pg-bg)',
-            backgroundImage: 'radial-gradient(circle at top, rgba(99, 102, 241, 0.08) 0%, transparent 60%)',
+            backgroundImage: 'radial-gradient(circle at top, var(--color-pg-primary-glow) 0%, transparent 60%)',
             padding: '16px',
             position: 'relative',
-            fontFamily: 'system-ui, -apple-system, sans-serif'
+            fontFamily: 'var(--font-sans)',
         }}>
             {/* Language Switcher */}
             <div style={{
@@ -76,7 +76,7 @@ export default function ResetPassword({ token }: Props) {
                 right: '16px',
                 display: 'inline-flex',
                 borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: '1px solid var(--color-pg-border)',
                 backgroundColor: 'var(--color-pg-border-subtle)',
                 padding: '2px',
                 zIndex: 10,
@@ -92,7 +92,7 @@ export default function ResetPassword({ token }: Props) {
                         fontSize: '11px',
                         fontWeight: 600,
                         backgroundColor: language === 'en' ? 'var(--color-pg-primary)' : 'transparent',
-                        color: language === 'en' ? '#ffffff' : 'var(--color-pg-text-secondary)',
+                        color: language === 'en' ? 'var(--color-pg-primary-ink)' : 'var(--color-pg-text-secondary)',
                         transition: 'all 0.2s',
                     }}
                 >
@@ -109,7 +109,7 @@ export default function ResetPassword({ token }: Props) {
                         fontSize: '11px',
                         fontWeight: 600,
                         backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
-                        color: language === 'id' ? '#ffffff' : 'var(--color-pg-text-secondary)',
+                        color: language === 'id' ? 'var(--color-pg-primary-ink)' : 'var(--color-pg-text-secondary)',
                         transition: 'all 0.2s',
                     }}
                 >
@@ -121,10 +121,10 @@ export default function ResetPassword({ token }: Props) {
             <div className="login-card" style={{
                 width: '100%',
                 maxWidth: '400px',
-                backgroundColor: 'rgba(20, 20, 23, 0.85)',
+                backgroundColor: 'var(--color-pg-surface)',
                 backdropFilter: 'blur(20px)',
                 borderRadius: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: '1px solid var(--color-pg-border)',
                 padding: '40px 32px',
                 boxShadow: '0 24px 48px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02)',
                 display: 'flex',
@@ -142,7 +142,7 @@ export default function ResetPassword({ token }: Props) {
                     alignSelf: 'flex-start',
                     transition: 'color 0.2s',
                 }}
-                onMouseOver={(e) => e.currentTarget.style.color = '#ffffff'}
+                onMouseOver={(e) => e.currentTarget.style.color = 'var(--color-pg-text)'}
                 onMouseOut={(e) => e.currentTarget.style.color = 'var(--color-pg-text-secondary)'}
                 >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -152,23 +152,26 @@ export default function ResetPassword({ token }: Props) {
                     {language === 'id' ? 'Kembali' : 'Back'}
                 </Link>
 
-                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                    <h1 style={{
-                        fontSize: '28px',
-                        fontWeight: 800,
-                        letterSpacing: '-0.025em',
-                        margin: '0 0 6px 0',
-                        background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                    }}>
-                        {t.title}
-                    </h1>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '32px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                        <span style={{
+                            backgroundColor: 'var(--color-pg-primary)',
+                            color: 'var(--color-pg-primary-ink)',
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            fontWeight: 800,
+                            fontSize: '15px',
+                        }}>PO</span>
+                        <span style={{ fontWeight: 800, fontSize: '20px', letterSpacing: '-0.02em', color: 'var(--color-pg-text)' }}>
+                            grid<span style={{ color: 'var(--color-pg-primary)' }}>.id</span>
+                        </span>
+                    </div>
                     <p style={{
                         fontSize: '13px',
                         color: 'var(--color-pg-text-secondary)',
                         margin: 0,
                         lineHeight: '1.4',
+                        textAlign: 'center'
                     }}>
                         {t.subtitle}
                     </p>
@@ -196,10 +199,10 @@ export default function ResetPassword({ token }: Props) {
                                 width: '100%',
                                 height: '44px',
                                 padding: '0 14px',
-                                backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                backgroundColor: 'var(--color-pg-input)',
+                                border: '1px solid var(--color-pg-border)',
                                 borderRadius: '10px',
-                                color: '#ffffff',
+                                color: 'var(--color-pg-text)',
                                 fontSize: '14px',
                                 outline: 'none',
                                 boxSizing: 'border-box',
@@ -207,7 +210,7 @@ export default function ResetPassword({ token }: Props) {
                             }}
                             onFocus={(e) => {
                                 e.target.style.borderColor = 'var(--color-pg-primary)';
-                                e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                e.target.style.boxShadow = '0 0 0 2px var(--color-pg-primary-glow)';
                             }}
                             onBlur={(e) => {
                                 e.target.style.borderColor = 'var(--color-pg-border)';
@@ -242,10 +245,10 @@ export default function ResetPassword({ token }: Props) {
                                 width: '100%',
                                 height: '44px',
                                 padding: '0 14px',
-                                backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                backgroundColor: 'var(--color-pg-input)',
+                                border: '1px solid var(--color-pg-border)',
                                 borderRadius: '10px',
-                                color: '#ffffff',
+                                color: 'var(--color-pg-text)',
                                 fontSize: '14px',
                                 outline: 'none',
                                 boxSizing: 'border-box',
@@ -253,7 +256,7 @@ export default function ResetPassword({ token }: Props) {
                             }}
                             onFocus={(e) => {
                                 e.target.style.borderColor = 'var(--color-pg-primary)';
-                                e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                e.target.style.boxShadow = '0 0 0 2px var(--color-pg-primary-glow)';
                             }}
                             onBlur={(e) => {
                                 e.target.style.borderColor = 'var(--color-pg-border)';
@@ -288,10 +291,10 @@ export default function ResetPassword({ token }: Props) {
                                 width: '100%',
                                 height: '44px',
                                 padding: '0 14px',
-                                backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                backgroundColor: 'var(--color-pg-input)',
+                                border: '1px solid var(--color-pg-border)',
                                 borderRadius: '10px',
-                                color: '#ffffff',
+                                color: 'var(--color-pg-text)',
                                 fontSize: '14px',
                                 outline: 'none',
                                 boxSizing: 'border-box',
@@ -299,7 +302,7 @@ export default function ResetPassword({ token }: Props) {
                             }}
                             onFocus={(e) => {
                                 e.target.style.borderColor = 'var(--color-pg-primary)';
-                                e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                e.target.style.boxShadow = '0 0 0 2px var(--color-pg-primary-glow)';
                             }}
                             onBlur={(e) => {
                                 e.target.style.borderColor = 'var(--color-pg-border)';
@@ -322,14 +325,14 @@ export default function ResetPassword({ token }: Props) {
                             width: '100%',
                             height: '46px',
                             borderRadius: '10px',
-                            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                            color: '#ffffff',
+                            background: 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)',
+                            color: 'var(--color-pg-primary-ink)',
                             fontSize: '14px',
                             fontWeight: 600,
                             border: 'none',
                             cursor: 'pointer',
                             transition: 'all 0.2s',
-                            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)',
+                            boxShadow: '0 4px 12px var(--color-pg-primary-glow)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -337,17 +340,17 @@ export default function ResetPassword({ token }: Props) {
                             marginTop: '10px',
                         }}
                         onMouseOver={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)';
-                            e.currentTarget.style.boxShadow = '0 6px 16px rgba(99, 102, 241, 0.35)';
+                            e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-pg-primary) 0%, var(--color-pg-primary-hover) 100%)';
+                            e.currentTarget.style.boxShadow = '0 6px 16px var(--color-pg-primary-glow)';
                         }}
                         onMouseOut={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.25)';
+                            e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px var(--color-pg-primary-glow)';
                         }}
                     >
                         {processing ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <svg style={{ animation: 'spin 1s linear infinite', height: '18px', width: '18px', color: '#ffffff' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <svg style={{ animation: 'spin 1s linear infinite', height: '18px', width: '18px', color: 'var(--color-pg-primary-ink)' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>

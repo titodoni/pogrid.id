@@ -137,7 +137,7 @@ export default function PresentationMode({
                             margin: '0 auto',
                             textAlign: 'center'
                         }}>
-                            <div style={{ fontSize: '12px', color: '#818cf8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--color-pg-primary-hover)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
                                 {language === 'id' ? 'RINGKASAN OPERASIONAL' : 'OPERATIONAL SUMMARY'}
                             </div>
                             <p style={{ fontSize: '20px', color: '#e4e4e7', lineHeight: 1.8, margin: 0, fontWeight: 500 }}>
@@ -146,7 +146,7 @@ export default function PresentationMode({
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
-                            <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
+                            <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
                                 <div style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                     {t.on_time_delivery}
                                 </div>
@@ -160,7 +160,7 @@ export default function PresentationMode({
                                 )}
                             </div>
 
-                            <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
+                            <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
                                 <div style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                     {t.parts_manufactured}
                                 </div>
@@ -174,7 +174,7 @@ export default function PresentationMode({
                                 )}
                             </div>
 
-                            <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
+                            <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
                                 <div style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                     {t.avg_delay}
                                 </div>
@@ -400,7 +400,7 @@ export default function PresentationMode({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: '#09090b',
+            backgroundColor: 'var(--color-pg-bg)',
             zIndex: 99999,
             color: '#fafafa',
             padding: '40px',
@@ -425,7 +425,7 @@ export default function PresentationMode({
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-pg-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         {presentationSlide === 0 ? (language === 'id' ? 'Ringkasan Kinerja' : 'Performance Summary') :
                          presentationSlide === 1 ? (language === 'id' ? 'Alur Produksi' : 'Production Pipeline') :
                          presentationSlide === 2 ? (language === 'id' ? 'Kinerja Klien' : 'Client Board') :
@@ -436,7 +436,7 @@ export default function PresentationMode({
                         style={{
                             background: 'rgba(255,255,255,0.05)',
                             color: '#a1a1aa',
-                            border: '1px solid rgba(255,255,255,0.08)',
+                            border: '1px solid var(--color-pg-border)',
                             borderRadius: '8px',
                             padding: '8px 16px',
                             fontWeight: 700,
@@ -457,13 +457,13 @@ export default function PresentationMode({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
                         onClick={() => setPresentationSlide(prev => (prev - 1 + 4) % 4)}
-                        style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
+                        style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid var(--color-pg-border)', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
                     >
                         ◀ {language === 'id' ? 'Sebelumnya' : 'Prev'}
                     </button>
                     <button
                         onClick={() => setPresentationSlide(prev => (prev + 1) % 4)}
-                        style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
+                        style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid var(--color-pg-border)', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
                     >
                         {language === 'id' ? 'Selanjutnya' : 'Next'} ▶
                     </button>

@@ -333,6 +333,7 @@ class CoreLogicTest extends TestCase
         // QC logs reject_qty = 2
         $response = $this->post("/c/{$this->tenant1->slug}/progress/{$machiningStage->id}/rework", [
             'reject_qty' => 2,
+            'rework_reason' => 'Dimensional error found during inspection.',
         ]);
 
         $response->assertRedirect();
@@ -585,6 +586,7 @@ class CoreLogicTest extends TestCase
 
         $response = $this->post("/c/{$this->tenant1->slug}/progress/{$machiningStage->id}/rework", [
             'reject_qty' => 2,
+            'rework_reason' => 'Defective surface finish.',
         ]);
         $response->assertRedirect();
 

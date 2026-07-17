@@ -220,7 +220,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                                 padding: '8px 16px',
                                 borderRadius: '10px',
                                 backgroundColor: 'rgba(99, 102, 241, 0.12)',
-                                border: '1px solid rgba(99, 102, 241, 0.2)',
+                                border: '1px solid var(--color-pg-primary-glow)',
                             }}
                         >
                             <ChevronLeft size={16} /> {t.back}
@@ -310,10 +310,10 @@ export default function Archive({ items, auth_user, tenant }: Props) {
 
                                             <div style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
                                                 <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>
-                                                    {t.qty}: <strong style={{ color: '#e4e4e7' }}>{item.target_qty} pcs</strong>
+                                                    {t.qty}: <strong style={{ color: 'var(--color-pg-text)' }}>{item.target_qty} pcs</strong>
                                                 </div>
                                                 <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>
-                                                    {t.completed}: <strong style={{ color: '#e4e4e7' }}>{sc.completed}/{sc.total} stages</strong>
+                                                    {t.completed}: <strong style={{ color: 'var(--color-pg-text)' }}>{sc.completed}/{sc.total} stages</strong>
                                                 </div>
                                                 <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>
                                                     {formatDeadline(item.po?.global_deadline, language)}

@@ -13,7 +13,7 @@ const COLOR_MAPS: Record<string, BadgeColor> = {
     IN_PROGRESS: { bg: 'rgba(251, 191, 36, 0.12)', text: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.2)', dot: '#fbbf24' },
     CANCELLED: { bg: 'rgba(248, 113, 113, 0.12)', text: '#f87171', border: '1px solid rgba(248, 113, 113, 0.2)', dot: '#f87171' },
     TERMINATED: { bg: 'rgba(161, 161, 170, 0.12)', text: '#a1a1aa', border: '1px solid rgba(161, 161, 170, 0.2)', dot: '#a1a1aa' },
-    PENDING: { bg: 'rgba(99, 102, 241, 0.12)', text: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.2)', dot: '#818cf8' },
+    PENDING: { bg: 'rgba(99, 102, 241, 0.12)', text: '#818cf8', border: '1px solid var(--color-pg-primary-glow)', dot: '#818cf8' },
 
     // PO Lifecycle Statuses
     DELIVERED: { bg: 'rgba(20, 184, 166, 0.12)', text: '#14b8a6', border: '1px solid rgba(20, 184, 166, 0.2)', dot: '#14b8a6' },
@@ -23,8 +23,8 @@ const COLOR_MAPS: Record<string, BadgeColor> = {
     URGENT: { bg: 'rgba(239, 68, 68, 0.15)', text: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.25)', dot: '#ef4444' },
     
     // Item Type
-    MANUFACTURED: { bg: 'rgba(255, 255, 255, 0.04)', text: '#fafafa', border: '1px solid rgba(255, 255, 255, 0.08)' },
-    BUYOUT: { bg: 'rgba(255, 255, 255, 0.04)', text: '#fafafa', border: '1px solid rgba(255, 255, 255, 0.08)' },
+    MANUFACTURED: { bg: 'rgba(255, 255, 255, 0.04)', text: '#fafafa', border: '1px solid var(--color-pg-border)' },
+    BUYOUT: { bg: 'rgba(255, 255, 255, 0.04)', text: '#fafafa', border: '1px solid var(--color-pg-border)' },
 
     // Drafter / Drawings
     DRAWING: { bg: 'rgba(139, 92, 246, 0.12)', text: '#a78bfa', border: '1px solid rgba(139, 92, 246, 0.2)' },
@@ -32,7 +32,7 @@ const COLOR_MAPS: Record<string, BadgeColor> = {
 
     // Purchasing / Delivery
     ORDER: { bg: 'rgba(251, 146, 60, 0.12)', text: '#fb923c', border: '1px solid rgba(251, 146, 60, 0.2)' },
-    PROSES: { bg: 'rgba(99, 102, 241, 0.12)', text: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.2)' },
+    PROSES: { bg: 'rgba(99, 102, 241, 0.12)', text: '#818cf8', border: '1px solid var(--color-pg-primary-glow)' },
     READY: { bg: 'rgba(52, 211, 153, 0.12)', text: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' },
 
     // Invoicing
@@ -42,7 +42,7 @@ const COLOR_MAPS: Record<string, BadgeColor> = {
 
     // Payments
     UNPAID: { bg: 'rgba(255, 255, 255, 0.04)', text: '#a1a1aa', border: '1px solid rgba(255, 255, 255, 0.06)' },
-    PARTIAL_PAID: { bg: 'rgba(99, 102, 241, 0.12)', text: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.2)' },
+    PARTIAL_PAID: { bg: 'rgba(99, 102, 241, 0.12)', text: '#818cf8', border: '1px solid var(--color-pg-primary-glow)' },
     PAID: { bg: 'rgba(52, 211, 153, 0.12)', text: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' },
 };
 

@@ -322,7 +322,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
 
     return (
         <div className="dashboard-root" style={{
-            backgroundColor: '#09090b',
+            backgroundColor: 'var(--color-pg-bg)',
             fontFamily: 'Inter, sans-serif',
             color: '#fafafa',
         }}>
@@ -345,10 +345,10 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                     <div className="flex gap-1 bg-white/4 p-0.5 rounded-lg border border-pg-border">
                         <button onClick={() => changeLanguage('en')}
                             className="min-w-[44px] min-h-[44px] px-3 py-1.5 border-none rounded-md text-white font-bold text-xs cursor-pointer flex items-center justify-center"
-                            style={{ backgroundColor: language === 'en' ? '#6366f1' : 'transparent' }}>EN</button>
+                            style={{ backgroundColor: language === 'en' ? 'var(--color-pg-primary)' : 'transparent' }}>EN</button>
                         <button onClick={() => changeLanguage('id')}
                             className="min-w-[44px] min-h-[44px] px-3 py-1.5 border-none rounded-md text-white font-bold text-xs cursor-pointer flex items-center justify-center"
-                            style={{ backgroundColor: language === 'id' ? '#6366f1' : 'transparent' }}>ID</button>
+                            style={{ backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent' }}>ID</button>
                     </div>
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         <Link href={`/c/${slug}/trouble-reports`}
@@ -367,7 +367,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                             style={{
                                 minHeight: '44px', padding: '0 12px',
                                 backgroundColor: 'rgba(99, 102, 241, 0.12)',
-                                color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.2)',
+                                color: 'var(--color-pg-primary-hover)', border: '1px solid var(--color-pg-primary-glow)',
                                 borderRadius: '8px', cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 textDecoration: 'none', gap: '4px',
@@ -429,7 +429,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                         style={{
                             padding: '8px 14px', borderRadius: '8px', border: '1px solid',
                             fontSize: '12px', fontWeight: 700, cursor: 'pointer', flexShrink: 0,
-                            backgroundColor: activeTab === tab.key ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)',
+                            backgroundColor: activeTab === tab.key ? 'var(--color-pg-primary-glow)' : 'rgba(255,255,255,0.04)',
                             borderColor: activeTab === tab.key ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.08)',
                             color: activeTab === tab.key ? '#818cf8' : '#a1a1aa',
                         }}>
@@ -475,7 +475,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                 }}>
                     <div style={{
                         backgroundColor: '#18181b',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        border: '1px solid var(--color-pg-border)',
                         borderRadius: '12px',
                         width: '100%',
                         maxWidth: '450px',
@@ -501,7 +501,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                                     required
                                     style={{
                                         width: '100%',
-                                        backgroundColor: '#09090b',
+                                        backgroundColor: 'var(--color-pg-bg)',
                                         border: '1px solid rgba(255, 255, 255, 0.1)',
                                         borderRadius: '8px',
                                         color: '#fafafa',
@@ -536,7 +536,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                                     style={{
                                         padding: '8px 16px',
                                         borderRadius: '8px',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                                        border: '1px solid var(--color-pg-border)',
                                         backgroundColor: 'transparent',
                                         color: '#a1a1aa',
                                         fontWeight: 700,
@@ -553,13 +553,13 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                                         padding: '8px 16px',
                                         borderRadius: '8px',
                                         border: 'none',
-                                        backgroundColor: '#6366f1',
+                                        backgroundColor: 'var(--color-pg-primary)',
                                         color: '#ffffff',
                                         fontWeight: 700,
                                         fontSize: '12px',
                                         cursor: isSaving ? 'not-allowed' : 'pointer',
                                         opacity: isSaving ? 0.7 : 1,
-                                        boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
+                                        boxShadow: '0 4px 12px var(--color-pg-primary-glow)',
                                     }}
                                 >
                                     {isSaving ? (language === 'en' ? 'Saving...' : 'Menyimpan...') : (language === 'en' ? 'Save Changes' : 'Simpan Perubahan')}
@@ -788,7 +788,7 @@ function MaterialTab({ readiness, language, t }: { readiness: MaterialReadiness;
                                  <div>
                                      <div style={{ fontWeight: 800, color: '#fafafa', fontSize: '13px' }}>{m.item_name}</div>
                                      <div style={{ color: 'var(--color-pg-text-secondary)', fontSize: '11px', marginTop: '1px', display: 'flex', gap: '4px', alignItems: 'center' }}>
-                                         <span style={{ fontWeight: 600, color: '#818cf8' }}>{m.client_name}</span>
+                                         <span style={{ fontWeight: 600, color: 'var(--color-pg-primary-hover)' }}>{m.client_name}</span>
                                          <span style={{ color: 'var(--color-pg-text-muted)' }}>&middot;</span>
                                          <span style={{ color: 'var(--color-pg-text-muted)', fontSize: '10px' }}>{m.po_number}</span>
                                      </div>
@@ -891,7 +891,7 @@ function ForecastCard({ item, language }: { item: ForecastItem; language: 'en' |
             <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontWeight: 800, color: '#fafafa', fontSize: '13px' }}>{item.item_name}</div>
                 <div style={{ color: 'var(--color-pg-text-secondary)', fontSize: '11px', marginTop: '1px', display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600, color: '#818cf8' }}>{item.client_name}</span>
+                    <span style={{ fontWeight: 600, color: 'var(--color-pg-primary-hover)' }}>{item.client_name}</span>
                     <span style={{ color: 'var(--color-pg-text-muted)' }}>&middot;</span>
                     <span style={{ color: 'var(--color-pg-text-muted)', fontSize: '10px' }}>{item.po_number}</span>
                 </div>

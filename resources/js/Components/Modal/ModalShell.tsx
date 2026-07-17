@@ -68,7 +68,7 @@ export const ModalShell: React.FC<ModalShellProps> = ({
             <div
                 style={{
                     backgroundColor: '#18181b',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    border: '1px solid var(--color-pg-border)',
                     borderRadius: '16px',
                     padding: '24px',
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',

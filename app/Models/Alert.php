@@ -20,6 +20,7 @@ class Alert extends Model
         'message',
         'is_resolved',
         'escalated_at',
+        'rework_reason',
     ];
 
     protected $casts = [

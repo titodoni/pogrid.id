@@ -170,7 +170,7 @@ const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '10px 14px',
     backgroundColor: 'var(--color-pg-input)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    border: '1px solid var(--color-pg-border)',
     borderRadius: '10px',
     color: 'var(--color-pg-text)',
     fontSize: '14px',
@@ -380,7 +380,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                     <p style={{ fontSize: '14px', color: 'var(--color-pg-text-muted)', margin: '0 0 24px 0' }}>
                         {t.owner_restrict_desc}
                     </p>
-                    <button onClick={goBack} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', border: 'none', color: '#fff', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 12px -2px rgba(99, 102, 241, 0.3)' }}>
+                    <button onClick={goBack} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)', border: 'none', color: '#fff', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 12px -2px rgba(99, 102, 241, 0.3)' }}>
                         {t.back}
                     </button>
                 </div>
@@ -403,7 +403,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                     gap: '6px',
                     padding: '8px 12px',
                     backgroundColor: 'var(--color-pg-border-subtle)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    border: '1px solid var(--color-pg-border)',
                     color: 'var(--color-pg-text-secondary)',
                     borderRadius: '10px',
                     fontWeight: 600,
@@ -418,7 +418,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                     alignItems: 'center',
                     gap: '6px',
                     padding: '10px 18px',
-                    background: submitting ? '#4f46e5' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                    background: submitting ? 'var(--color-pg-primary)' : 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)',
                     border: 'none',
                     color: '#fff',
                     borderRadius: '10px',
@@ -428,8 +428,8 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                     opacity: submitting ? 0.7 : 1,
                     boxShadow: submitting ? 'none' : '0 4px 12px -2px rgba(99, 102, 241, 0.3)',
                 }}
-                    onMouseOver={(e) => { if (!submitting) e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)'; }}
-                    onMouseOut={(e) => { if (!submitting) e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'; }}
+                    onMouseOver={(e) => { if (!submitting) e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-pg-primary) 0%, var(--color-pg-primary-hover) 100%)'; }}
+                    onMouseOut={(e) => { if (!submitting) e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)'; }}
                 >
                     <Broadcast size={16} />
                     {submitting ? '...' : t.submit}
@@ -486,7 +486,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                 {recent_pos.length > 0 && (
                     <div style={{
                         backgroundColor: 'var(--color-pg-primary-glow)',
-                        border: '1px solid rgba(99, 102, 241, 0.2)',
+                        border: '1px solid var(--color-pg-primary-glow)',
                         borderRadius: '12px',
                         padding: '16px',
                         marginBottom: '24px',
@@ -643,7 +643,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                             gap: '6px',
                             padding: '8px 16px',
                             backgroundColor: 'rgba(99, 102, 241, 0.12)',
-                            border: '1px solid rgba(99, 102, 241, 0.2)',
+                            border: '1px solid var(--color-pg-primary-glow)',
                             color: 'var(--color-pg-primary-hover)',
                             borderRadius: '10px',
                             fontSize: '13px',
@@ -694,7 +694,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                         width: '100%',
                                         padding: '8px 12px',
                                         backgroundColor: 'var(--color-pg-input)',
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        border: '1px solid var(--color-pg-border)',
                                         borderRadius: '10px',
                                         color: 'var(--color-pg-text)',
                                         fontSize: '13px',
@@ -709,7 +709,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                         width: '100%',
                                         padding: '8px 12px',
                                         backgroundColor: 'var(--color-pg-input)',
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        border: '1px solid var(--color-pg-border)',
                                         borderRadius: '10px',
                                         color: 'var(--color-pg-text)',
                                         fontSize: '13px',
@@ -727,7 +727,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                         width: '100%',
                                         padding: '8px 12px',
                                         backgroundColor: 'var(--color-pg-input)',
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        border: '1px solid var(--color-pg-border)',
                                         borderRadius: '10px',
                                         color: 'var(--color-pg-text)',
                                         fontSize: '13px',
@@ -756,7 +756,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                                         fontWeight: 700,
                                                         border: isActive ? '1px solid #818cf8' : '1px solid rgba(255,255,255,0.08)',
                                                         borderRadius: '6px',
-                                                        backgroundColor: isActive ? 'rgba(99,102,241,0.2)' : 'transparent',
+                                                        backgroundColor: isActive ? 'var(--color-pg-primary-glow)' : 'transparent',
                                                         color: isActive ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
                                                         cursor: 'pointer',
                                                     }}
@@ -818,7 +818,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                             width: '100%',
                                             padding: '8px 12px',
                                             backgroundColor: 'var(--color-pg-input)',
-                                            border: '1px solid rgba(255,255,255,0.08)',
+                                            border: '1px solid var(--color-pg-border)',
                                             borderRadius: '10px',
                                             color: 'var(--color-pg-text)',
                                             fontSize: '13px',
@@ -833,7 +833,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                             width: '100%',
                                             padding: '8px 12px',
                                             backgroundColor: 'var(--color-pg-input)',
-                                            border: '1px solid rgba(255,255,255,0.08)',
+                                            border: '1px solid var(--color-pg-border)',
                                             borderRadius: '10px',
                                             color: 'var(--color-pg-text)',
                                             fontSize: '13px',
@@ -859,7 +859,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                     <button type="button" onClick={goBack} style={{
                         padding: '10px 20px',
                         backgroundColor: 'var(--color-pg-border-subtle)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        border: '1px solid var(--color-pg-border)',
                         color: '#e2e8f0',
                         borderRadius: '8px',
                         fontWeight: 600,
@@ -907,7 +907,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                     flex: 1,
                     padding: '12px 16px',
                     backgroundColor: 'var(--color-pg-border-subtle)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    border: '1px solid var(--color-pg-border)',
                     color: '#e2e8f0',
                     borderRadius: '8px',
                     fontWeight: 600,

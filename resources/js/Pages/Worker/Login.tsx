@@ -217,7 +217,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
             justifyContent: 'center',
             padding: '16px',
         }}>
-            <div className="login-card animate-in w-full max-w-[420px] bg-zinc-900/80 backdrop-blur-xl border border-white/8 rounded-2xl p-6 shadow-2xl">
+            <div className="login-card animate-in w-full max-w-[420px] bg-[var(--color-pg-surface)] backdrop-blur-xl border border-[var(--color-pg-border)] rounded-2xl p-6 shadow-2xl">
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                     <h2 style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-pg-primary-hover)', fontWeight: 700, letterSpacing: '0.1em', margin: 0 }}>
                         {tenant.company_name}
@@ -242,7 +242,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             width: '100%',
                             padding: '12px 14px',
                             backgroundColor: 'var(--color-pg-input)',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            border: '1px solid var(--color-pg-border)',
                             borderRadius: '10px',
                             color: 'var(--color-pg-text)',
                             fontSize: '15px',
@@ -282,7 +282,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         margin: '0 auto',
                         backgroundColor: 'var(--color-pg-input)',
                         borderRadius: '10px',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        border: '1px solid var(--color-pg-border)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -449,7 +449,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             padding: '12px',
                             backgroundColor: 'transparent',
                             color: 'var(--color-pg-text-muted)',
-                            border: '1px solid rgba(255,255,255,0.08)',
+                            border: '1px solid var(--color-pg-border)',
                             borderRadius: '10px',
                             fontSize: '12px',
                             fontWeight: 600,
@@ -459,6 +459,27 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         {t.forgot_pin}
                     </button>
                 )}
+
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    marginTop: '24px',
+                    fontSize: '11px',
+                    color: 'var(--color-pg-text-secondary)',
+                }}>
+                    <span>Powered by</span>
+                    <span style={{
+                        backgroundColor: 'var(--color-pg-primary)',
+                        color: 'var(--color-pg-primary-ink)',
+                        padding: '1px 5px',
+                        borderRadius: '4px',
+                        fontWeight: 800,
+                        fontSize: '9px',
+                    }}>PO</span>
+                    <span style={{ fontWeight: 800 }}>grid<span style={{ color: 'var(--color-pg-primary)' }}>.id</span></span>
+                </div>
             </div>
 
             {/* Forgot PIN Confirmation Modal */}
@@ -502,7 +523,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             disabled={processing}
                             style={{
                                 padding: '8px 16px',
-                                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                                background: 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)',
                                 color: '#fff',
                                 borderRadius: '8px',
                                 border: 'none',

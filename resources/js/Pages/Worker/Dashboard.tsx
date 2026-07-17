@@ -89,6 +89,8 @@ const translations = {
         submit: "Submit",
         rework_dialog_title: "QC Rework",
         reject_qty_label: "Rejected Qty",
+        rework_reason_label: "Rework Reason",
+        rework_reason_placeholder: "Enter reason for rework (e.g. dimensional error, surface scratch)...",
         failure_dialog_title: "Report Kendala",
         failure_type_label: "Cause",
         machine_broken: "Machine Broken",
@@ -136,6 +138,8 @@ const translations = {
         submit: "Kirim",
         rework_dialog_title: "Rework QC",
         reject_qty_label: "Jumlah Reject",
+        rework_reason_label: "Alasan Rework",
+        rework_reason_placeholder: "Masukkan alasan rework (misal: kesalahan dimensi, tergores)...",
         failure_dialog_title: "Lapor Kendala",
         failure_type_label: "Penyebab",
         machine_broken: "Mesin Rusak",
@@ -326,6 +330,7 @@ function ItemCard({
     const [kendalaType, setKendalaType] = useState('Machine Broken');
     const [kendalaNote, setKendalaNote] = useState('');
     const [rejectQty, setRejectQty] = useState('1');
+    const [reworkReason, setReworkReason] = useState('');
     const [localCompletedQty, setLocalCompletedQty] = useState<number>(activeStage ? activeStage.stage.completed_qty : 0);
     const [localProgressPercent, setLocalProgressPercent] = useState<string>(activeStage ? activeStage.stage.progress_percent || '0' : '0');
 
@@ -525,7 +530,8 @@ function ItemCard({
         if (!activeStage || loading) return;
         const currentStage = activeStage;
         router.post(`/c/${slug}/progress/${currentStage.stage.id}/rework`, {
-            reject_qty: parseInt(rejectQty, 10)
+            reject_qty: parseInt(rejectQty, 10),
+            rework_reason: reworkReason
         }, {
             preserveScroll: true,
             preserveState: true,
@@ -533,6 +539,7 @@ function ItemCard({
             onFinish: () => setLoading(false),
             onSuccess: () => {
                 setShowQc(false);
+                setReworkReason('');
                 setActiveStage(null);
             }
         });
@@ -1227,19 +1234,8 @@ function ItemCard({
                                                 <button
                                                     disabled={loading}
                                                     onClick={() => {
-                                                        if (!activeStage || loading) return;
-                                                        router.post(`/c/${slug}/progress/${activeStage.stage.id}/rework`, {
-                                                            reject_qty: 1
-                                                        }, {
-                                                            preserveScroll: true,
-                                                            preserveState: true,
-                                                            onStart: () => setLoading(true),
-                                                            onFinish: () => setLoading(false),
-                                                            onSuccess: () => {
-                                                                setShowQc(false);
-                                                                setActiveStage(null);
-                                                            }
-                                                        });
+                                                        setRejectQty('1');
+                                                        setShowQc(prev => !prev);
                                                     }}
                                                     className="focus:outline-none focus:ring-2 focus:ring-red-500/50 hover:brightness-105 active:scale-[0.98] disabled:opacity-50 transition-all duration-150"
                                                     style={{
@@ -1498,18 +1494,46 @@ function ItemCard({
                                                 backgroundColor: 'var(--color-pg-border-subtle)',
                                                 borderRadius: '10px',
                                             }}>
+                                                {item.target_qty > 1 && (
+                                                    <>
+                                                        <label style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px', display: 'block', fontWeight: 600 }}>
+                                                            {t.reject_qty_label}
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            min="1"
+                                                            value={rejectQty}
+                                                            disabled={loading}
+                                                            onChange={(e) => setRejectQty(e.target.value)}
+                                                            className="focus:outline-none focus:ring-2 focus:ring-amber-500/50 disabled:opacity-50 transition-all duration-150"
+                                                            style={{
+                                                                width: '100%',
+                                                                padding: '10px 12px',
+                                                                backgroundColor: 'var(--color-pg-input)',
+                                                                color: 'var(--color-pg-text)',
+                                                                border: '1px solid rgba(255,255,255,0.08)',
+                                                                borderRadius: '8px',
+                                                                fontSize: '14px',
+                                                                outline: 'none',
+                                                                marginBottom: '8px',
+                                                            }}
+                                                        />
+                                                    </>
+                                                )}
+
                                                 <label style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px', display: 'block', fontWeight: 600 }}>
-                                                    {t.reject_qty_label}
+                                                    {t.rework_reason_label}
                                                 </label>
-                                                <input
-                                                    type="number"
-                                                    min="1"
-                                                    value={rejectQty}
+                                                <textarea
+                                                    required
+                                                    value={reworkReason}
                                                     disabled={loading}
-                                                    onChange={(e) => setRejectQty(e.target.value)}
+                                                    onChange={(e) => setReworkReason(e.target.value)}
+                                                    placeholder={t.rework_reason_placeholder}
                                                     className="focus:outline-none focus:ring-2 focus:ring-amber-500/50 disabled:opacity-50 transition-all duration-150"
                                                     style={{
                                                         width: '100%',
+                                                        minHeight: '60px',
                                                         padding: '10px 12px',
                                                         backgroundColor: 'var(--color-pg-input)',
                                                         color: 'var(--color-pg-text)',
@@ -1518,6 +1542,7 @@ function ItemCard({
                                                         fontSize: '14px',
                                                         outline: 'none',
                                                         marginBottom: '8px',
+                                                        resize: 'vertical',
                                                     }}
                                                 />
                                                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
@@ -2014,6 +2039,19 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                         ))}
                     </div>
                 )}
+
+                {/* Version Footer */}
+                <div style={{
+                    textAlign: 'center',
+                    padding: '24px 16px 8px',
+                    fontSize: '11px',
+                    color: 'var(--color-pg-text-muted)',
+                    opacity: 0.6,
+                    borderTop: '1px solid var(--color-pg-border-subtle)',
+                    marginTop: '32px',
+                }}>
+                    beta1 (2026-07-17)
+                </div>
             </div>
         </div>
     );

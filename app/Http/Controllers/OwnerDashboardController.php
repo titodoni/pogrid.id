@@ -664,6 +664,7 @@ class OwnerDashboardController extends Controller
                     'stage' => $stage,
                     'is_resolved' => $alert->is_resolved,
                     'created_at' => $alert->created_at?->toISOString(),
+                    'rework_reason' => $alert->rework_reason,
                     'item' => $alert->item ? [
                         'id' => $alert->item->id,
                         'item_name' => $alert->item->item_name,

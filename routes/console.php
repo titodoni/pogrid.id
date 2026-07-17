@@ -8,4 +8,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('pogrid:evaluate-timelines')->daily();
+Schedule::command('queue:work --stop-when-empty')->everyMinute()->withoutOverlapping();
+Schedule::command('pogrid:evaluate-timelines')->everyMinute()->withoutOverlapping();
+

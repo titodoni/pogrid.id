@@ -178,7 +178,7 @@ export default function MyKpi({ completed_stages, summary, stage_breakdown, mont
                         style={{
                             minHeight: '44px',
                             padding: '0 12px',
-                            backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
+                            backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
                             color: language === 'id' ? '#fff' : '#a1a1aa',
                             border: `1px solid ${language === 'id' ? '#6366f1' : 'rgba(255,255,255,0.06)'}`,
                             borderRadius: '8px',
@@ -284,7 +284,7 @@ export default function MyKpi({ completed_stages, summary, stage_breakdown, mont
                                                 <div style={{ flex: 1, height: '16px', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
                                                     <div style={{ width: `${pct}%`, height: '100%', borderRadius: '4px', backgroundColor: 'rgba(99, 102, 241, 0.6)', transition: 'width 0.3s ease' }} />
                                                 </div>
-                                                <span style={{ fontSize: '11px', fontWeight: 700, color: '#818cf8', minWidth: '20px', textAlign: 'right' }}>{s.count}x</span>
+                                                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-pg-primary-hover)', minWidth: '20px', textAlign: 'right' }}>{s.count}x</span>
                                                 <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', minWidth: '50px', textAlign: 'right' }}>
                                                     {s.avg_cycle_days}d
                                                 </span>
@@ -319,7 +319,7 @@ export default function MyKpi({ completed_stages, summary, stage_breakdown, mont
                                                 <td style={{ padding: '10px 12px' }}>
                                                     <span style={{
                                                         padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600,
-                                                        backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#818cf8',
+                                                        backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--color-pg-primary-hover)',
                                                     }}>
                                                         {stage.stage_name}
                                                     </span>

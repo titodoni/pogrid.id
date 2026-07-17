@@ -131,7 +131,7 @@ export default function Register() {
                 right: '16px',
                 display: 'inline-flex',
                 borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: '1px solid var(--color-pg-border)',
                 backgroundColor: 'var(--color-pg-border-subtle)',
                 padding: '2px',
                 zIndex: 10,
@@ -176,10 +176,10 @@ export default function Register() {
             <div className="login-card" style={{
                 width: '100%',
                 maxWidth: '480px',
-                backgroundColor: 'rgba(20, 20, 23, 0.85)',
+                backgroundColor: 'var(--color-pg-surface)',
                 backdropFilter: 'blur(20px)',
                 borderRadius: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: '1px solid var(--color-pg-border)',
                 padding: '40px 32px',
                 boxShadow: '0 24px 48px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02)',
                 display: 'flex',
@@ -213,7 +213,7 @@ export default function Register() {
                         fontWeight: 800,
                         letterSpacing: '-0.025em',
                         margin: '0 0 6px 0',
-                        background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
+                        background: 'linear-gradient(135deg, var(--color-pg-primary) 0%, var(--color-pg-primary-hover) 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                     }}>
@@ -261,8 +261,8 @@ export default function Register() {
                                     width: '100%',
                                     height: '44px',
                                     padding: '0 14px',
-                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    backgroundColor: 'var(--color-pg-input)',
+                                    border: '1px solid var(--color-pg-border)',
                                     borderRadius: '10px',
                                     color: '#ffffff',
                                     fontSize: '14px',
@@ -272,7 +272,7 @@ export default function Register() {
                                 }}
                                 onFocus={(e) => {
                                     e.target.style.borderColor = 'var(--color-pg-primary)';
-                                    e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                    e.target.style.boxShadow = '0 0 0 2px var(--color-pg-primary-glow)';
                                 }}
                                 onBlur={(e) => {
                                     e.target.style.borderColor = 'var(--color-pg-border)';
@@ -310,8 +310,8 @@ export default function Register() {
                                     width: '100%',
                                     height: '44px',
                                     padding: '0 14px',
-                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    backgroundColor: 'var(--color-pg-input)',
+                                    border: '1px solid var(--color-pg-border)',
                                     borderRadius: '10px',
                                     color: '#ffffff',
                                     fontSize: '14px',
@@ -321,7 +321,7 @@ export default function Register() {
                                 }}
                                 onFocus={(e) => {
                                     e.target.style.borderColor = 'var(--color-pg-primary)';
-                                    e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                    e.target.style.boxShadow = '0 0 0 2px var(--color-pg-primary-glow)';
                                 }}
                                 onBlur={(e) => {
                                     e.target.style.borderColor = 'var(--color-pg-border)';
@@ -365,8 +365,8 @@ export default function Register() {
                                     width: '100%',
                                     height: '44px',
                                     padding: '0 14px',
-                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    backgroundColor: 'var(--color-pg-input)',
+                                    border: '1px solid var(--color-pg-border)',
                                     borderRadius: '10px',
                                     color: '#ffffff',
                                     fontSize: '14px',
@@ -376,7 +376,7 @@ export default function Register() {
                                 }}
                                 onFocus={(e) => {
                                     e.target.style.borderColor = 'var(--color-pg-primary)';
-                                    e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                    e.target.style.boxShadow = '0 0 0 2px var(--color-pg-primary-glow)';
                                 }}
                                 onBlur={(e) => {
                                     e.target.style.borderColor = 'var(--color-pg-border)';
@@ -410,8 +410,8 @@ export default function Register() {
                                     width: '100%',
                                     height: '44px',
                                     padding: '0 14px',
-                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    backgroundColor: 'var(--color-pg-input)',
+                                    border: '1px solid var(--color-pg-border)',
                                     borderRadius: '10px',
                                     color: '#ffffff',
                                     fontSize: '14px',
@@ -421,7 +421,7 @@ export default function Register() {
                                 }}
                                 onFocus={(e) => {
                                     e.target.style.borderColor = 'var(--color-pg-primary)';
-                                    e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                    e.target.style.boxShadow = '0 0 0 2px var(--color-pg-primary-glow)';
                                 }}
                                 onBlur={(e) => {
                                     e.target.style.borderColor = 'var(--color-pg-border)';
@@ -455,8 +455,8 @@ export default function Register() {
                                     width: '100%',
                                     height: '44px',
                                     padding: '0 14px',
-                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    backgroundColor: 'var(--color-pg-input)',
+                                    border: '1px solid var(--color-pg-border)',
                                     borderRadius: '10px',
                                     color: '#ffffff',
                                     fontSize: '14px',
@@ -466,7 +466,7 @@ export default function Register() {
                                 }}
                                 onFocus={(e) => {
                                     e.target.style.borderColor = 'var(--color-pg-primary)';
-                                    e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                    e.target.style.boxShadow = '0 0 0 2px var(--color-pg-primary-glow)';
                                 }}
                                 onBlur={(e) => {
                                     e.target.style.borderColor = 'var(--color-pg-border)';
@@ -500,8 +500,8 @@ export default function Register() {
                                     width: '100%',
                                     height: '44px',
                                     padding: '0 14px',
-                                    backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    backgroundColor: 'var(--color-pg-input)',
+                                    border: '1px solid var(--color-pg-border)',
                                     borderRadius: '10px',
                                     color: '#ffffff',
                                     fontSize: '14px',
@@ -511,7 +511,7 @@ export default function Register() {
                                 }}
                                 onFocus={(e) => {
                                     e.target.style.borderColor = 'var(--color-pg-primary)';
-                                    e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+                                    e.target.style.boxShadow = '0 0 0 2px var(--color-pg-primary-glow)';
                                 }}
                                 onBlur={(e) => {
                                     e.target.style.borderColor = 'var(--color-pg-border)';
@@ -530,14 +530,14 @@ export default function Register() {
                             width: '100%',
                             height: '46px',
                             borderRadius: '10px',
-                            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                            background: 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)',
                             color: '#ffffff',
                             fontSize: '14px',
                             fontWeight: 600,
                             border: 'none',
                             cursor: 'pointer',
                             transition: 'all 0.2s',
-                            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)',
+                            boxShadow: '0 4px 12px var(--color-pg-primary-glow)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -545,12 +545,12 @@ export default function Register() {
                             marginTop: '10px',
                         }}
                         onMouseOver={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)';
-                            e.currentTarget.style.boxShadow = '0 6px 16px rgba(99, 102, 241, 0.35)';
+                            e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-pg-primary) 0%, var(--color-pg-primary-hover) 100%)';
+                            e.currentTarget.style.boxShadow = '0 6px 16px var(--color-pg-primary-glow)';
                         }}
                         onMouseOut={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.25)';
+                            e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px var(--color-pg-primary-glow)';
                         }}
                     >
                         {processing ? (
@@ -583,7 +583,7 @@ export default function Register() {
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
-                    {language === 'id' ? 'Gratis 30 hari · Tanpa kartu kredit · Data bengkel aman' : 'Free 30-day trial · No credit card · Your data is safe'}
+                    {language === 'id' ? 'Gratis 30 hari · Tanpa kartu kredit · Data pabrik aman' : 'Free 30-day trial · No credit card · Your data is safe'}
                 </p>
 
                 <div style={{

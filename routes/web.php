@@ -96,3 +96,12 @@ Route::prefix('c/{slug}')->group(function () {
         Route::post('/ppic/items/{itemId}/priority', [PpicDashboardController::class, 'updateItemPriority']);
     });
 });
+
+// Legal Pages (Syarat & Ketentuan, Kebijakan Privasi)
+Route::get('/terms', function () {
+    return Inertia\Inertia::render('Legal/Terms');
+});
+Route::get('/privacy', function () {
+    return Inertia\Inertia::render('Legal/Privacy');
+});
+

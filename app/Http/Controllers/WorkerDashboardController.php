@@ -110,10 +110,10 @@ class WorkerDashboardController extends Controller
             $pos = Po::with([
                 'items' => function ($q) {
                     $q->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty')
-                        ->with(['itemProgresses', 'alerts']);
+                        ->with(['itemProgresses', 'alerts.user']);
                 },
             ])->get();
-            $alerts = Alert::with('item.po')->where('is_resolved', false)->get();
+            $alerts = Alert::with(['item.po', 'user'])->where('is_resolved', false)->get();
             $users = User::with('roleRelation:id,name,display_name,display_name_id', 'postRelation:id,name,display_name,display_name_id')->get();
             $roles = Role::all(['id', 'name', 'display_name', 'display_name_id', 'level']);
             $posts = Post::all(['id', 'name', 'display_name', 'display_name_id']);
@@ -1712,14 +1712,15 @@ class WorkerDashboardController extends Controller
 
     public function logQcRework(Request $request, $slug, $progressId)
     {
-        $request->validate([
-            'reject_qty' => ['required', 'integer', 'min:1'],
-        ]);
-
         $user = auth()->user()->load('roleRelation');
         if ($user->role_level !== 'office' && $user->role_name !== 'QC') {
             abort(403, 'Forbidden: Only QC inspectors can log rework.');
         }
+
+        $request->validate([
+            'reject_qty' => ['required', 'integer', 'min:1'],
+            'rework_reason' => ['required', 'string', 'min:3'],
+        ]);
 
         $progress = ItemProgress::findOrFail($progressId);
         $item = $progress->item;
@@ -1755,7 +1756,7 @@ class WorkerDashboardController extends Controller
             $item->update(['status' => 'IN_PROGRESS']);
         }
 
-        // Create a YELLOW alert with structured reason_type
+        // Create a YELLOW alert with structured reason_type and the custom input reason
         $alert = Alert::create([
             'tenant_id' => TenantManager::getTenantId(),
             'item_id' => $item->id,
@@ -1763,6 +1764,7 @@ class WorkerDashboardController extends Controller
             'severity' => 'YELLOW',
             'reason_type' => 'QC Rework',
             'message' => "QC Rework: {$request->reject_qty} items rejected on stage '{$progress->stage_name}' for item '{$item->item_name}' (PO: {$po->po_number}).",
+            'rework_reason' => $request->rework_reason,
             'is_resolved' => false,
         ]);
 

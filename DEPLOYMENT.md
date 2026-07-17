@@ -84,7 +84,11 @@ php artisan key:generate
 ### 5. Run Migrations
 
 ```bash
+# Run migrations on remote PostgreSQL database (default connection)
 php artisan migrate --force
+
+# Run migrations on local SQLite database (for session/cache/queue tables)
+php artisan migrate --database=sqlite --force
 ```
 
 ### 6. Optimize
@@ -104,20 +108,20 @@ Point web server to `public/` directory.
 
 ## Cron Setup
 
-Add to crontab (runs every minute):
+Add to crontab (runs every minute). Note: use the absolute path to PHP 8.3 CLI binary in Hostinger:
 
 ```cron
-* * * * * cd /path/to/pogrid && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /path/to/pogrid && /usr/bin/php8.3 artisan schedule:run >> /dev/null 2>&1
 ```
 
-This handles:
-- `php artisan queue:work --stop-when-empty` — process job queue
-- `php artisan pogrid:evaluate-timelines` — evaluate alert timelines
+This triggers the Laravel scheduler in `routes/console.php`, which handles:
+- `php artisan queue:work --stop-when-empty` — processes the job queue (every minute, without overlapping)
+- `php artisan pogrid:evaluate-timelines` — evaluates alert timelines (every minute, without overlapping)
 
 Queue processing:
-- No daemons — each cron run processes all pending jobs then exits
-- Job table uses database driver (SQLite on shared, PostgreSQL on Neon)
-- Jobs are dispatched sync or via `dispatch()->afterResponse()` for user-facing actions
+- No daemons — each cron run processes all pending jobs then exits.
+- Job tables and failed job logs use the database driver (routed to SQLite via environment override).
+- Jobs are dispatched sync or via `dispatch()->afterResponse()` for user-facing actions.
 
 ---
 
@@ -169,8 +173,9 @@ php artisan pogrid:evaluate-timelines
 ## Health Check
 
 ```bash
-# Check app responds
-curl https://app.pogrid.id/api/health
+# Check app responds (Laravel 11 default health check)
+curl https://app.pogrid.id/up
+```
 
 # Check queue is processing
 php artisan queue:monitor

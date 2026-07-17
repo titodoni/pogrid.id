@@ -81,6 +81,8 @@ const themeOptions = [
     { id: 'theme-stripe', name: 'Stripe Navy', translationKey: 'theme_stripe', primaryCol: 'var(--color-pg-primary)', bgCol: '#0b132b', cardBg: '#1c2541', textCol: '#f1f5f9' },
     { id: 'theme-github', name: 'GitHub Slate', translationKey: 'theme_github', primaryCol: 'var(--color-pg-primary)', bgCol: '#0d1117', cardBg: '#161b22', textCol: '#c9d1d9' },
     { id: 'theme-nordic', name: 'Nordic Polar', translationKey: 'theme_nordic', primaryCol: 'var(--color-pg-primary)', bgCol: '#2e3440', cardBg: '#3b4252', textCol: '#eceff4' },
+    { id: 'theme-light', name: 'Mint Cream Light', translationKey: 'theme_light', primaryCol: '#1c3738', bgCol: '#f4fff8', cardBg: '#ffffff', textCol: '#000f08' },
+    { id: 'theme-brand', name: 'Brand Dark', translationKey: 'theme_brand', primaryCol: '#8baaad', bgCol: '#000f08', cardBg: '#1c3738', textCol: '#f4fff8' },
 ];
 
 export default function Profile({ tenant, auth_user }: Props) {
@@ -113,7 +115,7 @@ export default function Profile({ tenant, auth_user }: Props) {
     const changeTheme = (newTheme: string) => {
         setTheme(newTheme);
         localStorage.setItem('pogrid_theme', newTheme);
-        const classes = ['theme-default', 'theme-linear', 'theme-vercel', 'theme-stripe', 'theme-github', 'theme-nordic'];
+        const classes = ['theme-default', 'theme-linear', 'theme-vercel', 'theme-stripe', 'theme-github', 'theme-nordic', 'theme-light', 'theme-brand'];
         classes.forEach(c => document.documentElement.classList.remove(c));
         document.documentElement.classList.add(newTheme);
     };

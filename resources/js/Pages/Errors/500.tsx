@@ -3,7 +3,7 @@ import { Link } from '@inertiajs/react';
 
 export default function ServerError({ status }: { status?: number }) {
     return (
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#09090b', fontFamily: 'Inter, sans-serif', color: '#fafafa', padding: '16px' }}>
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-pg-bg)', fontFamily: 'Inter, sans-serif', color: '#fafafa', padding: '16px' }}>
             <div style={{ textAlign: 'center' }}>
                 <h1 style={{ fontSize: '96px', fontWeight: 800, margin: 0, background: 'linear-gradient(135deg, #a1a1aa 0%, #71717a 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>500</h1>
                 <p style={{ color: '#a1a1aa', fontSize: '18px', marginTop: '8px' }}>Server Error</p>

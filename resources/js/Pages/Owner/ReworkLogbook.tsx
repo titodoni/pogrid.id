@@ -8,6 +8,7 @@ interface ReworkEvent {
     stage: string;
     is_resolved: boolean;
     created_at: string;
+    rework_reason?: string;
     item: {
         id: number;
         item_name: string;
@@ -87,6 +88,7 @@ const translations = {
         inspector: 'Inspector',
         date: 'Date',
         status: 'Status',
+        reason: 'Reason',
         filter_range: 'Period',
         this_week: 'This Week',
         this_month: 'This Month',
@@ -124,6 +126,7 @@ const translations = {
         inspector: 'Inspektur',
         date: 'Tanggal',
         status: 'Status',
+        reason: 'Alasan',
         filter_range: 'Periode',
         this_week: 'Minggu Ini',
         this_month: 'Bulan Ini',
@@ -199,58 +202,60 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
             color: 'var(--color-pg-text)',
             minHeight: '100vh',
         }}>
-            <header className="responsive-header owner-dashboard-header" style={{
-                padding: '10px 16px 8px',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            }}>
-                <div className="owner-header-title">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Link href="/dashboard" style={{ color: 'var(--color-pg-text-secondary)', textDecoration: 'none', display: 'flex' }}>
-                            <ChevronLeft size={18} />
-                        </Link>
-                        <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.page_title}</h1>
+            <div className="dashboard-above-scroll">
+                <header className="responsive-header owner-dashboard-header" style={{
+                    padding: '10px 16px 8px',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                }}>
+                    <div className="owner-header-title">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Link href="/dashboard" style={{ color: 'var(--color-pg-text-secondary)', textDecoration: 'none', display: 'flex' }}>
+                                <ChevronLeft size={18} />
+                            </Link>
+                            <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.page_title}</h1>
+                        </div>
+                        <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>{t.subtitle}</span>
                     </div>
-                    <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>{t.subtitle}</span>
-                </div>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    <button
-                        onClick={() => {
-                            const lang = language === 'en' ? 'id' : 'en';
-                            setLanguage(lang);
-                            localStorage.setItem('pogrid_lang', lang);
-                        }}
-                        style={{
-                            padding: '6px 10px',
-                            backgroundColor: 'rgba(255,255,255,0.05)',
-                            color: 'var(--color-pg-text-secondary)',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                        }}
-                    >
-                        {language === 'en' ? 'ID' : 'EN'}
-                    </button>
-                    <button
-                        onClick={() => router.post('/logout')}
-                        style={{
-                            padding: '6px 12px',
-                            backgroundColor: '#ef4444',
-                            color: '#fff',
-                            fontWeight: 600,
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                        }}
-                    >
-                        {language === 'en' ? 'Exit' : 'Keluar'}
-                    </button>
-                </div>
-            </header>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <button
+                            onClick={() => {
+                                const lang = language === 'en' ? 'id' : 'en';
+                                setLanguage(lang);
+                                localStorage.setItem('pogrid_lang', lang);
+                            }}
+                            style={{
+                                padding: '6px 10px',
+                                backgroundColor: 'rgba(255,255,255,0.05)',
+                                color: 'var(--color-pg-text-secondary)',
+                                border: '1px solid var(--color-pg-border)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                            }}
+                        >
+                            {language === 'en' ? 'ID' : 'EN'}
+                        </button>
+                        <button
+                            onClick={() => router.post('/logout')}
+                            style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#ef4444',
+                                color: '#fff',
+                                fontWeight: 600,
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                            }}
+                        >
+                            {language === 'en' ? 'Exit' : 'Keluar'}
+                        </button>
+                    </div>
+                </header>
+            </div>
 
-            <div style={{ padding: '16px' }}>
+            <div className="dashboard-scroll" style={{ padding: '16px' }}>
                 {errors && Object.keys(errors).length > 0 && (
                     <div style={{
                         backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -351,7 +356,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                                 padding: '8px 12px 8px 32px',
                                 backgroundColor: 'rgba(255,255,255,0.05)',
                                 color: 'var(--color-pg-text)',
-                                border: '1px solid rgba(255,255,255,0.08)',
+                                border: '1px solid var(--color-pg-border)',
                                 borderRadius: '8px',
                                 fontSize: '12px',
                                 outline: 'none',
@@ -425,7 +430,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                                                 <div style={{ flex: 1, height: '16px', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
                                                     <div style={{ width: `${pct}%`, height: '100%', borderRadius: '4px', backgroundColor: 'rgba(129, 140, 248, 0.6)', transition: 'width 0.3s ease' }} />
                                                 </div>
-                                                <span style={{ fontSize: '11px', fontWeight: 700, color: '#818cf8', minWidth: '48px', textAlign: 'right' }}>{c.events}ev / {c.qty}pcs</span>
+                                                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-pg-primary-hover)', minWidth: '48px', textAlign: 'right' }}>{c.events}ev / {c.qty}pcs</span>
                                             </div>
                                         );
                                     })}
@@ -472,7 +477,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                     <>
                         {filtered.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--color-pg-text-secondary)' }}>
-                                <div style={{ fontSize: '40px', marginBottom: '12px', opacity: 0.3 }}>📋</div>
+                        <div style={{ fontSize: '40px', marginBottom: '12px', opacity: 0.3 }}>📋</div>
                                 <div style={{ fontWeight: 600 }}>{t.no_rework}</div>
                             </div>
                         ) : (
@@ -487,6 +492,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                                             <th style={{ padding: '10px 12px', textAlign: 'left', color: 'var(--color-pg-text-secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t.stage_label}</th>
                                             <th style={{ padding: '10px 12px', textAlign: 'right', color: 'var(--color-pg-text-secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t.qty}</th>
                                             <th style={{ padding: '10px 12px', textAlign: 'left', color: 'var(--color-pg-text-secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t.inspector}</th>
+                                            <th style={{ padding: '10px 12px', textAlign: 'left', color: 'var(--color-pg-text-secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t.reason}</th>
                                             <th style={{ padding: '10px 12px', textAlign: 'center', color: 'var(--color-pg-text-secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t.status}</th>
                                         </tr>
                                     </thead>
@@ -511,7 +517,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                                                 <td style={{ padding: '10px 12px' }}>
                                                     <span style={{
                                                         padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600,
-                                                        backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#818cf8',
+                                                        backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--color-pg-primary-hover)',
                                                     }}>
                                                         {event.stage}
                                                     </span>
@@ -521,6 +527,9 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                                                 </td>
                                                 <td style={{ padding: '10px 12px', color: 'var(--color-pg-text-secondary)' }}>
                                                     {event.user?.name || '-'}
+                                                </td>
+                                                <td style={{ padding: '10px 12px', color: 'var(--color-pg-text-secondary)', maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={event.rework_reason || ''}>
+                                                    {event.rework_reason || '-'}
                                                 </td>
                                                 <td style={{ padding: '10px 12px', textAlign: 'center' }}>
                                                     <span style={{

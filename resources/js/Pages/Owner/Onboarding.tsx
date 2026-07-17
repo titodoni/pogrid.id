@@ -77,7 +77,7 @@ export default function Onboarding({ tenant }: Props) {
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
-                    Bengkel aktif
+                    Pabrik aktif
                 </span>
 
                 <h1 style={{
@@ -96,7 +96,7 @@ export default function Onboarding({ tenant }: Props) {
                     margin: '0 auto 12px',
                     maxWidth: '480px',
                 }}>
-                    Bengkel Anda sudah jadi. Sekarang langkah paling penting: buat PO pertama supaya progres mulai terekam.
+                    Pabrik Anda sudah jadi. Sekarang langkah paling penting: buat PO pertama supaya progres mulai terekam.
                 </p>
 
                 {/* Steps */}
@@ -139,7 +139,7 @@ export default function Onboarding({ tenant }: Props) {
                                         fontWeight: 700, fontSize: '14px',
                                         padding: s.primary ? '12px 20px' : '11px 18px',
                                         borderRadius: '10px', textDecoration: 'none',
-                                        boxShadow: s.primary ? '0 8px 24px rgba(99,102,241,0.35)' : 'none',
+                                        boxShadow: s.primary ? '0 8px 24px var(--color-pg-primary-glow)' : 'none',
                                     }}
                                 >
                                     {s.cta}
