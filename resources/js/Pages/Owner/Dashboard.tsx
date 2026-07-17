@@ -450,6 +450,33 @@ const translations = {
 export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenant, auth_user, telemetry, selected_range }: Props) {
     const { errors } = usePage().props;
 
+    const renderStatusBadge = (text: string, dotColor: string) => (
+        <span className="badge animate-fade" style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+            color: 'var(--color-pg-text-secondary)',
+            border: '1px solid var(--color-pg-border)',
+            padding: '2px 8px',
+            borderRadius: '6px',
+            fontSize: '11px',
+            fontWeight: 600,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            whiteSpace: 'nowrap',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.01)',
+        }}>
+            <span style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                backgroundColor: dotColor,
+                display: 'inline-block',
+                boxShadow: dotColor !== '#71717a' ? `0 0 6px ${dotColor}` : 'none'
+            }} />
+            {text}
+        </span>
+    );
+
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
         if (typeof window !== 'undefined') {
             return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
@@ -983,6 +1010,16 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
 
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
+    const [showThemeDropdown, setShowThemeDropdown] = useState(false);
+
+    const changeTheme = (newTheme: string) => {
+        localStorage.setItem('pogrid_theme', newTheme);
+        const classes = ['theme-default', 'theme-linear', 'theme-vercel', 'theme-stripe', 'theme-github', 'theme-nordic'];
+        classes.forEach(c => document.documentElement.classList.remove(c));
+        document.documentElement.classList.add(newTheme);
+        setShowThemeDropdown(false);
+    };
+
     const confirmAlert = useImperativeAlertDialog();
 
     // Add Admin modal
@@ -1300,6 +1337,80 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                     >
                         <Search size={16} />
                     </button>
+                    {/* Theme Picker */}
+                    <div style={{ position: 'relative' }}>
+                        <button
+                            onClick={() => setShowThemeDropdown(!showThemeDropdown)}
+                            style={{
+                                padding: '8px',
+                                backgroundColor: 'rgba(255,255,255,0.05)',
+                                color: 'var(--color-pg-text-secondary)',
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '16px',
+                                lineHeight: '1',
+                                display: 'flex',
+                            }}
+                            title={language === 'en' ? 'Switch Theme' : 'Ganti Tema'}
+                        >
+                            <Palette size={16} />
+                        </button>
+                        {showThemeDropdown && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '40px',
+                                right: '0',
+                                width: '160px',
+                                backgroundColor: 'var(--color-pg-card)',
+                                border: '1px solid var(--color-pg-border)',
+                                borderRadius: '10px',
+                                padding: '6px',
+                                zIndex: 100,
+                                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
+                                display: 'grid',
+                                gap: '4px',
+                            }}>
+                                {[
+                                    { id: 'theme-default', name: 'Titanium Slate', color: '#6366f1' },
+                                    { id: 'theme-linear', name: 'Obsidian Graphite', color: '#6366f1' },
+                                    { id: 'theme-vercel', name: 'Monochrome Void', color: '#6366f1' },
+                                    { id: 'theme-stripe', name: 'Stripe Navy', color: '#6366f1' },
+                                    { id: 'theme-github', name: 'GitHub Slate', color: '#6366f1' },
+                                    { id: 'theme-nordic', name: 'Nordic Polar', color: '#6366f1' },
+                                ].map((tOption) => (
+                                    <button
+                                        key={tOption.id}
+                                        onClick={() => changeTheme(tOption.id)}
+                                        style={{
+                                            padding: '6px 8px',
+                                            backgroundColor: 'transparent',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            color: 'var(--color-pg-text)',
+                                            fontSize: '11px',
+                                            fontWeight: 600,
+                                            textAlign: 'left',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                        }}
+                                        onMouseOver={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'var(--color-pg-card-hover)';
+                                        }}
+                                        onMouseOut={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'transparent';
+                                        }}
+                                    >
+                                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: tOption.color }} />
+                                        {tOption.name}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                     {/* Profile - visible to all roles */}
                     <Link
                         href={'/c/' + (tenant?.slug || '') + '/profile'}
@@ -1885,7 +1996,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                             <ChevronDown size={16} expanded={isExpanded} />
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                                    <span style={{ fontSize: '16px', fontWeight: 800 }}>{po.po_number}</span>
+                                                    <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{po.client_name}</span>
                                                     <StatusBadge status={po.status} />
                                                     {po.is_urgent && <StatusBadge status="URGENT" />}
                                                     {(() => {
@@ -1895,12 +2006,17 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                         return <WarningPill deadlineDateStr={po.global_deadline} reworkMessage={hasRework} lang={language} />;
                                                     })()}
                                                 </div>
-                                                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginTop: '2px' }}>
-                                                    {po.client_name} &middot; {formatDeadline(po.global_deadline, language)}
+                                                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginTop: '3px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+                                                    <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-pg-text-muted)' }}>{po.po_number}</span>
+                                                    <span style={{ color: 'var(--color-pg-border)' }}>&middot;</span>
+                                                    <span style={{ fontSize: '12px', fontWeight: 500 }}>{formatDeadline(po.global_deadline, language)}</span>
                                                     {!isExpanded && po.items.length > 0 && (
-                                                        <span style={{ marginLeft: '8px', color: '#3b82f6' }}>
-                                                            {po.items.length} item{po.items.length > 1 ? 's' : ''} &middot; {poProgress}%
-                                                        </span>
+                                                        <>
+                                                            <span style={{ color: 'var(--color-pg-border)' }}>&middot;</span>
+                                                            <span style={{ color: '#3b82f6', fontWeight: 500 }}>
+                                                                {po.items.length} item{po.items.length > 1 ? 's' : ''} &middot; {poProgress}%
+                                                            </span>
+                                                        </>
                                                     )}
                                                 </div>
                                             </div>
@@ -1956,94 +2072,60 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                     <div style={{ flex: 1, minWidth: 0 }}>
                                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                                                                             <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{item.item_name}</span>
-                                                                        <span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.06)', color: 'var(--color-pg-text-secondary)' }}>
-                                                                            {item.item_type === 'MANUFACTURE' 
+                                                                        {renderStatusBadge(
+                                                                            item.item_type === 'MANUFACTURE' 
                                                                                 ? (language === 'id' ? 'Produksi Internal' : 'Manufactured') 
-                                                                                : (language === 'id' ? 'Beli Jadi (Buyout)' : 'Buyout')}
-                                                                        </span>
-                                                                        {item.drafter_status && (
-                                                                            <span className="badge" style={{
-                                                                                backgroundColor: item.drafter_status === 'APPROVED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(139, 92, 246, 0.15)',
-                                                                                color: item.drafter_status === 'APPROVED' ? 'var(--color-pg-success)' : '#a78bfa',
-                                                                            }}>
-                                                                                {item.drafter_status === 'APPROVED' 
-                                                                                    ? (language === 'id' ? 'Gambar Disetujui' : 'Drawing Approved')
-                                                                                    : (language === 'id' ? `Gambar: ${item.drafter_status}` : `Drawing: ${item.drafter_status}`)}
-                                                                            </span>
+                                                                                : (language === 'id' ? 'Beli Jadi (Buyout)' : 'Buyout'),
+                                                                            '#71717a'
                                                                         )}
-                                                                        {item.purchasing_status && (
-                                                                            <span className="badge" style={{
-                                                                                backgroundColor: item.purchasing_status === 'READY' ? 'rgba(16, 185, 129, 0.15)' :
-                                                                                    item.purchasing_status === 'PROSES' ? 'rgba(234, 179, 8, 0.15)' :
-                                                                                    'rgba(59, 130, 246, 0.1)',
-                                                                                color: item.purchasing_status === 'READY' ? 'var(--color-pg-success)' :
-                                                                                    item.purchasing_status === 'PROSES' ? 'var(--color-pg-warning)' :
-                                                                                    '#3b82f6',
-                                                                            }}>
-                                                                                {item.purchasing_status === 'READY'
-                                                                                    ? (language === 'id' ? 'Bahan Baku Siap' : 'Material Ready')
-                                                                                    : item.purchasing_status === 'PROSES'
-                                                                                    ? (language === 'id' ? 'Bahan Dipesan' : 'Material Ordered')
-                                                                                    : (language === 'id' ? `Material: ${item.purchasing_status}` : `Material: ${item.purchasing_status}`)}
-                                                                            </span>
+                                                                        {item.drafter_status && renderStatusBadge(
+                                                                            item.drafter_status === 'APPROVED' 
+                                                                                ? (language === 'id' ? 'Gambar Disetujui' : 'Drawing Approved')
+                                                                                : (language === 'id' ? `Gambar: ${item.drafter_status}` : `Drawing: ${item.drafter_status}`),
+                                                                            item.drafter_status === 'APPROVED' ? 'var(--color-pg-success)' : 'var(--color-pg-primary)'
                                                                         )}
-                                                                        {item.delivery_status && (
-                                                                            <span className="badge" style={{
-                                                                                backgroundColor: item.delivery_status === 'DELIVERED' ? 'rgba(16, 185, 129, 0.15)' :
-                                                                                    item.delivery_status === 'PARTIAL' ? 'rgba(234, 179, 8, 0.15)' :
-                                                                                    'rgba(59, 130, 246, 0.1)',
-                                                                                color: item.delivery_status === 'DELIVERED' ? 'var(--color-pg-success)' :
-                                                                                    item.delivery_status === 'PARTIAL' ? 'var(--color-pg-warning)' :
-                                                                                    '#3b82f6',
-                                                                            }}>
-                                                                                {item.delivery_status === 'DELIVERED'
-                                                                                    ? (language === 'id' ? 'Terkirim' : 'Delivered')
-                                                                                    : item.delivery_status === 'PARTIAL'
-                                                                                    ? (language === 'id' ? `Terkirim Sebagian (${item.delivered_qty}/${item.target_qty})` : `Partially Delivered (${item.delivered_qty}/${item.target_qty})`)
-                                                                                    : (language === 'id' ? 'Belum Dikirim' : 'Pending Delivery')}
-                                                                            </span>
+                                                                        {item.purchasing_status && renderStatusBadge(
+                                                                            item.purchasing_status === 'READY'
+                                                                                ? (language === 'id' ? 'Bahan Baku Siap' : 'Material Ready')
+                                                                                : item.purchasing_status === 'PROSES'
+                                                                                ? (language === 'id' ? 'Bahan Dipesan' : 'Material Ordered')
+                                                                                : (language === 'id' ? `Material: ${item.purchasing_status}` : `Material: ${item.purchasing_status}`),
+                                                                            item.purchasing_status === 'READY' ? 'var(--color-pg-success)' :
+                                                                                item.purchasing_status === 'PROSES' ? 'var(--color-pg-warning)' :
+                                                                                '#3b82f6'
                                                                         )}
-                                                                        {item.invoice_status && (
-                                                                            <span className="badge" style={{
-                                                                                backgroundColor: item.invoice_status === 'INVOICED' ? 'rgba(16, 185, 129, 0.15)' :
-                                                                                    item.invoice_status === 'PARTIAL' ? 'rgba(168, 85, 247, 0.15)' :
-                                                                                    'rgba(255, 255, 255, 0.04)',
-                                                                                color: item.invoice_status === 'INVOICED' ? 'var(--color-pg-success)' :
-                                                                                    item.invoice_status === 'PARTIAL' ? '#c084fc' :
-                                                                                    'var(--color-pg-text-secondary)',
-                                                                            }}>
-                                                                                {item.invoice_status === 'INVOICED'
-                                                                                    ? (language === 'id' ? 'Difakturkan' : 'Invoiced')
-                                                                                    : item.invoice_status === 'PARTIAL'
-                                                                                    ? (language === 'id' ? `Faktur Sebagian (${item.invoiced_qty}/${item.target_qty})` : `Partially Invoiced (${item.invoiced_qty}/${item.target_qty})`)
-                                                                                    : (language === 'id' ? 'Belum Difakturkan' : 'Uninvoiced')}
-                                                                            </span>
+                                                                        {item.delivery_status && renderStatusBadge(
+                                                                            item.delivery_status === 'DELIVERED'
+                                                                                ? (language === 'id' ? 'Terkirim' : 'Delivered')
+                                                                                : item.delivery_status === 'PARTIAL'
+                                                                                ? (language === 'id' ? `Terkirim Sebagian (${item.delivered_qty}/${item.target_qty})` : `Partially Delivered (${item.delivered_qty}/${item.target_qty})`)
+                                                                                : (language === 'id' ? 'Belum Dikirim' : 'Pending Delivery'),
+                                                                            item.delivery_status === 'DELIVERED' ? 'var(--color-pg-success)' :
+                                                                                item.delivery_status === 'PARTIAL' ? 'var(--color-pg-warning)' :
+                                                                                '#71717a'
                                                                         )}
-                                                                        {item.payment_status && (
-                                                                            <span className="badge" style={{
-                                                                                backgroundColor: item.payment_status === 'PAID' ? 'rgba(16, 185, 129, 0.15)' :
-                                                                                    item.payment_status === 'PARTIAL_PAID' ? 'rgba(99, 102, 241, 0.15)' :
-                                                                                    'rgba(255, 255, 255, 0.04)',
-                                                                                color: item.payment_status === 'PAID' ? 'var(--color-pg-success)' :
-                                                                                    item.payment_status === 'PARTIAL_PAID' ? 'var(--color-pg-primary-hover)' :
-                                                                                    'var(--color-pg-text-secondary)',
-                                                                            }}>
-                                                                                {item.payment_status === 'PAID'
-                                                                                    ? (language === 'id' ? 'Lunas' : 'Paid')
-                                                                                    : item.payment_status === 'PARTIAL_PAID'
-                                                                                    ? (language === 'id' ? 'Bayar Sebagian' : 'Partial Paid')
-                                                                                    : (language === 'id' ? 'Belum Bayar' : 'Unpaid')}
-                                                                            </span>
+                                                                        {item.invoice_status && renderStatusBadge(
+                                                                            item.invoice_status === 'INVOICED'
+                                                                                ? (language === 'id' ? 'Difakturkan' : 'Invoiced')
+                                                                                : item.invoice_status === 'PARTIAL'
+                                                                                ? (language === 'id' ? `Faktur Sebagian (${item.invoiced_qty}/${item.target_qty})` : `Partially Invoiced (${item.invoiced_qty}/${item.target_qty})`)
+                                                                                : (language === 'id' ? 'Belum Difakturkan' : 'Uninvoiced'),
+                                                                            item.invoice_status === 'INVOICED' ? 'var(--color-pg-success)' :
+                                                                                item.invoice_status === 'PARTIAL' ? 'var(--color-pg-orange)' :
+                                                                                '#71717a'
                                                                         )}
-                                                                        <span className="badge" style={{
-                                                                            backgroundColor: isCancelled ? 'rgba(239, 68, 68, 0.15)'
-                                                                                : isTerminated ? 'rgba(239, 68, 68, 0.15)'
-                                                                                : progress >= 100 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                                                                            color: isCancelled ? '#ef4444'
-                                                                                : isTerminated ? '#ef4444'
-                                                                                : progress >= 100 ? 'var(--color-pg-success)' : '#3b82f6'
-                                                                        }}>
-                                                                            {(() => {
+                                                                        {item.payment_status && renderStatusBadge(
+                                                                            item.payment_status === 'PAID'
+                                                                                ? (language === 'id' ? 'Lunas' : 'Paid')
+                                                                                : item.payment_status === 'PARTIAL_PAID'
+                                                                                ? (language === 'id' ? 'Bayar Sebagian' : 'Partial Paid')
+                                                                                : (language === 'id' ? 'Belum Bayar' : 'Unpaid'),
+                                                                            item.payment_status === 'PAID' ? 'var(--color-pg-success)' :
+                                                                                item.payment_status === 'PARTIAL_PAID' ? 'var(--color-pg-primary-hover)' :
+                                                                                '#71717a'
+                                                                        )}
+                                                                        {renderStatusBadge(
+                                                                            (() => {
                                                                                 switch (item.status) {
                                                                                     case 'IN_PROGRESS': return language === 'id' ? 'Proses Produksi' : 'In Production';
                                                                                     case 'PENDING': return language === 'id' ? 'Belum Mulai' : 'Pending';
@@ -2054,8 +2136,11 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                                                                                     case 'CLOSED': return language === 'id' ? 'Selesai & Lunas' : 'Closed';
                                                                                     default: return item.status;
                                                                                 }
-                                                                            })()}
-                                                                        </span>
+                                                                            })(),
+                                                                            isCancelled ? 'var(--color-pg-danger)'
+                                                                                : isTerminated ? 'var(--color-pg-danger)'
+                                                                                : progress >= 100 ? 'var(--color-pg-success)' : '#3b82f6'
+                                                                        )}
                                                                             {(() => {
                                                                                 const itemAlerts = alerts.filter(a => a.item_id === item.id && !a.is_resolved);
                                                                                 const reworkAlert = itemAlerts.find(a => a.severity === 'YELLOW');

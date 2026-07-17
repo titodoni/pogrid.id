@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
-import { AlertTriangle, Settings } from '../../Components/Icons';
+import { AlertTriangle, Settings, Palette } from '../../Components/Icons';
 import { formatDeadline } from '../../Utils/deadline';
 import { localizedDisplay } from '../../Utils/locale';
 import { isStageLocked, getStageLockReason, getMatchingStages, getMatchingStageOrMock, getAllStages } from '../../Utils/permissions';
@@ -621,35 +621,33 @@ function ItemCard({
                     </div>
                 </div>
 
-                {/* Row 2: Client & PO Details */}
+                {/* Row 2: Client Details (2nd Hierarchy) */}
                 <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'baseline',
-                    fontSize: '13px',
                     marginTop: '6px',
                 }}>
-                    <span style={{ color: 'var(--color-pg-primary-hover)', fontWeight: 600 }}>
+                    <span style={{ color: 'var(--color-pg-primary-hover)', fontWeight: 700, fontSize: '13.5px' }}>
                         {item.po?.client_name || 'N/A'}
                     </span>
-                    <span style={{ color: 'var(--color-pg-text-secondary)', textAlign: 'right' }}>
-                        {item.po?.po_number || ''}
+                    <span style={{ color: '#a5b4fc', fontSize: '13px', fontWeight: 600, textAlign: 'right' }}>
+                        {item.target_qty} pcs
                     </span>
                 </div>
 
+                {/* Row 2.5: Deadline (3rd Hierarchy) & PO Number (4th Hierarchy) */}
                 <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'baseline',
-                    fontSize: '13px',
                     marginTop: '2px',
-                    color: 'var(--color-pg-text-secondary)',
                 }}>
-                    <span>
+                    <span style={{ color: 'var(--color-pg-text-secondary)', fontSize: '12px', fontWeight: 500 }}>
                         {formatDeadline(item.po?.global_deadline, language)}
                     </span>
-                    <span style={{ color: '#a5b4fc', fontWeight: 600, textAlign: 'right' }}>
-                        {item.target_qty} pcs
+                    <span style={{ color: 'var(--color-pg-text-muted)', fontSize: '11px', fontWeight: 600, textAlign: 'right' }}>
+                        {item.po?.po_number || ''}
                     </span>
                 </div>
 
@@ -1680,6 +1678,15 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
 
     const [currentTime, setCurrentTime] = useState(new Date());
     const [frozen, setFrozen] = useState<{ itemName: string } | null>(null);
+    const [showThemeDropdown, setShowThemeDropdown] = useState(false);
+
+    const changeTheme = (newTheme: string) => {
+        localStorage.setItem('pogrid_theme', newTheme);
+        const classes = ['theme-default', 'theme-linear', 'theme-vercel', 'theme-stripe', 'theme-github', 'theme-nordic'];
+        classes.forEach(c => document.documentElement.classList.remove(c));
+        document.documentElement.classList.add(newTheme);
+        setShowThemeDropdown(false);
+    };
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 30000);
@@ -1864,6 +1871,81 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                             </svg>
                             {language === 'en' ? 'Archive' : 'Arsip'}
                         </Link>
+
+                        {/* Theme Picker */}
+                        <div style={{ position: 'relative' }}>
+                            <button
+                                onClick={() => setShowThemeDropdown(!showThemeDropdown)}
+                                style={{
+                                    width: '44px',
+                                    height: '44px',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                                    color: '#a1a1aa',
+                                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                                title={language === 'en' ? 'Switch Theme' : 'Ganti Tema'}
+                            >
+                                <Palette size={18} />
+                            </button>
+                            {showThemeDropdown && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '50px',
+                                    right: '0',
+                                    width: '160px',
+                                    backgroundColor: 'var(--color-pg-card)',
+                                    border: '1px solid var(--color-pg-border)',
+                                    borderRadius: '10px',
+                                    padding: '6px',
+                                    zIndex: 100,
+                                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
+                                    display: 'grid',
+                                    gap: '4px',
+                                }}>
+                                    {[
+                                        { id: 'theme-default', name: 'Titanium Slate', color: '#6366f1' },
+                                        { id: 'theme-linear', name: 'Obsidian Graphite', color: '#6366f1' },
+                                        { id: 'theme-vercel', name: 'Monochrome Void', color: '#6366f1' },
+                                        { id: 'theme-stripe', name: 'Stripe Navy', color: '#6366f1' },
+                                        { id: 'theme-github', name: 'GitHub Slate', color: '#6366f1' },
+                                        { id: 'theme-nordic', name: 'Nordic Polar', color: '#6366f1' },
+                                    ].map((tOption) => (
+                                        <button
+                                            key={tOption.id}
+                                            onClick={() => changeTheme(tOption.id)}
+                                            style={{
+                                                padding: '6px 8px',
+                                                backgroundColor: 'transparent',
+                                                border: 'none',
+                                                borderRadius: '6px',
+                                                color: 'var(--color-pg-text)',
+                                                fontSize: '11px',
+                                                fontWeight: 600,
+                                                textAlign: 'left',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                            }}
+                                            onMouseOver={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'var(--color-pg-card-hover)';
+                                            }}
+                                            onMouseOut={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'transparent';
+                                            }}
+                                        >
+                                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: tOption.color }} />
+                                            {tOption.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
 
                         {/* Profile Button */}
                         <Link

@@ -267,8 +267,19 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                                                     <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
                                                         {item.item_name}
                                                     </h3>
-                                                    <div style={{ fontSize: '11px', color: '#818cf8', fontWeight: 600, marginTop: '4px' }}>
-                                                        {item.po?.client_name || 'N/A'} · {item.po?.po_number || ''}
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
+                                                        <span style={{ fontSize: '13px', color: '#818cf8', fontWeight: 700 }}>
+                                                            {item.po?.client_name || 'N/A'}
+                                                        </span>
+                                                        <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                                            <span>
+                                                                {formatDeadline(item.po?.global_deadline, language)}
+                                                            </span>
+                                                            <span style={{ color: 'var(--color-pg-text-muted)', fontSize: '10px' }}>&middot;</span>
+                                                            <span style={{ color: 'var(--color-pg-text-muted)', fontWeight: 600 }}>
+                                                                {item.po?.po_number || ''}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, router, usePage } from '@inertiajs/react';
-import { ChevronLeft, Lock, Globe } from '../../Components/Icons';
+import { Link, router } from '@inertiajs/react';
+import { ChevronLeft, Lock, Palette } from '../../Components/Icons';
 import { localizedDisplay } from '../../Utils/locale';
 
 interface Props {
@@ -38,6 +38,14 @@ const translations = {
         company: 'Company',
         role: 'Role',
         password_changed: 'Password changed successfully.',
+        theme_label: 'Backdrop Theme',
+        theme_desc: 'Select your preferred background and card style. The brand accent remains unified.',
+        theme_default: 'Titanium Slate',
+        theme_linear: 'Obsidian Graphite',
+        theme_vercel: 'Monochrome Void',
+        theme_stripe: 'Stripe Navy',
+        theme_github: 'GitHub Slate',
+        theme_nordic: 'Nordic Polar',
     },
     id: {
         page_title: 'Pengaturan Profil',
@@ -55,8 +63,25 @@ const translations = {
         company: 'Perusahaan',
         role: 'Jabatan',
         password_changed: 'Password berhasil diubah.',
+        theme_label: 'Tema Latar Belakang',
+        theme_desc: 'Pilih latar belakang dan gaya kartu pilihan Anda. Warna aksen utama tetap sama.',
+        theme_default: 'Titanium Slate',
+        theme_linear: 'Obsidian Graphite',
+        theme_vercel: 'Monochrome Void',
+        theme_stripe: 'Stripe Navy',
+        theme_github: 'GitHub Slate',
+        theme_nordic: 'Nordic Polar',
     }
 };
+
+const themeOptions = [
+    { id: 'theme-default', name: 'Titanium Slate', translationKey: 'theme_default', primaryCol: '#6366f1', bgCol: '#09090b', cardBg: '#18181b', textCol: '#fafafa' },
+    { id: 'theme-linear', name: 'Obsidian Graphite', translationKey: 'theme_linear', primaryCol: '#6366f1', bgCol: '#0b0a13', cardBg: '#12111f', textCol: '#f3f0ff' },
+    { id: 'theme-vercel', name: 'Monochrome Void', translationKey: 'theme_vercel', primaryCol: '#6366f1', bgCol: '#000000', cardBg: '#0a0a0a', textCol: '#ffffff' },
+    { id: 'theme-stripe', name: 'Stripe Navy', translationKey: 'theme_stripe', primaryCol: '#6366f1', bgCol: '#0b132b', cardBg: '#1c2541', textCol: '#f1f5f9' },
+    { id: 'theme-github', name: 'GitHub Slate', translationKey: 'theme_github', primaryCol: '#6366f1', bgCol: '#0d1117', cardBg: '#161b22', textCol: '#c9d1d9' },
+    { id: 'theme-nordic', name: 'Nordic Polar', translationKey: 'theme_nordic', primaryCol: '#6366f1', bgCol: '#2e3440', cardBg: '#3b4252', textCol: '#eceff4' },
+];
 
 export default function Profile({ tenant, auth_user }: Props) {
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
@@ -64,6 +89,13 @@ export default function Profile({ tenant, auth_user }: Props) {
             return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
         }
         return 'en';
+    });
+
+    const [theme, setTheme] = useState<string>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('pogrid_theme') || 'theme-default';
+        }
+        return 'theme-default';
     });
 
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -76,6 +108,14 @@ export default function Profile({ tenant, auth_user }: Props) {
     const changeLanguage = (lang: 'en' | 'id') => {
         setLanguage(lang);
         localStorage.setItem('pogrid_lang', lang);
+    };
+
+    const changeTheme = (newTheme: string) => {
+        setTheme(newTheme);
+        localStorage.setItem('pogrid_theme', newTheme);
+        const classes = ['theme-default', 'theme-linear', 'theme-vercel', 'theme-stripe', 'theme-github', 'theme-nordic'];
+        classes.forEach(c => document.documentElement.classList.remove(c));
+        document.documentElement.classList.add(newTheme);
     };
 
     const t = translations[language];
@@ -106,14 +146,14 @@ export default function Profile({ tenant, auth_user }: Props) {
 
     return (
         <div className="dashboard-root" style={{
-            backgroundColor: '#09090b',
+            backgroundColor: 'var(--color-pg-bg)',
             fontFamily: 'Inter, sans-serif',
-            color: '#fafafa'
+            color: 'var(--color-pg-text)'
         }}>
             <header className="responsive-header" style={{
                 padding: '12px 16px',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                backgroundColor: 'rgba(9, 9, 11, 0.6)',
+                borderBottom: '1px solid var(--color-pg-border)',
+                backgroundColor: 'rgba(0, 0, 0, 0.4)',
                 backdropFilter: 'blur(8px)',
                 flexShrink: 0,
             }}>
@@ -124,24 +164,24 @@ export default function Profile({ tenant, auth_user }: Props) {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px',
-                            color: '#818cf8',
+                            color: 'var(--color-pg-primary-hover)',
                             fontSize: '14px',
                             fontWeight: 600,
                             textDecoration: 'none',
                             padding: '8px 14px',
                             borderRadius: '10px',
-                            backgroundColor: 'rgba(99, 102, 241, 0.12)',
-                            border: '1px solid rgba(99, 102, 241, 0.2)',
+                            backgroundColor: 'var(--color-pg-primary-glow)',
+                            border: '1px solid var(--color-pg-primary-glow)',
                         }}
                     >
                         <ChevronLeft size={16} /> {t.back}
                     </Link>
                     <div>
-                        <div className="greeting-name" style={{ fontSize: '11px', color: '#818cf8', fontWeight: 600, marginBottom: '2px' }}>
+                        <div className="greeting-name" style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 600, marginBottom: '2px' }}>
                             {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
                         </div>
                         <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.page_title}</h1>
-                        <p style={{ fontSize: '11px', color: '#71717a', margin: '1px 0 0 0' }}>
+                        <p style={{ fontSize: '11px', color: 'var(--color-pg-text-muted)', margin: '1px 0 0 0' }}>
                             {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                             {' · '}
                             {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
@@ -153,7 +193,7 @@ export default function Profile({ tenant, auth_user }: Props) {
                         onClick={() => changeLanguage('en')}
                         style={{
                             padding: '6px 10px',
-                            backgroundColor: language === 'en' ? '#6366f1' : 'transparent',
+                            backgroundColor: language === 'en' ? 'var(--color-pg-primary)' : 'transparent',
                             border: 'none',
                             borderRadius: '6px',
                             color: '#fff',
@@ -168,7 +208,7 @@ export default function Profile({ tenant, auth_user }: Props) {
                         onClick={() => changeLanguage('id')}
                         style={{
                             padding: '6px 10px',
-                            backgroundColor: language === 'id' ? '#6366f1' : 'transparent',
+                            backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
                             border: 'none',
                             borderRadius: '6px',
                             color: '#fff',
@@ -187,42 +227,91 @@ export default function Profile({ tenant, auth_user }: Props) {
                     <h1 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 4px 0' }}>
                         {t.page_title}
                     </h1>
-                    <p style={{ fontSize: '13px', color: '#71717a', margin: '0 0 24px 0' }}>
+                    <p style={{ fontSize: '13px', color: 'var(--color-pg-text-secondary)', margin: '0 0 24px 0' }}>
                         {t.greeting}, {auth_user?.name}
                     </p>
 
                     {/* User Info Card */}
                     <div style={{
-                        backgroundColor: 'rgba(24, 24, 27, 0.7)',
-                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                        backgroundColor: 'var(--color-pg-card)',
+                        border: '1px solid var(--color-pg-border)',
                         borderRadius: '14px',
                         padding: '16px',
                         marginBottom: '20px',
                     }}>
                         <div style={{ display: 'grid', gap: '12px' }}>
                             <div>
-                                <div style={{ fontSize: '11px', color: '#71717a', fontWeight: 600, textTransform: 'uppercase', marginBottom: '2px' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--color-pg-text-muted)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '2px' }}>
                                     {t.company}
                                 </div>
-                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#fafafa' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-pg-text)' }}>
                                     {tenant?.company_name || 'N/A'}
                                 </div>
                             </div>
                             <div>
-                                <div style={{ fontSize: '11px', color: '#71717a', fontWeight: 600, textTransform: 'uppercase', marginBottom: '2px' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--color-pg-text-muted)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '2px' }}>
                                     {t.role}
                                 </div>
-                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#818cf8' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-pg-primary-hover)' }}>
                                     {localizedDisplay({ display_name: auth_user?.role_display_name || '', display_name_id: auth_user?.role_display_name_id }, language)}{auth_user?.post_display_name ? ` — ${localizedDisplay({ display_name: auth_user.post_display_name, display_name_id: auth_user.post_display_name_id }, language)}` : ''}
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    {/* Theme Selector Card */}
+                    <div style={{
+                        backgroundColor: 'var(--color-pg-card)',
+                        border: '1px solid var(--color-pg-border)',
+                        borderRadius: '14px',
+                        padding: '20px',
+                        marginBottom: '20px',
+                    }}>
+                        <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Palette size={16} /> {t.theme_label}
+                        </h2>
+                        <p style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '16px' }}>
+                            {t.theme_desc}
+                        </p>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                            {themeOptions.map((opt) => {
+                                const isActive = theme === opt.id;
+                                return (
+                                    <button
+                                        key={opt.id}
+                                        onClick={() => changeTheme(opt.id)}
+                                        style={{
+                                            padding: '12px',
+                                            backgroundColor: opt.cardBg,
+                                            border: '2px solid ' + (isActive ? 'var(--color-pg-primary)' : 'var(--color-pg-border)'),
+                                            borderRadius: '10px',
+                                            cursor: 'pointer',
+                                            textAlign: 'left',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '8px',
+                                            transition: 'border-color 0.2s',
+                                        }}
+                                    >
+                                        <div style={{ fontSize: '13px', fontWeight: 700, color: opt.textCol }}>
+                                            {t[opt.translationKey as keyof typeof t] || opt.name}
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '4px', marginTop: 'auto' }}>
+                                            <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: opt.primaryCol }} />
+                                            <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: opt.bgCol }} />
+                                            <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: opt.cardBg }} />
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
                     {/* Change Password Form */}
                     <div style={{
-                        backgroundColor: 'rgba(24, 24, 27, 0.7)',
-                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                        backgroundColor: 'var(--color-pg-card)',
+                        border: '1px solid var(--color-pg-border)',
                         borderRadius: '14px',
                         padding: '20px',
                     }}>
@@ -232,7 +321,7 @@ export default function Profile({ tenant, auth_user }: Props) {
 
                         <form onSubmit={submitChangePassword}>
                             <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px', fontWeight: 600 }}>
                                     {t.current_password}
                                 </label>
                                 <input
@@ -243,10 +332,10 @@ export default function Profile({ tenant, auth_user }: Props) {
                                     style={{
                                         width: '100%',
                                         padding: '10px 12px',
-                                        backgroundColor: '#0a0a0c',
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        backgroundColor: 'var(--color-pg-input)',
+                                        border: '1px solid var(--color-pg-border)',
                                         borderRadius: '10px',
-                                        color: '#fff',
+                                        color: 'var(--color-pg-text)',
                                         fontSize: '14px',
                                         outline: 'none'
                                     }}
@@ -254,7 +343,7 @@ export default function Profile({ tenant, auth_user }: Props) {
                             </div>
 
                             <div style={{ marginBottom: '14px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px', fontWeight: 600 }}>
                                     {t.new_password}
                                 </label>
                                 <input
@@ -266,10 +355,10 @@ export default function Profile({ tenant, auth_user }: Props) {
                                     style={{
                                         width: '100%',
                                         padding: '10px 12px',
-                                        backgroundColor: '#0a0a0c',
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        backgroundColor: 'var(--color-pg-input)',
+                                        border: '1px solid var(--color-pg-border)',
                                         borderRadius: '10px',
-                                        color: '#fff',
+                                        color: 'var(--color-pg-text)',
                                         fontSize: '14px',
                                         outline: 'none'
                                     }}
@@ -277,7 +366,7 @@ export default function Profile({ tenant, auth_user }: Props) {
                             </div>
 
                             <div style={{ marginBottom: '20px' }}>
-                                <label style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '4px', fontWeight: 600 }}>
+                                <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px', fontWeight: 600 }}>
                                     {t.confirm_password}
                                 </label>
                                 <input
@@ -288,10 +377,10 @@ export default function Profile({ tenant, auth_user }: Props) {
                                     style={{
                                         width: '100%',
                                         padding: '10px 12px',
-                                        backgroundColor: '#0a0a0c',
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        backgroundColor: 'var(--color-pg-input)',
+                                        border: '1px solid var(--color-pg-border)',
                                         borderRadius: '10px',
-                                        color: '#fff',
+                                        color: 'var(--color-pg-text)',
                                         fontSize: '14px',
                                         outline: 'none'
                                     }}
@@ -303,7 +392,7 @@ export default function Profile({ tenant, auth_user }: Props) {
                                 disabled={changingPassword}
                                 style={{
                                     padding: '10px 20px',
-                                    background: changingPassword ? '#4f46e5' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                                    background: changingPassword ? 'var(--color-pg-primary)' : 'linear-gradient(135deg, var(--color-pg-primary) 0%, var(--color-pg-primary-hover) 100%)',
                                     border: 'none',
                                     color: '#fff',
                                     borderRadius: '10px',
@@ -311,7 +400,7 @@ export default function Profile({ tenant, auth_user }: Props) {
                                     cursor: changingPassword ? 'not-allowed' : 'pointer',
                                     fontSize: '14px',
                                     opacity: changingPassword ? 0.7 : 1,
-                                    boxShadow: changingPassword ? 'none' : '0 4px 12px -2px rgba(99, 102, 241, 0.3)',
+                                    boxShadow: changingPassword ? 'none' : '0 4px 12px -2px var(--color-pg-primary-glow)',
                                 }}
                             >
                                 {changingPassword ? '...' : t.save_changes}

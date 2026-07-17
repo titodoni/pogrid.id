@@ -450,10 +450,10 @@ function ScheduleTab({ schedule, language, t }: { schedule: ScheduleEntry[]; lan
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
                         <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                <h3 style={{ fontSize: '14px', fontWeight: 800, margin: 0, color: '#f8fafc' }}>{po.client_name}</h3>
+                                <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: '#f8fafc' }}>{po.client_name}</h3>
                                 {po.is_urgent && <StatusBadge status="URGENT" variant="dot" style={{ fontSize: '10px', padding: '1px 6px' }} />}
                             </div>
-                            <div style={{ fontSize: '12px', color: '#71717a', marginTop: '2px' }}>{po.po_number}</div>
+                            <div style={{ fontSize: '11px', fontWeight: 600, color: '#71717a', marginTop: '2px' }}>{po.po_number}</div>
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                             <WarningPill deadlineDateStr={po.global_deadline} reworkMessage={null} lang={language} />
@@ -581,10 +581,14 @@ function MaterialTab({ readiness, language, t }: { readiness: MaterialReadiness;
                                 border: '1px solid rgba(255,255,255,0.06)',
                                 fontSize: '12px',
                             }}>
-                                <div>
-                                    <div style={{ fontWeight: 600, color: '#fafafa' }}>{m.item_name}</div>
-                                    <div style={{ color: '#71717a', fontSize: '11px', marginTop: '1px' }}>{m.po_number} · {m.client_name}</div>
-                                </div>
+                                 <div>
+                                     <div style={{ fontWeight: 800, color: '#fafafa', fontSize: '13px' }}>{m.item_name}</div>
+                                     <div style={{ color: 'var(--color-pg-text-secondary)', fontSize: '11px', marginTop: '1px', display: 'flex', gap: '4px', alignItems: 'center' }}>
+                                         <span style={{ fontWeight: 600, color: '#818cf8' }}>{m.client_name}</span>
+                                         <span style={{ color: 'var(--color-pg-text-muted)' }}>&middot;</span>
+                                         <span style={{ color: 'var(--color-pg-text-muted)', fontSize: '10px' }}>{m.po_number}</span>
+                                     </div>
+                                 </div>
                                 <span style={{ color: '#71717a', fontWeight: 600, flexShrink: 0 }}>{m.target_qty} pcs</span>
                             </div>
                         ))}
@@ -681,8 +685,12 @@ function ForecastCard({ item, language }: { item: ForecastItem; language: 'en' |
             border: '1px solid rgba(255,255,255,0.06)', fontSize: '12px',
         }}>
             <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontWeight: 600, color: '#fafafa' }}>{item.item_name}</div>
-                <div style={{ color: '#71717a', fontSize: '11px' }}>{item.po_number} · {item.client_name}</div>
+                <div style={{ fontWeight: 800, color: '#fafafa', fontSize: '13px' }}>{item.item_name}</div>
+                <div style={{ color: 'var(--color-pg-text-secondary)', fontSize: '11px', marginTop: '1px', display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 600, color: '#818cf8' }}>{item.client_name}</span>
+                    <span style={{ color: 'var(--color-pg-text-muted)' }}>&middot;</span>
+                    <span style={{ color: 'var(--color-pg-text-muted)', fontSize: '10px' }}>{item.po_number}</span>
+                </div>
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 <div style={{ color: '#fafafa', fontWeight: 600 }}>{item.progress_percent.toFixed(0)}%</div>

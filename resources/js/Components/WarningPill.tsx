@@ -50,9 +50,9 @@ export const WarningPill: React.FC<WarningPillProps> = ({
 
         return (
             <span style={{
-                backgroundColor: 'rgba(251, 146, 60, 0.2)',
-                color: '#1c1917',
-                border: '1px solid rgba(251, 146, 60, 0.3)',
+                backgroundColor: 'rgba(251, 146, 60, 0.15)',
+                color: '#fb923c',
+                border: '1px solid rgba(251, 146, 60, 0.25)',
                 fontSize: '12px',
                 padding: '2px 8px',
                 fontWeight: 700,
