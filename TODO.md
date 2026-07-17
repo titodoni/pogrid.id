@@ -414,12 +414,12 @@ Already spec'd in `NEXT_BUILD.md`. Backend routes + controller exist.
 
 - [ ] **Pusher live toast**: bind React to Pusher channel for real-time Kendala alerts on Owner Dashboard
 - [x] **Alert escalation**: `pogrid:evaluate-timelines` sets `escalated_at` + broadcasts `AlertEscalated` for RED alerts unresolved > 24h; scheduled daily in routes/console.php; escalation badge on Alert list (GIT-49)
-- [ ] **Worker self-KPI tab**: "My Completed Tasks" sub-tab with cycle times
-- [ ] **CSV/Excel export**: "Export to Excel" on Matrix tab
-- [ ] **Rework analytics**: "Rework Logbook" — 6-month rework trend per client/item/stage
-- [ ] **Tenant stage templates**: save custom templates per tenant for re-use
-- [ ] **Repeat order shortcut**: clone previous PO stages for same client/item
-- [ ] **PPIC dashboard**: production planning view (backlog, capacity, scheduling)
+- [x] **Worker self-KPI tab**: "My Completed Tasks" sub-tab with cycle times (GIT-71)
+- [x] **CSV/Excel export**: "Export to Excel" on Matrix tab (GIT-51)
+- [x] **Rework analytics**: "Rework Logbook" — 6-month rework trend per client/item/stage (GIT-71)
+- [x] **Tenant stage templates**: save custom templates per tenant for re-use (GIT-71)
+- [x] **Repeat order shortcut**: clone previous PO stages for same client/item (GIT-54)
+- [x] **PPIC dashboard**: production planning view (backlog, capacity, scheduling) (GIT-55)
 - [x] **Multi-language posts**: posts have EN + ID display names
 
 ---
@@ -446,7 +446,7 @@ npm run dev         # Vite (separate terminal)
 
 ---
 
-*Last updated: 2026-07-16*
+*Last updated: 2026-07-17*
 *Cross-reference: `MAIN-IDEA.md` for all decisions, `NEXT_BUILD.md` for immediate task specs.*
 
 ---
