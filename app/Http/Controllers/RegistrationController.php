@@ -27,12 +27,15 @@ class RegistrationController extends Controller
             'slug' => ['required', 'string', 'max:10', 'alpha_num', 'unique:tenants,slug'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'password' => ['required', 'string', 'min:8', 'regex:/[0-9]/', 'confirmed'],
             'utm_source' => ['nullable', 'string', 'max:255'],
             'utm_medium' => ['nullable', 'string', 'max:255'],
             'utm_campaign' => ['nullable', 'string', 'max:255'],
             'utm_content' => ['nullable', 'string', 'max:255'],
             'ref' => ['nullable', 'string', 'max:255'],
+        ], [
+            'password.min' => 'The password must be at least 8 characters.',
+            'password.regex' => 'The password must contain at least one number.',
         ]);
 
         $slug = strtolower($request->slug);
@@ -74,6 +77,8 @@ class RegistrationController extends Controller
             'post_id' => $managerPostId,
             'is_owner' => true,
         ]);
+
+        event(new \Illuminate\Auth\Events\Registered($user));
 
         // Log the user in
         Auth::login($user);

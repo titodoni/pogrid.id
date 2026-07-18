@@ -55,7 +55,24 @@ function resolveErrorMessages(errors: Record<string, string>): string[] {
     const lang = getLang();
     return Object.values(errors).map((key) => {
         const entry = errorTranslations[key];
-        return entry ? entry[lang] : key;
+        if (entry) return entry[lang];
+
+        const lower = key.toLowerCase();
+        if (lower.includes('password must be at least 8') || lower.includes('password field must be at least 8')) {
+            return lang === 'id' ? 'Password minimal harus 8 karakter.' : 'The password must be at least 8 characters.';
+        }
+        if (lower.includes('must contain at least one number') || lower.includes('password must contain at least one number') || lower.includes('must contain numbers') || lower.includes('format is invalid')) {
+            if (lower.includes('password')) {
+                return lang === 'id' ? 'Password harus mengandung setidaknya satu angka.' : 'The password must contain at least one number.';
+            }
+        }
+        if (lower.includes('password confirmation does not match') || lower.includes('password field confirmation does not match') || lower.includes('confirmation does not match')) {
+            if (lower.includes('password')) {
+                return lang === 'id' ? 'Konfirmasi password tidak cocok.' : 'The password confirmation does not match.';
+            }
+        }
+
+        return key;
     });
 }
 

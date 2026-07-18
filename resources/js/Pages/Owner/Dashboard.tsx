@@ -252,6 +252,7 @@ const translations = {
         admin_name: "Full Name",
         admin_username: "Username",
         admin_password: "Password",
+        password_desc: "Must contain numbers and be at least 8 characters.",
         create_admin: "Create Admin",
         admin_subtitle: "Create an administrator account with full system access.",
         performance_matrix: "Performance Matrix",
@@ -362,6 +363,7 @@ const translations = {
         admin_name: "Nama Lengkap",
         admin_username: "Username",
         admin_password: "Password",
+        password_desc: "Wajib mengandung angka dan minimal 8 karakter.",
         create_admin: "Tambah Admin Baru",
         admin_subtitle: "Daftarkan akun admin baru dengan akses penuh ke sistem.",
         performance_matrix: "Rangkuman Kinerja",
@@ -1240,11 +1242,11 @@ ${locationStr}
 
     const confirmAlert = useImperativeAlertDialog();
 
-    // Add Admin modal
     const [showAddAdminModal, setShowAddAdminModal] = useState(false);
     const [adminName, setAdminName] = useState('');
     const [adminUsername, setAdminUsername] = useState('');
     const [adminPassword, setAdminPassword] = useState('');
+    const [adminPasswordConfirmation, setAdminPasswordConfirmation] = useState('');
     const [adminRoleId, setAdminRoleId] = useState<number | undefined>(undefined);
     const [adminPostId, setAdminPostId] = useState<number | undefined>(undefined);
     const [adminSubmitting, setAdminSubmitting] = useState(false);
@@ -1257,8 +1259,8 @@ ${locationStr}
     const [newUserLoginMethod, setNewUserLoginMethod] = useState<'PASSWORD' | 'PIN'>('PIN');
     const [newUserUsername, setNewUserUsername] = useState('');
     const [newUserPassword, setNewUserPassword] = useState('');
+    const [newUserPasswordConfirmation, setNewUserPasswordConfirmation] = useState('');
     const [newUserPin, setNewUserPin] = useState('');
-
     // ── User Management (Task 1) ──────────────────────────────────────────────
     const [userRoleFilter, setUserRoleFilter] = useState<string>('ALL');
     const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -1347,11 +1349,11 @@ ${locationStr}
         });
     };
     // ─────────────────────────────────────────────────────────────────────────
-
     const openAddAdmin = () => {
         setAdminName('');
         setAdminUsername('');
         setAdminPassword('');
+        setAdminPasswordConfirmation('');
         setAdminRoleId((roles ?? []).find(r => r.name === 'STAFF')?.id);
         setAdminPostId((posts ?? []).find(p => p.name === 'Admin')?.id);
         setShowSettingsDropdown(false);
@@ -1369,6 +1371,7 @@ ${locationStr}
             login_method: 'PASSWORD',
             username: adminUsername,
             password: adminPassword,
+            password_confirmation: adminPasswordConfirmation,
         }, {
             onSuccess: () => {
                 setShowAddAdminModal(false);
@@ -1377,7 +1380,6 @@ ${locationStr}
             onError: () => setAdminSubmitting(false),
         });
     };
-
     const openAddUser = () => {
         setNewUserName('');
         setNewUserRoleId((roles ?? [])[0]?.id);
@@ -1385,6 +1387,7 @@ ${locationStr}
         setNewUserLoginMethod('PIN');
         setNewUserUsername('');
         setNewUserPassword('');
+        setNewUserPasswordConfirmation('');
         setNewUserPin('');
         setShowAddUserModal(true);
     };
@@ -1402,6 +1405,7 @@ ${locationStr}
             login_method: newUserLoginMethod,
             username: newUserLoginMethod === 'PASSWORD' ? newUserUsername : null,
             password: newUserLoginMethod === 'PASSWORD' && newUserPassword ? newUserPassword : undefined,
+            password_confirmation: newUserLoginMethod === 'PASSWORD' && newUserPasswordConfirmation ? newUserPasswordConfirmation : undefined,
             pin: newUserLoginMethod === 'PIN' && newUserPin ? newUserPin : undefined,
         }, {
             onSuccess: () => {
@@ -1411,6 +1415,7 @@ ${locationStr}
                 setNewUserPostId('');
                 setNewUserUsername('');
                 setNewUserPassword('');
+                setNewUserPasswordConfirmation('');
                 setNewUserPin('');
                 setAddUserSubmitting(false);
             },
@@ -5073,7 +5078,7 @@ ${locationStr}
                                             className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none box-border"
                                         />
                                     </div>
-                                    <div className="mb-6">
+                                    <div className="mb-4">
                                         <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
                                             {t.admin_password}
                                         </label>
@@ -5082,7 +5087,25 @@ ${locationStr}
                                             value={newUserPassword}
                                             onChange={(e) => setNewUserPassword(e.target.value)}
                                             required
-                                            minLength={6}
+                                            minLength={8}
+                                            placeholder="••••••••"
+                                            className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none box-border"
+                                        />
+                                        <span className="block text-[11px] text-pg-text-muted mt-1 leading-normal">
+                                            {t.password_desc}
+                                        </span>
+                                    </div>
+
+                                    <div className="mb-6">
+                                        <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
+                                            {t.confirm_password}
+                                        </label>
+                                        <input
+                                            type="password"
+                                            value={newUserPasswordConfirmation}
+                                            onChange={(e) => setNewUserPasswordConfirmation(e.target.value)}
+                                            required
+                                            minLength={8}
                                             placeholder="••••••••"
                                             className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none box-border"
                                         />
@@ -5210,7 +5233,7 @@ ${locationStr}
                                 />
                             </div>
                             
-                            <div className="mb-6">
+                            <div className="mb-4">
                                 <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
                                     {t.admin_password}
                                 </label>
@@ -5219,7 +5242,25 @@ ${locationStr}
                                     value={adminPassword}
                                     onChange={(e) => setAdminPassword(e.target.value)}
                                     required
-                                    minLength={6}
+                                    minLength={8}
+                                    placeholder="••••••••"
+                                    className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none"
+                                />
+                                <span className="block text-[11px] text-pg-text-muted mt-1 leading-normal">
+                                    {t.password_desc}
+                                </span>
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm text-pg-text-secondary mb-1.5 font-semibold">
+                                    {t.confirm_password}
+                                </label>
+                                <input
+                                    type="password"
+                                    value={adminPasswordConfirmation}
+                                    onChange={(e) => setAdminPasswordConfirmation(e.target.value)}
+                                    required
+                                    minLength={8}
                                     placeholder="••••••••"
                                     className="w-full p-2.5 px-3.5 bg-pg-bg border border-white/8 rounded-lg text-white text-sm outline-none"
                                 />

@@ -272,7 +272,9 @@ class OwnerDashboardController extends Controller
                 Rule::requiredIf($request->login_method === 'PASSWORD'),
                 'nullable',
                 'string',
-                'min:6',
+                'min:8',
+                'regex:/[0-9]/',
+                'confirmed',
             ],
             'pin' => [
                 Rule::requiredIf($request->login_method === 'PIN'),
@@ -290,7 +292,11 @@ class OwnerDashboardController extends Controller
             })];
         }
 
-        $request->validate($rules);
+        $request->validate($rules, [
+            'password.min' => 'The password must be at least 8 characters.',
+            'password.regex' => 'The password must contain at least one number.',
+            'password.confirmed' => 'The password confirmation does not match.',
+        ]);
 
         $userData = [
             'tenant_id' => TenantManager::getTenantId(),

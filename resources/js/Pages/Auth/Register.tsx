@@ -17,6 +17,7 @@ const translations = {
         email_label: "Email Address",
         email_placeholder: "e.g. owner@factory.com",
         password_label: "Password",
+        password_desc: "Must contain numbers and be at least 8 characters.",
         confirm_password_label: "Confirm Password",
         submit_btn: "Register & Setup Onboarding",
         registering: "Registering...",
@@ -38,6 +39,7 @@ const translations = {
         email_label: "Email",
         email_placeholder: "misal: owner@factory.com",
         password_label: "Password",
+        password_desc: "Wajib mengandung angka dan minimal 8 karakter.",
         confirm_password_label: "Konfirmasi Password",
         submit_btn: "Daftar & Mulai Penggunaan",
         registering: "Memproses...",
@@ -55,6 +57,21 @@ function readAttribution(): Record<string, string> {
         if (v) out[k] = v;
     });
     return out;
+}
+
+function getPasswordError(error: string | undefined, lang: 'en' | 'id') {
+    if (!error) return null;
+    const lower = error.toLowerCase();
+    if (lower.includes('password must be at least 8') || lower.includes('password field must be at least 8')) {
+        return lang === 'id' ? 'Password minimal harus 8 karakter.' : 'The password must be at least 8 characters.';
+    }
+    if (lower.includes('must contain at least one number') || lower.includes('password must contain at least one number') || lower.includes('must contain numbers') || lower.includes('format is invalid')) {
+        return lang === 'id' ? 'Password harus mengandung setidaknya satu angka.' : 'The password must contain at least one number.';
+    }
+    if (lower.includes('password confirmation') || lower.includes('confirmation does not match')) {
+        return lang === 'id' ? 'Konfirmasi password tidak cocok.' : 'The password confirmation does not match.';
+    }
+    return error;
 }
 
 export default function Register() {
@@ -475,9 +492,12 @@ export default function Register() {
                                 placeholder="••••••••"
                                 required
                             />
+                            <span style={{ fontSize: '11px', color: 'var(--color-pg-text-muted)', lineHeight: '1.4' }}>
+                                {t.password_desc}
+                            </span>
                             {errors.password && (
                                 <span style={{ color: 'var(--color-pg-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
-                                    {errors.password}
+                                    {getPasswordError(errors.password, language)}
                                 </span>
                             )}
                         </div>
