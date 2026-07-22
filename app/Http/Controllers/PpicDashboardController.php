@@ -388,15 +388,10 @@ class PpicDashboardController extends Controller
 
         TenantManager::bypass();
         $tenant = Tenant::where('slug', $slug)->firstOrFail();
-        $item = Item::where('id', $itemId)->firstOrFail();
-
-        // Safety check to ensure item belongs to current tenant PO
-        if ($item->po->tenant_id !== $tenant->id) {
-            abort(403);
-        }
-
         TenantManager::enableScope();
         TenantManager::setTenantId($tenant->id);
+
+        $item = Item::where('id', $itemId)->firstOrFail();
 
         $item->update([
             'is_urgent' => (bool)$request->is_urgent,
