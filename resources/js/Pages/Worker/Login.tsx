@@ -79,6 +79,19 @@ export default function WorkerLogin({ tenant, workers }: Props) {
     const [pin, setPin] = useState('');
     const [showPinResetModal, setShowPinResetModal] = useState(false);
 
+    const [workerSearch, setWorkerSearch] = useState('');
+    const selectedWorkerId = data.user_id;
+
+    const filteredWorkers = workers.filter(w => {
+        if (!workerSearch.trim()) return true;
+        const term = workerSearch.toLowerCase();
+        const pos = (w.post_display_name || w.role_display_name || '').toLowerCase();
+        return w.name.toLowerCase().includes(term) || pos.includes(term);
+    });
+
+    const setSelectedWorkerId = (id: string) => setData('user_id', id);
+    const selectedWorker = workers.find(w => w.id.toString() === selectedWorkerId);
+
     const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
         user_id: '',
         pin: '',
@@ -227,26 +240,54 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                     </h1>
                 </div>
 
-                {/* Worker Selector Dropdown */}
+                {/* Worker Selector */}
                 <div style={{ marginBottom: '16px' }}>
-                    <label style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '6px', fontWeight: 600, display: 'block' }}>
-                        {t.select_name}
+                    <label htmlFor="worker-select" style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: 'var(--color-pg-text-secondary)',
+                        marginBottom: '6px',
+                    }}>
+                        {t.select_worker}
                     </label>
+                    {workers.length > 4 && (
+                        <input
+                            type="text"
+                            placeholder={language === 'id' ? '🔍 Cari nama pekerja / posisi...' : '🔍 Search worker name / role...'}
+                            value={workerSearch}
+                            onChange={(e) => setWorkerSearch(e.target.value)}
+                            style={{
+                                width: '100%',
+                                height: '36px',
+                                padding: '0 12px',
+                                marginBottom: '8px',
+                                backgroundColor: 'var(--color-pg-input)',
+                                border: '1px solid var(--color-pg-border)',
+                                borderRadius: '8px',
+                                color: 'var(--color-pg-text)',
+                                fontSize: '12px',
+                                outline: 'none',
+                                boxSizing: 'border-box',
+                            }}
+                        />
+                    )}
                     <select
-                        value={selectedWorker?.id?.toString() || ''}
+                        id="worker-select"
+                        value={selectedWorkerId}
                         onChange={(e) => {
-                            const worker = workers.find(w => w.id.toString() === e.target.value);
-                            if (worker) handleWorkerSelect(worker);
+                            setSelectedWorkerId(e.target.value);
+                            setPin('');
                         }}
                         style={{
                             width: '100%',
-                            padding: '12px 14px',
+                            height: '44px',
+                            padding: '0 36px 0 14px',
                             backgroundColor: 'var(--color-pg-input)',
                             border: '1px solid var(--color-pg-border)',
                             borderRadius: '10px',
                             color: 'var(--color-pg-text)',
-                            fontSize: '15px',
-                            fontWeight: 600,
+                            fontSize: '14px',
                             outline: 'none',
                             appearance: 'none',
                             WebkitAppearance: 'none',
@@ -258,7 +299,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                         }}
                     >
                         <option value="">{t.select_name}...</option>
-                        {workers.map((worker) => {
+                        {filteredWorkers.map((worker) => {
                             const position = worker.post_display_name
                                 ? { display_name: worker.post_display_name, display_name_id: worker.post_display_name_id }
                                 : { display_name: worker.role_display_name, display_name_id: worker.role_display_name_id };

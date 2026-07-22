@@ -705,13 +705,88 @@ function KpiCard({ value, label, color, bgColor, borderColor }: { value: number;
 }
 
 function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: ScheduleEntry[]; language: 'en' | 'id'; t: Record<string, string>; onEditPo: (po: ScheduleEntry) => void; slug: string }) {
+    const [viewMode, setViewMode] = useState<'table' | 'gantt'>('table');
+
     if (schedule.length === 0) {
         return <p style={{ color: '#71717a', padding: '24px', textAlign: 'center', fontSize: '14px' }}>{t.no_data}</p>;
     }
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {schedule.map(po => (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#a1a1aa' }}>
+                    {schedule.length} {t.total_active}
+                </div>
+                <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(255, 255, 255, 0.04)', padding: '2px', borderRadius: '6px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                    <button
+                        type="button"
+                        onClick={() => setViewMode('table')}
+                        style={{
+                            padding: '4px 10px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            borderRadius: '4px',
+                            border: 'none',
+                            backgroundColor: viewMode === 'table' ? 'var(--color-pg-primary)' : 'transparent',
+                            color: viewMode === 'table' ? '#ffffff' : '#a1a1aa',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        📋 {language === 'id' ? 'Tabel' : 'Table'}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setViewMode('gantt')}
+                        style={{
+                            padding: '4px 10px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            borderRadius: '4px',
+                            border: 'none',
+                            backgroundColor: viewMode === 'gantt' ? 'var(--color-pg-primary)' : 'transparent',
+                            color: viewMode === 'gantt' ? '#ffffff' : '#a1a1aa',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        📊 {language === 'id' ? 'Gantt Timeline' : 'Gantt Chart'}
+                    </button>
+                </div>
+            </div>
+
+            {viewMode === 'gantt' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {schedule.map(po => {
+                        const totalItems = po.items.length || 1;
+                        const avgProgress = Math.round(po.items.reduce((acc, i) => acc + (i.progress_percent || 0), 0) / totalItems);
+                        const barColor = po.is_overdue ? '#f87171' : po.is_urgent ? '#fb923c' : '#34d399';
+
+                        return (
+                            <div key={po.id} style={{
+                                backgroundColor: 'rgba(24, 24, 27, 0.6)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderRadius: '10px',
+                                padding: '14px',
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                    <div>
+                                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#fafafa' }}>{po.client_name}</span>
+                                        <span style={{ fontSize: '11px', color: '#a1a1aa', marginLeft: '8px' }}>({po.po_number})</span>
+                                    </div>
+                                    <span style={{ fontSize: '13px', fontWeight: 800, color: barColor }}>{avgProgress}%</span>
+                                </div>
+                                <div style={{ height: '12px', backgroundColor: 'rgba(255, 255, 255, 0.08)', borderRadius: '6px', overflow: 'hidden' }}>
+                                    <div style={{ height: '100%', width: `${avgProgress}%`, backgroundColor: barColor, borderRadius: '6px', transition: 'width 0.4s ease' }} />
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '11px', color: '#71717a' }}>
+                                    <span>📅 Deadline: {po.global_deadline}</span>
+                                    <span>{po.completed_items}/{po.total_items} {t.items.toLowerCase()}</span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            ) : (
+                schedule.map(po => (
                 <div key={po.id} style={{
                     backgroundColor: po.is_overdue ? 'rgba(239,68,68,0.03)' : 'transparent',
                     border: `1px solid ${po.is_overdue ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.06)'}`,
@@ -839,7 +914,7 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                         </div>
                     ))}
                 </div>
-            ))}
+            )))}
         </div>
     );
 }

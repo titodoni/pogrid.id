@@ -624,7 +624,43 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                         )}
                     </div>
                     <div>
-                        <label style={labelStyle}>{t.delivery_date}</label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                            <label style={{ ...labelStyle, margin: 0 }}>{t.delivery_date}</label>
+                            {deliveryDate && (
+                                <span style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 600 }}>
+                                    📅 {new Date(deliveryDate + 'T00:00:00').toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                                </span>
+                            )}
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                            {[
+                                { label: language === 'id' ? '+3 Hari' : '+3 Days', days: 3 },
+                                { label: language === 'id' ? '+1 Minggu' : '+1 Week', days: 7 },
+                                { label: language === 'id' ? '+1 Bulan' : '+1 Month', days: 30 }
+                            ].map(preset => (
+                                <button
+                                    key={preset.label}
+                                    type="button"
+                                    onClick={() => {
+                                        const d = new Date();
+                                        d.setDate(d.getDate() + preset.days);
+                                        setDeliveryDate(d.toISOString().split('T')[0]);
+                                    }}
+                                    style={{
+                                        padding: '4px 10px',
+                                        fontSize: '11px',
+                                        fontWeight: 600,
+                                        borderRadius: '6px',
+                                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                        border: '1px solid rgba(99, 102, 241, 0.25)',
+                                        color: 'var(--color-pg-primary-hover)',
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    {preset.label}
+                                </button>
+                            ))}
+                        </div>
                         <input type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} required style={inputStyle} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
