@@ -30,8 +30,12 @@ class SetTenant
             }
         }
 
-        if (auth()->check()) {
-            TenantManager::setTenantId(auth()->user()->tenant_id);
+        TenantManager::bypass();
+        $user = auth()->user();
+        TenantManager::enableScope();
+
+        if ($user) {
+            TenantManager::setTenantId($user->tenant_id);
         } elseif (session()->has('active_tenant_id')) {
             TenantManager::setTenantId(session('active_tenant_id'));
         }

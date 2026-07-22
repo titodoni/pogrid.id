@@ -449,7 +449,7 @@ npm run dev         # Vite (separate terminal)
 ---
 
 *Last updated: 2026-07-22*
-*Cross-reference: `MAIN-IDEA.md` for all decisions, `docs/LIVE_SYNC_BUILD_PLAN.md` for real-time sync, `docs/DEPLOY_APP_POGRID_ID.md` for deployment.*
+*Cross-reference: `MAIN-IDEA.md` for all decisions, `docs/LIVE_SYNC_BUILD_PLAN.md` for real-time sync, `docs/DEPLOY_APP_POGRID_ID.md` for deployment, `docs/REAL_WORLD_TEST_CHECKPOINT.md` for QA real-world simulation walkthrough.*
 
 ---
 
