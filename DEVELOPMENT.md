@@ -36,6 +36,8 @@ npm run build
 
 Starts PHP server (port 8000), queue listener, and Vite HMR.
 
+> **Real-time broadcasts**: All broadcast events use `ShouldBroadcastNow` — they fire directly to Pusher within the HTTP request (no queue worker needed for live push). The `queue:listen` process in `dev.sh` handles other async jobs (e.g. future exports).
+
 ### Option B: Native
 
 Terminal 1 — PHP services:
@@ -139,5 +141,6 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system flow diagrams, data model, obs
 | Server startup slow on NTFS | Expected — 30-60s first load |
 | Vite cache stale | Delete `node_modules/.vite` and `ui/dist` |
 | Port 8000 in use | Change in `.env` `APP_URL` or use Docker with different port mapping |
-| Broadcast not working | `BROADCAST_CONNECTION=log` in dev — logs to `laravel.log` |
+| Broadcast not working | Check `BROADCAST_CONNECTION=pusher` and `PUSHER_APP_KEY` in `.env`. Events use `ShouldBroadcastNow` — no queue worker needed, fires inline. |
+| Broadcast delay / not arriving | Verify Pusher credentials are correct and the channel name matches (`tenant.{id}.dashboard` or `.workers`). Check Pusher debug console at https://dashboard.pusher.com |
 | Mail not sending | `MAIL_MAILER=log` — links in `storage/logs/laravel.log` |

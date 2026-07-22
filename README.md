@@ -102,6 +102,8 @@ pogrid/
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture overview |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Deployment & hosting guide |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Local dev environment setup |
+| [docs/LIVE_SYNC_BUILD_PLAN.md](docs/LIVE_SYNC_BUILD_PLAN.md) | Real-time live sync build plan & implementation status |
+| [docs/DEPLOY_APP_POGRID_ID.md](docs/DEPLOY_APP_POGRID_ID.md) | Hostinger production deployment plan for app.pogrid.id |
 | [TODO.md](TODO.md) | Build backlog |
 | [AGENTS.md](AGENTS.md) | AI agent context |
 

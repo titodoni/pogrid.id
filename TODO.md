@@ -412,7 +412,7 @@ Already spec'd in `NEXT_BUILD.md`. Backend routes + controller exist.
 
 ## 🔵 BACKLOG — Future Features
 
-- [ ] **Pusher live toast**: bind React to Pusher channel for real-time Kendala alerts on Owner Dashboard
+- [x] **Pusher live toast**: bind React to Pusher channel for real-time Kendala alerts on Owner Dashboard (GIT-70)
 - [x] **Alert escalation**: `pogrid:evaluate-timelines` sets `escalated_at` + broadcasts `AlertEscalated` for RED alerts unresolved > 24h; scheduled daily in routes/console.php; escalation badge on Alert list (GIT-49)
 - [x] **Worker self-KPI tab**: "My Completed Tasks" sub-tab with cycle times (GIT-71)
 - [x] **CSV/Excel export**: "Export to Excel" on Matrix tab (GIT-51)
@@ -421,6 +421,8 @@ Already spec'd in `NEXT_BUILD.md`. Backend routes + controller exist.
 - [x] **Repeat order shortcut**: clone previous PO stages for same client/item (GIT-54)
 - [x] **PPIC dashboard**: production planning view (backlog, capacity, scheduling) (GIT-55)
 - [x] **Multi-language posts**: posts have EN + ID display names
+
+- [x] **Real-time Live Sync**: 7-phase build plan completed (`ShouldBroadcastNow`, presence channels, smart reloads, health monitoring, PO push, E2E tests). See [`docs/LIVE_SYNC_BUILD_PLAN.md`](docs/LIVE_SYNC_BUILD_PLAN.md)
 
 ---
 
@@ -446,8 +448,8 @@ npm run dev         # Vite (separate terminal)
 
 ---
 
-*Last updated: 2026-07-17*
-*Cross-reference: `MAIN-IDEA.md` for all decisions, `NEXT_BUILD.md` for immediate task specs.*
+*Last updated: 2026-07-22*
+*Cross-reference: `MAIN-IDEA.md` for all decisions, `docs/LIVE_SYNC_BUILD_PLAN.md` for real-time sync, `docs/DEPLOY_APP_POGRID_ID.md` for deployment.*
 
 ---
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { AlertTriangle, Settings, Palette } from '../../Components/Icons';
 import { formatDeadline } from '../../Utils/deadline';
@@ -1704,6 +1704,21 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
     const [currentTime, setCurrentTime] = useState(new Date());
     const [frozen, setFrozen] = useState<{ itemName: string } | null>(null);
     const [showThemeDropdown, setShowThemeDropdown] = useState(false);
+    const [toastQueue, setToastQueue] = useState<Array<{ message: string; severity: string; id: number; timestamp: number }>>([]);
+    const [onlineUsers, setOnlineUsers] = useState<Array<{ id: number; name: string; post_name?: string; role?: string }>>([]);
+    const [wsStatus, setWsStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
+    const reloadTimeoutRef = useRef<any>(null);
+
+    const triggerScopedReload = useCallback((onlyKeys: string[] = ['pos', 'alerts']) => {
+        if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
+        reloadTimeoutRef.current = setTimeout(() => {
+            router.reload({
+                only: onlyKeys as any,
+                preserveState: true,
+                preserveScroll: true,
+            });
+        }, 800);
+    }, []);
 
     const changeTheme = (newTheme: string) => {
         localStorage.setItem('pogrid_theme', newTheme);
@@ -1722,18 +1737,98 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
         const id = tenant_id ?? (props as any).tenant_id;
         if (!id) return;
 
+        // Presence Channel
+        const presenceChannel = echo.join(`tenant.${id}.presence`);
+        presenceChannel
+            .here((users: any[]) => setOnlineUsers(users))
+            .joining((user: any) => setOnlineUsers(prev => [...prev.filter(u => u.id !== user.id), user]))
+            .leaving((user: any) => setOnlineUsers(prev => prev.filter(u => u.id !== user.id)));
+
+        // Connection State
+        const pusherConn = (echo as any)?.connector?.pusher?.connection;
+        let fallbackInterval: any = null;
+
+        if (pusherConn) {
+            const handleStateChange = (states: any) => {
+                const current = states.current || pusherConn.state;
+                if (current === 'connected') {
+                    setWsStatus('connected');
+                    if (states.previous && states.previous !== 'connected') {
+                        router.reload({ preserveState: true, preserveScroll: true });
+                    }
+                } else if (current === 'connecting') {
+                    setWsStatus('connecting');
+                } else {
+                    setWsStatus('disconnected');
+                }
+            };
+            if (pusherConn.state) setWsStatus(pusherConn.state === 'connected' ? 'connected' : 'connecting');
+            pusherConn.bind('state_change', handleStateChange);
+        } else {
+            setWsStatus('disconnected');
+            fallbackInterval = setInterval(() => {
+                router.reload({ only: ['pos', 'alerts'], preserveState: true, preserveScroll: true });
+            }, 30000);
+        }
+
         const channel = echo.private(`tenant.${id}.workers`);
         channel.listen('production.terminated', (e: any) => {
             setFrozen({ itemName: e.item?.item_name || '' });
             setTimeout(() => {
-                window.location.href = `/c/${slug}`;
+                router.visit(`/c/${slug}`);
             }, 10000);
+        });
+        channel.listen('task.updated', (e: any) => {
+            const entry = { message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() };
+            setToastQueue(prev => [...prev, entry]);
+            setTimeout(() => {
+                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
+            }, 8000);
+            triggerScopedReload(['pos', 'alerts']);
+        });
+        channel.listen('kendala.reported', (e: any) => {
+            const alert = e.alert;
+            const entry = { message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() };
+            setToastQueue(prev => [...prev, entry]);
+            setTimeout(() => {
+                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
+            }, 8000);
+            router.reload({ only: ['alerts'], preserveState: true, preserveScroll: true });
+        });
+        channel.listen('qc.rework.logged', (e: any) => {
+            const alert = e.alert;
+            const entry = { message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() };
+            setToastQueue(prev => [...prev, entry]);
+            setTimeout(() => {
+                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
+            }, 8000);
+            triggerScopedReload(['alerts', 'pos']);
+        });
+        channel.listen('data.refreshed', () => {
+            // Task 3.3: Named toast on Worker Dashboard
+            const entry = {
+                message: language === 'en' ? 'Data refreshed' : 'Data diperbarui',
+                severity: 'INFO',
+                id: Date.now(),
+                timestamp: Date.now()
+            };
+            setToastQueue(prev => [...prev, entry]);
+            setTimeout(() => {
+                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
+            }, 3000);
+            triggerScopedReload(['pos', 'alerts']);
         });
 
         return () => {
             echo.leave(`tenant.${id}.workers`);
+            echo.leave(`tenant.${id}.presence`);
+            if (pusherConn) {
+                pusherConn.unbind('state_change');
+            }
+            if (fallbackInterval) clearInterval(fallbackInterval);
+            if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
         };
-    }, [tenant_id, (props as any).tenant_id]);
+    }, [tenant_id, (props as any).tenant_id, language]);
 
     const changeLanguage = (lang: 'en' | 'id') => {
         setLanguage(lang);
@@ -1778,6 +1873,39 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
             fontFamily: 'Inter, sans-serif',
             color: 'var(--color-pg-text)',
         }}>
+            {toastQueue.length > 0 && (
+                <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {toastQueue.map(t => (
+                        <div key={t.timestamp} onClick={() => setToastQueue(prev => prev.filter(x => x.timestamp !== t.timestamp))}
+                            style={{
+                                backgroundColor: t.severity === 'RED' ? 'rgba(239, 68, 68, 0.95)' : t.severity === 'ALERT' ? 'rgba(251, 191, 36, 0.95)' : t.severity === 'INFO' ? 'rgba(59, 130, 246, 0.95)' : 'rgba(251, 191, 36, 0.95)',
+                                color: '#fff', padding: '12px 20px', borderRadius: '10px',
+                                fontSize: '13px', fontWeight: 600, maxWidth: '360px',
+                                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                                display: 'flex', alignItems: 'center', gap: '8px',
+                                animation: 'slideIn 0.3s ease-out', cursor: 'pointer',
+                            }}>
+                            <span style={{ fontSize: '18px' }}>{t.severity === 'RED' ? '🚨' : t.severity === 'ALERT' ? '🔴' : t.severity === 'INFO' ? 'ℹ️' : '⚠️'}</span>
+                            <div>
+                                <div style={{ fontWeight: 700, marginBottom: '2px' }}>
+                                    {t.severity === 'RED'
+                                        ? (language === 'en' ? 'Kendala Reported' : 'Kendala Dilaporkan')
+                                        : t.severity === 'ALERT'
+                                        ? (language === 'en' ? 'Alert Escalated' : 'Peringatan Dinaikkan')
+                                        : t.severity === 'INFO'
+                                        ? (language === 'en' ? 'Task Updated' : 'Tugas Diperbarui')
+                                        : (language === 'en' ? 'QC Rework' : 'Rework QC')}
+                                </div>
+                                <div style={{ opacity: 0.9, fontSize: '12px' }}>{t.message}</div>
+                            </div>
+                            <button onClick={(e) => { e.stopPropagation(); setToastQueue(prev => prev.filter(x => x.timestamp !== t.timestamp)); }}
+                                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '18px', opacity: 0.7 }}>
+                                ×
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
             {/* Header */}
         <header className="responsive-header p-3 border-b border-pg-border bg-pg-bg/60 backdrop-blur shrink-0">
                 <div>
@@ -1814,6 +1942,30 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                         >
                             ID
                         </button>
+                    </div>
+
+                    {/* Online Users Pill & Connection Badge */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        backgroundColor: wsStatus === 'connected' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                        border: `1px solid ${wsStatus === 'connected' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`,
+                        color: wsStatus === 'connected' ? '#10b981' : '#f59e0b',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        minHeight: '44px',
+                    }}>
+                        <span style={{
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            backgroundColor: wsStatus === 'connected' ? '#10b981' : '#f59e0b',
+                            boxShadow: wsStatus === 'connected' ? '0 0 6px #10b981' : 'none'
+                        }} />
+                        <span>{onlineUsers.length} {language === 'en' ? 'Online' : 'Online'}</span>
                     </div>
 
                     {/* Right: Actions */}
@@ -2013,9 +2165,27 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                         >
                             {t.exit_terminal}
                         </button>
-                    </div>
-                </div>
             </header>
+
+            {/* Connection Disconnected Warning Banner */}
+            {wsStatus === 'disconnected' && (
+                <div style={{
+                    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    borderRadius: '8px',
+                    padding: '8px 14px',
+                    margin: '12px 12px 0 12px',
+                    fontSize: '12px',
+                    color: '#fbbf24',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontWeight: 600,
+                }}>
+                    <span>⚠️</span>
+                    <span>{language === 'en' ? 'Connection lost — data may be stale. Retrying...' : 'Koneksi terputus — data mungkin tidak terbaru (mencoba ulang...)'}</span>
+                </div>
+            )}
 
             {/* Items List */}
             <div className="dashboard-scroll" style={{

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, AlertTriangle, DotGreen, Settings } from '../../Components/Icons';
+import echo from '../../bootstrap';
 
 interface Alert {
     id: number;
@@ -83,6 +84,29 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
         const timer = setInterval(() => setCurrentTime(new Date()), 30000);
         return () => clearInterval(timer);
     }, []);
+
+    useEffect(() => {
+        const id = (tenant as any)?.id;
+        if (!id) return;
+
+        const channel = echo.private(`tenant.${id}.workers`);
+        channel.listen('kendala.reported', () => {
+            router.reload({ only: ['alerts'], preserveState: true, preserveScroll: true });
+        });
+        channel.listen('qc.rework.logged', () => {
+            router.reload({ only: ['alerts'], preserveState: true, preserveScroll: true });
+        });
+        channel.listen('alert.escalated', () => {
+            router.reload({ only: ['alerts'], preserveState: true, preserveScroll: true });
+        });
+        channel.listen('data.refreshed', () => {
+            router.reload({ only: ['alerts'], preserveState: true, preserveScroll: true });
+        });
+
+        return () => {
+            echo.leave(`tenant.${id}.workers`);
+        };
+    }, [(tenant as any)?.id]);
 
     const changeLanguage = (lang: 'en' | 'id') => {
         setLanguage(lang);

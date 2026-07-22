@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronDown, Settings, Lock, Plus, Palette, Stop, Broadcast, Globe, Copy, DotGreen, Search } from '../../Components/Icons';
 import { formatDeadline, calculateDeadlineDiff } from '../../Utils/deadline';
@@ -497,6 +497,12 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
     const [searchQuery, setSearchQuery] = useState('');
     const [copiedItemId, setCopiedItemId] = useState<number | null>(null);
 
+    const [onboardingAdminName, setOnboardingAdminName] = useState('');
+    const [onboardingAdminEmail, setOnboardingAdminEmail] = useState('');
+    const [onboardingSuccessMessage, setOnboardingSuccessMessage] = useState('');
+    const [onboardingErrorMessage, setOnboardingErrorMessage] = useState('');
+    const [isOnboardingSubmitLoading, setIsOnboardingSubmitLoading] = useState(false);
+
     const getPieceLocations = (item: any) => {
         const stages = [...(item.item_progresses || [])];
         if (stages.length === 0) return [];
@@ -884,6 +890,21 @@ ${locationStr}
 
     const [currentTime, setCurrentTime] = useState(new Date());
     const [toastQueue, setToastQueue] = useState<Array<{ message: string; severity: string; id: number; timestamp: number }>>([]);
+    const [onlineUsers, setOnlineUsers] = useState<Array<{ id: number; name: string; post_name?: string; role?: string }>>([]);
+    const [showOnlineUsersPopover, setShowOnlineUsersPopover] = useState(false);
+    const [wsStatus, setWsStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
+    const reloadTimeoutRef = useRef<any>(null);
+
+    const triggerScopedReload = useCallback((onlyKeys: string[] = ['pos', 'alerts']) => {
+        if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
+        reloadTimeoutRef.current = setTimeout(() => {
+            router.reload({
+                only: onlyKeys as any,
+                preserveState: true,
+                preserveScroll: true,
+            });
+        }, 800);
+    }, []);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 30000);
@@ -898,29 +919,91 @@ ${locationStr}
         const tenantId = (tenant as any)?.id;
         if (!tenantId) return;
 
+        // Presence Channel
+        const presenceChannel = echo.join(`tenant.${tenantId}.presence`);
+        presenceChannel
+            .here((users: any[]) => setOnlineUsers(users))
+            .joining((user: any) => setOnlineUsers(prev => [...prev.filter(u => u.id !== user.id), user]))
+            .leaving((user: any) => setOnlineUsers(prev => prev.filter(u => u.id !== user.id)));
+
+        // Connection State
+        const pusherConn = (echo as any)?.connector?.pusher?.connection;
+        let fallbackInterval: any = null;
+
+        if (pusherConn) {
+            const handleStateChange = (states: any) => {
+                const current = states.current || pusherConn.state;
+                if (current === 'connected') {
+                    setWsStatus('connected');
+                    if (states.previous && states.previous !== 'connected') {
+                        router.reload({ preserveState: true, preserveScroll: true });
+                    }
+                } else if (current === 'connecting') {
+                    setWsStatus('connecting');
+                } else {
+                    setWsStatus('disconnected');
+                }
+            };
+            if (pusherConn.state) setWsStatus(pusherConn.state === 'connected' ? 'connected' : 'connecting');
+            pusherConn.bind('state_change', handleStateChange);
+        } else {
+            setWsStatus('disconnected');
+            fallbackInterval = setInterval(() => {
+                router.reload({ only: ['pos', 'alerts'], preserveState: true, preserveScroll: true });
+            }, 30000);
+        }
+
         const channel = echo.private(`tenant.${tenantId}.dashboard`);
         channel.listen('kendala.reported', (e: any) => {
             const alert = e.alert;
-            const entry = { message: alert.message || '', severity: alert.severity || 'RED', id: alert.id, timestamp: Date.now() };
+            const entry = { message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() };
             setToastQueue(prev => [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 8000);
+            router.reload({ only: ['alerts', 'pos'], preserveState: true, preserveScroll: true });
         });
         channel.listen('alert.escalated', (e: any) => {
             const alert = e.alert;
-            const entry = { message: alert.message || '', severity: 'ALERT', id: alert.id, timestamp: Date.now() };
+            const entry = { message: alert?.message || '', severity: 'ALERT', id: alert?.id || Date.now(), timestamp: Date.now() };
             setToastQueue(prev => [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 12000);
+            triggerScopedReload(['alerts']);
         });
         channel.listen('production.terminated', () => {
-            router.reload({ preserveState: true, preserveScroll: true });
+            router.reload({ only: ['pos', 'alerts'], preserveState: true, preserveScroll: true });
+        });
+        channel.listen('task.updated', (e: any) => {
+            const entry = { message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() };
+            setToastQueue(prev => [...prev, entry]);
+            setTimeout(() => {
+                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
+            }, 8000);
+            triggerScopedReload(['pos', 'alerts']);
+        });
+        channel.listen('qc.rework.logged', (e: any) => {
+            const alert = e.alert;
+            const entry = { message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() };
+            setToastQueue(prev => [...prev, entry]);
+            setTimeout(() => {
+                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
+            }, 8000);
+            triggerScopedReload(['alerts', 'pos']);
+        });
+        channel.listen('data.refreshed', () => {
+            triggerScopedReload(['pos', 'alerts']);
         });
 
         return () => {
             echo.leave(`tenant.${tenantId}.dashboard`);
+            echo.leave(`tenant.${tenantId}.presence`);
+            if (pusherConn) {
+                pusherConn.unbind('state_change');
+            }
+            if (fallbackInterval) clearInterval(fallbackInterval);
+            if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
         };
     }, [(tenant as any)?.id]);
 
@@ -1452,6 +1535,169 @@ ${locationStr}
         });
     };
 
+    const handleOnboardingSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsOnboardingSubmitLoading(true);
+        setOnboardingSuccessMessage('');
+        setOnboardingErrorMessage('');
+
+        router.post('/users/onboarding-create', {
+            name: onboardingAdminName,
+            email: onboardingAdminEmail,
+        }, {
+            onSuccess: (page) => {
+                setIsOnboardingSubmitLoading(false);
+                const successMsg = (page.props.flash as any)?.success || 'Admin user created successfully.';
+                setOnboardingSuccessMessage(successMsg);
+                setOnboardingAdminName('');
+                setOnboardingAdminEmail('');
+            },
+            onError: (errs) => {
+                setIsOnboardingSubmitLoading(false);
+                if (errs.email) {
+                    setOnboardingErrorMessage(errs.email);
+                } else if (errs.name) {
+                    setOnboardingErrorMessage(errs.name);
+                } else {
+                    setOnboardingErrorMessage(language === 'en' ? 'An error occurred while creating the admin user.' : 'Terjadi kesalahan saat membuat user admin.');
+                }
+            }
+        });
+    };
+
+    const hasAdmins = users.some(u => u.role_name === 'STAFF');
+
+    const renderOnboardingBanner = () => {
+        if (!isOwner || hasAdmins) return null;
+
+        return (
+            <div style={{
+                background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.15) 0%, rgba(99, 102, 241, 0.05) 100%)',
+                border: '1px dashed rgba(99, 102, 241, 0.3)',
+                borderRadius: '16px',
+                padding: '24px',
+                marginBottom: '24px',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 8px 32px rgba(99, 102, 241, 0.05)',
+            }}>
+                <div style={{
+                    position: 'absolute',
+                    top: '-50px',
+                    right: '-50px',
+                    width: '150px',
+                    height: '150px',
+                    background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)',
+                    pointerEvents: 'none',
+                }} />
+
+                <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    <div style={{
+                        flexShrink: 0,
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(99, 102, 241, 0.12)',
+                        color: 'var(--color-pg-primary)',
+                        display: 'grid',
+                        placeItems: 'center',
+                        border: '1px solid rgba(99, 102, 241, 0.25)',
+                    }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
+                    </div>
+
+                    <div style={{ flex: '1 1 300px' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: '#fff' }}>
+                            {language === 'en' ? 'Onboarding: Register Your First Admin' : 'Onboarding: Daftarkan Admin Pertama Anda'}
+                        </h3>
+                        <p style={{ fontSize: '13.5px', color: 'var(--color-pg-text-secondary)', lineHeight: '1.5', margin: '0 0 16px 0' }}>
+                            {language === 'en' 
+                                ? 'As the Owner, you cannot create POs directly. You must register at least one Admin user to manage POs and production. We will email them a temporary password.'
+                                : 'Sebagai Owner, Anda tidak dapat membuat PO secara langsung. Anda harus mendaftarkan setidaknya satu user Admin untuk membuat PO dan mengelola produksi. Kami akan mengirimkan password sementara ke email mereka.'}
+                        </p>
+
+                        <form onSubmit={handleOnboardingSubmit} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                            <div style={{ flex: '1 1 200px', minWidth: '150px' }}>
+                                <input
+                                    type="text"
+                                    placeholder={language === 'en' ? "Admin Name" : "Nama Admin"}
+                                    value={onboardingAdminName}
+                                    onChange={e => setOnboardingAdminName(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 14px',
+                                        borderRadius: '8px',
+                                        backgroundColor: 'var(--color-pg-bg)',
+                                        border: '1px solid var(--color-pg-border)',
+                                        color: '#fff',
+                                        fontSize: '13px',
+                                        outline: 'none',
+                                    }}
+                                    required
+                                />
+                            </div>
+                            <div style={{ flex: '1 1 200px', minWidth: '150px' }}>
+                                <input
+                                    type="email"
+                                    placeholder="admin@email.com"
+                                    value={onboardingAdminEmail}
+                                    onChange={e => setOnboardingAdminEmail(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 14px',
+                                        borderRadius: '8px',
+                                        backgroundColor: 'var(--color-pg-bg)',
+                                        border: '1px solid var(--color-pg-border)',
+                                        color: '#fff',
+                                        fontSize: '13px',
+                                        outline: 'none',
+                                    }}
+                                    required
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={isOnboardingSubmitLoading}
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: 'var(--color-pg-primary)',
+                                    color: '#fff',
+                                    fontWeight: 700,
+                                    fontSize: '13px',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: isOnboardingSubmitLoading ? 'not-allowed' : 'pointer',
+                                    boxShadow: '0 4px 12px var(--color-pg-primary-glow)',
+                                }}
+                            >
+                                {isOnboardingSubmitLoading 
+                                    ? (language === 'en' ? 'Registering...' : 'Mendaftarkan...') 
+                                    : (language === 'en' ? 'Register Admin' : 'Daftarkan Admin')}
+                            </button>
+                        </form>
+
+                        {onboardingErrorMessage && (
+                            <div style={{ color: 'var(--color-pg-error)', fontSize: '12px', marginTop: '8px', fontWeight: 500 }}>
+                                ⚠️ {onboardingErrorMessage}
+                            </div>
+                        )}
+
+                        {onboardingSuccessMessage && (
+                            <div style={{ color: 'var(--color-pg-success)', fontSize: '12px', marginTop: '8px', fontWeight: 600 }}>
+                                ✓ {onboardingSuccessMessage}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     const isOwner = auth_user?.is_owner === true;
     const canBroadcastPo = auth_user?.is_owner !== true;
 
@@ -1484,20 +1730,22 @@ ${locationStr}
                     {toastQueue.map(t => (
                         <div key={t.timestamp} onClick={() => setToastQueue(prev => prev.filter(x => x.timestamp !== t.timestamp))}
                             style={{
-                                backgroundColor: t.severity === 'RED' ? 'rgba(239, 68, 68, 0.95)' : t.severity === 'ALERT' ? 'rgba(251, 191, 36, 0.95)' : 'rgba(251, 191, 36, 0.95)',
+                                backgroundColor: t.severity === 'RED' ? 'rgba(239, 68, 68, 0.95)' : t.severity === 'ALERT' ? 'rgba(251, 191, 36, 0.95)' : t.severity === 'INFO' ? 'rgba(59, 130, 246, 0.95)' : 'rgba(251, 191, 36, 0.95)',
                                 color: '#fff', padding: '12px 20px', borderRadius: '10px',
                                 fontSize: '13px', fontWeight: 600, maxWidth: '360px',
                                 boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
                                 display: 'flex', alignItems: 'center', gap: '8px',
                                 animation: 'slideIn 0.3s ease-out', cursor: 'pointer',
                             }}>
-                            <span style={{ fontSize: '18px' }}>{t.severity === 'RED' ? '🚨' : t.severity === 'ALERT' ? '🔴' : '⚠️'}</span>
+                            <span style={{ fontSize: '18px' }}>{t.severity === 'RED' ? '🚨' : t.severity === 'ALERT' ? '🔴' : t.severity === 'INFO' ? 'ℹ️' : '⚠️'}</span>
                             <div>
                                 <div style={{ fontWeight: 700, marginBottom: '2px' }}>
                                     {t.severity === 'RED'
                                         ? (language === 'en' ? 'Kendala Reported' : 'Kendala Dilaporkan')
                                         : t.severity === 'ALERT'
                                         ? (language === 'en' ? 'Alert Escalated' : 'Peringatan Dinaikkan')
+                                        : t.severity === 'INFO'
+                                        ? (language === 'en' ? 'Task Updated' : 'Tugas Diperbarui')
                                         : (language === 'en' ? 'QC Rework' : 'Rework QC')}
                                 </div>
                                 <div style={{ opacity: 0.9, fontSize: '12px' }}>{t.message}</div>
@@ -1760,6 +2008,92 @@ ${locationStr}
                     >
                         Copy
                     </button>
+
+                    {/* Online Users & Connection Status Badge */}
+                    <div style={{ position: 'relative', display: 'inline-block', marginLeft: 'auto' }}>
+                        <button
+                            onClick={() => setShowOnlineUsersPopover(prev => !prev)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                backgroundColor: wsStatus === 'connected' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                                border: `1px solid ${wsStatus === 'connected' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`,
+                                color: wsStatus === 'connected' ? '#10b981' : '#f59e0b',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                            }}
+                            title={language === 'en' ? 'Click to see online team members' : 'Klik untuk melihat anggota tim yang online'}
+                        >
+                            <span style={{
+                                width: '6px',
+                                height: '6px',
+                                borderRadius: '50%',
+                                backgroundColor: wsStatus === 'connected' ? '#10b981' : '#f59e0b',
+                                boxShadow: wsStatus === 'connected' ? '0 0 6px #10b981' : 'none'
+                            }} />
+                            <span>{onlineUsers.length} {language === 'en' ? 'Online' : 'Online'}</span>
+                        </button>
+
+                        {showOnlineUsersPopover && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '100%',
+                                right: 0,
+                                marginTop: '6px',
+                                backgroundColor: 'var(--color-pg-card-bg, #18181b)',
+                                border: '1px solid var(--color-pg-border, #27272a)',
+                                borderRadius: '8px',
+                                padding: '10px 14px',
+                                zIndex: 1000,
+                                minWidth: '220px',
+                                boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                            }}>
+                                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-pg-text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    {language === 'en' ? 'Active Team Members' : 'Tim yang Sedang Online'} ({onlineUsers.length})
+                                </div>
+                                {onlineUsers.length === 0 ? (
+                                    <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)' }}>
+                                        {language === 'en' ? 'No active users detected' : 'Belum ada pengguna lain'}
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '180px', overflowY: 'auto' }}>
+                                        {onlineUsers.map(u => (
+                                            <div key={u.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
+                                                <span style={{ fontWeight: 600, color: 'var(--color-pg-text)' }}>{u.name}</span>
+                                                <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', backgroundColor: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '4px' }}>
+                                                    {u.post_name || u.role}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Connection Disconnected Warning Banner */}
+            {wsStatus === 'disconnected' && (
+                <div style={{
+                    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    borderRadius: '8px',
+                    padding: '8px 14px',
+                    marginBottom: '12px',
+                    fontSize: '12px',
+                    color: '#fbbf24',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontWeight: 600,
+                }}>
+                    <span>⚠️</span>
+                    <span>{language === 'en' ? 'Connection lost — data may be stale. Retrying...' : 'Koneksi terputus — data mungkin tidak terbaru (mencoba ulang...)'}</span>
                 </div>
             )}
 
@@ -1832,6 +2166,7 @@ ${locationStr}
             </div>
 
             <div className="dashboard-scroll" style={{ padding: '16px' }}>
+                {renderOnboardingBanner()}
                 {/* Premium Card Summary Section based on prior web app layout */}
                 {(activeTab === 'alerts' || activeTab === 'active' || activeTab === 'completed') && (() => {
                     const activePOs = pos.filter(po => po.status !== 'COMPLETED' && po.status !== 'DELIVERED' && po.status !== 'CLOSED');

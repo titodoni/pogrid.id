@@ -86,19 +86,16 @@ We have successfully overhauled the Owner Matrix Dashboard, Worker Floor Dashboa
     - Relations optimized in `buildClientHealth()`, N+1 eliminated, verified via PerformanceMatrixTest.
 
 ### 📊 3. Telemetry & Reporting Upgrades
-- [ ] **CSV / Excel Telemetry Export**:
+- [x] **CSV / Excel Telemetry Export** (GIT-51):
     - Add a "Export to Excel" button next to "Download PDF" on the Matrix view to download raw filtered tabular reports.
-- [ ] **Historical Rework Analytics**:
+- [x] **Historical Rework Analytics** (GIT-71):
     - Implement a "Rework Logbook" telemetry tab to trace total rework counts per client, item, or production stage over the last 6 months to locate recurring quality control bottlenecks.
 
-### 🔔 4. Realtime Push & Alerts
-- [ ] **Pusher Live Toast (Owner Dashboard)**:
-    - Bind React state to Pusher broadcast channels so Owner dashboard displays toast notifications when workers report Kendala.
-- [ ] **Alert Escalation Rules**:
-    - Set up automated warnings if a RED alert remains unresolved > 24 hours.
+- [x] **Real-time Live Sync (Phases 1–7)**:
+    - Implemented `ShouldBroadcastNow` instant delivery, presence channel online users pill & popover, scoped partial reloads, trailing 800ms debouncing, WebSocket health monitoring & warning banner, PO broadcast push, and E2E test suite. See [`docs/LIVE_SYNC_BUILD_PLAN.md`](docs/LIVE_SYNC_BUILD_PLAN.md).
 
-> Pusher infrastructure: channels configured (GIT-37), E2E tests added (GIT-41), switched to PrivateChannel (GIT-42). Client-side toast binding is the remaining piece.
+> Pusher infrastructure & real-time live sync: 100% complete across all 7 phases.
 
 ### 👷 5. Worker Self-Monitoring (KPIs)
-- [ ] **Worker Performance History**:
+- [x] **Worker Performance History** (GIT-71):
     - Provide a "My Completed Tasks" sub-tab on the Worker floor dashboard so workers can view their completed items, average stage cycle times, and contribution metrics for self-monitoring.

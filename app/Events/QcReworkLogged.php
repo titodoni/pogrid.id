@@ -5,11 +5,11 @@ namespace App\Events;
 use App\Models\Alert;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class QcReworkLogged implements ShouldBroadcast
+class QcReworkLogged implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -24,6 +24,7 @@ class QcReworkLogged implements ShouldBroadcast
     {
         return [
             new PrivateChannel('tenant.'.$this->alert->tenant_id.'.dashboard'),
+            new PrivateChannel('tenant.'.$this->alert->tenant_id.'.workers'),
         ];
     }
 

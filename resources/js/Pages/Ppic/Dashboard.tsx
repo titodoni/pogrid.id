@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { AlertTriangle, Settings } from '../../Components/Icons';
 import { formatDeadline } from '../../Utils/deadline';
@@ -261,6 +261,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
     const [deadlineVal, setDeadlineVal] = useState<string>('');
     const [isUrgentVal, setIsUrgentVal] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [toastQueue, setToastQueue] = useState<Array<{ message: string; severity: string; id: number; timestamp: number }>>([]);
 
     const t = translations[language];
 
@@ -290,14 +291,102 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
         return () => clearInterval(timer);
     }, []);
 
+    const [onlineUsers, setOnlineUsers] = useState<Array<{ id: number; name: string; post_name?: string; role?: string }>>([]);
+    const [wsStatus, setWsStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
+    const reloadTimeoutRef = useRef<any>(null);
+
+    const triggerScopedReload = useCallback(() => {
+        if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
+        reloadTimeoutRef.current = setTimeout(() => {
+            router.reload({
+                only: ['schedule', 'telemetry', 'delivery_forecast'],
+                preserveState: true,
+                preserveScroll: true,
+            });
+        }, 800);
+    }, []);
+
     useEffect(() => {
         const id = tenant?.id ?? (props as any).tenant_id;
         if (!id) return;
-        const channel = echo.private(`tenant.${id}.workers`);
+
+        // Presence Channel
+        const presenceChannel = echo.join(`tenant.${id}.presence`);
+        presenceChannel
+            .here((users: any[]) => setOnlineUsers(users))
+            .joining((user: any) => setOnlineUsers(prev => [...prev.filter(u => u.id !== user.id), user]))
+            .leaving((user: any) => setOnlineUsers(prev => prev.filter(u => u.id !== user.id)));
+
+        // Connection State
+        const pusherConn = (echo as any)?.connector?.pusher?.connection;
+        let fallbackInterval: any = null;
+
+        if (pusherConn) {
+            const handleStateChange = (states: any) => {
+                const current = states.current || pusherConn.state;
+                if (current === 'connected') {
+                    setWsStatus('connected');
+                    if (states.previous && states.previous !== 'connected') {
+                        router.reload({ preserveState: true, preserveScroll: true });
+                    }
+                } else if (current === 'connecting') {
+                    setWsStatus('connecting');
+                } else {
+                    setWsStatus('disconnected');
+                }
+            };
+            if (pusherConn.state) setWsStatus(pusherConn.state === 'connected' ? 'connected' : 'connecting');
+            pusherConn.bind('state_change', handleStateChange);
+        } else {
+            setWsStatus('disconnected');
+            fallbackInterval = setInterval(() => {
+                triggerScopedReload();
+            }, 30000);
+        }
+
+        const channel = echo.private(`tenant.${id}.dashboard`);
         channel.listen('production.terminated', () => {
-            window.location.href = `/c/${slug}`;
+            router.visit(`/c/${slug}`);
         });
-        return () => { echo.leave(`tenant.${id}.workers`); };
+        channel.listen('task.updated', (e: any) => {
+            const entry = { message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() };
+            setToastQueue(prev => [...prev, entry]);
+            setTimeout(() => {
+                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
+            }, 8000);
+            triggerScopedReload();
+        });
+        channel.listen('kendala.reported', (e: any) => {
+            const alert = e.alert;
+            const entry = { message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() };
+            setToastQueue(prev => [...prev, entry]);
+            setTimeout(() => {
+                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
+            }, 8000);
+            triggerScopedReload();
+        });
+        channel.listen('qc.rework.logged', (e: any) => {
+            const alert = e.alert;
+            const entry = { message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() };
+            setToastQueue(prev => [...prev, entry]);
+            setTimeout(() => {
+                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
+            }, 8000);
+            triggerScopedReload();
+        });
+        channel.listen('data.refreshed', () => {
+            triggerScopedReload();
+        });
+
+        return () => {
+            echo.leave(`tenant.${id}.dashboard`);
+            echo.leave(`tenant.${id}.presence`);
+            if (pusherConn) {
+                pusherConn.unbind('state_change');
+            }
+            if (fallbackInterval) clearInterval(fallbackInterval);
+            if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
+        };
     }, [tenant?.id]);
 
     const changeLanguage = (lang: 'en' | 'id') => {
@@ -326,6 +415,39 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
             fontFamily: 'Inter, sans-serif',
             color: '#fafafa',
         }}>
+            {toastQueue.length > 0 && (
+                <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {toastQueue.map(t => (
+                        <div key={t.timestamp} onClick={() => setToastQueue(prev => prev.filter(x => x.timestamp !== t.timestamp))}
+                            style={{
+                                backgroundColor: t.severity === 'RED' ? 'rgba(239, 68, 68, 0.95)' : t.severity === 'ALERT' ? 'rgba(251, 191, 36, 0.95)' : t.severity === 'INFO' ? 'rgba(59, 130, 246, 0.95)' : 'rgba(251, 191, 36, 0.95)',
+                                color: '#fff', padding: '12px 20px', borderRadius: '10px',
+                                fontSize: '13px', fontWeight: 600, maxWidth: '360px',
+                                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                                display: 'flex', alignItems: 'center', gap: '8px',
+                                animation: 'slideIn 0.3s ease-out', cursor: 'pointer',
+                            }}>
+                            <span style={{ fontSize: '18px' }}>{t.severity === 'RED' ? '🚨' : t.severity === 'ALERT' ? '🔴' : t.severity === 'INFO' ? 'ℹ️' : '⚠️'}</span>
+                            <div>
+                                <div style={{ fontWeight: 700, marginBottom: '2px' }}>
+                                    {t.severity === 'RED'
+                                        ? (language === 'en' ? 'Kendala Reported' : 'Kendala Dilaporkan')
+                                        : t.severity === 'ALERT'
+                                        ? (language === 'en' ? 'Alert Escalated' : 'Peringatan Dinaikkan')
+                                        : t.severity === 'INFO'
+                                        ? (language === 'en' ? 'Task Updated' : 'Tugas Diperbarui')
+                                        : (language === 'en' ? 'QC Rework' : 'Rework QC')}
+                                </div>
+                                <div style={{ opacity: 0.9, fontSize: '12px' }}>{t.message}</div>
+                            </div>
+                            <button onClick={(e) => { e.stopPropagation(); setToastQueue(prev => prev.filter(x => x.timestamp !== t.timestamp)); }}
+                                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '18px', opacity: 0.7 }}>
+                                ×
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
             <header className="responsive-header p-3 border-b border-pg-border bg-pg-bg/60 backdrop-blur shrink-0">
                 <div>
                     <div className="greeting-name text-sm text-pg-primary-hover font-semibold mb-0.5">

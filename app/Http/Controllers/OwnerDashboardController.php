@@ -225,6 +225,8 @@ class OwnerDashboardController extends Controller
             }
         });
 
+        broadcast(new \App\Events\TaskUpdated($user->tenant_id, "PO {$request->po_number} ({$request->client_name}) telah diterbitkan ke lantai produksi."))->toOthers();
+
         $tenantSlug = $user->tenant->slug;
 
         return redirect("/c/{$tenantSlug}")->with('success', 'Purchase Order broadcasted successfully.');
@@ -714,4 +716,59 @@ class OwnerDashboardController extends Controller
             'selected_range' => $range,
         ]);
     }
+
+    public function createOnboardingAdmin(Request $request)
+    {
+        $authUser = auth()->user();
+
+        if (!$authUser->isOwner()) {
+            abort(403, 'Only owners can create admin users during onboarding.');
+        }
+
+        // Ensure tenant context is set
+        TenantManager::setTenantId($authUser->tenant_id);
+
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+        ]);
+
+        $adminRoleId = Role::where('name', 'STAFF')->value('id');
+        $adminPostId = Post::where('name', 'Admin')->value('id');
+
+        if (!$adminRoleId || !$adminPostId) {
+            return back()->withErrors(['email' => 'System roles/posts are not seeded correctly. Please run db seed.']);
+        }
+
+        // Generate temporary password (at least 8 chars, containing a number)
+        $tempPassword = \Illuminate\Support\Str::random(10) . '1';
+
+        // Generate a unique username from email
+        $usernamePrefix = strstr($request->email, '@', true);
+        $usernamePrefix = preg_replace('/[^A-Za-z0-9_]/', '', $usernamePrefix);
+        if (empty($usernamePrefix)) {
+            $usernamePrefix = 'admin';
+        }
+        $username = $usernamePrefix . '_' . \Illuminate\Support\Str::random(4);
+        while (User::where('username', $username)->exists()) {
+            $username = $usernamePrefix . '_' . \Illuminate\Support\Str::random(4);
+        }
+
+        $adminUser = User::create([
+            'tenant_id' => TenantManager::getTenantId(),
+            'name' => $request->name,
+            'email' => $request->email,
+            'username' => $username,
+            'password' => Hash::make($tempPassword),
+            'role_id' => $adminRoleId,
+            'post_id' => $adminPostId,
+            'is_owner' => false,
+        ]);
+
+        // Send email with temporary password
+        $adminUser->notify(new \App\Notifications\TemporaryPasswordNotification($tempPassword, $adminUser->email));
+
+        return back()->with('success', "Admin user {$adminUser->name} created successfully. Temporary password '{$tempPassword}' has been sent to their email.");
+    }
 }
+
