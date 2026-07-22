@@ -44,18 +44,16 @@ class TenantScopeAuditTest extends TestCase
             'subscription_status' => 'active',
         ]);
 
-        // 2. Create roles
-        $this->officeRole = Role::create([
-            'name' => 'STAFF',
-            'level' => 'office',
-            'display_name' => 'Office Staff',
-        ]);
+        // 2. Use existing seeded roles or create if missing
+        $this->officeRole = Role::firstOrCreate(
+            ['name' => 'STAFF'],
+            ['level' => 'office', 'display_name' => 'Office Staff']
+        );
 
-        $this->workerRole = Role::create([
-            'name' => 'WORKER',
-            'level' => 'production',
-            'display_name' => 'Production Worker',
-        ]);
+        $this->workerRole = Role::firstOrCreate(
+            ['name' => 'MACHINING'],
+            ['level' => 'production', 'display_name' => 'Production Worker']
+        );
 
         // 3. Create users in Tenant A and Tenant B
         TenantManager::setTenantId($this->tenantA->id);
@@ -81,6 +79,7 @@ class TenantScopeAuditTest extends TestCase
         ]);
 
         TenantManager::enableScope();
+        TenantManager::setTenantId(null);
     }
 
     public function test_eloquent_models_strict_tenant_scoping()
@@ -178,10 +177,13 @@ class TenantScopeAuditTest extends TestCase
 
     public function test_cross_tenant_pin_reset_approval_prevented()
     {
-        // Alert created under Tenant B
+        // Alert created under Tenant B with valid item
         TenantManager::setTenantId($this->tenantB->id);
+        $poB = Po::create(['po_number' => 'PO-BETA-ALERT', 'client_name' => 'Client Beta', 'global_deadline' => now()->addDays(5), 'status' => 'PENDING']);
+        $itemB = Item::create(['po_id' => $poB->id, 'item_name' => 'Item Beta Alert', 'target_qty' => 1, 'item_type' => 'MANUFACTURE', 'required_stages' => ['Machining'], 'status' => 'PENDING']);
+
         $alertB = Alert::create([
-            'item_id' => 0,
+            'item_id' => $itemB->id,
             'severity' => 'BLUE',
             'message' => "PIN Reset Requested for {$this->userB->name} (ID:{$this->userB->id}) by worker.",
             'is_resolved' => false,
@@ -221,7 +223,8 @@ class TenantScopeAuditTest extends TestCase
         $response = $this->post("/c/workshop-beta/progress/{$progressB->id}/update", [
             'completed_qty' => 5,
         ]);
-        $response->assertStatus(403);
+        // Returns 404 because ItemProgress::findOrFail is scoped to Tenant A, completely hiding Tenant B's records
+        $response->assertStatus(404);
 
         $progressB->refresh();
         $this->assertEquals(0, $progressB->completed_qty);
@@ -229,28 +232,51 @@ class TenantScopeAuditTest extends TestCase
 
     public function test_cross_tenant_websocket_broadcasting_channels_blocked()
     {
-        $this->actingAs($this->userA);
+        \Illuminate\Support\Facades\Config::set('broadcasting.default', 'pusher');
+        \Illuminate\Support\Facades\Config::set('broadcasting.connections.pusher.key', 'test_key');
+        \Illuminate\Support\Facades\Config::set('broadcasting.connections.pusher.secret', 'test_secret');
+        \Illuminate\Support\Facades\Config::set('broadcasting.connections.pusher.app_id', 'test_app_id');
 
-        // 1. Dashboard private channel of Tenant B
-        $resDash = $this->post('/broadcasting/auth', [
-            'channel_name' => 'private-tenant.'.$this->tenantB->id.'.dashboard',
+        $tenantTarget = Tenant::create([
+            'company_name' => 'Target Other Workshop',
+            'slug' => 'target-other-workshop',
+            'subscription_status' => 'active',
+        ]);
+
+        TenantManager::setTenantId($this->tenantA->id);
+
+        $userA = User::create([
+            'tenant_id' => $this->tenantA->id,
+            'name' => 'Alice Test User A',
+            'email' => 'alice_channel_test@alpha.com',
+            'username' => 'alice_channel_test',
+            'password' => bcrypt('password123'),
+            'role_id' => $this->officeRole->id,
+            'is_owner' => false,
+        ]);
+
+        $this->actingAs($userA);
+
+        // 1. Presence channel of target tenant
+        $resPres = $this->post('/broadcasting/auth', [
+            'channel_name' => 'presence-tenant.'.$tenantTarget->id.'.presence',
             'socket_id' => '1234.5678',
         ]);
-        $resDash->assertStatus(403);
+        $resPres->assertStatus(403);
 
-        // 2. Workers private channel of Tenant B
+        // 2. Workers private channel of target tenant
         $resWork = $this->post('/broadcasting/auth', [
-            'channel_name' => 'private-tenant.'.$this->tenantB->id.'.workers',
+            'channel_name' => 'private-tenant.'.$tenantTarget->id.'.workers',
             'socket_id' => '1234.5678',
         ]);
         $resWork->assertStatus(403);
 
-        // 3. Presence channel of Tenant B
-        $resPres = $this->post('/broadcasting/auth', [
-            'channel_name' => 'presence-tenant.'.$this->tenantB->id.'.presence',
+        // 3. Dashboard private channel of target tenant
+        $resDash = $this->post('/broadcasting/auth', [
+            'channel_name' => 'private-tenant.'.$tenantTarget->id.'.dashboard',
             'socket_id' => '1234.5678',
         ]);
-        $resPres->assertStatus(403);
+        $resDash->assertStatus(403);
     }
 
     public function test_automatic_tenant_id_population_on_model_creation()
