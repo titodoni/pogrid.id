@@ -1,11 +1,108 @@
 # POgrid.id — v1 Launch Todo List
 
-> Detailed task list derived from LAUNCH_PLAN.md
+> Detailed task list derived from LAUNCH_PLAN.md + Codebase Audit
 > Use [ ] for pending, [~] for in-progress, [x] for done, [!] for blocked
 
 ---
 
-## Phase 0: Pre-Launch Audit (Week 1)
+## Phase 0: CODEBASE GAPS — Must Build Before Launch
+
+> Found during codebase audit. These are CODE CHANGES, not just testing.
+
+### 0A: Trial Period Enforcement 🔴 CRITICAL
+
+**Problem**: `trial_ends_at` field exists on Tenant model, but NO middleware enforces it. Expired trial users can still access everything.
+
+- [ ] 0A.1 Create `CheckTrialStatus` middleware
+  - File: `app/Http/Middleware/CheckTrialStatus.php`
+  - Logic: If `tenant.trial_ends_at < now()` AND `subscription_status != 'active'` → block access
+  - Redirect to `/subscription/expired` page
+- [ ] 0A.2 Register middleware in `bootstrap/app.php`
+- [ ] 0A.3 Apply to all authenticated routes (except `/subscription/*` and `/logout`)
+- [ ] 0A.4 Create `/subscription/expired` page
+  - File: `resources/js/Pages/Subscription/Expired.tsx`
+  - Show: "Trial expired. Please subscribe to continue."
+  - CTA: "Subscribe Now" button
+- [ ] 0A.5 Skip check for Owner role with `is_owner=true` (optional — owner should also pay)
+- [ ] 0A.6 Test: expired trial → blocked, active trial → allowed
+- [ ] 0A.7 Test: paid subscription → always allowed
+
+### 0B: Payment Gateway Integration 🔴 CRITICAL
+
+**Problem**: No payment code exists. Cannot collect revenue.
+
+- [ ] 0B.1 Choose provider: Midtrans (recommended for Indonesia)
+- [ ] 0B.2 Create Midtrans account + get API keys (sandbox first)
+- [ ] 0B.3 Install Midtrans PHP SDK: `composer require midtrans/midtrans-php`
+- [ ] 0B.4 Create `payments` table migration
+  ```
+  payments: id, tenant_id, amount, status (pending|success|failed),
+            payment_method, midtrans_order_id, midtrans_transaction_id,
+            created_at, updated_at
+  ```
+- [ ] 0B.5 Create `Payment` model
+- [ ] 0B.6 Create `PaymentController` with:
+  - `createPayment()` — generate Midtrans Snap token
+  - `handleCallback()` — webhook from Midtrans
+  - `paymentSuccess()` — update tenant subscription_status
+- [ ] 0B.7 Add routes in `routes/web.php`:
+  ```
+  POST /subscription/pay
+  POST /subscription/callback (Midtrans webhook)
+  GET /subscription/success
+  ```
+- [ ] 0B.8 Configure Midtrans webhook URL in dashboard
+- [ ] 0B.9 Test with Midtrans sandbox
+- [ ] 0B.10 Switch to Midtrans production keys
+
+### 0C: Subscription Management UI 🟡
+
+**Problem**: No billing page, no plan selection, no payment history.
+
+- [ ] 0C.1 Design subscription plans (Basic/Pro/Enterprise)
+- [ ] 0C.2 Create `subscriptions` table migration
+  ```
+  subscriptions: id, tenant_id, plan, status (active|cancelled|expired),
+                  starts_at, ends_at, created_at, updated_at
+  ```
+- [ ] 0C.3 Create `Subscription` model
+- [ ] 0C.4 Create `SubscriptionController` with:
+  - `index()` — show current plan + billing history
+  - `plans()` — list available plans
+  - `subscribe()` — initiate payment
+  - `cancel()` — cancel subscription
+- [ ] 0C.5 Create billing page
+  - File: `resources/js/Pages/Subscription/Billing.tsx`
+  - Show: current plan, status, next billing date, payment history
+- [ ] 0C.6 Create plan selection page
+  - File: `resources/js/Pages/Subscription/Plans.tsx`
+  - Show: plan cards with features + pricing
+- [ ] 0C.7 Create payment success page
+  - File: `resources/js/Pages/Subscription/Success.tsx`
+- [ ] 0C.8 Add billing link to Owner dashboard
+- [ ] 0C.9 Test: view plans, select plan, complete payment, see history
+
+### 0D: Trial Expiry Reminders 🟡
+
+**Problem**: No notification when trial is about to expire.
+
+- [ ] 0D.1 Create `SendTrialReminders` command
+  - File: `app/Console/Commands/SendTrialReminders.php`
+  - Logic: Find tenants where `trial_ends_at` is within 3 days AND `subscription_status != 'active'`
+  - Send email reminder
+- [ ] 0D.2 Create trial reminder email template
+  - File: `resources/views/emails/trial-reminder.blade.php`
+  - Content: "Your trial expires in X days. Subscribe to continue."
+- [ ] 0D.3 Register command in `routes/console.php`
+  - Schedule: daily at 09:00
+- [ ] 0D.4 Create trial expiry email template (for day of expiry)
+  - File: `resources/views/emails/trial-expired.blade.php`
+- [ ] 0D.5 Test: send reminder email, verify content
+- [ ] 0D.6 Test: command runs on schedule
+
+---
+
+## Phase 1: Pre-Launch Audit (Week 1)
 
 ### Smoke Testing
 - [ ] 0.1 Run full smoke test checklist (SMOKE_TEST_CHECKLIST.md)

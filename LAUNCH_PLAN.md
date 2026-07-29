@@ -78,36 +78,38 @@
 
 ### What's NOT Implemented / Gaps 🔴
 
-#### Critical (Must-have for launch)
+#### Critical (Must-build before launch — CODE CHANGES)
 
-| Gap | Impact | Effort |
-|-----|--------|--------|
-| **Payment integration** | Can't collect subscription revenue | HIGH |
-| **Registration flow** | Users can't sign up | MEDIUM |
-| **Onboarding wizard** | First-time setup unclear | MEDIUM |
-| **Smoke test execution** | Loopholes unknown | HIGH |
-| **Production deployment** | Not live | HIGH |
-| **Email system** | No transactional emails | MEDIUM |
+| Gap | Impact | Effort | Phase |
+|-----|--------|--------|-------|
+| **Trial period enforcement** | Users bypass expired trial | 1 day | Phase 0A |
+| **Payment gateway (Midtrans)** | Can't collect revenue | 2 days | Phase 0B |
+| **Subscription management UI** | No billing page | 1 day | Phase 0C |
+| **Trial expiry reminders** | No notification before expiry | 0.5 day | Phase 0D |
+
+#### Critical (Must-have for launch — INFRA)
+
+| Gap | Impact | Effort | Phase |
+|-----|--------|--------|-------|
+| **Production deployment** | Not live | 1 day | Phase 2 |
+| **Email system** | No transactional emails | 2 hrs | Phase 2 |
 
 #### Important (Should-have for launch)
 
-| Gap | Impact | Effort |
-|-----|--------|--------|
-| **Subscription management** | No billing cycle tracking | HIGH |
-| **Trial period logic** | 30-day trial not enforced | MEDIUM |
-| **Rate limiting (production)** | Security concern | LOW |
-| **Error logging/monitoring** | No observability | MEDIUM |
-| **Backup strategy** | Data loss risk | LOW |
-| **SSL/HTTPS** | Security requirement | LOW (hosting) |
+| Gap | Impact | Effort | Phase |
+|-----|--------|--------|-------|
+| **Smoke test execution** | Loopholes unknown | 2 days | Phase 1 |
+| **Onboarding wizard refinement** | First-time setup unclear | 1 day | Phase 3 |
+| **Error logging/monitoring** | No observability | 2 hrs | Phase 2 |
+| **Backup strategy** | Data loss risk | 2 hrs | Phase 2 |
 
 #### Nice-to-have (Post-launch)
 
-| Gap | Impact | Effort |
-|-----|--------|--------|
-| **Mobile PWA** | Better mobile experience | MEDIUM |
-| **Multi-language UI** | EN/ID toggle exists but incomplete | LOW |
-| **API (future)** | Third-party integrations | HIGH |
-| **Webhook system** | External notifications | MEDIUM |
+| Gap | Impact | Effort | Phase |
+|-----|--------|--------|-------|
+| **Mobile PWA** | Better mobile experience | MEDIUM | Phase 7+ |
+| **Multi-language UI** | EN/ID toggle exists but incomplete | LOW | Phase 7+ |
+| **API (future)** | Third-party integrations | HIGH | Phase 7+ |
 
 ---
 
@@ -321,15 +323,13 @@
 ## 4. TIMELINE SUMMARY
 
 ```
-Week 1:  ████░░░░░░░░░░░░░░░░  Phase 0: Audit & Fix
-Week 2:  ░░░░████░░░░░░░░░░░░  Phase 1: Infrastructure
-Week 2-3:░░░░░░░░████░░░░░░░░  Phase 2: Auth
-Week 3:  ░░░░░░░░░░░░████░░░░  Phase 3: Onboarding
-Week 3-4:░░░░░░░░░░░░░░░░████  Phase 4: Payment
-Week 4:  ░░░░░░░░░░░░░░░░████  Phase 5: UI/UX Polish
-Week 4-5:░░░░░░░░░░░░░░░░░░██  Phase 6: Testing
-Week 5:  ░░░░░░░░░░░░░░░░░░██  Phase 7: Soft Launch
-Week 6:  ░░░░░░░░░░░░░░░░░░░█  Phase 8: Marketing Launch
+Week 1:  ████░░░░░░░░░░░░░░░░  Phase 0A-0D: Build missing features
+Week 1-2:░░░░████░░░░░░░░░░░░  Phase 1: Smoke test & fix
+Week 2-3:░░░░░░░░████░░░░░░░░  Phase 2: Infrastructure & deployment
+Week 3:  ░░░░░░░░░░░░████░░░░  Phase 3: Onboarding refinement
+Week 3-4:░░░░░░░░░░░░░░░░████  Phase 4: Testing & QA
+Week 4-5:░░░░░░░░░░░░░░░░░░██  Phase 5: Soft launch
+Week 5-6:░░░░░░░░░░░░░░░░░░░█  Phase 6: Marketing launch
 ```
 
 **Total estimated time: 6 weeks to public launch**
