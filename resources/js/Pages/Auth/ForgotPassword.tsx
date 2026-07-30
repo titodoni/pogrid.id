@@ -186,7 +186,7 @@ export default function ForgotPassword() {
                         textAlign: 'center'
                     }}>
                         <div style={{ fontSize: '32px', marginBottom: '12px', color: 'var(--color-pg-success)' }}>&#10003;</div>
-                        <p style={{ color: '#86efac', fontSize: '13.5px', lineHeight: '1.5', margin: 0 }}>
+                        <p style={{ color: 'var(--color-pg-success)', fontSize: '13.5px', lineHeight: '1.5', margin: 0 }}>
                             {successMessage}
                         </p>
                     </div>

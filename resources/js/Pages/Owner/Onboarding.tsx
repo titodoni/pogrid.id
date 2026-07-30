@@ -190,7 +190,7 @@ export default function Onboarding({ tenant }: Props) {
                                     style={{
                                         width: '100%',
                                         backgroundColor: 'var(--color-pg-primary)',
-                                        color: '#fff',
+                                        color: 'var(--color-pg-text)',
                                         border: 'none',
                                         borderRadius: '10px',
                                         padding: '14px',
@@ -288,7 +288,7 @@ export default function Onboarding({ tenant }: Props) {
                             style={{
                                 width: '100%',
                                 backgroundColor: 'var(--color-pg-success)',
-                                color: '#fff',
+                                color: 'var(--color-pg-text)',
                                 border: 'none',
                                 borderRadius: '10px',
                                 padding: '14px',

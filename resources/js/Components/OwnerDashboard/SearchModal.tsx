@@ -70,7 +70,7 @@ export default function SearchModal({
                         style={{
                             background: 'none',
                             border: 'none',
-                            color: '#71717a',
+                            color: 'var(--color-pg-text-muted)',
                             fontSize: '20px',
                             cursor: 'pointer',
                             lineHeight: 1,
@@ -80,7 +80,7 @@ export default function SearchModal({
                 </div>
 
                 <div style={{ position: 'relative', marginBottom: '16px', flexShrink: 0 }}>
-                    <Search size={18} style={{ position: 'absolute', left: '14px', top: '14px', color: '#71717a' }} />
+                    <Search size={18} style={{ position: 'absolute', left: '14px', top: '14px', color: 'var(--color-pg-text-muted)' }} />
                     <input
                         type="text"
                         value={searchQuery}
@@ -93,7 +93,7 @@ export default function SearchModal({
                             backgroundColor: 'var(--color-pg-bg)',
                             border: '1px solid var(--color-pg-border)',
                             borderRadius: '10px',
-                            color: '#fff',
+                            color: 'var(--color-pg-text)',
                             fontSize: '14px',
                             outline: 'none',
                             boxSizing: 'border-box',
@@ -103,7 +103,7 @@ export default function SearchModal({
 
                 <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
                     {!searchQuery.trim() ? (
-                        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#71717a' }}>
+                        <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--color-pg-text-muted)' }}>
                             <div style={{ fontSize: '24px', marginBottom: '12px' }}>🔍</div>
                             <p style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 4px 0' }}>
                                 {language === 'en' ? 'Search POs, Items, Clients & Issues' : 'Cari PO, Barang, Klien & Kendala'}
@@ -113,7 +113,7 @@ export default function SearchModal({
                             </p>
                         </div>
                     ) : totalResults === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#71717a' }}>
+                        <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--color-pg-text-muted)' }}>
                             <div style={{ fontSize: '24px', marginBottom: '12px' }}>📭</div>
                             <p style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 4px 0' }}>
                                 {language === 'en' ? 'No results found' : 'Tidak ada hasil'}
@@ -140,8 +140,8 @@ export default function SearchModal({
                                                     key={issue.id}
                                                     onClick={() => handleSearchAlertClick(issue.id.replace('alert-db-', '').replace('alert-pin-', ''))}
                                                     style={{
-                                                        backgroundColor: 'rgba(255,255,255,0.03)',
-                                                        border: '1px solid rgba(255,255,255,0.06)',
+                                                        backgroundColor: 'var(--color-pg-surface)',
+                                                        border: '1px solid var(--color-pg-border)',
                                                         borderRadius: '8px',
                                                         padding: '12px',
                                                         cursor: 'pointer',
@@ -154,7 +154,7 @@ export default function SearchModal({
                                                             {issue.title}
                                                         </span>
                                                     </div>
-                                                    <p style={{ fontSize: '13px', margin: 0, color: '#fafafa' }}>{issue.message}</p>
+                                                    <p style={{ fontSize: '13px', margin: 0, color: 'var(--color-pg-text)' }}>{issue.message}</p>
                                                 </div>
                                             );
                                         })}
@@ -177,8 +177,8 @@ export default function SearchModal({
                                                     key={po.id}
                                                     onClick={() => handleSearchItemClick(po.id)}
                                                     style={{
-                                                        backgroundColor: 'rgba(255,255,255,0.03)',
-                                                        border: '1px solid rgba(255,255,255,0.06)',
+                                                        backgroundColor: 'var(--color-pg-surface)',
+                                                        border: '1px solid var(--color-pg-border)',
                                                         borderRadius: '8px',
                                                         padding: '12px',
                                                         cursor: 'pointer',
@@ -186,7 +186,7 @@ export default function SearchModal({
                                                     className="hover-grow"
                                                 >
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                                        <span style={{ fontSize: '14px', fontWeight: 800, color: '#fafafa' }}>{po.po_number}</span>
+                                                        <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--color-pg-text)' }}>{po.po_number}</span>
                                                         <span style={{
                                                             fontSize: '10px',
                                                             fontWeight: 700,
@@ -198,15 +198,15 @@ export default function SearchModal({
                                                             {po.status}
                                                         </span>
                                                     </div>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '6px' }}>
                                                         <span>{po.client_name}</span>
                                                         <span>{language === 'en' ? 'Deadline: ' : 'Tenggat: '} {formatDDMMYYYY(po.global_deadline)}</span>
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <div style={{ flex: 1, height: '6px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                                                        <div style={{ flex: 1, height: '6px', backgroundColor: 'var(--color-pg-border)', borderRadius: '3px', overflow: 'hidden' }}>
                                                             <div style={{ width: `${itemsProgress}%`, height: '100%', backgroundColor: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? '#10b981' : '#6366f1', borderRadius: '3px' }} />
                                                         </div>
-                                                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#fafafa' }}>{itemsProgress}%</span>
+                                                        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{itemsProgress}%</span>
                                                     </div>
                                                 </div>
                                             );
@@ -228,8 +228,8 @@ export default function SearchModal({
                                                     key={`${item.po_id}-${item.id}`}
                                                     onClick={() => handleSearchItemClick(item.po_id, item.id)}
                                                     style={{
-                                                        backgroundColor: 'rgba(255,255,255,0.03)',
-                                                        border: '1px solid rgba(255,255,255,0.06)',
+                                                        backgroundColor: 'var(--color-pg-surface)',
+                                                        border: '1px solid var(--color-pg-border)',
                                                         borderRadius: '8px',
                                                         padding: '12px',
                                                         cursor: 'pointer',
@@ -237,7 +237,7 @@ export default function SearchModal({
                                                     className="hover-grow"
                                                 >
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#fafafa' }}>{item.item_name}</span>
+                                                        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{item.item_name}</span>
                                                         <span style={{
                                                             fontSize: '10px',
                                                             fontWeight: 700,
@@ -249,14 +249,14 @@ export default function SearchModal({
                                                             {item.status}
                                                         </span>
                                                     </div>
-                                                    <div style={{ fontSize: '11px', color: '#a1a1aa', marginBottom: '8px' }}>
+                                                    <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', marginBottom: '8px' }}>
                                                         {item.client_name} &middot; PO {item.po_number}
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <div style={{ flex: 1, height: '4px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+                                                        <div style={{ flex: 1, height: '4px', backgroundColor: 'var(--color-pg-border)', borderRadius: '2px', overflow: 'hidden' }}>
                                                             <div style={{ width: `${progress}%`, height: '100%', backgroundColor: item.status === 'COMPLETED' ? '#10b981' : '#a855f7', borderRadius: '2px' }} />
                                                         </div>
-                                                        <span style={{ fontSize: '10px', fontWeight: 700, color: '#fafafa' }}>{progress}%</span>
+                                                        <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{progress}%</span>
                                                     </div>
                                                 </div>
                                             );
@@ -283,8 +283,8 @@ export default function SearchModal({
                                                         if (firstPo) handleSearchItemClick(firstPo.id);
                                                     }}
                                                     style={{
-                                                        backgroundColor: 'rgba(255,255,255,0.03)',
-                                                        border: '1px solid rgba(255,255,255,0.06)',
+                                                        backgroundColor: 'var(--color-pg-surface)',
+                                                        border: '1px solid var(--color-pg-border)',
                                                         borderRadius: '8px',
                                                         padding: '12px',
                                                         cursor: 'pointer',
@@ -294,7 +294,7 @@ export default function SearchModal({
                                                     }}
                                                     className="hover-grow"
                                                 >
-                                                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#fafafa' }}>{clientName}</span>
+                                                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{clientName}</span>
                                                     <div style={{ display: 'flex', gap: '8px' }}>
                                                         <span style={{ fontSize: '10px', color: '#fbbf24', backgroundColor: 'rgba(234,179,8,0.12)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                                                             {activeCount} {language === 'en' ? 'Active' : 'Aktif'}

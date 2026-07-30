@@ -160,8 +160,8 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
             }}>
                 <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
                 <div className="glass-card" style={{
-                    backgroundColor: 'var(--color-pg-card, rgba(24, 24, 27, 0.7))',
-                    border: '1px solid var(--color-pg-border, rgba(255, 255, 255, 0.08))',
+                    backgroundColor: 'var(--color-pg-card, var(--color-pg-surface))',
+                    border: '1px solid var(--color-pg-border)',
                     borderRadius: '16px',
                     padding: '24px',
                     boxShadow: '0 8px 30px rgba(0, 0, 0, 0.35)',

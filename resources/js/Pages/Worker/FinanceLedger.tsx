@@ -143,9 +143,9 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
 
     return (
         <div className="dashboard-root" style={{
-            backgroundColor: 'var(--color-pg-bg, #09090b)',
+            backgroundColor: 'var(--color-pg-bg, var(--color-pg-bg))',
             minHeight: '100vh',
-            color: 'var(--color-pg-text, #f8fafc)',
+            color: 'var(--color-pg-text, var(--color-pg-text))',
             fontFamily: 'var(--font-sans, system-ui, sans-serif)',
             display: 'flex',
             flexDirection: 'column',
@@ -174,9 +174,9 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
                         <div style={{
                             textAlign: 'center',
                             padding: '48px 20px',
-                            color: 'var(--color-pg-text-muted, #71717a)',
+                            color: 'var(--color-pg-text-muted, var(--color-pg-text-muted))',
                             fontSize: '14px',
-                            border: '1px dashed var(--color-pg-border, rgba(255,255,255,0.15))',
+                            border: '1px dashed var(--color-pg-border)',
                             borderRadius: '12px',
                         }}>
                             {t.no_pos}
@@ -190,8 +190,8 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
 
                             return (
                                 <div key={po.id} className="glass-card" style={{
-                                    backgroundColor: 'var(--color-pg-card, rgba(24, 24, 27, 0.65))',
-                                    border: '1px solid var(--color-pg-border, rgba(255, 255, 255, 0.08))',
+                                    backgroundColor: 'var(--color-pg-card, var(--color-pg-surface))',
+                                    border: '1px solid var(--color-pg-border)',
                                     borderRadius: '16px',
                                     overflow: 'hidden',
                                     boxShadow: '0 8px 30px rgba(0, 0, 0, 0.35)',
@@ -202,8 +202,8 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
                                         onClick={() => togglePo(po.id)}
                                         style={{
                                             padding: '16px 20px',
-                                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                                            borderBottom: isExpanded ? '1px solid var(--color-pg-border, rgba(255, 255, 255, 0.08))' : 'none',
+                                            backgroundColor: 'var(--color-pg-surface)',
+                                            borderBottom: isExpanded ? '1px solid var(--color-pg-border)' : 'none',
                                             display: 'flex',
                                             justifyContent: 'space-between',
                                             alignItems: 'center',
@@ -218,7 +218,7 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
                                                 padding: '2px 10px',
                                                 borderRadius: '20px',
                                                 fontSize: '12px',
-                                                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                                                backgroundColor: 'var(--color-pg-surface)',
                                                 color: 'var(--color-pg-text-secondary)',
                                                 fontWeight: 600,
                                             }}>
@@ -257,7 +257,7 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
                                         <div style={{ overflowX: 'auto' }}>
                                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
                                                 <thead>
-                                                    <tr style={{ borderBottom: '1px solid var(--color-pg-border, rgba(255,255,255,0.05))', color: 'var(--color-pg-text-secondary)' }}>
+                                                    <tr style={{ borderBottom: '1px solid var(--color-pg-border)', color: 'var(--color-pg-text-secondary)' }}>
                                                         <th style={{ padding: '12px 20px', fontWeight: 600 }}>{t.item_name}</th>
                                                         <th style={{ padding: '12px 16px', fontWeight: 600 }}>{t.target_qty}</th>
                                                         <th style={{ padding: '12px 16px', fontWeight: 600 }}>{t.delivered_qty}</th>
@@ -276,10 +276,10 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
 
                                                         return (
                                                             <tr key={item.id} style={{
-                                                                borderBottom: '1px solid rgba(255,255,255,0.03)',
+                                                                borderBottom: '1px solid var(--color-pg-border)',
                                                                 opacity: isItemLoading ? 0.6 : 1,
                                                             }}>
-                                                                <td style={{ padding: '16px 20px', fontWeight: 600, color: '#f8fafc' }}>
+                                                                <td style={{ padding: '16px 20px', fontWeight: 600, color: 'var(--color-pg-text)' }}>
                                                                     {item.item_name}
                                                                     {item.delivery_status === 'PENDING' && (
                                                                         <span style={{ display: 'block', fontSize: '11px', color: '#f59e0b', marginTop: '2px', fontWeight: 400 }}>
@@ -288,10 +288,10 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
                                                                         </span>
                                                                     )}
                                                                 </td>
-                                                                <td style={{ padding: '16px 16px', color: '#d4d4d8', fontWeight: 600 }}>
+                                                                <td style={{ padding: '16px 16px', color: 'var(--color-pg-text)', fontWeight: 600 }}>
                                                                     {item.target_qty}
                                                                 </td>
-                                                                <td style={{ padding: '16px 16px', color: (item.delivered_qty && item.delivered_qty >= item.target_qty) ? '#22c55e' : '#a1a1aa', fontWeight: 600 }}>
+                                                                <td style={{ padding: '16px 16px', color: (item.delivered_qty && item.delivered_qty >= item.target_qty) ? '#22c55e' : 'var(--color-pg-text-secondary)', fontWeight: 600 }}>
                                                                     {item.delivered_qty || 0} / {item.target_qty}
                                                                 </td>
                                                                 <td style={{ padding: '16px 16px' }}>
@@ -300,7 +300,7 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
                                                                         backgroundColor: 'rgba(0, 0, 0, 0.4)',
                                                                         padding: '3px',
                                                                         borderRadius: '8px',
-                                                                        border: '1px solid rgba(255,255,255,0.06)',
+                                                                        border: '1px solid var(--color-pg-border)',
                                                                         gap: '2px',
                                                                     }}>
                                                                         {invStatuses.map((s) => {
@@ -317,8 +317,8 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
                                                                                         border: 'none',
                                                                                         fontSize: '11px',
                                                                                         fontWeight: 700,
-                                                                                        backgroundColor: active ? (s === 'INVOICED' ? '#22c55e' : s === 'PARTIAL' ? '#f59e0b' : '#3f3f46') : 'transparent',
-                                                                                        color: active ? '#fff' : '#a1a1aa',
+                                                                                        backgroundColor: active ? (s === 'INVOICED' ? '#22c55e' : s === 'PARTIAL' ? '#f59e0b' : 'var(--color-pg-text-muted)') : 'transparent',
+                                                                                        color: active ? 'var(--color-pg-text)' : 'var(--color-pg-text-secondary)',
                                                                                         cursor: active ? 'default' : 'pointer',
                                                                                         transition: 'all 0.15s',
                                                                                     }}
@@ -335,7 +335,7 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
                                                                         backgroundColor: 'rgba(0, 0, 0, 0.4)',
                                                                         padding: '3px',
                                                                         borderRadius: '8px',
-                                                                        border: '1px solid rgba(255,255,255,0.06)',
+                                                                        border: '1px solid var(--color-pg-border)',
                                                                         gap: '2px',
                                                                     }}>
                                                                         {payStatuses.map((p) => {
@@ -353,7 +353,7 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
                                                                                         fontSize: '11px',
                                                                                         fontWeight: 700,
                                                                                         backgroundColor: active ? (p === 'PAID' ? '#22c55e' : p === 'PARTIAL_PAID' ? '#f59e0b' : '#ef4444') : 'transparent',
-                                                                                        color: active ? '#fff' : '#a1a1aa',
+                                                                                        color: active ? 'var(--color-pg-text)' : 'var(--color-pg-text-secondary)',
                                                                                         cursor: active ? 'default' : 'pointer',
                                                                                         transition: 'all 0.15s',
                                                                                     }}

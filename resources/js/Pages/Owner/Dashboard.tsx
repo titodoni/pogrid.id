@@ -455,7 +455,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
 
     const renderStatusBadge = (text: string, dotColor: string) => (
         <span className="badge animate-fade" style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+            backgroundColor: 'var(--color-pg-surface)',
             color: 'var(--color-pg-text-secondary)',
             border: '1px solid var(--color-pg-border)',
             padding: '2px 8px',
@@ -466,7 +466,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
             alignItems: 'center',
             gap: '6px',
             whiteSpace: 'nowrap',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.01)',
+            boxShadow: 'inset 0 1px 0 var(--color-pg-border)',
         }}>
             <span style={{
                 width: '6px',
@@ -576,7 +576,7 @@ export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenan
                 stage_name: language === 'id' ? 'Menunggu Produksi' : 'Queued/Pending',
                 qty: queuedQty,
                 color: 'var(--color-pg-text-muted)',
-                bg: 'rgba(255, 255, 255, 0.05)'
+                bg: 'var(--color-pg-surface)'
             });
         }
         
@@ -1762,7 +1762,7 @@ ${locationStr}
             <div className="dashboard-above-scroll">
             <header className="responsive-header owner-dashboard-header" style={{
                 padding: '10px 16px 8px',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                borderBottom: '1px solid var(--color-pg-border)',
             }}>
                 <div className="owner-header-title">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -1788,7 +1788,7 @@ ${locationStr}
                             padding: '8px',
                             backgroundColor: 'var(--color-pg-border-subtle)',
                             color: 'var(--color-pg-text-secondary)',
-                            border: '1px solid rgba(255,255,255,0.08)',
+                            border: '1px solid var(--color-pg-border)',
                             borderRadius: '8px',
                             cursor: 'pointer',
                             fontSize: '16px',
@@ -1817,7 +1817,7 @@ ${locationStr}
                                 padding: '8px',
                                 backgroundColor: 'var(--color-pg-border-subtle)',
                                 color: 'var(--color-pg-text-secondary)',
-                                border: '1px solid rgba(255,255,255,0.08)',
+                                border: '1px solid var(--color-pg-border)',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
                                 fontSize: '16px',
@@ -1892,7 +1892,7 @@ ${locationStr}
                             padding: '8px',
                             backgroundColor: 'var(--color-pg-border-subtle)',
                             color: 'var(--color-pg-text-secondary)',
-                            border: '1px solid rgba(255,255,255,0.08)',
+                            border: '1px solid var(--color-pg-border)',
                             borderRadius: '8px',
                             cursor: 'pointer',
                             fontSize: '16px',
@@ -1912,7 +1912,7 @@ ${locationStr}
                                 padding: '8px 12px',
                                 backgroundColor: 'var(--color-pg-border-subtle)',
                                 color: 'var(--color-pg-text-secondary)',
-                                border: '1px solid rgba(255,255,255,0.08)',
+                                border: '1px solid var(--color-pg-border)',
                                 borderRadius: '8px',
                                 fontWeight: 600,
                                 cursor: 'pointer',
@@ -2046,8 +2046,8 @@ ${locationStr}
                                 top: '100%',
                                 right: 0,
                                 marginTop: '6px',
-                                backgroundColor: 'var(--color-pg-card-bg, #18181b)',
-                                border: '1px solid var(--color-pg-border, #27272a)',
+                                backgroundColor: 'var(--color-pg-card-bg)',
+                                border: '1px solid var(--color-pg-border)',
                                 borderRadius: '8px',
                                 padding: '10px 14px',
                                 zIndex: 1000,
@@ -2066,7 +2066,7 @@ ${locationStr}
                                         {onlineUsers.map(u => (
                                             <div key={u.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
                                                 <span style={{ fontWeight: 600, color: 'var(--color-pg-text)' }}>{u.name}</span>
-                                                <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', backgroundColor: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '4px' }}>
+                                                <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', backgroundColor: 'var(--color-pg-surface)', padding: '2px 6px', borderRadius: '4px' }}>
                                                     {u.post_name || u.role}
                                                 </span>
                                             </div>
@@ -2136,7 +2136,7 @@ ${locationStr}
                         <span style={{
                             marginLeft: '4px',
                             fontSize: '10px',
-                            backgroundColor: 'rgba(255,255,255,0.1)',
+                            backgroundColor: 'var(--color-pg-surface)',
                             color: 'var(--color-pg-text-secondary)',
                             padding: '1px 5px',
                             borderRadius: '8px'
@@ -2300,7 +2300,7 @@ ${locationStr}
                                 flexWrap: 'wrap',
                                 gap: '12px'
                             }}>
-                                <div style={{ display: 'flex', gap: '8px', backgroundColor: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                <div style={{ display: 'flex', gap: '8px', backgroundColor: 'var(--color-pg-surface)', padding: '4px', borderRadius: '8px', border: '1px solid var(--color-pg-border)' }}>
                                     {['month', 'week', 'year'].map(r => (
                                         <button
                                             key={r}
@@ -2678,7 +2678,7 @@ ${locationStr}
                                     borderRadius: '9999px',
                                     fontSize: '12px',
                                     fontWeight: 600,
-                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    border: '1px solid var(--color-pg-border)',
                                     backgroundColor: activePoFilter === 'all' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                     color: activePoFilter === 'all' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
@@ -2695,7 +2695,7 @@ ${locationStr}
                                     borderRadius: '9999px',
                                     fontSize: '12px',
                                     fontWeight: 600,
-                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    border: '1px solid var(--color-pg-border)',
                                     backgroundColor: activePoFilter === 'marked' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                     color: activePoFilter === 'marked' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
@@ -2712,7 +2712,7 @@ ${locationStr}
                                     borderRadius: '9999px',
                                     fontSize: '12px',
                                     fontWeight: 600,
-                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    border: '1px solid var(--color-pg-border)',
                                     backgroundColor: activePoFilter === 'delayed' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                     color: activePoFilter === 'delayed' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
@@ -2729,7 +2729,7 @@ ${locationStr}
                                     borderRadius: '9999px',
                                     fontSize: '12px',
                                     fontWeight: 600,
-                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    border: '1px solid var(--color-pg-border)',
                                     backgroundColor: activePoFilter === 'ontime' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                     color: activePoFilter === 'ontime' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
@@ -2746,7 +2746,7 @@ ${locationStr}
                                     borderRadius: '9999px',
                                     fontSize: '12px',
                                     fontWeight: 600,
-                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    border: '1px solid var(--color-pg-border)',
                                     backgroundColor: activePoFilter === 'close_due' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                     color: activePoFilter === 'close_due' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     cursor: 'pointer',
@@ -2851,7 +2851,7 @@ ${locationStr}
                                                                         padding: '12px 16px',
                                                                         background: 'transparent',
                                                                         border: 'none',
-                                                                        color: '#fafafa',
+                                                                        color: 'var(--color-pg-text)',
                                                                         cursor: 'pointer',
                                                                         textAlign: 'left'
                                                                     }}
@@ -2931,7 +2931,7 @@ ${locationStr}
                                                                             gap: '12px',
                                                                             marginBottom: '12px',
                                                                             paddingBottom: '12px',
-                                                                            borderBottom: '1px solid rgba(255,255,255,0.06)'
+                                                                            borderBottom: '1px solid var(--color-pg-border)'
                                                                         }}>
                                                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                                                 <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-pg-primary-hover)' }}>
@@ -2992,9 +2992,9 @@ ${locationStr}
                                                                                     className="btn-status-copy"
                                                                                     style={{
                                                                                         padding: '5px 10px',
-                                                                                        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                                                                                        backgroundColor: 'var(--color-pg-surface)',
                                                                                         color: '#fff',
-                                                                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                                                        border: '1px solid var(--color-pg-border)',
                                                                                         borderRadius: '6px',
                                                                                         cursor: 'pointer',
                                                                                         fontSize: '11px',
@@ -3022,7 +3022,7 @@ ${locationStr}
                                                                                             style={{
                                                                                                 padding: '5px 10px',
                                                                                                 backgroundColor: hasProgress ? 'var(--color-pg-border)' : 'rgba(239, 68, 68, 0.1)',
-                                                                                                color: hasProgress ? '#52525b' : '#ef4444',
+                                                                                                color: hasProgress ? 'var(--color-pg-text-muted)' : '#ef4444',
                                                                                                 border: 'none',
                                                                                                 borderRadius: '6px',
                                                                                                 cursor: hasProgress ? 'not-allowed' : 'pointer',
@@ -3062,8 +3062,8 @@ ${locationStr}
                                                                             gap: '10px',
                                                                             margin: '12px 0',
                                                                             padding: '12px',
-                                                                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                                                                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                                                                            backgroundColor: 'var(--color-pg-surface)',
+                                                                            border: '1px solid var(--color-pg-border)',
                                                                             borderRadius: '8px'
                                                                         }}>
                                                                             {/* Design / Draft */}
@@ -3132,8 +3132,8 @@ ${locationStr}
                                                                             <div style={{
                                                                                 marginTop: '12px',
                                                                                 padding: '10px',
-                                                                                backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                                                                                border: '1px solid rgba(255, 255, 255, 0.05)',
+                                                                                backgroundColor: 'var(--color-pg-surface)',
+                                                                                border: '1px solid var(--color-pg-border)',
                                                                                 borderRadius: '8px',
                                                                             }}>
                                                                                 {/* Piece Locations Header */}
@@ -3169,7 +3169,7 @@ ${locationStr}
                                                                                                 height: '10px',
                                                                                                 borderRadius: '5px',
                                                                                                 overflow: 'hidden',
-                                                                                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                                                                                backgroundColor: 'var(--color-pg-surface)',
                                                                                                 width: '100%'
                                                                                             }}>
                                                                                                 {locations.map((loc: any, lIdx: number) => {
@@ -3311,7 +3311,7 @@ ${locationStr}
                                                                                                 : stage.status === 'STUCK' ? 'rgba(239, 68, 68, 0.1)' : 'var(--color-pg-border-subtle)',
                                                                                             color: stage.status === 'COMPLETED' ? 'var(--color-pg-success)'
                                                                                                 : stage.status === 'STUCK' ? '#ef4444' : 'var(--color-pg-text-secondary)',
-                                                                                            border: '1px solid rgba(255,255,255,0.05)',
+                                                                                            border: '1px solid var(--color-pg-border)',
                                                                                             fontSize: '11px',
                                                                                             padding: '3px 8px'
                                                                                         }}>
@@ -3807,7 +3807,7 @@ ${locationStr}
                                         borderRadius: '9999px',
                                         fontSize: '12px',
                                         fontWeight: 600,
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        border: '1px solid var(--color-pg-border)',
                                         backgroundColor: directoryFilter === 'client' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                         color: directoryFilter === 'client' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
@@ -3822,7 +3822,7 @@ ${locationStr}
                                         borderRadius: '9999px',
                                         fontSize: '12px',
                                         fontWeight: 600,
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        border: '1px solid var(--color-pg-border)',
                                         backgroundColor: directoryFilter === 'marked' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                         color: directoryFilter === 'marked' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
@@ -3837,7 +3837,7 @@ ${locationStr}
                                         borderRadius: '9999px',
                                         fontSize: '12px',
                                         fontWeight: 600,
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        border: '1px solid var(--color-pg-border)',
                                         backgroundColor: directoryFilter === 'delayed' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                         color: directoryFilter === 'delayed' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
@@ -3852,7 +3852,7 @@ ${locationStr}
                                         borderRadius: '9999px',
                                         fontSize: '12px',
                                         fontWeight: 600,
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        border: '1px solid var(--color-pg-border)',
                                         backgroundColor: directoryFilter === 'ontime' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                         color: directoryFilter === 'ontime' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
@@ -3867,7 +3867,7 @@ ${locationStr}
                                         borderRadius: '9999px',
                                         fontSize: '12px',
                                         fontWeight: 600,
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        border: '1px solid var(--color-pg-border)',
                                         backgroundColor: directoryFilter === 'close_due' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
                                         color: directoryFilter === 'close_due' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                                     }}
@@ -4246,7 +4246,7 @@ ${locationStr}
                                         <line x1="40" y1="20" x2="480" y2="20" stroke="var(--color-pg-border-subtle)" strokeDasharray="3,3" />
                                         <line x1="40" y1="70" x2="480" y2="70" stroke="var(--color-pg-border-subtle)" strokeDasharray="3,3" />
                                         <line x1="40" y1="120" x2="480" y2="120" stroke="var(--color-pg-border-subtle)" strokeDasharray="3,3" />
-                                        <line x1="40" y1="170" x2="480" y2="170" stroke="rgba(255,255,255,0.1)" />
+                                        <line x1="40" y1="170" x2="480" y2="170" stroke="var(--color-pg-border)" />
                                         {(() => {
                                             const trend = telemetry.trend_data || [];
                                             const maxY = Math.max(...trend.map((d: any) => Math.max(d.output, d.overdue)), 5);
@@ -4513,7 +4513,7 @@ ${locationStr}
                                                 className="rounded-xl p-3 flex flex-col gap-2 cursor-pointer"
                                                 style={{
                                                     backgroundColor: isSelected ? 'rgba(37,99,235,0.1)' : 'var(--color-pg-card)',
-                                                    border: isSelected ? '1px solid #3b82f6' : '1px solid rgba(255,255,255,0.06)',
+                                                    border: isSelected ? '1px solid #3b82f6' : '1px solid var(--color-pg-border)',
                                                 }}
                                             >
                                                 <div className="flex justify-between items-center">
@@ -4864,7 +4864,7 @@ ${locationStr}
                                                     ? (roleColorMap[role]?.color || 'var(--color-pg-text-muted)')
                                                     : 'var(--color-pg-border)',
                                                 backgroundColor: userRoleFilter === role
-                                                    ? (roleColorMap[role]?.bg || 'rgba(255,255,255,0.06)')
+                                                    ? (roleColorMap[role]?.bg || 'var(--color-pg-surface)')
                                                     : 'var(--color-pg-border-subtle)',
                                                 color: userRoleFilter === role
                                                     ? (roleColorMap[role]?.color || 'var(--color-pg-text-muted)')
@@ -4999,13 +4999,13 @@ ${locationStr}
                                                 style={{
                                                     backgroundColor: isSelected ? 'var(--color-pg-primary-glow)' : 'var(--color-pg-border-subtle)',
                                                     border: '1px solid',
-                                                    borderColor: isSelected ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.06)',
+                                                    borderColor: isSelected ? 'var(--color-pg-primary)' : 'var(--color-pg-border)',
                                                 }}
                                             >
                                                 <div className="flex items-center gap-2 mb-1.5">
                                                     <div className="w-4 h-4 rounded-full box-border"
                                                         style={{
-                                                            border: isSelected ? '5px solid var(--color-pg-primary)' : '2px solid rgba(255,255,255,0.2)',
+                                                            border: isSelected ? '5px solid var(--color-pg-primary)' : '2px solid var(--color-pg-border)',
                                                             backgroundColor: isSelected ? '#fff' : 'transparent',
                                                         }} />
                                                     <span className="text-sm font-bold" style={{ color: isSelected ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text)' }}>
@@ -5247,7 +5247,7 @@ ${locationStr}
                                             className="flex-1 py-2 rounded-lg border text-xs font-bold cursor-pointer"
                                             style={{
                                                 borderColor: editLoginMethod === method ? '#3b82f6' : 'var(--color-pg-border)',
-                                                backgroundColor: editLoginMethod === method ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.03)',
+                                                backgroundColor: editLoginMethod === method ? 'rgba(59,130,246,0.15)' : 'var(--color-pg-surface)',
                                                 color: editLoginMethod === method ? '#3b82f6' : 'var(--color-pg-text-secondary)',
                                             }}
                                         >
@@ -5423,7 +5423,7 @@ ${locationStr}
                                             className="flex-1 py-2 rounded-lg border text-xs font-bold cursor-pointer"
                                             style={{
                                                 borderColor: newUserLoginMethod === method ? '#3b82f6' : 'var(--color-pg-border)',
-                                                backgroundColor: newUserLoginMethod === method ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.03)',
+                                                backgroundColor: newUserLoginMethod === method ? 'rgba(59,130,246,0.15)' : 'var(--color-pg-surface)',
                                                 color: newUserLoginMethod === method ? '#3b82f6' : 'var(--color-pg-text-secondary)',
                                             }}
                                         >

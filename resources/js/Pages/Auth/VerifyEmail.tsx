@@ -90,7 +90,7 @@ export default function VerifyEmail({ status }: VerifyEmailProps) {
                         fontSize: '11px',
                         fontWeight: 600,
                         backgroundColor: language === 'en' ? 'var(--color-pg-primary)' : 'transparent',
-                        color: language === 'en' ? '#ffffff' : 'var(--color-pg-text-secondary)',
+                        color: language === 'en' ? 'var(--color-pg-primary-ink)' : 'var(--color-pg-text-secondary)',
                         transition: 'all 0.2s',
                     }}
                 >
@@ -107,7 +107,7 @@ export default function VerifyEmail({ status }: VerifyEmailProps) {
                         fontSize: '11px',
                         fontWeight: 600,
                         backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
-                        color: language === 'id' ? '#ffffff' : 'var(--color-pg-text-secondary)',
+                        color: language === 'id' ? 'var(--color-pg-primary-ink)' : 'var(--color-pg-text-secondary)',
                         transition: 'all 0.2s',
                     }}
                 >
@@ -161,7 +161,7 @@ export default function VerifyEmail({ status }: VerifyEmailProps) {
 
                 <div style={{
                     fontSize: '12px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                    backgroundColor: 'var(--color-pg-surface)',
                     border: '1px dashed var(--color-pg-border)',
                     borderRadius: '8px',
                     padding: '12px',
@@ -204,7 +204,7 @@ export default function VerifyEmail({ status }: VerifyEmailProps) {
                                 height: '44px',
                                 borderRadius: '10px',
                                 background: 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)',
-                                color: '#ffffff',
+                                color: 'var(--color-pg-primary-ink)',
                                 fontSize: '14px',
                                 fontWeight: 600,
                                 border: 'none',
@@ -241,8 +241,8 @@ export default function VerifyEmail({ status }: VerifyEmailProps) {
                                 justifyContent: 'center',
                             }}
                             onMouseOver={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)';
-                                e.currentTarget.style.color = '#ffffff';
+                                e.currentTarget.style.backgroundColor = 'var(--color-pg-card-hover)';
+                                e.currentTarget.style.color = 'var(--color-pg-text)';
                             }}
                             onMouseOut={(e) => {
                                 e.currentTarget.style.backgroundColor = 'transparent';

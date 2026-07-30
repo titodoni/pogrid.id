@@ -130,8 +130,8 @@ export default function Archive({ items, auth_user, tenant }: Props) {
             }}>
                 <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
                     <div className="glass-card" style={{
-                        backgroundColor: 'var(--color-pg-card, rgba(24, 24, 27, 0.7))',
-                        border: '1px solid var(--color-pg-border, rgba(255, 255, 255, 0.08))',
+                        backgroundColor: 'var(--color-pg-card, var(--color-pg-surface))',
+                        border: '1px solid var(--color-pg-border)',
                         borderRadius: '16px',
                         padding: '24px',
                         boxShadow: '0 8px 30px rgba(0, 0, 0, 0.35)',
@@ -144,7 +144,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                                 padding: '40px 20px',
                                 color: 'var(--color-pg-text-muted)',
                                 fontSize: '14px',
-                                border: '1px dashed rgba(255, 255, 255, 0.08)',
+                                border: '1px dashed var(--color-pg-border)',
                                 borderRadius: '10px',
                             }}>
                                 {t.no_items}
@@ -158,14 +158,14 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                                             key={item.id}
                                             style={{
                                                 backgroundColor: 'var(--color-pg-border-subtle)',
-                                                border: '1px solid rgba(255,255,255,0.06)',
+                                                border: '1px solid var(--color-pg-border)',
                                                 borderRadius: '12px',
                                                 padding: '14px 16px',
                                             }}
                                         >
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
                                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                                    <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+                                                    <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: 'var(--color-pg-text)' }}>
                                                         {item.item_name}
                                                     </h3>
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
@@ -224,7 +224,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
                                                     fontWeight: 700,
                                                     padding: '2px 6px',
                                                     borderRadius: '4px',
-                                                    backgroundColor: 'rgba(255,255,255,0.06)',
+                                                    backgroundColor: 'var(--color-pg-surface)',
                                                     color: 'var(--color-pg-text-secondary)',
                                                 }}>
                                                     {item.item_type === 'MANUFACTURE' ? t.manufactured : t.buyout}

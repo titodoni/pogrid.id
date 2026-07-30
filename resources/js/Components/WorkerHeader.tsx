@@ -82,9 +82,9 @@ export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
                             alignItems: 'center',
                             gap: '6px',
                             padding: '0 14px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                            backgroundColor: 'var(--color-pg-surface)',
                             color: 'var(--color-pg-text, #f8fafc)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            border: '1px solid var(--color-pg-border)',
                             borderRadius: '10px',
                             fontSize: '12px',
                             fontWeight: 700,
@@ -92,8 +92,8 @@ export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
                             flexShrink: 0,
                             transition: 'all 0.2s',
                         }}
-                        onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)'; }}
-                        onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)'; }}
+                        onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-pg-card-hover)'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-pg-surface)'; }}
                         title={language === 'id' ? 'Kembali ke Dasbor' : 'Back to Dashboard'}
                     >
                         <ChevronLeft size={16} />
@@ -126,10 +126,10 @@ export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
                 <div style={{
                     display: 'inline-flex',
                     gap: '2px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                    backgroundColor: 'var(--color-pg-surface)',
                     padding: '3px',
                     borderRadius: '10px',
-                    border: '1px solid var(--color-pg-border, rgba(255, 255, 255, 0.08))',
+                    border: '1px solid var(--color-pg-border)',
                 }}>
                     <button
                         type="button"
@@ -140,7 +140,7 @@ export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
                             padding: '0 12px',
                             border: 'none',
                             borderRadius: '8px',
-                            color: '#fff',
+                            color: language === 'en' ? 'var(--color-pg-primary-ink, #fff)' : 'var(--color-pg-text)',
                             fontWeight: 700,
                             fontSize: '11px',
                             cursor: 'pointer',
@@ -159,7 +159,7 @@ export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
                             padding: '0 12px',
                             border: 'none',
                             borderRadius: '8px',
-                            color: '#fff',
+                            color: language === 'id' ? 'var(--color-pg-primary-ink, #fff)' : 'var(--color-pg-text)',
                             fontWeight: 700,
                             fontSize: '11px',
                             cursor: 'pointer',
@@ -314,9 +314,9 @@ export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
                         style={{
                             width: '44px',
                             height: '44px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                            backgroundColor: 'var(--color-pg-surface)',
                             color: 'var(--color-pg-text-secondary, #a1a1aa)',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            border: '1px solid var(--color-pg-border)',
                             borderRadius: '10px',
                             cursor: 'pointer',
                             display: 'flex',
@@ -324,8 +324,8 @@ export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
                             justifyContent: 'center',
                             transition: 'all 0.2s',
                         }}
-                        onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)'; }}
-                        onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)'; }}
+                        onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-pg-card-hover)'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-pg-surface)'; }}
                         title={language === 'en' ? 'Switch Theme' : 'Ganti Tema'}
                     >
                         <Palette size={18} />
@@ -373,7 +373,7 @@ export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
                                         gap: '10px',
                                         transition: 'background-color 0.15s',
                                     }}
-                                    onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)'; }}
+                                    onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-pg-card-hover)'; }}
                                     onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                                 >
                                     <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: tOption.color }} />
@@ -390,9 +390,9 @@ export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
                     style={{
                         width: '44px',
                         height: '44px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                        backgroundColor: 'var(--color-pg-surface)',
                         color: 'var(--color-pg-text-secondary, #a1a1aa)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        border: '1px solid var(--color-pg-border)',
                         borderRadius: '10px',
                         cursor: 'pointer',
                         display: 'flex',
@@ -401,8 +401,8 @@ export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
                         textDecoration: 'none',
                         transition: 'all 0.2s',
                     }}
-                    onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)'; }}
-                    onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)'; }}
+                    onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-pg-card-hover)'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-pg-surface)'; }}
                     title={language === 'en' ? 'Profile' : 'Profil'}
                 >
                     <Settings size={18} />

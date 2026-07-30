@@ -165,7 +165,7 @@ export default function PresentationMode({
                             <div style={{ fontSize: '12px', color: 'var(--color-pg-primary-hover)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
                                 {language === 'id' ? 'RINGKASAN OPERASIONAL' : 'OPERATIONAL SUMMARY'}
                             </div>
-                            <p style={{ fontSize: '20px', color: '#e4e4e7', lineHeight: 1.8, margin: 0, fontWeight: 500 }}>
+                            <p style={{ fontSize: '20px', color: 'var(--color-pg-text)', lineHeight: 1.8, margin: 0, fontWeight: 500 }}>
                                 {narrativeText}
                             </p>
                         </div>
@@ -214,13 +214,13 @@ export default function PresentationMode({
                             </div>
 
                             <div style={{ backgroundColor: 'var(--color-pg-surface)', border: `1px solid ${(telemetry.urgent_active || 0) > 0 ? 'rgba(239,68,68,0.4)' : 'var(--color-pg-border)'}`, borderRadius: '16px', padding: '24px', textAlign: 'center', boxShadow: '0 4px 15px -3px rgba(0,0,0,0.05)' }}>
-                                <div style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                     {language === 'id' ? 'PO Mendesak' : 'Urgent Active POs'}
                                 </div>
                                 <div style={{ fontSize: '48px', fontWeight: 900, color: (telemetry.urgent_active || 0) > 0 ? '#ef4444' : '#34d399' }}>
                                     {telemetry.urgent_active || 0}
                                 </div>
-                                <div style={{ fontSize: '12px', color: '#52525b', marginTop: '6px', fontWeight: 600 }}>
+                                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', marginTop: '6px', fontWeight: 600 }}>
                                     {(telemetry.urgent_active || 0) > 0 ? (language === 'id' ? 'Tindakan segera' : 'Action required') : (language === 'id' ? 'Kondisi Aman' : 'Healthy')}
                                 </div>
                             </div>
@@ -262,13 +262,13 @@ export default function PresentationMode({
                                                     border: '2px solid #09090b',
                                                 }}>{metric.stuck_count}</span>
                                             )}
-                                            <div style={{ fontSize: '11px', fontWeight: 800, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+                                            <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
                                                 {metric.stage}
                                             </div>
                                             <div style={{ fontSize: '32px', fontWeight: 900, color: health.label, lineHeight: 1 }}>
                                                 {metric.active_items}
                                             </div>
-                                            <div style={{ fontSize: '11px', color: '#52525b', marginTop: '4px' }}>
+                                            <div style={{ fontSize: '11px', color: 'var(--color-pg-text-muted)', marginTop: '4px' }}>
                                                 {language === 'id' ? 'item aktif' : 'active items'}
                                             </div>
                                             {metric.avg_cycle_time > 0 && (
@@ -278,7 +278,7 @@ export default function PresentationMode({
                                             )}
                                         </div>
                                         {idx < pipelineStages.length - 1 && (
-                                            <div style={{ color: '#27272a', fontSize: '36px', userSelect: 'none' }}>→</div>
+                                            <div style={{ color: 'var(--color-pg-border)', fontSize: '36px', userSelect: 'none' }}>→</div>
                                         )}
                                     </React.Fragment>
                                 );
@@ -339,7 +339,7 @@ export default function PresentationMode({
                                         return (
                                             <tr key={`slide-client-${idx}`} style={{ borderBottom: '1px solid var(--color-pg-border)', color: 'var(--color-pg-text)' }}>
                                                 <td style={{ padding: '12px 16px', fontWeight: 800, fontSize: '15px' }}>{client.client_name}</td>
-                                                <td style={{ padding: '12px 16px', textAlign: 'center', color: '#a1a1aa' }}>{client.active_pos}</td>
+                                                <td style={{ padding: '12px 16px', textAlign: 'center', color: 'var(--color-pg-text-secondary)' }}>{client.active_pos}</td>
                                                 <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 800, color: otdrColor }}>
                                                     {client.on_time_rate != null ? `${client.on_time_rate}%` : 'N/A'}
                                                 </td>
@@ -391,11 +391,11 @@ export default function PresentationMode({
                             </h4>
                             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px' }}>
                                 {((telemetry.finance_health?.uninvoiced_count || 0) === 0) ? (
-                                    <div style={{ color: '#71717a', fontSize: '13px', padding: '40px 0', textAlign: 'center' }}>
+                                    <div style={{ color: 'var(--color-pg-text-muted)', fontSize: '13px', padding: '40px 0', textAlign: 'center' }}>
                                         {language === 'id' ? 'Semua pekerjaan selesai sudah difakturkan.' : 'All finished items have been invoiced.'}
                                     </div>
                                 ) : (
-                                    <div style={{ color: '#a1a1aa', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>
+                                    <div style={{ color: 'var(--color-pg-text-secondary)', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>
                                         {language === 'id' ? (
                                             <p>Terdapat <strong>{telemetry.finance_health.uninvoiced_count}</strong> item pesanan selesai yang perlu diterbitkan invoice oleh bagian Keuangan.</p>
                                         ) : (
@@ -427,22 +427,22 @@ export default function PresentationMode({
             bottom: 0,
             backgroundColor: 'var(--color-pg-bg)',
             zIndex: 99999,
-            color: '#fafafa',
+            color: 'var(--color-pg-text)',
             padding: '40px',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             fontFamily: 'Inter, sans-serif'
         }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-pg-border)', paddingBottom: '16px' }}>
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em', color: '#fff' }}>POgrid.id</span>
-                        <span style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#a1a1aa', borderRadius: '6px', padding: '3px 8px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>
+                        <span style={{ backgroundColor: 'var(--color-pg-surface)', border: '1px solid var(--color-pg-border)', color: 'var(--color-pg-text-secondary)', borderRadius: '6px', padding: '3px 8px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>
                             {rangeLabel}
                         </span>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#71717a', marginTop: '4px', fontWeight: 500 }}>
+                    <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', marginTop: '4px', fontWeight: 500 }}>
                         {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         {' · '}
                         {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -459,8 +459,8 @@ export default function PresentationMode({
                     <button
                         onClick={togglePresentationMode}
                         style={{
-                            background: 'rgba(255,255,255,0.05)',
-                            color: '#a1a1aa',
+                            background: 'var(--color-pg-surface)',
+                            color: 'var(--color-pg-text-secondary)',
                             border: '1px solid var(--color-pg-border)',
                             borderRadius: '8px',
                             padding: '8px 16px',
@@ -478,26 +478,26 @@ export default function PresentationMode({
                 {renderSlide()}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-pg-border)', paddingTop: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
                         onClick={() => setPresentationSlide(prev => (prev - 1 + 4) % 4)}
-                        style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid var(--color-pg-border)', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
+                        style={{ background: 'var(--color-pg-surface)', color: '#fff', border: '1px solid var(--color-pg-border)', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
                     >
                         ◀ {language === 'id' ? 'Sebelumnya' : 'Prev'}
                     </button>
                     <button
                         onClick={() => setPresentationSlide(prev => (prev + 1) % 4)}
-                        style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid var(--color-pg-border)', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
+                        style={{ background: 'var(--color-pg-surface)', color: '#fff', border: '1px solid var(--color-pg-border)', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
                     >
                         {language === 'id' ? 'Selanjutnya' : 'Next'} ▶
                     </button>
                     <button
                         onClick={() => setPresentationAutoPlay(prev => !prev)}
                         style={{
-                            background: presentationAutoPlay ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)',
-                            color: presentationAutoPlay ? '#34d399' : '#a1a1aa',
-                            border: presentationAutoPlay ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                            background: presentationAutoPlay ? 'rgba(16,185,129,0.15)' : 'var(--color-pg-surface)',
+                            color: presentationAutoPlay ? '#34d399' : 'var(--color-pg-text-secondary)',
+                            border: presentationAutoPlay ? '1px solid rgba(16,185,129,0.3)' : '1px solid var(--color-pg-border)',
                             borderRadius: '6px',
                             padding: '6px 12px',
                             cursor: 'pointer',
@@ -531,7 +531,7 @@ export default function PresentationMode({
                     ))}
                 </div>
 
-                <div style={{ fontSize: '12px', color: '#71717a', fontWeight: 500 }}>
+                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', fontWeight: 500 }}>
                     {language === 'id' ? 'Gunakan tombol panah untuk navigasi' : 'Use controls or slide indicators to navigate'}
                 </div>
             </div>

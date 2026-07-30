@@ -164,7 +164,7 @@ export default function Register() {
                         fontSize: '11px',
                         fontWeight: 600,
                         backgroundColor: language === 'en' ? 'var(--color-pg-primary)' : 'transparent',
-                        color: language === 'en' ? '#ffffff' : 'var(--color-pg-text-secondary)',
+                        color: language === 'en' ? 'var(--color-pg-primary-ink)' : 'var(--color-pg-text-secondary)',
                         transition: 'all 0.2s',
                     }}
                 >
@@ -181,7 +181,7 @@ export default function Register() {
                         fontSize: '11px',
                         fontWeight: 600,
                         backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
-                        color: language === 'id' ? '#ffffff' : 'var(--color-pg-text-secondary)',
+                        color: language === 'id' ? 'var(--color-pg-primary-ink)' : 'var(--color-pg-text-secondary)',
                         transition: 'all 0.2s',
                     }}
                 >
@@ -214,7 +214,7 @@ export default function Register() {
                     alignSelf: 'flex-start',
                     transition: 'color 0.2s',
                 }}
-                onMouseOver={(e) => e.currentTarget.style.color = '#ffffff'}
+                onMouseOver={(e) => e.currentTarget.style.color = 'var(--color-pg-text)'}
                 onMouseOut={(e) => e.currentTarget.style.color = 'var(--color-pg-text-secondary)'}
                 >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -248,7 +248,7 @@ export default function Register() {
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {/* Section: Company Details */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '20px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '20px', borderBottom: '1px solid var(--color-pg-border)' }}>
                         <h3 style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--color-pg-primary-hover)', margin: '0' }}>
                             {t.company_details}
                         </h3>
@@ -281,7 +281,7 @@ export default function Register() {
                                     backgroundColor: 'var(--color-pg-input)',
                                     border: '1px solid var(--color-pg-border)',
                                     borderRadius: '10px',
-                                    color: '#ffffff',
+                                    color: 'var(--color-pg-text)',
                                     fontSize: '14px',
                                     outline: 'none',
                                     boxSizing: 'border-box',
@@ -330,7 +330,7 @@ export default function Register() {
                                     backgroundColor: 'var(--color-pg-input)',
                                     border: '1px solid var(--color-pg-border)',
                                     borderRadius: '10px',
-                                    color: '#ffffff',
+                                    color: 'var(--color-pg-text)',
                                     fontSize: '14px',
                                     outline: 'none',
                                     boxSizing: 'border-box',
@@ -385,7 +385,7 @@ export default function Register() {
                                     backgroundColor: 'var(--color-pg-input)',
                                     border: '1px solid var(--color-pg-border)',
                                     borderRadius: '10px',
-                                    color: '#ffffff',
+                                    color: 'var(--color-pg-text)',
                                     fontSize: '14px',
                                     outline: 'none',
                                     boxSizing: 'border-box',
@@ -430,7 +430,7 @@ export default function Register() {
                                     backgroundColor: 'var(--color-pg-input)',
                                     border: '1px solid var(--color-pg-border)',
                                     borderRadius: '10px',
-                                    color: '#ffffff',
+                                    color: 'var(--color-pg-text)',
                                     fontSize: '14px',
                                     outline: 'none',
                                     boxSizing: 'border-box',
@@ -475,7 +475,7 @@ export default function Register() {
                                     backgroundColor: 'var(--color-pg-input)',
                                     border: '1px solid var(--color-pg-border)',
                                     borderRadius: '10px',
-                                    color: '#ffffff',
+                                    color: 'var(--color-pg-text)',
                                     fontSize: '14px',
                                     outline: 'none',
                                     boxSizing: 'border-box',
@@ -523,7 +523,7 @@ export default function Register() {
                                     backgroundColor: 'var(--color-pg-input)',
                                     border: '1px solid var(--color-pg-border)',
                                     borderRadius: '10px',
-                                    color: '#ffffff',
+                                    color: 'var(--color-pg-text)',
                                     fontSize: '14px',
                                     outline: 'none',
                                     boxSizing: 'border-box',
@@ -551,7 +551,7 @@ export default function Register() {
                             height: '46px',
                             borderRadius: '10px',
                             background: 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)',
-                            color: '#ffffff',
+                            color: 'var(--color-pg-primary-ink)',
                             fontSize: '14px',
                             fontWeight: 600,
                             border: 'none',
@@ -575,7 +575,7 @@ export default function Register() {
                     >
                         {processing ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <svg style={{ animation: 'spin 1s linear infinite', height: '18px', width: '18px', color: '#ffffff' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <svg style={{ animation: 'spin 1s linear infinite', height: '18px', width: '18px', color: 'var(--color-pg-primary-ink)' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>

@@ -143,7 +143,7 @@ const translations = {
 const Bar: React.FC<{ value: number; max: number; color: string; height?: number }> = ({ value, max, color, height = 48 }) => {
     const pct = max > 0 ? (value / max) * 100 : 0;
     return (
-        <div style={{ height: `${height}px`, width: '100%', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.04)', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ height: `${height}px`, width: '100%', borderRadius: '4px', backgroundColor: 'var(--color-pg-surface)', position: 'relative', overflow: 'hidden' }}>
             <div style={{
                 position: 'absolute', bottom: 0, left: 0, width: '100%',
                 height: `${pct}%`, borderRadius: '4px',
@@ -203,7 +203,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
             <div className="dashboard-above-scroll">
                 <header className="responsive-header owner-dashboard-header" style={{
                     padding: '10px 16px 8px',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderBottom: '1px solid var(--color-pg-border)',
                 }}>
                     <div className="owner-header-title">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -223,7 +223,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                             }}
                             style={{
                                 padding: '6px 10px',
-                                backgroundColor: 'rgba(255,255,255,0.05)',
+                                backgroundColor: 'var(--color-pg-surface)',
                                 color: 'var(--color-pg-text-secondary)',
                                 border: '1px solid var(--color-pg-border)',
                                 borderRadius: '8px',
@@ -239,7 +239,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                             style={{
                                 padding: '6px 12px',
                                 backgroundColor: '#ef4444',
-                                color: '#fff',
+                                color: 'var(--color-pg-text)',
                                 fontWeight: 600,
                                 border: 'none',
                                 borderRadius: '8px',
@@ -274,23 +274,23 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
 
                 {/* Summary Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '20px' }}>
-                    <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '14px', border: '1px solid var(--color-pg-border)' }}>
                         <div style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', fontWeight: 600, marginBottom: '4px' }}>{t.total_events}</div>
                         <div style={{ fontSize: '24px', fontWeight: 800, color: '#f59e0b' }}>{summary.total_events}</div>
                     </div>
-                    <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '14px', border: '1px solid var(--color-pg-border)' }}>
                         <div style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', fontWeight: 600, marginBottom: '4px' }}>{t.total_rework_qty}</div>
                         <div style={{ fontSize: '24px', fontWeight: 800, color: '#ef4444' }}>{summary.total_rework_qty}</div>
                     </div>
-                    <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '14px', border: '1px solid var(--color-pg-border)' }}>
                         <div style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', fontWeight: 600, marginBottom: '4px' }}>{t.unresolved}</div>
                         <div style={{ fontSize: '24px', fontWeight: 800, color: '#f97316' }}>{summary.unresolved_count}</div>
                     </div>
-                    <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '14px', border: '1px solid var(--color-pg-border)' }}>
                         <div style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', fontWeight: 600, marginBottom: '4px' }}>{t.resolved}</div>
                         <div style={{ fontSize: '24px', fontWeight: 800, color: '#10b981' }}>{summary.resolved_count}</div>
                     </div>
-                    <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '14px', border: '1px solid var(--color-pg-border)' }}>
                         <div style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', fontWeight: 600, marginBottom: '4px' }}>{t.rework_rate}</div>
                         <div style={{ fontSize: '24px', fontWeight: 800, color: summary.rework_rate_pct > 20 ? '#ef4444' : summary.rework_rate_pct > 10 ? '#f59e0b' : '#10b981' }}>
                             {summary.rework_rate_pct}%
@@ -305,21 +305,21 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                     <button onClick={() => setView('analytics')} style={{
                         padding: '6px 14px',
-                        backgroundColor: view === 'analytics' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
-                        color: view === 'analytics' ? '#fff' : 'var(--color-pg-text-secondary)',
+                        backgroundColor: view === 'analytics' ? 'var(--color-pg-primary)' : 'var(--color-pg-surface)',
+                        color: view === 'analytics' ? 'var(--color-pg-text)' : 'var(--color-pg-text-secondary)',
                         border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '12px', cursor: 'pointer',
                     }}>{t.analytics_tab}</button>
                     <button onClick={() => setView('table')} style={{
                         padding: '6px 14px',
-                        backgroundColor: view === 'table' ? 'var(--color-pg-primary)' : 'rgba(255,255,255,0.05)',
-                        color: view === 'table' ? '#fff' : 'var(--color-pg-text-secondary)',
+                        backgroundColor: view === 'table' ? 'var(--color-pg-primary)' : 'var(--color-pg-surface)',
+                        color: view === 'table' ? 'var(--color-pg-text)' : 'var(--color-pg-text-secondary)',
                         border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '12px', cursor: 'pointer',
                     }}>{t.table_tab} ({rework_events.length})</button>
                 </div>
 
                 {/* Filter Bar */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-                    <div style={{ display: 'flex', gap: '6px', backgroundColor: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ display: 'flex', gap: '6px', backgroundColor: 'var(--color-pg-surface)', padding: '4px', borderRadius: '8px', border: '1px solid var(--color-pg-border)' }}>
                         {[
                             { key: 'week', label: t.this_week },
                             { key: 'month', label: t.this_month },
@@ -332,7 +332,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                                 style={{
                                     padding: '6px 10px',
                                     backgroundColor: selected_range === r.key ? 'var(--color-pg-primary)' : 'transparent',
-                                    color: selected_range === r.key ? '#fff' : 'var(--color-pg-text-secondary)',
+                                    color: selected_range === r.key ? 'var(--color-pg-text)' : 'var(--color-pg-text-secondary)',
                                     border: 'none',
                                     borderRadius: '6px',
                                     fontWeight: 600,
@@ -352,7 +352,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                             placeholder={language === 'en' ? 'Search items, PO, client...' : 'Cari barang, PO, klien...'}
                             style={{
                                 padding: '8px 12px 8px 32px',
-                                backgroundColor: 'rgba(255,255,255,0.05)',
+                                backgroundColor: 'var(--color-pg-surface)',
                                 color: 'var(--color-pg-text)',
                                 border: '1px solid var(--color-pg-border)',
                                 borderRadius: '8px',
@@ -374,7 +374,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                         {summary.monthly_trend.length > 0 && (
                             <div style={{ marginBottom: '24px' }}>
                                 <h3 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 12px 0', color: 'var(--color-pg-text-secondary)' }}>{t.monthly_trend}</h3>
-                                <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '16px', border: '1px solid var(--color-pg-border)' }}>
                                     <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', justifyContent: 'space-around', minHeight: '120px' }}>
                                         {summary.monthly_trend.map(m => (
                                             <div key={m.month} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
@@ -398,7 +398,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                             {/* Top Stages */}
                             {summary.top_stages.length > 0 && (
-                                <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '16px', border: '1px solid var(--color-pg-border)' }}>
                                     <h3 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 12px 0', color: 'var(--color-pg-text-secondary)' }}>{t.top_rework_stages}</h3>
                                     {summary.top_stages.map(s => {
                                         const maxStage = Math.max(...summary.top_stages.map(x => x.count), 1);
@@ -406,7 +406,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                                         return (
                                             <div key={s.stage} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                                 <span style={{ fontSize: '11px', fontWeight: 600, minWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.stage}</span>
-                                                <div style={{ flex: 1, height: '18px', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+                                                <div style={{ flex: 1, height: '18px', borderRadius: '4px', backgroundColor: 'var(--color-pg-surface)', overflow: 'hidden' }}>
                                                     <div style={{ width: `${pct}%`, height: '100%', borderRadius: '4px', backgroundColor: 'rgba(245, 158, 11, 0.6)', transition: 'width 0.3s ease' }} />
                                                 </div>
                                                 <span style={{ fontSize: '11px', fontWeight: 700, color: '#f59e0b', minWidth: '24px', textAlign: 'right' }}>{s.count}x</span>
@@ -418,14 +418,14 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
 
                             {/* Client Breakdown */}
                             {summary.client_breakdown.length > 0 && (
-                                <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '16px', border: '1px solid var(--color-pg-border)' }}>
                                     <h3 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 12px 0', color: 'var(--color-pg-text-secondary)' }}>{t.client_breakdown}</h3>
                                     {summary.client_breakdown.slice(0, 8).map(c => {
                                         const pct = (c.events / maxClientEvents) * 100;
                                         return (
                                             <div key={c.client_name} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                                                 <span style={{ fontSize: '11px', fontWeight: 600, minWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.client_name}</span>
-                                                <div style={{ flex: 1, height: '16px', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+                                                <div style={{ flex: 1, height: '16px', borderRadius: '4px', backgroundColor: 'var(--color-pg-surface)', overflow: 'hidden' }}>
                                                     <div style={{ width: `${pct}%`, height: '100%', borderRadius: '4px', backgroundColor: 'rgba(129, 140, 248, 0.6)', transition: 'width 0.3s ease' }} />
                                                 </div>
                                                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-pg-primary-hover)', minWidth: '48px', textAlign: 'right' }}>{c.events}ev / {c.qty}pcs</span>
@@ -440,10 +440,10 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                         {summary.item_breakdown.length > 0 && (
                             <div style={{ marginBottom: '24px' }}>
                                 <h3 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 12px 0', color: 'var(--color-pg-text-secondary)' }}>{t.item_breakdown}</h3>
-                                <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '16px', border: '1px solid var(--color-pg-border)' }}>
                                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                                         <thead>
-                                            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                                            <tr style={{ borderBottom: '1px solid var(--color-pg-border)' }}>
                                                 <th style={{ padding: '8px 10px', textAlign: 'left', color: 'var(--color-pg-text-secondary)', fontWeight: 600, fontSize: '11px' }}>{t.item_name}</th>
                                                 <th style={{ padding: '8px 10px', textAlign: 'center', color: 'var(--color-pg-text-secondary)', fontWeight: 600, fontSize: '11px' }}>{t.events_label}</th>
                                                 <th style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--color-pg-text-secondary)', fontWeight: 600, fontSize: '11px' }}>{t.qty_label}</th>
@@ -451,7 +451,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                                         </thead>
                                         <tbody>
                                             {summary.item_breakdown.slice(0, 15).map(item => (
-                                                <tr key={item.item_name} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                                                <tr key={item.item_name} style={{ borderBottom: '1px solid var(--color-pg-border)' }}>
                                                     <td style={{ padding: '7px 10px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{item.item_name}</td>
                                                     <td style={{ padding: '7px 10px', textAlign: 'center' }}>
                                                         <span style={{
@@ -482,7 +482,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                             <div style={{ overflowX: 'auto' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                                     <thead>
-                                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                                        <tr style={{ borderBottom: '1px solid var(--color-pg-border)' }}>
                                             <th style={{ padding: '10px 12px', textAlign: 'left', color: 'var(--color-pg-text-secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t.date}</th>
                                             <th style={{ padding: '10px 12px', textAlign: 'left', color: 'var(--color-pg-text-secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t.po_number}</th>
                                             <th style={{ padding: '10px 12px', textAlign: 'left', color: 'var(--color-pg-text-secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t.client}</th>
@@ -496,8 +496,8 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                                     </thead>
                                     <tbody>
                                         {filtered.map(event => (
-                                            <tr key={event.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background-color 0.15s' }}
-                                                onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'}
+                                            <tr key={event.id} style={{ borderBottom: '1px solid var(--color-pg-border)', transition: 'background-color 0.15s' }}
+                                                onMouseOver={e => e.currentTarget.style.backgroundColor = 'var(--color-pg-card-hover)'}
                                                 onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
                                             >
                                                 <td style={{ padding: '10px 12px', whiteSpace: 'nowrap', color: 'var(--color-pg-text-secondary)' }}>

@@ -164,23 +164,23 @@ export default function MyKpi({ completed_stages, summary, stage_breakdown, mont
                     <>
                         {/* Summary Cards */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px', marginBottom: '20px' }}>
-                            <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '14px', border: '1px solid var(--color-pg-border)' }}>
                                 <div style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', fontWeight: 600, marginBottom: '4px' }}>{t.total_completed}</div>
                                 <div style={{ fontSize: '24px', fontWeight: 800, color: '#10b981' }}>{summary.total_completed}</div>
                             </div>
-                            <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '14px', border: '1px solid var(--color-pg-border)' }}>
                                 <div style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', fontWeight: 600, marginBottom: '4px' }}>{t.avg_cycle}</div>
                                 <div style={{ fontSize: '24px', fontWeight: 800, color: summary.avg_cycle_days > 7 ? '#f59e0b' : '#10b981' }}>
                                     {summary.avg_cycle_days} <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-pg-text-secondary)' }}>{t.days}</span>
                                 </div>
                             </div>
-                            <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '14px', border: '1px solid var(--color-pg-border)' }}>
                                 <div style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', fontWeight: 600, marginBottom: '4px' }}>{t.fastest_cycle}</div>
                                 <div style={{ fontSize: '24px', fontWeight: 800, color: '#10b981' }}>
                                     {summary.fastest_cycle_days} <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-pg-text-secondary)' }}>{t.days}</span>
                                 </div>
                             </div>
-                            <div style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '14px', border: '1px solid var(--color-pg-border)' }}>
                                 <div style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', fontWeight: 600, marginBottom: '4px' }}>{t.slowest_cycle}</div>
                                 <div style={{ fontSize: '24px', fontWeight: 800, color: summary.slowest_cycle_days > 14 ? '#ef4444' : summary.slowest_cycle_days > 7 ? '#f59e0b' : '#10b981' }}>
                                     {summary.slowest_cycle_days} <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-pg-text-secondary)' }}>{t.days}</span>
@@ -192,14 +192,14 @@ export default function MyKpi({ completed_stages, summary, stage_breakdown, mont
                         {monthly_trend.length > 0 && (
                             <div style={{ marginBottom: '20px' }}>
                                 <h3 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 10px 0', color: 'var(--color-pg-text-secondary)' }}>{t.monthly_trend}</h3>
-                                <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '16px', border: '1px solid var(--color-pg-border)' }}>
                                     <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', justifyContent: 'space-around', minHeight: '80px' }}>
                                         {monthly_trend.map(m => {
                                             const pct = (m.count / maxTrendCount) * 100;
                                             return (
                                                 <div key={m.month} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                                                     <div style={{ fontSize: '10px', fontWeight: 600, color: '#10b981' }}>{m.count}</div>
-                                                    <div style={{ height: '40px', width: '100%', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.04)', position: 'relative', overflow: 'hidden' }}>
+                                                    <div style={{ height: '40px', width: '100%', borderRadius: '4px', backgroundColor: 'var(--color-pg-surface)', position: 'relative', overflow: 'hidden' }}>
                                                         <div style={{
                                                             position: 'absolute', bottom: 0, left: 0, width: '100%',
                                                             height: `${pct}%`, borderRadius: '4px',
@@ -220,13 +220,13 @@ export default function MyKpi({ completed_stages, summary, stage_breakdown, mont
                         {stage_breakdown.length > 0 && (
                             <div style={{ marginBottom: '20px' }}>
                                 <h3 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 10px 0', color: 'var(--color-pg-text-secondary)' }}>{t.stage_breakdown}</h3>
-                                <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', padding: '16px', border: '1px solid var(--color-pg-border)' }}>
                                     {stage_breakdown.map(s => {
                                         const pct = (s.count / maxBreakdownCount) * 100;
                                         return (
                                             <div key={s.stage} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                                 <span style={{ fontSize: '11px', fontWeight: 600, minWidth: '80px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.stage}</span>
-                                                <div style={{ flex: 1, height: '16px', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+                                                <div style={{ flex: 1, height: '16px', borderRadius: '4px', backgroundColor: 'var(--color-pg-surface)', overflow: 'hidden' }}>
                                                     <div style={{ width: `${pct}%`, height: '100%', borderRadius: '4px', backgroundColor: 'rgba(99, 102, 241, 0.6)', transition: 'width 0.3s ease' }} />
                                                 </div>
                                                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-pg-primary-hover)', minWidth: '20px', textAlign: 'right' }}>{s.count}x</span>
@@ -241,11 +241,11 @@ export default function MyKpi({ completed_stages, summary, stage_breakdown, mont
                         )}
 
                         {/* Completed Stages Table */}
-                        <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                        <div style={{ backgroundColor: 'var(--color-pg-surface)', borderRadius: '12px', border: '1px solid var(--color-pg-border)', overflow: 'hidden' }}>
                             <div style={{ overflowX: 'auto' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                                     <thead>
-                                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                                        <tr style={{ borderBottom: '1px solid var(--color-pg-border)' }}>
                                             <th style={{ padding: '10px 12px', textAlign: 'left', color: 'var(--color-pg-text-secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t.stage}</th>
                                             <th style={{ padding: '10px 12px', textAlign: 'left', color: 'var(--color-pg-text-secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t.item}</th>
                                             <th style={{ padding: '10px 12px', textAlign: 'left', color: 'var(--color-pg-text-secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{t.po}</th>
@@ -257,8 +257,8 @@ export default function MyKpi({ completed_stages, summary, stage_breakdown, mont
                                     </thead>
                                     <tbody>
                                         {completed_stages.map(stage => (
-                                            <tr key={stage.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background-color 0.15s' }}
-                                                onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'}
+                                            <tr key={stage.id} style={{ borderBottom: '1px solid var(--color-pg-border)', transition: 'background-color 0.15s' }}
+                                                onMouseOver={e => e.currentTarget.style.backgroundColor = 'var(--color-pg-card-hover)'}
                                                 onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
                                             >
                                                 <td style={{ padding: '10px 12px' }}>

@@ -394,7 +394,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
             {/* Header */}
             <header className="responsive-header" style={{
                 padding: '12px 16px',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                borderBottom: '1px solid var(--color-pg-border)',
                 backgroundColor: 'var(--color-pg-bg)',
                 zIndex: 40,
             }}>
@@ -421,7 +421,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                     padding: '10px 18px',
                     background: submitting ? 'var(--color-pg-primary)' : 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)',
                     border: 'none',
-                    color: '#fff',
+                    color: 'var(--color-pg-text)',
                     borderRadius: '10px',
                     fontWeight: 600,
                     cursor: submitting ? 'not-allowed' : 'pointer',
@@ -541,7 +541,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                     gap: '16px',
                     marginBottom: '24px',
                     paddingBottom: '24px',
-                    borderBottom: '1px solid rgba(255,255,255,0.08)',
+                    borderBottom: '1px solid var(--color-pg-border)',
                 }}>
                     <div>
                         <label style={labelStyle}>{t.po_number}</label>
@@ -607,7 +607,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                     padding: '10px 14px',
                                     backgroundColor: '#10b981',
                                     border: 'none',
-                                    color: '#fff',
+                                    color: 'var(--color-pg-text)',
                                     borderRadius: '8px',
                                     fontWeight: 600,
                                     cursor: 'pointer',
@@ -666,7 +666,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <input type="checkbox" id="is_urgent" checked={isUrgent} onChange={(e) => setIsUrgent(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#ef4444', cursor: 'pointer' }} />
-                        <label htmlFor="is_urgent" style={{ fontSize: '13px', color: '#f8fafc', fontWeight: 600, cursor: 'pointer' }}>{t.urgent}</label>
+                        <label htmlFor="is_urgent" style={{ fontSize: '13px', color: 'var(--color-pg-text)', fontWeight: 600, cursor: 'pointer' }}>{t.urgent}</label>
                     </div>
                 </div>
 
@@ -693,8 +693,8 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
 
                     {items.map((item, index) => (
                         <div key={index} style={{
-                            backgroundColor: 'rgba(24, 24, 27, 0.7)',
-                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                            backgroundColor: 'var(--color-pg-surface)',
+                            border: '1px solid var(--color-pg-border)',
                             borderRadius: '14px',
                             padding: '20px',
                             marginBottom: '12px',
@@ -791,7 +791,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                                         padding: '4px 8px',
                                                         fontSize: '10px',
                                                         fontWeight: 700,
-                                                        border: isActive ? '1px solid #818cf8' : '1px solid rgba(255,255,255,0.08)',
+                                                        border: isActive ? '1px solid #818cf8' : '1px solid var(--color-pg-border)',
                                                         borderRadius: '6px',
                                                         backgroundColor: isActive ? 'var(--color-pg-primary-glow)' : 'transparent',
                                                         color: isActive ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
@@ -847,7 +847,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                     gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
                                     gap: '12px',
                                     paddingTop: '12px',
-                                    borderTop: '1px solid rgba(255,255,255,0.05)',
+                                    borderTop: '1px solid var(--color-pg-border)',
                                 }}>
                                     <div>
                                         <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px' }}>{t.vendor_name}</label>
@@ -890,7 +890,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                     display: 'flex',
                     gap: '12px',
                     justifyContent: 'flex-end',
-                    borderTop: '1px solid rgba(255,255,255,0.08)',
+                    borderTop: '1px solid var(--color-pg-border)',
                     paddingTop: '20px',
                 }}>
                     <button type="button" onClick={goBack} style={{
@@ -909,7 +909,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                         padding: '10px 24px',
                         backgroundColor: submitting ? '#1d4ed8' : '#2563eb',
                         border: 'none',
-                        color: '#fff',
+                        color: 'var(--color-pg-text)',
                         borderRadius: '8px',
                         fontWeight: 600,
                         cursor: submitting ? 'not-allowed' : 'pointer',
@@ -936,8 +936,8 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                 display: 'flex',
                 gap: '12px',
                 padding: '16px',
-                backgroundColor: '#0f172a',
-                borderTop: '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: 'var(--color-pg-surface)',
+                borderTop: '1px solid var(--color-pg-border)',
                 zIndex: 50,
             }}>
                 <button type="button" onClick={goBack} style={{
@@ -958,7 +958,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                     padding: '12px 16px',
                     backgroundColor: submitting ? '#1d4ed8' : '#2563eb',
                     border: 'none',
-                    color: '#fff',
+                    color: 'var(--color-pg-text)',
                     borderRadius: '8px',
                     fontWeight: 700,
                     cursor: submitting ? 'not-allowed' : 'pointer',

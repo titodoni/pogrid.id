@@ -558,7 +558,7 @@ function ItemCard({
         <div 
             className="worker-item-card"
             style={{
-                borderColor: (item.po?.is_urgent || item.alerts?.some(a => a.severity === 'YELLOW' && !a.is_resolved)) ? 'rgba(251, 146, 60, 0.3)' : 'rgba(255, 255, 255, 0.06)',
+                borderColor: (item.po?.is_urgent || item.alerts?.some(a => a.severity === 'YELLOW' && !a.is_resolved)) ? 'rgba(251, 146, 60, 0.3)' : 'var(--color-pg-border)',
                 boxShadow: (item.po?.is_urgent || item.alerts?.some(a => a.severity === 'YELLOW' && !a.is_resolved)) ? '0 4px 15px rgba(251, 146, 60, 0.08)' : '0 4px 6px -1px rgba(0, 0, 0, 0.3)',
             }}
         >
@@ -590,7 +590,7 @@ function ItemCard({
                         fontSize: '15px',
                         fontWeight: 800,
                         margin: 0,
-                        color: '#f8fafc',
+                        color: 'var(--color-pg-text)',
                         lineHeight: '1.35',
                         wordBreak: 'break-word',
                     }}>
@@ -683,7 +683,7 @@ function ItemCard({
                         fontWeight: 700,
                         padding: '2px 6px',
                         borderRadius: '4px',
-                        backgroundColor: 'rgba(255,255,255,0.06)',
+                        backgroundColor: 'var(--color-pg-surface)',
                         color: 'var(--color-pg-text-secondary)',
                         flexShrink: 0,
                     }}>
@@ -740,8 +740,8 @@ function ItemCard({
             {/* Expanded Drawer System */}
             {isExpanded && (
                 <div style={{
-                    borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.01)',
+                    borderTop: '1px solid var(--color-pg-border)',
+                    backgroundColor: 'var(--color-pg-surface)',
                 }}>
                     {/* Stage selector for hybrid roles */}
                     {(() => {
@@ -752,7 +752,7 @@ function ItemCard({
                                     display: 'flex',
                                     gap: '4px',
                                     padding: '8px 12px',
-                                    borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                                    borderBottom: '1px solid var(--color-pg-border)',
                                     flexWrap: 'wrap',
                                 }}>
                                     {userStages.map(stage => {
@@ -772,7 +772,7 @@ function ItemCard({
                                                 style={{
                                                     padding: '8px 12px',
                                                     borderRadius: '8px',
-                                                    border: isActive ? '1px solid ' + color : '1px solid rgba(255,255,255,0.08)',
+                                                    border: isActive ? '1px solid ' + color : '1px solid var(--color-pg-border)',
                                                     backgroundColor: isActive ? color + '20' : 'transparent',
                                                     color: isActive ? color : 'var(--color-pg-text-secondary)',
                                                     fontSize: '12px',
@@ -793,7 +793,7 @@ function ItemCard({
                     {/* Inline Progress Controls */}
                     {activeStage ? (
                         <div style={{
-                            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                            borderTop: '1px solid var(--color-pg-border)',
                             padding: '10px 12px',
                             backgroundColor: 'rgba(0, 0, 0, 0.15)',
                         }}>
@@ -809,7 +809,7 @@ function ItemCard({
 
                                     return (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
-                                                        <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: '0 0 2px 0' }}>
+                                                        <h4 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-pg-text)', margin: '0 0 2px 0' }}>
                                                             {language === 'en' ? 'Drafter Status' : 'Status Drafter'}
                                                         </h4>
                                                         <div style={{
@@ -817,7 +817,7 @@ function ItemCard({
                                                             backgroundColor: 'rgba(0, 0, 0, 0.4)',
                                                             padding: '4px',
                                                             borderRadius: '12px',
-                                                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                            border: '1px solid var(--color-pg-border)',
                                                             gap: '4px'
                                                         }}>
                                                             {statuses.map((status) => {
@@ -873,7 +873,7 @@ function ItemCard({
 
                                     return (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
-                                                        <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', margin: '0 0 2px 0' }}>
+                                                        <h4 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-pg-text)', margin: '0 0 2px 0' }}>
                                                             {language === 'en' ? 'Purchasing Status' : 'Status Pembelian'}
                                                         </h4>
                                                         <div style={{
@@ -881,7 +881,7 @@ function ItemCard({
                                                             backgroundColor: 'rgba(0, 0, 0, 0.4)',
                                                             padding: '4px',
                                                             borderRadius: '12px',
-                                                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                            border: '1px solid var(--color-pg-border)',
                                                             gap: '4px'
                                                         }}>
                                                             {statuses.map((status) => {
@@ -928,10 +928,10 @@ function ItemCard({
                                                 fontSize: '11px',
                                                 color: 'var(--color-pg-text-secondary)',
                                                 alignItems: 'center',
-                                                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                                                backgroundColor: 'var(--color-pg-surface)',
                                                 padding: '6px 10px',
                                                 borderRadius: '6px',
-                                                border: '1px solid rgba(255, 255, 255, 0.05)',
+                                                border: '1px solid var(--color-pg-border)',
                                             }}>
                                                 <span>🏷️ <strong>Vendor:</strong> {item.vendor_name || (language === 'en' ? 'Not specified' : 'Belum diisi')}</span>
                                                 {item.vendor_po && <span>| <strong>PO:</strong> {item.vendor_po}</span>}
@@ -949,7 +949,7 @@ function ItemCard({
                                             <div style={{
                                                 padding: '12px',
                                                 backgroundColor: 'var(--color-pg-border-subtle)',
-                                                border: '1px solid rgba(255,255,255,0.06)',
+                                                border: '1px solid var(--color-pg-border)',
                                                 borderRadius: '8px',
                                                 marginBottom: '8px',
                                             }}>
@@ -982,11 +982,11 @@ function ItemCard({
                                                     padding: '2px 8px',
                                                     borderRadius: '6px',
                                                     backgroundColor: invoiceStatus === 'INVOICED' ? 'rgba(52, 211, 153, 0.12)' :
-                                                        invoiceStatus === 'PARTIAL' ? 'rgba(168, 85, 247, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+                                                        invoiceStatus === 'PARTIAL' ? 'rgba(168, 85, 247, 0.12)' : 'var(--color-pg-surface)',
                                                     color: invoiceStatus === 'INVOICED' ? 'var(--color-pg-success)' :
                                                         invoiceStatus === 'PARTIAL' ? '#c084fc' : 'var(--color-pg-text-secondary)',
                                                     border: '1px solid ' + (invoiceStatus === 'INVOICED' ? 'rgba(52, 211, 153, 0.2)' :
-                                                        invoiceStatus === 'PARTIAL' ? 'rgba(168, 85, 247, 0.2)' : 'rgba(255, 255, 255, 0.06)'),
+                                                        invoiceStatus === 'PARTIAL' ? 'rgba(168, 85, 247, 0.2)' : 'var(--color-pg-surface)'),
                                                 }}>
                                                     {t.invoice_label}: {invoiceStatus === 'INVOICED' ? t.invoiced : invoiceStatus === 'PARTIAL' ? `${t.partially_invoiced} (${invoicedQty}/${item.target_qty})` : t.uninvoiced}
                                                 </span>
@@ -996,11 +996,11 @@ function ItemCard({
                                                     padding: '2px 8px',
                                                     borderRadius: '6px',
                                                     backgroundColor: paymentStatus === 'PAID' ? 'rgba(52, 211, 153, 0.12)' :
-                                                        paymentStatus === 'PARTIAL_PAID' ? 'rgba(99, 102, 241, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+                                                        paymentStatus === 'PARTIAL_PAID' ? 'rgba(99, 102, 241, 0.12)' : 'var(--color-pg-surface)',
                                                     color: paymentStatus === 'PAID' ? 'var(--color-pg-success)' :
                                                         paymentStatus === 'PARTIAL_PAID' ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
                                                     border: '1px solid ' + (paymentStatus === 'PAID' ? 'rgba(52, 211, 153, 0.2)' :
-                                                        paymentStatus === 'PARTIAL_PAID' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.06)'),
+                                                        paymentStatus === 'PARTIAL_PAID' ? 'rgba(99, 102, 241, 0.2)' : 'var(--color-pg-surface)'),
                                                 }}>
                                                     {t.payment_label}: {paymentStatus === 'PAID' ? t.paid : paymentStatus === 'PARTIAL_PAID' ? t.partially_paid : t.unpaid}
                                                 </span>
@@ -1065,9 +1065,9 @@ function ItemCard({
                                                                     padding: '10px 12px',
                                                                     fontSize: '14px',
                                                                     backgroundColor: 'var(--color-pg-bg)',
-                                                                    border: '1px solid rgba(255,255,255,0.08)',
+                                                                    border: '1px solid var(--color-pg-border)',
                                                                     borderRadius: '8px',
-                                                                    color: '#fff',
+                                                                    color: 'var(--color-pg-text)',
                                                                     outline: 'none',
                                                                 }}
                                                             />
@@ -1120,7 +1120,7 @@ function ItemCard({
                                                         width: '100%',
                                                         padding: '14px',
                                                         backgroundColor: '#10b981',
-                                                        color: '#fff',
+                                                        color: 'var(--color-pg-text)',
                                                         fontWeight: 700,
                                                         border: 'none',
                                                         borderRadius: '10px',
@@ -1161,7 +1161,7 @@ function ItemCard({
                                                 padding: '8px 12px',
                                                 backgroundColor: 'var(--color-pg-border-subtle)',
                                                 borderRadius: '12px',
-                                                border: '1px solid rgba(255, 255, 255, 0.04)',
+                                                border: '1px solid var(--color-pg-border)',
                                             }}>
                                                 <div style={{ marginRight: 'auto', paddingLeft: '4px' }}>
                                                 <div style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
@@ -1187,7 +1187,7 @@ function ItemCard({
                                                             width: '70px',
                                                             height: '56px',
                                                             borderRadius: '14px',
-                                                            border: '1px solid rgba(255,255,255,0.08)',
+                                                            border: '1px solid var(--color-pg-border)',
                                                             backgroundColor: 'var(--color-pg-input)',
                                                             color: 'var(--color-pg-text)',
                                                             fontSize: '16px',
@@ -1317,7 +1317,7 @@ function ItemCard({
                                                                 border: 'none',
                                                                 backgroundColor: currentPct === pct
                                                                     ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
-                                                                color: '#fff',
+                                                                color: 'var(--color-pg-text)',
                                                                 fontSize: '12px',
                                                                 fontWeight: 700,
                                                                 cursor: (isDisabled || loading) ? 'not-allowed' : 'pointer',
@@ -1426,7 +1426,7 @@ function ItemCard({
                                                         padding: '8px 10px',
                                                         backgroundColor: 'var(--color-pg-input)',
                                                         color: 'var(--color-pg-text)',
-                                                        border: '1px solid rgba(255,255,255,0.08)',
+                                                        border: '1px solid var(--color-pg-border)',
                                                         borderRadius: '8px',
                                                         fontSize: '12px',
                                                         outline: 'none',
@@ -1450,7 +1450,7 @@ function ItemCard({
                                                         padding: '8px 10px',
                                                         backgroundColor: 'var(--color-pg-input)',
                                                         color: 'var(--color-pg-text)',
-                                                        border: '1px solid rgba(255,255,255,0.08)',
+                                                        border: '1px solid var(--color-pg-border)',
                                                         borderRadius: '8px',
                                                         fontSize: '12px',
                                                         outline: 'none',
@@ -1470,7 +1470,7 @@ function ItemCard({
                                                             padding: '10px 16px',
                                                             backgroundColor: 'transparent',
                                                             color: 'var(--color-pg-text-secondary)',
-                                                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                                                            border: '1px solid var(--color-pg-border)',
                                                             borderRadius: '8px',
                                                             fontSize: '12px',
                                                             cursor: 'pointer',
@@ -1485,7 +1485,7 @@ function ItemCard({
                                                         style={{
                                                             padding: '10px 18px',
                                                             backgroundColor: 'var(--color-pg-danger)',
-                                                            color: '#fff',
+                                                            color: 'var(--color-pg-text)',
                                                             borderRadius: '8px',
                                                             border: 'none',
                                                             fontWeight: 700,
@@ -1523,7 +1523,7 @@ function ItemCard({
                                                                 padding: '10px 12px',
                                                                 backgroundColor: 'var(--color-pg-input)',
                                                                 color: 'var(--color-pg-text)',
-                                                                border: '1px solid rgba(255,255,255,0.08)',
+                                                                border: '1px solid var(--color-pg-border)',
                                                                 borderRadius: '8px',
                                                                 fontSize: '14px',
                                                                 outline: 'none',
@@ -1549,7 +1549,7 @@ function ItemCard({
                                                         padding: '10px 12px',
                                                         backgroundColor: 'var(--color-pg-input)',
                                                         color: 'var(--color-pg-text)',
-                                                        border: '1px solid rgba(255,255,255,0.08)',
+                                                        border: '1px solid var(--color-pg-border)',
                                                         borderRadius: '8px',
                                                         fontSize: '14px',
                                                         outline: 'none',
@@ -1567,7 +1567,7 @@ function ItemCard({
                                                             padding: '10px 16px',
                                                             backgroundColor: 'transparent',
                                                             color: 'var(--color-pg-text-secondary)',
-                                                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                                                            border: '1px solid var(--color-pg-border)',
                                                             borderRadius: '8px',
                                                             fontSize: '12px',
                                                             cursor: 'pointer',
@@ -1646,7 +1646,7 @@ function ItemCard({
                     ) : (
                         // Fallback view when activeStage is null (locked stage or role mismatch)
                         <div style={{
-                            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                            borderTop: '1px solid var(--color-pg-border)',
                             padding: '12px',
                             backgroundColor: 'rgba(0, 0, 0, 0.15)',
                         }}>
@@ -1891,7 +1891,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                         <div key={t.timestamp} onClick={() => setToastQueue(prev => prev.filter(x => x.timestamp !== t.timestamp))}
                             style={{
                                 backgroundColor: t.severity === 'RED' ? 'rgba(239, 68, 68, 0.95)' : t.severity === 'ALERT' ? 'rgba(251, 191, 36, 0.95)' : t.severity === 'INFO' ? 'rgba(59, 130, 246, 0.95)' : 'rgba(251, 191, 36, 0.95)',
-                                color: '#fff', padding: '12px 20px', borderRadius: '10px',
+                                color: 'var(--color-pg-text)', padding: '12px 20px', borderRadius: '10px',
                                 fontSize: '13px', fontWeight: 600, maxWidth: '360px',
                                 boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
                                 display: 'flex', alignItems: 'center', gap: '8px',
@@ -1911,7 +1911,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                                 <div style={{ opacity: 0.9, fontSize: '12px' }}>{t.message}</div>
                             </div>
                             <button onClick={(e) => { e.stopPropagation(); setToastQueue(prev => prev.filter(x => x.timestamp !== t.timestamp)); }}
-                                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '18px', opacity: 0.7 }}>
+                                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--color-pg-text)', cursor: 'pointer', fontSize: '18px', opacity: 0.7 }}>
                                 ×
                             </button>
                         </div>

@@ -112,10 +112,10 @@ export default function Billing({ tenant, is_expired }: Props) {
 
                     <div style={{
                         display: 'inline-flex',
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        backgroundColor: 'var(--color-pg-surface)',
                         padding: '4px',
                         borderRadius: '10px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        border: '1px solid var(--color-pg-border)',
                     }}>
                         <button
                             onClick={() => changeLanguage('en')}
@@ -172,7 +172,7 @@ export default function Billing({ tenant, is_expired }: Props) {
                             <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-pg-danger, #ef4444)', margin: '0 0 6px 0' }}>
                                 {t.expired_warning_title}
                             </h3>
-                            <p style={{ fontSize: '14px', color: '#e4e4e7', margin: 0, lineHeight: 1.6 }}>
+                            <p style={{ fontSize: '14px', color: 'var(--color-pg-text)', margin: 0, lineHeight: 1.6 }}>
                                 {t.expired_warning_desc}
                             </p>
                         </div>
@@ -228,11 +228,11 @@ export default function Billing({ tenant, is_expired }: Props) {
                     padding: '32px',
                     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
                 }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-pg-text)', margin: '0 0 20px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px' }}>
+                    <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-pg-text)', margin: '0 0 20px 0', borderBottom: '1px solid var(--color-pg-border)', paddingBottom: '12px' }}>
                         💳 {t.payment_instructions}
                     </h2>
 
-                    <p style={{ fontSize: '14px', color: '#d4d4d8', lineHeight: 1.6, marginBottom: '16px', fontWeight: 600 }}>
+                    <p style={{ fontSize: '14px', color: 'var(--color-pg-text)', lineHeight: 1.6, marginBottom: '16px', fontWeight: 600 }}>
                         {t.transfer_step_1}
                     </p>
 
@@ -244,7 +244,7 @@ export default function Billing({ tenant, is_expired }: Props) {
                         backgroundColor: 'rgba(0, 0, 0, 0.3)',
                         padding: '20px',
                         borderRadius: '10px',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        border: '1px solid var(--color-pg-border)',
                     }}>
                         <div style={{ fontSize: '15px', fontWeight: 700, color: '#60a5fa' }}>
                             🏦 {t.bca_account}
@@ -254,7 +254,7 @@ export default function Billing({ tenant, is_expired }: Props) {
                         </div>
                     </div>
 
-                    <p style={{ fontSize: '14px', color: '#d4d4d8', lineHeight: 1.6, marginBottom: '12px', fontWeight: 600 }}>
+                    <p style={{ fontSize: '14px', color: 'var(--color-pg-text)', lineHeight: 1.6, marginBottom: '12px', fontWeight: 600 }}>
                         {t.transfer_step_2}
                     </p>
 
@@ -273,7 +273,7 @@ export default function Billing({ tenant, is_expired }: Props) {
                         REF: {tenant?.slug || 'TEKNIK-MANDIRI'}
                     </div>
 
-                    <p style={{ fontSize: '14px', color: '#d4d4d8', lineHeight: 1.6, marginBottom: '24px', fontWeight: 600 }}>
+                    <p style={{ fontSize: '14px', color: 'var(--color-pg-text)', lineHeight: 1.6, marginBottom: '24px', fontWeight: 600 }}>
                         {t.transfer_step_3}
                     </p>
 

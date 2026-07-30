@@ -413,7 +413,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
         <div className="dashboard-root" style={{
             backgroundColor: 'var(--color-pg-bg)',
             fontFamily: 'Inter, sans-serif',
-            color: '#fafafa',
+            color: 'var(--color-pg-text)',
         }}>
             {toastQueue.length > 0 && (
                 <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -504,8 +504,8 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                         <Link href={`/c/${slug}/profile`}
                             style={{
                                 width: '44px', height: '44px',
-                                backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                                color: '#a1a1aa', border: '1px solid rgba(255, 255, 255, 0.06)',
+                                backgroundColor: 'var(--color-pg-surface)',
+                                color: 'var(--color-pg-text-secondary)', border: '1px solid var(--color-pg-border)',
                                 borderRadius: '8px', cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 textDecoration: 'none',
@@ -551,9 +551,9 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                         style={{
                             padding: '8px 14px', borderRadius: '8px', border: '1px solid',
                             fontSize: '12px', fontWeight: 700, cursor: 'pointer', flexShrink: 0,
-                            backgroundColor: activeTab === tab.key ? 'var(--color-pg-primary-glow)' : 'rgba(255,255,255,0.04)',
-                            borderColor: activeTab === tab.key ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.08)',
-                            color: activeTab === tab.key ? '#818cf8' : '#a1a1aa',
+                            backgroundColor: activeTab === tab.key ? 'var(--color-pg-primary-glow)' : 'var(--color-pg-surface)',
+                            borderColor: activeTab === tab.key ? 'rgba(99,102,241,0.3)' : 'var(--color-pg-border)',
+                            color: activeTab === tab.key ? '#818cf8' : 'var(--color-pg-text-secondary)',
                         }}>
                         {tab.label}{tab.count !== undefined ? ` (${tab.count})` : ''}
                     </button>
@@ -596,8 +596,8 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                     padding: '16px',
                 }}>
                     <div style={{
-                        backgroundColor: 'var(--color-pg-surface, #18181b)',
-                        color: 'var(--color-pg-text, #fafafa)',
+                        backgroundColor: 'var(--color-pg-surface)',
+                        color: 'var(--color-pg-text)',
                         border: '1px solid var(--color-pg-border)',
                         borderRadius: '12px',
                         width: '100%',
@@ -605,16 +605,16 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                         padding: '20px',
                         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)',
                     }}>
-                        <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-pg-text, #f4f4f5)', margin: '0 0 4px 0' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-pg-text)', margin: '0 0 4px 0' }}>
                             {language === 'en' ? 'Reschedule PO' : 'Jadwal Ulang PO'}
                         </h3>
-                        <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-pg-text-secondary, #a1a1aa)', margin: '0 0 16px 0' }}>
+                        <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-pg-text-secondary)', margin: '0 0 16px 0' }}>
                             {editingPo.po_number} · {editingPo.client_name}
                         </p>
 
                         <form onSubmit={handleSavePo}>
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase', marginBottom: '6px' }}>
+                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', marginBottom: '6px' }}>
                                     {language === 'en' ? 'Global Deadline' : 'Batas Waktu Global'}
                                 </label>
                                 <input 
@@ -625,9 +625,9 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                                     style={{
                                         width: '100%',
                                         backgroundColor: 'var(--color-pg-bg)',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        border: '1px solid var(--color-pg-border)',
                                         borderRadius: '8px',
-                                        color: '#fafafa',
+                                        color: 'var(--color-pg-text)',
                                         padding: '10px 12px',
                                         fontSize: '14px',
                                         outline: 'none',
@@ -647,7 +647,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                                         cursor: 'pointer',
                                     }}
                                 />
-                                <label htmlFor="is_urgent_checkbox" style={{ fontSize: '13px', fontWeight: 600, color: '#fafafa', cursor: 'pointer', userSelect: 'none' }}>
+                                <label htmlFor="is_urgent_checkbox" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-pg-text)', cursor: 'pointer', userSelect: 'none' }}>
                                     {language === 'en' ? 'Mark PO as Urgent' : 'Tandai PO Urgen'}
                                 </label>
                             </div>
@@ -661,7 +661,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                                         borderRadius: '8px',
                                         border: '1px solid var(--color-pg-border)',
                                         backgroundColor: 'transparent',
-                                        color: '#a1a1aa',
+                                        color: 'var(--color-pg-text-secondary)',
                                         fontWeight: 700,
                                         fontSize: '12px',
                                         cursor: 'pointer',
@@ -700,7 +700,7 @@ function KpiCard({ value, label, color, bgColor, borderColor }: { value: number;
     return (
         <div style={{ padding: '12px', borderRadius: '10px', backgroundColor: bgColor, border: `1px solid ${borderColor}`, textAlign: 'center' }}>
             <div style={{ fontSize: '24px', fontWeight: 800, color }}>{value}</div>
-            <div style={{ fontSize: '11px', color: '#a1a1aa', fontWeight: 600, marginTop: '2px' }}>{label}</div>
+            <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', fontWeight: 600, marginTop: '2px' }}>{label}</div>
         </div>
     );
 }
@@ -709,16 +709,16 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
     const [viewMode, setViewMode] = useState<'table' | 'gantt'>('table');
 
     if (schedule.length === 0) {
-        return <p style={{ color: '#71717a', padding: '24px', textAlign: 'center', fontSize: '14px' }}>{t.no_data}</p>;
+        return <p style={{ color: 'var(--color-pg-text-muted)', padding: '24px', textAlign: 'center', fontSize: '14px' }}>{t.no_data}</p>;
     }
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#a1a1aa' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-pg-text-secondary)' }}>
                     {schedule.length} {t.total_active}
                 </div>
-                <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(255, 255, 255, 0.04)', padding: '2px', borderRadius: '6px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                <div style={{ display: 'flex', gap: '4px', backgroundColor: 'var(--color-pg-surface)', padding: '2px', borderRadius: '6px', border: '1px solid var(--color-pg-border)' }}>
                     <button
                         type="button"
                         onClick={() => setViewMode('table')}
@@ -729,7 +729,7 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                             borderRadius: '4px',
                             border: 'none',
                             backgroundColor: viewMode === 'table' ? 'var(--color-pg-primary)' : 'transparent',
-                            color: viewMode === 'table' ? '#ffffff' : '#a1a1aa',
+                            color: viewMode === 'table' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                             cursor: 'pointer',
                         }}
                     >
@@ -745,7 +745,7 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                             borderRadius: '4px',
                             border: 'none',
                             backgroundColor: viewMode === 'gantt' ? 'var(--color-pg-primary)' : 'transparent',
-                            color: viewMode === 'gantt' ? '#ffffff' : '#a1a1aa',
+                            color: viewMode === 'gantt' ? '#ffffff' : 'var(--color-pg-text-secondary)',
                             cursor: 'pointer',
                         }}
                     >
@@ -763,22 +763,22 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
 
                         return (
                             <div key={po.id} style={{
-                                backgroundColor: 'rgba(24, 24, 27, 0.6)',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                backgroundColor: 'var(--color-pg-surface)',
+                                border: '1px solid var(--color-pg-border)',
                                 borderRadius: '10px',
                                 padding: '14px',
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                     <div>
-                                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#fafafa' }}>{po.client_name}</span>
-                                        <span style={{ fontSize: '11px', color: '#a1a1aa', marginLeft: '8px' }}>({po.po_number})</span>
+                                        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{po.client_name}</span>
+                                        <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', marginLeft: '8px' }}>({po.po_number})</span>
                                     </div>
                                     <span style={{ fontSize: '13px', fontWeight: 800, color: barColor }}>{avgProgress}%</span>
                                 </div>
-                                <div style={{ height: '12px', backgroundColor: 'rgba(255, 255, 255, 0.08)', borderRadius: '6px', overflow: 'hidden' }}>
+                                <div style={{ height: '12px', backgroundColor: 'var(--color-pg-surface)', borderRadius: '6px', overflow: 'hidden' }}>
                                     <div style={{ height: '100%', width: `${avgProgress}%`, backgroundColor: barColor, borderRadius: '6px', transition: 'width 0.4s ease' }} />
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '11px', color: '#71717a' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '11px', color: 'var(--color-pg-text-muted)' }}>
                                     <span>📅 Deadline: {po.global_deadline}</span>
                                     <span>{po.completed_items}/{po.total_items} {t.items.toLowerCase()}</span>
                                 </div>
@@ -790,16 +790,16 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                 schedule.map(po => (
                 <div key={po.id} style={{
                     backgroundColor: po.is_overdue ? 'rgba(239,68,68,0.03)' : 'transparent',
-                    border: `1px solid ${po.is_overdue ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.06)'}`,
+                    border: `1px solid ${po.is_overdue ? 'rgba(239,68,68,0.2)' : 'var(--color-pg-border)'}`,
                     borderRadius: '10px', padding: '12px 14px',
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
                         <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: '#f8fafc' }}>{po.client_name}</h3>
+                                <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: 'var(--color-pg-text)' }}>{po.client_name}</h3>
                                 {po.is_urgent && <StatusBadge status="URGENT" variant="dot" style={{ fontSize: '10px', padding: '1px 6px' }} />}
                             </div>
-                            <div style={{ fontSize: '11px', fontWeight: 600, color: '#71717a', marginTop: '2px' }}>{po.po_number}</div>
+                            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-pg-text-muted)', marginTop: '2px' }}>{po.po_number}</div>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -808,8 +808,8 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                                     title={language === 'en' ? 'Reschedule PO' : 'Jadwal Ulang PO'}
                                     style={{
                                         border: 'none',
-                                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                        color: '#a1a1aa',
+                                        backgroundColor: 'var(--color-pg-surface)',
+                                        color: 'var(--color-pg-text-secondary)',
                                         padding: '4px 6px',
                                         borderRadius: '4px',
                                         cursor: 'pointer',
@@ -820,7 +820,7 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                                         fontWeight: 700,
                                     }}
                                     onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.15)'; e.currentTarget.style.color = '#818cf8'; }}
-                                    onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'; e.currentTarget.style.color = '#a1a1aa'; }}
+                                    onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-pg-surface)'; e.currentTarget.style.color = 'var(--color-pg-text-secondary)'; }}
                                 >
                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
@@ -829,7 +829,7 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                                 </button>
                                 <WarningPill deadlineDateStr={po.global_deadline} reworkMessage={null} lang={language} />
                             </div>
-                            <div style={{ fontSize: '11px', color: '#71717a' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--color-pg-text-muted)' }}>
                                 {po.completed_items}/{po.total_items} {t.items.toLowerCase()}
                             </div>
                         </div>
@@ -837,7 +837,7 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                     <div style={{
                         display: 'flex', gap: '4px', marginBottom: '8px',
                         height: '6px', borderRadius: '3px', overflow: 'hidden',
-                        backgroundColor: 'rgba(255,255,255,0.06)',
+                        backgroundColor: 'var(--color-pg-surface)',
                     }}>
                         <div style={{
                             height: '100%', borderRadius: '3px',
@@ -850,7 +850,7 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                         <div key={item.id} style={{
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                             padding: '6px 8px', marginTop: '4px',
-                            backgroundColor: item.is_urgent ? 'rgba(251, 146, 60, 0.04)' : 'rgba(255,255,255,0.02)',
+                            backgroundColor: item.is_urgent ? 'rgba(251, 146, 60, 0.04)' : 'var(--color-pg-surface)',
                             borderRadius: '6px',
                             fontSize: '12px',
                             border: item.is_urgent ? '1px solid rgba(251, 146, 60, 0.15)' : 'none',
@@ -870,13 +870,13 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                                         padding: '2px',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        color: item.is_urgent ? '#fb923c' : '#52525b',
+                                        color: item.is_urgent ? '#fb923c' : 'var(--color-pg-text-muted)',
                                         fontSize: '14px',
                                         flexShrink: 0,
                                         transition: 'color 0.2s',
                                     }}
                                     onMouseOver={(e) => { if (!item.is_urgent) e.currentTarget.style.color = '#fb923c'; }}
-                                    onMouseOut={(e) => { if (!item.is_urgent) e.currentTarget.style.color = '#52525b'; }}
+                                    onMouseOut={(e) => { if (!item.is_urgent) e.currentTarget.style.color = 'var(--color-pg-text-muted)'; }}
                                 >
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill={item.is_urgent ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
@@ -884,7 +884,7 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                                         <line x1="12" y1="17" x2="12.01" y2="17" />
                                     </svg>
                                 </button>
-                                <span style={{ color: '#fafafa', fontWeight: 600, wordBreak: 'break-word' }}>{item.item_name}</span>
+                                <span style={{ color: 'var(--color-pg-text)', fontWeight: 600, wordBreak: 'break-word' }}>{item.item_name}</span>
                                 {item.current_stage && (
                                     <span style={{
                                         fontSize: '10px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px',
@@ -898,7 +898,7 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                                 )}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                                <span style={{ color: '#71717a' }}>{item.target_qty} pcs</span>
+                                <span style={{ color: 'var(--color-pg-text-muted)' }}>{item.target_qty} pcs</span>
                                 <span style={{
                                     fontWeight: 700,
                                     color: item.status === 'COMPLETED' ? '#34d399' : '#818cf8',
@@ -927,14 +927,14 @@ function LoadTab({ workCenterLoad, language, t }: { workCenterLoad: WorkCenterLo
             {workCenterLoad.map(wc => {
                 const pct = maxTotal > 0 ? (wc.total / maxTotal) * 100 : 0;
                 return (
-                    <div key={wc.work_center} style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div key={wc.work_center} style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--color-pg-border)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 700, color: '#fafafa' }}>{wc.work_center}</span>
-                            <span style={{ fontSize: '12px', color: '#71717a' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{wc.work_center}</span>
+                            <span style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)' }}>
                                 {wc.active} {t.active.toLowerCase()} / {wc.completed} {t.completed.toLowerCase()}
                             </span>
                         </div>
-                        <div style={{ height: '8px', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                        <div style={{ height: '8px', borderRadius: '4px', backgroundColor: 'var(--color-pg-surface)', overflow: 'hidden' }}>
                             <div style={{
                                 height: '100%', borderRadius: '4px',
                                 width: `${pct}%`,
@@ -942,7 +942,7 @@ function LoadTab({ workCenterLoad, language, t }: { workCenterLoad: WorkCenterLo
                                 transition: 'width 0.3s',
                             }} />
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '10px', color: '#71717a', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '10px', color: 'var(--color-pg-text-muted)', fontWeight: 600 }}>
                             <span>{t.total}: {wc.total}</span>
                             <span>{wc.active > 0 ? `${Math.round((wc.active / Math.max(1, wc.total)) * 100)}% ${t.active.toLowerCase()}` : t.completed}</span>
                         </div>
@@ -956,7 +956,7 @@ function LoadTab({ workCenterLoad, language, t }: { workCenterLoad: WorkCenterLo
 function MaterialTab({ readiness, language, t }: { readiness: MaterialReadiness; language: 'en' | 'id'; t: Record<string, string> }) {
     const total = readiness.ready_count + readiness.in_progress_count + readiness.pending_count;
     if (total === 0) {
-        return <p style={{ color: '#71717a', padding: '24px', textAlign: 'center', fontSize: '14px' }}>{t.no_data}</p>;
+        return <p style={{ color: 'var(--color-pg-text-muted)', padding: '24px', textAlign: 'center', fontSize: '14px' }}>{t.no_data}</p>;
     }
 
     const sections: { label: string; items: MaterialEntry[]; color: string }[] = [
@@ -980,18 +980,18 @@ function MaterialTab({ readiness, language, t }: { readiness: MaterialReadiness;
                             <div key={m.item_id} style={{
                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                                 padding: '8px 10px', borderRadius: '6px',
-                                border: '1px solid rgba(255,255,255,0.06)',
+                                border: '1px solid var(--color-pg-border)',
                                 fontSize: '12px',
                             }}>
                                  <div>
-                                     <div style={{ fontWeight: 800, color: '#fafafa', fontSize: '13px' }}>{m.item_name}</div>
+                                     <div style={{ fontWeight: 800, color: 'var(--color-pg-text)', fontSize: '13px' }}>{m.item_name}</div>
                                      <div style={{ color: 'var(--color-pg-text-secondary)', fontSize: '11px', marginTop: '1px', display: 'flex', gap: '4px', alignItems: 'center' }}>
                                          <span style={{ fontWeight: 600, color: 'var(--color-pg-primary-hover)' }}>{m.client_name}</span>
                                          <span style={{ color: 'var(--color-pg-text-muted)' }}>&middot;</span>
                                          <span style={{ color: 'var(--color-pg-text-muted)', fontSize: '10px' }}>{m.po_number}</span>
                                      </div>
                                  </div>
-                                <span style={{ color: '#71717a', fontWeight: 600, flexShrink: 0 }}>{m.target_qty} pcs</span>
+                                <span style={{ color: 'var(--color-pg-text-muted)', fontWeight: 600, flexShrink: 0 }}>{m.target_qty} pcs</span>
                             </div>
                         ))}
                     </div>
@@ -1003,7 +1003,7 @@ function MaterialTab({ readiness, language, t }: { readiness: MaterialReadiness;
 
 function BottlenecksTab({ bottlenecks, language, t }: { bottlenecks: BottleneckEntry[]; language: 'en' | 'id'; t: Record<string, string> }) {
     if (bottlenecks.length === 0) {
-        return <p style={{ color: '#71717a', padding: '24px', textAlign: 'center', fontSize: '14px' }}>{t.no_alerts_found}</p>;
+        return <p style={{ color: 'var(--color-pg-text-muted)', padding: '24px', textAlign: 'center', fontSize: '14px' }}>{t.no_alerts_found}</p>;
     }
 
     return (
@@ -1015,7 +1015,7 @@ function BottlenecksTab({ bottlenecks, language, t }: { bottlenecks: BottleneckE
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f87171' }} />
-                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#fafafa' }}>{bn.work_center}</span>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-pg-text)' }}>{bn.work_center}</span>
                         <span style={{
                             fontSize: '11px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px',
                             backgroundColor: 'rgba(248,113,113,0.12)', color: '#f87171',
@@ -1030,12 +1030,12 @@ function BottlenecksTab({ bottlenecks, language, t }: { bottlenecks: BottleneckE
                             backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '4px', marginTop: '4px',
                         }}>
                             <div>
-                                <span style={{ fontWeight: 600, color: '#fafafa' }}>{si.item_name}</span>
-                                <span style={{ color: '#71717a', marginLeft: '6px' }}>{si.po_number}</span>
+                                <span style={{ fontWeight: 600, color: 'var(--color-pg-text)' }}>{si.item_name}</span>
+                                <span style={{ color: 'var(--color-pg-text-muted)', marginLeft: '6px' }}>{si.po_number}</span>
                             </div>
                             <div style={{ textAlign: 'right', flexShrink: 0 }}>
                                 <div style={{ color: '#f87171', fontSize: '11px' }}>{si.reason}</div>
-                                <div style={{ color: '#71717a', fontSize: '10px' }}>{si.created_at}</div>
+                                <div style={{ color: 'var(--color-pg-text-muted)', fontSize: '10px' }}>{si.created_at}</div>
                             </div>
                         </div>
                     ))}
@@ -1084,10 +1084,10 @@ function ForecastCard({ item, language }: { item: ForecastItem; language: 'en' |
         <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             padding: '8px 10px', borderRadius: '6px',
-            border: '1px solid rgba(255,255,255,0.06)', fontSize: '12px',
+            border: '1px solid var(--color-pg-border)', fontSize: '12px',
         }}>
             <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontWeight: 800, color: '#fafafa', fontSize: '13px' }}>{item.item_name}</div>
+                <div style={{ fontWeight: 800, color: 'var(--color-pg-text)', fontSize: '13px' }}>{item.item_name}</div>
                 <div style={{ color: 'var(--color-pg-text-secondary)', fontSize: '11px', marginTop: '1px', display: 'flex', gap: '4px', alignItems: 'center' }}>
                     <span style={{ fontWeight: 600, color: 'var(--color-pg-primary-hover)' }}>{item.client_name}</span>
                     <span style={{ color: 'var(--color-pg-text-muted)' }}>&middot;</span>
@@ -1095,8 +1095,8 @@ function ForecastCard({ item, language }: { item: ForecastItem; language: 'en' |
                 </div>
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ color: '#fafafa', fontWeight: 600 }}>{item.progress_percent.toFixed(0)}%</div>
-                <div style={{ color: '#71717a', fontSize: '11px' }}>{item.target_qty} pcs</div>
+                <div style={{ color: 'var(--color-pg-text)', fontWeight: 600 }}>{item.progress_percent.toFixed(0)}%</div>
+                <div style={{ color: 'var(--color-pg-text-muted)', fontSize: '11px' }}>{item.target_qty} pcs</div>
             </div>
         </div>
     );
@@ -1110,16 +1110,16 @@ function CapacityTab({ capacities, language, t }: { capacities: CapacityEntry[];
                 return (
                     <div key={cap.work_center} style={{
                         padding: '10px 14px', borderRadius: '8px',
-                        border: `1px solid ${isOverloaded ? 'rgba(251,191,36,0.2)' : 'rgba(255,255,255,0.06)'}`,
+                        border: `1px solid ${isOverloaded ? 'rgba(251,191,36,0.2)' : 'var(--color-pg-border)'}`,
                         backgroundColor: isOverloaded ? 'rgba(251,191,36,0.03)' : 'transparent',
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 700, color: '#fafafa' }}>{cap.work_center}</span>
-                            <span style={{ fontSize: '12px', color: '#71717a' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{cap.work_center}</span>
+                            <span style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)' }}>
                                 {cap.active_item_count} {t.active.toLowerCase()} · {cap.total_target_qty} pcs
                             </span>
                         </div>
-                        <div style={{ height: '8px', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                        <div style={{ height: '8px', borderRadius: '4px', backgroundColor: 'var(--color-pg-surface)', overflow: 'hidden' }}>
                             <div style={{
                                 height: '100%', borderRadius: '4px',
                                 width: `${Math.min(100, cap.load_percent)}%`,
@@ -1127,7 +1127,7 @@ function CapacityTab({ capacities, language, t }: { capacities: CapacityEntry[];
                                 transition: 'width 0.3s',
                             }} />
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '10px', color: '#71717a', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '10px', color: 'var(--color-pg-text-muted)', fontWeight: 600 }}>
                             <span>{cap.total_completed_qty}/{cap.total_target_qty} pcs</span>
                             <span>{cap.load_percent.toFixed(0)}%</span>
                         </div>
