@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, AlertTriangle, DotGreen, Settings } from '../../Components/Icons';
 import echo from '../../bootstrap';
+import { formatDateTimeDDMMYYYY } from '../../Utils/date';
+import { WorkerHeader } from '../../Components/WorkerHeader';
 
 interface Alert {
     id: number;
@@ -45,6 +47,9 @@ const translations = {
         no_reports: 'No trouble reports logged.',
         active: 'Active',
         resolved: 'Resolved',
+        resolve_action: 'Resolve',
+        action: 'Action',
+        resolve_confirm: 'Mark this trouble report as resolved / fixed?',
         exit_terminal: 'Exit',
         lang_en: 'English',
         lang_id: 'Bahasa Indonesia',
@@ -60,6 +65,9 @@ const translations = {
         no_reports: 'Tidak ada laporan kendala.',
         active: 'Aktif',
         resolved: 'Selesai',
+        resolve_action: 'Selesaikan',
+        action: 'Aksi',
+        resolve_confirm: 'Tandai kendala ini sudah selesai / teratasi?',
         exit_terminal: 'Keluar',
         lang_en: 'English',
         lang_id: 'Bahasa Indonesia',
@@ -115,138 +123,50 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
 
     const t = translations[language];
 
+    const userRole = ((auth_user as any)?.role_name || (auth_user as any)?.role || '').toUpperCase();
+    const userPost = ((auth_user as any)?.post_name || '').toUpperCase();
+    const isOwner = (auth_user as any)?.is_owner;
+    const canResolve = Boolean(isOwner || ['PPIC', 'ADMIN', 'MANAGER', 'OWNER'].includes(userRole) || ['PPIC', 'ADMIN', 'MANAGER'].includes(userPost));
+
+    const handleResolve = (alertId: number) => {
+        if (confirm(t.resolve_confirm)) {
+            router.post(`/c/${slug}/alerts/${alertId}/resolve`, {}, {
+                preserveScroll: true,
+            });
+        }
+    };
+
     return (
         <div className="dashboard-root" style={{
             backgroundColor: 'var(--color-pg-bg)',
             fontFamily: 'Inter, sans-serif',
             color: 'var(--color-pg-text)',
         }}>
-            {/* Header matching all user screens */}
-            <header className="responsive-header" style={{
-                padding: '12px 16px',
-                borderBottom: '1px solid var(--color-pg-border)',
-                backgroundColor: 'var(--color-pg-surface)',
-                backdropFilter: 'blur(8px)',
-                flexShrink: 0,
-            }}>
-                <div>
-                    <div className="greeting-name" style={{ fontSize: '13px', color: 'var(--color-pg-primary-hover)', fontWeight: 600, marginBottom: '2px' }}>
-                        {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
-                    </div>
-                    <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.title}</h1>
-                    <p style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', margin: '2px 0 0 0' }}>
-                        {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                        {' · '}
-                        {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', gap: '4px', backgroundColor: 'var(--color-pg-border-subtle)', padding: '2px', borderRadius: '8px', marginRight: '8px' }}>
-                        <button
-                            onClick={() => changeLanguage('en')}
-                            style={{
-                                padding: '4px 8px',
-                                backgroundColor: language === 'en' ? 'var(--color-pg-primary)' : 'transparent',
-                                border: 'none',
-                                borderRadius: '6px',
-                                color: '#fff',
-                                fontWeight: 600,
-                                fontSize: '10px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            EN
-                        </button>
-                        <button
-                            onClick={() => changeLanguage('id')}
-                            style={{
-                                padding: '4px 8px',
-                                backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
-                                border: 'none',
-                                borderRadius: '6px',
-                                color: '#fff',
-                                fontWeight: 600,
-                                fontSize: '10px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            ID
-                        </button>
-                    </div>
+            <WorkerHeader
+                slug={slug}
+                auth_user={auth_user}
+                title={t.title}
+                subtitle={t.subtitle}
+                language={language}
+                changeLanguage={changeLanguage}
+                currentView="trouble-reports"
+            />
 
-                    <Link
-                        href={`/c/${slug}/profile`}
-                        style={{
-                            padding: '8px',
-                            backgroundColor: 'var(--color-pg-border-subtle)',
-                            color: 'var(--color-pg-text-secondary)',
-                            border: '1px solid var(--color-pg-border)',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            lineHeight: '1',
-                            display: 'flex',
-                            textDecoration: 'none',
-                        }}
-                        title={language === 'en' ? 'Profile' : 'Profil'}
-                    >
-                        <Settings size={16} />
-                    </Link>
-
-                    <button
-                        onClick={() => router.post('/logout')}
-                        style={{
-                            padding: '8px 14px',
-                            backgroundColor: 'var(--color-pg-danger)',
-                            color: '#fff',
-                            fontWeight: 600,
-                            border: 'none',
-                            borderRadius: '10px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                        }}
-                    >
-                        {t.exit_terminal}
-                    </button>
-                </div>
-            </header>
-
-            {/* Back to Dashboard and Content Area */}
+            {/* Content Area */}
             <div className="dashboard-scroll" style={{
                 padding: '24px',
                 boxSizing: 'border-box',
+                flex: 1,
             }}>
                 <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
-                <div style={{ marginBottom: '16px' }}>
-                    <Link
-                        href={`/c/${slug}`}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            color: 'var(--color-pg-primary-hover)',
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            textDecoration: 'none',
-                            padding: '8px 16px',
-                            borderRadius: '10px',
-                            backgroundColor: 'rgba(99, 102, 241, 0.12)',
-                            border: '1px solid var(--color-pg-primary-glow)',
-                        }}
-                    >
-                        <ChevronLeft size={16} /> {t.back}
-                    </Link>
-                </div>
-
-                <div style={{
-                    backgroundColor: 'var(--color-pg-surface)',
-                    border: '1px solid var(--color-pg-border)',
-                    borderRadius: '14px',
-                    padding: '20px',
-                    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.12)',
+                <div className="glass-card" style={{
+                    backgroundColor: 'var(--color-pg-card, rgba(24, 24, 27, 0.7))',
+                    border: '1px solid var(--color-pg-border, rgba(255, 255, 255, 0.08))',
+                    borderRadius: '16px',
+                    padding: '24px',
+                    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.35)',
+                    backdropFilter: 'blur(12px)',
                 }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px 0' }}>{t.title}</h2>
-                    <p style={{ fontSize: '13px', color: 'var(--color-pg-text-muted)', margin: '0 0 20px 0' }}>{t.subtitle}</p>
 
                     {alerts.length === 0 ? (
                         <div style={{
@@ -273,18 +193,15 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                                         <th style={{ padding: '12px 8px', color: 'var(--color-pg-text-secondary)', fontWeight: 600 }}>{t.severity}</th>
                                         <th style={{ padding: '12px 8px', color: 'var(--color-pg-text-secondary)', fontWeight: 600 }}>{t.message}</th>
                                         <th style={{ padding: '12px 8px', color: 'var(--color-pg-text-secondary)', fontWeight: 600 }}>{t.status}</th>
+                                        {canResolve && (
+                                            <th style={{ padding: '12px 8px', color: 'var(--color-pg-text-secondary)', fontWeight: 600 }}>{t.action}</th>
+                                        )}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {alerts.map((alert) => {
                                         const date = new Date(alert.created_at);
-                                        const dateStr = date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        });
+                                        const dateStr = formatDateTimeDDMMYYYY(alert.created_at);
 
                                         const sevColor = alert.severity === 'RED' ? 'var(--color-pg-danger)'
                                             : alert.severity === 'YELLOW' ? 'var(--color-pg-warning)'
@@ -357,6 +274,30 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
                                                         </span>
                                                     )}
                                                 </td>
+                                                {canResolve && (
+                                                    <td style={{ padding: '14px 8px' }}>
+                                                        {!alert.is_resolved && (
+                                                            <button
+                                                                onClick={() => handleResolve(alert.id)}
+                                                                style={{
+                                                                    padding: '6px 12px',
+                                                                    borderRadius: '6px',
+                                                                    fontSize: '11px',
+                                                                    fontWeight: 600,
+                                                                    backgroundColor: 'var(--color-pg-primary, #3b82f6)',
+                                                                    color: '#ffffff',
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    transition: 'opacity 0.2s',
+                                                                }}
+                                                                onMouseOver={(e) => e.currentTarget.style.opacity = '0.85'}
+                                                                onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                                                            >
+                                                                {t.resolve_action}
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                )}
                                             </tr>
                                         );
                                     })}

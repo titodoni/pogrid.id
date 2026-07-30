@@ -222,28 +222,44 @@
             }
         }
 
+        $delayedPosCount = $telemetry['delayed_pos_count'] ?? 0;
+        $delayedItemsCount = count($telemetry['delayed_items'] ?? []);
+        $avgDelay = $telemetry['avg_delay_days'] ?? 0;
+        $redAlerts = $telemetry['risks']['red'] ?? 0;
+        $yellowAlerts = $telemetry['risks']['yellow'] ?? 0;
+        $isAllNormal = !$topStuck && $delayedPosCount == 0 && $delayedItemsCount == 0 && $redAlerts == 0 && $yellowAlerts == 0;
+
         $narrative = "Periode ini, pabrik menyelesaikan {$telemetry['otdr']}% pesanan tepat waktu";
-        if ($otdrDelta !== null) {
+        if ($otdrDelta !== null && $otdrDelta != 0) {
             $narrative .= $otdrDelta >= 0
                 ? " — naik " . abs($otdrDelta) . "% dari periode lalu"
                 : " — turun " . abs($otdrDelta) . "% dari periode lalu";
         }
         $narrative .= ". ";
 
+        if ($delayedPosCount > 0 || $delayedItemsCount > 0 || $avgDelay > 0) {
+            if ($delayedPosCount > 0) {
+                $narrative .= "Terdapat {$delayedPosCount} PO aktif yang terlambat dari jadwal (rata-rata keterlambatan {$avgDelay} hari). ";
+            } else {
+                $narrative .= "Terdapat item produksi yang mengalami keterlambatan (rata-rata {$avgDelay} hari). ";
+            }
+        }
         if ($topStuck) {
-            $narrative .= "Bottleneck utama ada di tahap {$topStuck['stage']} ({$topStuck['stuck_count']} macet, rata-rata {$topStuck['avg_cycle_time']} hari/item). ";
-        } else {
-            $narrative .= "Semua tahap produksi berjalan normal. ";
+            $narrative .= "Bottleneck utama ada di tahap {$topStuck['stage']} ({$topStuck['stuck_count']} item macet, rata-rata {$topStuck['avg_cycle_time']} hari/item). ";
+        } elseif ($redAlerts > 0) {
+            $narrative .= "Terdapat {$redAlerts} kendala kritis (RED) yang aktif di lantai produksi. ";
+        } elseif ($isAllNormal) {
+            $narrative .= "Semua tahap produksi dan waktu pengiriman berjalan normal sesuai jadwal. ";
         }
 
         $urgentActive = $telemetry['urgent_active'] ?? 0;
         if ($urgentActive > 0) {
-            $narrative .= "Terdapat {$urgentActive} PO mendesak yang masih aktif. ";
+            $narrative .= "Terdapat {$urgentActive} PO mendesak (Urgent) yang sedang diproduksi. ";
         }
 
         $uninvoiced = $telemetry['finance_health']['uninvoiced_count'] ?? 0;
         if ($uninvoiced > 0) {
-            $narrative .= "{$uninvoiced} item selesai belum difakturkan.";
+            $narrative .= "Perhatian keuangan: {$uninvoiced} item selesai belum dibuatkan faktur.";
         }
     @endphp
 

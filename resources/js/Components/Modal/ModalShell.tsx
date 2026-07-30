@@ -67,7 +67,7 @@ export const ModalShell: React.FC<ModalShellProps> = ({
         >
             <div
                 style={{
-                    backgroundColor: '#18181b',
+                    backgroundColor: 'var(--color-pg-surface, #18181b)',
                     border: '1px solid var(--color-pg-border)',
                     borderRadius: '16px',
                     padding: '24px',
@@ -76,20 +76,21 @@ export const ModalShell: React.FC<ModalShellProps> = ({
                     maxWidth: maxW,
                     maxHeight: '90vh',
                     overflowY: 'auto',
+                    color: 'var(--color-pg-text, #fafafa)',
                 }}
             >
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                     <div>
-                        <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0', color: '#fafafa' }}>{title}</h2>
-                        {subtitle && <p style={{ fontSize: '12px', color: '#71717a', margin: 0 }}>{subtitle}</p>}
+                        <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0', color: 'var(--color-pg-text, #fafafa)' }}>{title}</h2>
+                        {subtitle && <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-pg-text-secondary, #71717a)', margin: 0 }}>{subtitle}</p>}
                     </div>
                     <button
                         onClick={onClose}
                         style={{
                             background: 'none',
                             border: 'none',
-                            color: '#71717a',
+                            color: 'var(--color-pg-text-secondary, #71717a)',
                             cursor: 'pointer',
                             padding: '4px',
                             display: 'flex',

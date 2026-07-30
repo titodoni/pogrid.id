@@ -75,12 +75,17 @@ const translations = {
 };
 
 export default function WorkerLogin({ tenant, workers }: Props) {
-    const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
+        user_id: '',
+        pin: '',
+    });
+
     const [pin, setPin] = useState('');
     const [showPinResetModal, setShowPinResetModal] = useState(false);
-
     const [workerSearch, setWorkerSearch] = useState('');
+
     const selectedWorkerId = data.user_id;
+    const selectedWorker = workers.find(w => w.id.toString() === selectedWorkerId);
 
     const filteredWorkers = workers.filter(w => {
         if (!workerSearch.trim()) return true;
@@ -90,12 +95,6 @@ export default function WorkerLogin({ tenant, workers }: Props) {
     });
 
     const setSelectedWorkerId = (id: string) => setData('user_id', id);
-    const selectedWorker = workers.find(w => w.id.toString() === selectedWorkerId);
-
-    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
-        user_id: '',
-        pin: '',
-    });
 
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
         if (typeof window !== 'undefined') {

@@ -53,6 +53,9 @@ trap cleanup EXIT INT TERM
 # --- Clean up any conflicting containers first ---
 docker rm -f php-server php-queue 2>/dev/null || true
 
+echo "Building frontend assets inside Docker..."
+docker run --rm -v "$(pwd):/app" -w /app php-node npm run build
+
 echo ""
 echo "Starting PHP Artisan server (http://localhost:8000)..."
 docker run -d --rm --name php-server -v "$(pwd):/app" -w /app -p 8000:8000 php-node \

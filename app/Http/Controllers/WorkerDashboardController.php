@@ -784,6 +784,10 @@ class WorkerDashboardController extends Controller
             ->where('is_urgent', true)
             ->count();
 
+        $delayedPosCount = Po::whereNotIn('status', ['COMPLETED', 'CANCELLED'])
+            ->where('global_deadline', '<', now()->toDateString())
+            ->count();
+
         // ── 6. Why Delayed Breakdown ──────────────────────────────────────────
         // Now uses reason_type enum column instead of keyword scanning.
         // Falls back to keyword scanning for legacy alerts without reason_type.
@@ -1180,6 +1184,7 @@ class WorkerDashboardController extends Controller
                 'yellow' => $yellowRisks,
             ],
             'avg_delay_days' => $avgDelayDays,
+            'delayed_pos_count' => $delayedPosCount,
             'urgent_active' => $urgentActiveCount,
             'delay_reasons' => $delayReasons,
             'trend_data' => $trendData,
@@ -1228,31 +1233,43 @@ class WorkerDashboardController extends Controller
 
     private function calcOtdr(Carbon $startDate, Carbon $endDate): float
     {
-        $posCompleted = Po::where('status', 'COMPLETED')
-            ->whereBetween('global_deadline', [$startDate->toDateString(), $endDate->toDateString()])
+        $posInPeriod = Po::whereBetween('global_deadline', [$startDate->toDateString(), $endDate->toDateString()])
+            ->where(function ($query) {
+                $query->where('status', 'COMPLETED')
+                      ->orWhere('global_deadline', '<', now()->toDateString());
+            })
             ->with(['deliveryOrders'])
             ->get();
 
-        $totalCompleted = $posCompleted->count();
-        $onTimeCompleted = 0;
+        $activeOverduePos = Po::whereNotIn('status', ['COMPLETED', 'CANCELLED'])
+            ->where('global_deadline', '<', now()->toDateString())
+            ->with(['deliveryOrders'])
+            ->get();
 
-        foreach ($posCompleted as $po) {
+        $evaluatedPos = $posInPeriod->merge($activeOverduePos)->unique('id');
+        $totalConsidered = $evaluatedPos->count();
+        $onTimeCount = 0;
+
+        foreach ($evaluatedPos as $po) {
             $deadline = Carbon::parse($po->global_deadline)->startOfDay();
-            $latestDoDate = $po->deliveryOrders->max('delivery_date');
-            if ($latestDoDate) {
-                $latestDo = Carbon::parse($latestDoDate)->startOfDay();
-                if ($latestDo->lte($deadline)) {
-                    $onTimeCompleted++;
+            if ($po->status === 'COMPLETED') {
+                $latestDoDate = $po->deliveryOrders->max('delivery_date');
+                if ($latestDoDate) {
+                    $latestDo = Carbon::parse($latestDoDate)->startOfDay();
+                    if ($latestDo->lte($deadline)) {
+                        $onTimeCount++;
+                    }
+                } else {
+                    if ($po->updated_at->startOfDay()->lte($deadline)) {
+                        $onTimeCount++;
+                    }
                 }
             } else {
-                // No DO recorded: use PO updated_at as fallback
-                if ($po->updated_at->startOfDay()->lte($deadline)) {
-                    $onTimeCompleted++;
-                }
+                // Active order with deadline past current date is overdue (failed on time delivery)
             }
         }
 
-        return $totalCompleted > 0 ? round(($onTimeCompleted / $totalCompleted) * 100, 1) : 100.0;
+        return $totalConsidered > 0 ? round(($onTimeCount / $totalConsidered) * 100, 1) : 100.0;
     }
 
     // ── Helper: Average Delay for a given range ───────────────────────────────
@@ -1554,6 +1571,23 @@ class WorkerDashboardController extends Controller
             ]);
         }
 
+        $stageLowerForEvent = strtolower($progress->stage_name);
+        $isCustomStageForEvent = str_contains($stageLowerForEvent, 'design') || str_contains($stageLowerForEvent, 'gambar') || str_contains($stageLowerForEvent, 'draft') ||
+                          str_contains($stageLowerForEvent, 'material') || str_contains($stageLowerForEvent, 'bahan') || str_contains($stageLowerForEvent, 'vendor') || str_contains($stageLowerForEvent, 'purchasing');
+
+        if ($isCustomStageForEvent) {
+            $msg = "Progress updated for stage '{$progress->stage_name}' to " . round($progress->progress_percent) . "% on item '{$item->item_name}' (PO: {$item->po->po_number}).";
+        } else {
+            if ($item->target_qty > 1) {
+                $inputQty = (int) $request->input('completed_qty', 0);
+                $msg = "Completed quantity updated for stage '{$progress->stage_name}' by +{$inputQty} ({$progress->completed_qty}/{$item->target_qty}) on item '{$item->item_name}' (PO: {$item->po->po_number}).";
+            } else {
+                $msg = "Progress updated for stage '{$progress->stage_name}' to " . round($progress->progress_percent) . "% on item '{$item->item_name}' (PO: {$item->po->po_number}).";
+            }
+        }
+
+        broadcast(new \App\Events\TaskUpdated($item->tenant_id, $msg))->toOthers();
+
         return back()->with('success', 'Progress updated.');
     }
 
@@ -1641,6 +1675,8 @@ class WorkerDashboardController extends Controller
             }
         }
 
+        broadcast(new \App\Events\TaskUpdated($item->tenant_id, "Last progress update reverted for stage '{$progress->stage_name}' on item '{$item->item_name}' (PO: {$item->po->po_number})."))->toOthers();
+
         return back()->with('success', 'Last progress update reverted successfully.');
     }
 
@@ -1698,16 +1734,48 @@ class WorkerDashboardController extends Controller
             abort(403, 'Unauthorized tenant access.');
         }
 
-        // Fetch all alerts for this tenant (resolved and unresolved)
-        $alerts = Alert::with(['item.po'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Fetch alerts for this tenant (hide admin BLUE severity alerts from standard floor operators)
+        $query = Alert::with(['item.po'])->orderBy('created_at', 'desc');
+
+        $user->loadMissing('roleRelation');
+        if ($user->role_level !== 'office' && strcasecmp($user->role_name, 'PPIC') !== 0) {
+            $query->where('severity', '!=', 'BLUE');
+        }
+
+        $alerts = $query->get();
 
         return Inertia::render('Worker/TroubleReports', [
             'alerts' => $alerts,
             'auth_user' => $user,
             'tenant' => $tenant,
         ]);
+    }
+
+    public function resolveAlert(Request $request, $slug, $alertId)
+    {
+        TenantManager::bypass();
+        $tenant = Tenant::where('slug', $slug)->firstOrFail();
+        TenantManager::enableScope();
+        TenantManager::setTenantId($tenant->id);
+
+        $user = auth()->user()->loadMissing('roleRelation', 'postRelation');
+        if ($user->tenant_id !== $tenant->id) {
+            abort(403, 'Unauthorized tenant access.');
+        }
+
+        $isPpic = strcasecmp($user->role_name ?? '', 'PPIC') === 0 || strcasecmp($user->post_name ?? '', 'PPIC') === 0;
+        $canResolve = $isPpic || $user->isOwner() || $user->isManager() || $user->isAdmin();
+
+        if (! $canResolve) {
+            abort(403, 'Only PPIC, Admin, Owner, or Manager can resolve trouble reports.');
+        }
+
+        $alert = Alert::where('tenant_id', $tenant->id)->findOrFail($alertId);
+        $alert->update([
+            'is_resolved' => true,
+        ]);
+
+        return back()->with('success', 'Trouble report resolved successfully.');
     }
 
     public function logQcRework(Request $request, $slug, $progressId)
@@ -1823,6 +1891,8 @@ class WorkerDashboardController extends Controller
             ]);
         }
 
+        broadcast(new \App\Events\TaskUpdated($item->tenant_id, "Drafter status updated to '{$request->drafter_status}' for item '{$item->item_name}' (PO: {$item->po->po_number})."))->toOthers();
+
         return back()->with('success', 'Drafter status updated.');
     }
 
@@ -1830,6 +1900,10 @@ class WorkerDashboardController extends Controller
     {
         $request->validate([
             'purchasing_status' => ['required', 'string', 'in:ORDER,PROSES,READY'],
+            'vendor_name' => ['nullable', 'string', 'max:255'],
+            'vendor_phone' => ['nullable', 'string', 'max:50'],
+            'vendor_po' => ['nullable', 'string', 'max:100'],
+            'eta_date' => ['nullable', 'date'],
         ]);
 
         $user = auth()->user()->load('roleRelation');
@@ -1858,7 +1932,13 @@ class WorkerDashboardController extends Controller
             $previousProgressPercent = null;
         }
 
-        $item->update(['purchasing_status' => $request->purchasing_status]);
+        $updateData = ['purchasing_status' => $request->purchasing_status];
+        if ($request->has('vendor_name')) $updateData['vendor_name'] = $request->vendor_name;
+        if ($request->has('vendor_phone')) $updateData['vendor_phone'] = $request->vendor_phone;
+        if ($request->has('vendor_po')) $updateData['vendor_po'] = $request->vendor_po;
+        if ($request->has('eta_date')) $updateData['eta_date'] = $request->eta_date;
+
+        $item->update($updateData);
 
         if ($materialProgress) {
             $pct = 0.00;
@@ -1880,6 +1960,8 @@ class WorkerDashboardController extends Controller
                 'previous_progress_percent' => $previousProgressPercent,
             ]);
         }
+
+        broadcast(new \App\Events\TaskUpdated($item->tenant_id, "Purchasing status updated to '{$request->purchasing_status}' for item '{$item->item_name}' (PO: {$item->po->po_number})."))->toOthers();
 
         return back()->with('success', 'Purchasing status updated.');
     }
@@ -1962,7 +2044,43 @@ class WorkerDashboardController extends Controller
             }
         }
 
+        broadcast(new \App\Events\TaskUpdated($item->tenant_id, "Finance status updated (Invoice: {$invoiceStatus}, Payment: {$request->payment_status}) for item '{$item->item_name}' (PO: {$item->po->po_number})."))->toOthers();
+
         return back()->with('success', 'Finance status updated.');
+    }
+
+    public function financeLedger(Request $request, $slug)
+    {
+        TenantManager::bypass();
+        $tenant = Tenant::where('slug', $slug)->firstOrFail();
+        TenantManager::enableScope();
+        TenantManager::setTenantId($tenant->id);
+
+        $user = auth()->user()->loadMissing('roleRelation', 'postRelation');
+        if ($user->tenant_id !== $tenant->id) {
+            abort(403, 'Unauthorized tenant access.');
+        }
+
+        $roleName = strtoupper($user->role_name ?? '');
+        $postName = strtoupper($user->post_name ?? '');
+        $isOffice = $user->role_level === 'office' || $user->isOwner();
+
+        if (! $isOffice && $roleName !== 'FINANCE' && $postName !== 'FINANCE') {
+            abort(403, 'Only Finance officers or Office managers can view the Finance Ledger.');
+        }
+
+        $pos = Po::with([
+            'items' => function ($q) {
+                $q->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty')
+                    ->with(['itemProgresses']);
+            },
+        ])->orderBy('created_at', 'desc')->get();
+
+        return Inertia::render('Worker/FinanceLedger', [
+            'auth_user' => $user,
+            'tenant' => $tenant,
+            'pos' => $pos,
+        ]);
     }
 
     private function validateStageAccess(ItemProgress $progress, User $user): void

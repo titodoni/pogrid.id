@@ -5,6 +5,7 @@ import { formatDeadline } from '../../Utils/deadline';
 import { localizedDisplay } from '../../Utils/locale';
 import { isStageLocked, getStageLockReason, getMatchingStages, getMatchingStageOrMock, getAllStages } from '../../Utils/permissions';
 import { WarningPill } from '../../Components/WarningPill';
+import { WorkerHeader } from '../../Components/WorkerHeader';
 import echo from '../../bootstrap';
 
 interface Stage {
@@ -33,6 +34,9 @@ interface Item {
     progress_percent: string;
     status: string;
     purchasing_status?: string | null;
+    vendor_name?: string | null;
+    vendor_po?: string | null;
+    eta_date?: string | null;
     drafter_status?: string | null;
     invoice_status?: string;
     payment_status?: string;
@@ -727,15 +731,7 @@ function ItemCard({
                     })()}
                     {(() => {
                         const reworkAlert = item.alerts?.find(a => a.severity === 'YELLOW' && !a.is_resolved);
-                        let reworkVal = null;
-                        if (reworkAlert) {
-                            if (reworkAlert.message) {
-                                const match = reworkAlert.message.match(/(\d+)\s+items?\s+rejected/i);
-                                reworkVal = match ? `Rework (${match[1]} pcs)` : 'Rework';
-                            } else {
-                                reworkVal = 'Rework';
-                            }
-                        }
+                        const reworkVal = reworkAlert ? (reworkAlert.message || true) : null;
                         return <WarningPill deadlineDateStr={item.po?.global_deadline} reworkMessage={reworkVal} lang={language} />;
                     })()}
                 </div>
@@ -924,6 +920,22 @@ function ItemCard({
                                                         </button>
                                                     );
                                                 })}
+                                            </div>
+                                            <div style={{
+                                                display: 'flex',
+                                                gap: '8px',
+                                                marginTop: '4px',
+                                                fontSize: '11px',
+                                                color: 'var(--color-pg-text-secondary)',
+                                                alignItems: 'center',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                                                padding: '6px 10px',
+                                                borderRadius: '6px',
+                                                border: '1px solid rgba(255, 255, 255, 0.05)',
+                                            }}>
+                                                <span>🏷️ <strong>Vendor:</strong> {item.vendor_name || (language === 'en' ? 'Not specified' : 'Belum diisi')}</span>
+                                                {item.vendor_po && <span>| <strong>PO:</strong> {item.vendor_po}</span>}
+                                                {item.eta_date && <span>| <strong>ETA:</strong> {item.eta_date}</span>}
                                             </div>
                                         </div>
                                     );
@@ -1907,265 +1919,17 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                 </div>
             )}
             {/* Header */}
-        <header className="responsive-header p-3 border-b border-pg-border bg-pg-bg/60 backdrop-blur shrink-0">
-                <div>
-                    <div className="greeting-name text-sm text-pg-primary-hover font-semibold mb-0.5">
-                        {language === 'en'
-                            ? `Hello, ${auth_user?.name}${auth_user?.post_display_name ? ` (${localizedDisplay({ display_name: auth_user.post_display_name, display_name_id: auth_user.post_display_name_id }, language)})` : ''}`
-                            : `Halo, ${auth_user?.name}${auth_user?.post_display_name ? ` (${localizedDisplay({ display_name: auth_user.post_display_name, display_name_id: auth_user.post_display_name_id }, language)})` : ''}`}
-                    </div>
-                    <h1 className="text-2xl font-extrabold m-0 tracking-tight">{t.floor_terminal}</h1>
-                    <p className="text-xs text-pg-text-muted m-0 mt-0.5">
-                        {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                        {' · '}
-                        {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                </div>
-                <div className="flex justify-between items-center gap-2 flex-wrap w-full md:w-auto mt-2 md:mt-0">
-                    {/* Left: Language switcher */}
-                    <div className="flex gap-1 bg-white/4 p-0.5 rounded-lg border border-pg-border">
-                        <button
-                            onClick={() => changeLanguage('en')}
-                            className="min-w-[44px] min-h-[44px] px-3 py-1.5 border-none rounded-md text-white font-bold text-xs cursor-pointer flex items-center justify-center"
-                            style={{
-                                backgroundColor: language === 'en' ? 'var(--color-pg-primary)' : 'transparent',
-                            }}
-                        >
-                            EN
-                        </button>
-                        <button
-                            onClick={() => changeLanguage('id')}
-                            className="min-w-[44px] min-h-[44px] px-3 py-1.5 border-none rounded-md text-white font-bold text-xs cursor-pointer flex items-center justify-center"
-                            style={{
-                                backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
-                            }}
-                        >
-                            ID
-                        </button>
-                    </div>
-
-                    {/* Online Users Pill & Connection Badge */}
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 12px',
-                        borderRadius: '8px',
-                        backgroundColor: wsStatus === 'connected' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                        border: `1px solid ${wsStatus === 'connected' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`,
-                        color: wsStatus === 'connected' ? '#10b981' : '#f59e0b',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        minHeight: '44px',
-                    }}>
-                        <span style={{
-                            width: '8px',
-                            height: '8px',
-                            borderRadius: '50%',
-                            backgroundColor: wsStatus === 'connected' ? '#10b981' : '#f59e0b',
-                            boxShadow: wsStatus === 'connected' ? '0 0 6px #10b981' : 'none'
-                        }} />
-                        <span>{onlineUsers.length} {language === 'en' ? 'Online' : 'Online'}</span>
-                    </div>
-
-                    {/* Right: Actions */}
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        {/* Trouble Reports Button */}
-                        <Link
-                            href={`/c/${slug}/trouble-reports`}
-                            style={{
-                                width: '44px',
-                                height: '44px',
-                                backgroundColor: 'rgba(248, 113, 113, 0.12)',
-                                color: 'var(--color-pg-danger)',
-                                border: '1px solid rgba(248, 113, 113, 0.2)',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                textDecoration: 'none',
-                            }}
-                            title={language === 'en' ? 'Trouble Reports' : 'Laporan Kendala'}
-                        >
-                            <AlertTriangle size={18} />
-                        </Link>
-
-                        {/* KPI Button */}
-                        <Link
-                            href={`/c/${slug}/my-kpi`}
-                            style={{
-                                minHeight: '44px',
-                                padding: '0 12px',
-                                backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                                color: '#10b981',
-                                border: '1px solid rgba(16, 185, 129, 0.2)',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                textDecoration: 'none',
-                                gap: '4px',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                            }}
-                            title={language === 'en' ? 'My KPI' : 'KPI Saya'}
-                        >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="18" y1="20" x2="18" y2="10" />
-                                <line x1="12" y1="20" x2="12" y2="4" />
-                                <line x1="6" y1="20" x2="6" y2="14" />
-                            </svg>
-                            {language === 'en' ? 'My KPI' : 'KPI Saya'}
-                        </Link>
-
-                        {/* Archive Button */}
-                        <Link
-                            href={`/c/${slug}/archive`}
-                            style={{
-                                minHeight: '44px',
-                                padding: '0 12px',
-                                backgroundColor: 'rgba(99, 102, 241, 0.12)',
-                                color: 'var(--color-pg-primary-hover)',
-                                border: '1px solid rgba(99, 102, 241, 0.2)',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                textDecoration: 'none',
-                                gap: '4px',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                            }}
-                            title={language === 'en' ? 'Archive' : 'Arsip'}
-                        >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="21 8 21 21 3 21 3 8" />
-                                <rect x="1" y="3" width="22" height="5" />
-                                <line x1="10" y1="12" x2="14" y2="12" />
-                            </svg>
-                            {language === 'en' ? 'Archive' : 'Arsip'}
-                        </Link>
-
-                        {/* Theme Picker */}
-                        <div style={{ position: 'relative' }}>
-                            <button
-                                onClick={() => setShowThemeDropdown(!showThemeDropdown)}
-                                style={{
-                                    width: '44px',
-                                    height: '44px',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                                    color: 'var(--color-pg-text-secondary)',
-                                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                }}
-                                title={language === 'en' ? 'Switch Theme' : 'Ganti Tema'}
-                            >
-                                <Palette size={18} />
-                            </button>
-                            {showThemeDropdown && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '50px',
-                                    right: '0',
-                                    width: '160px',
-                                    backgroundColor: 'var(--color-pg-card)',
-                                    border: '1px solid var(--color-pg-border)',
-                                    borderRadius: '10px',
-                                    padding: '6px',
-                                    zIndex: 100,
-                                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
-                                    display: 'grid',
-                                    gap: '4px',
-                                }}>
-                                    {[
-                                        { id: 'theme-default', name: 'Titanium Slate', color: 'var(--color-pg-primary)' },
-                                        { id: 'theme-linear', name: 'Obsidian Graphite', color: 'var(--color-pg-primary)' },
-                                        { id: 'theme-vercel', name: 'Monochrome Void', color: 'var(--color-pg-primary)' },
-                                        { id: 'theme-stripe', name: 'Stripe Navy', color: 'var(--color-pg-primary)' },
-                                        { id: 'theme-github', name: 'GitHub Slate', color: 'var(--color-pg-primary)' },
-                                        { id: 'theme-nordic', name: 'Nordic Polar', color: 'var(--color-pg-primary)' },
-                                    ].map((tOption) => (
-                                        <button
-                                            key={tOption.id}
-                                            onClick={() => changeTheme(tOption.id)}
-                                            style={{
-                                                padding: '6px 8px',
-                                                backgroundColor: 'transparent',
-                                                border: 'none',
-                                                borderRadius: '6px',
-                                                color: 'var(--color-pg-text)',
-                                                fontSize: '11px',
-                                                fontWeight: 600,
-                                                textAlign: 'left',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                            }}
-                                            onMouseOver={(e) => {
-                                                e.currentTarget.style.backgroundColor = 'var(--color-pg-card-hover)';
-                                            }}
-                                            onMouseOut={(e) => {
-                                                e.currentTarget.style.backgroundColor = 'transparent';
-                                            }}
-                                        >
-                                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: tOption.color }} />
-                                            {tOption.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Profile Button */}
-                        <Link
-                            href={`/c/${slug}/profile`}
-                            style={{
-                                width: '44px',
-                                height: '44px',
-                                backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                                color: 'var(--color-pg-text-secondary)',
-                                border: '1px solid rgba(255, 255, 255, 0.06)',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                textDecoration: 'none',
-                            }}
-                            title={language === 'en' ? 'Profile' : 'Profil'}
-                        >
-                            <Settings size={18} />
-                        </Link>
-
-                        <button
-                            onClick={() => router.post('/logout')}
-                            style={{
-                                minHeight: '44px',
-                                padding: '0 16px',
-                                backgroundColor: 'var(--color-pg-danger)',
-                                color: '#fff',
-                                fontWeight: 700,
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxShadow: '0 4px 12px rgba(248, 113, 113, 0.2)',
-                            }}
-                        >
-                            {t.exit_terminal}
-                        </button>
-            </header>
+            <WorkerHeader
+                slug={slug}
+                auth_user={auth_user}
+                userRole={userRole}
+                title={t.floor_terminal}
+                language={language}
+                changeLanguage={changeLanguage}
+                currentView="dashboard"
+                onlineUsersCount={onlineUsers.length}
+                wsStatus={wsStatus}
+            />
 
             {/* Connection Disconnected Warning Banner */}
             {wsStatus === 'disconnected' && (

@@ -44,26 +44,24 @@ export const WarningPill: React.FC<WarningPillProps> = ({
     if (!deadlineDateStr) return null;
 
     if (reworkMessage) {
-        const displayMsg = typeof reworkMessage === 'string'
-            ? reworkMessage
-            : (lang === 'id' ? 'Rework' : 'Rework');
+        let displayMsg = lang === 'id' ? 'Rework QC' : 'QC Rework';
+        
+        if (typeof reworkMessage === 'string') {
+            const match = reworkMessage.match(/(\d+)\s+(?:items?|pcs)(?:\s+rejected)?/i) || reworkMessage.match(/QC Rework:\s*(\d+)/i) || reworkMessage.match(/\((\d+)\s*pcs\)/i);
+            if (match && parseInt(match[1], 10) > 0) {
+                displayMsg = lang === 'id' ? `Rework QC (${match[1]} pcs)` : `QC Rework (${match[1]} pcs)`;
+            }
+        }
 
         return (
-            <span style={{
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[6px] text-[11px] font-semibold flex-shrink-0 whitespace-nowrap overflow-hidden" style={{
                 backgroundColor: 'rgba(251, 146, 60, 0.15)',
-                color: '#fb923c',
-                border: '1px solid rgba(251, 146, 60, 0.25)',
-                fontSize: '12px',
-                padding: '2px 8px',
-                fontWeight: 700,
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                flexShrink: 0
-            }}>
+                color: 'var(--color-pg-orange, #f97316)',
+                border: '1px solid var(--color-pg-orange, rgba(251, 146, 60, 0.3))',
+                maxWidth: '220px'
+            }} title={typeof reworkMessage === 'string' ? reworkMessage : undefined}>
                 <RefreshIcon />
-                {displayMsg}
+                <span className="truncate">{displayMsg}</span>
             </span>
         );
     }
@@ -77,16 +75,16 @@ export const WarningPill: React.FC<WarningPillProps> = ({
             : `Delayed ${days} day${days > 1 ? 's' : ''}`;
         return (
             <span style={{
-                backgroundColor: 'rgba(248, 113, 113, 0.12)',
-                color: '#f87171',
-                border: '1px solid rgba(248, 113, 113, 0.2)',
-                fontSize: '12px',
-                padding: '2px 8px',
-                fontWeight: 700,
+                backgroundColor: 'rgba(248, 113, 113, 0.15)',
+                color: 'var(--color-pg-danger, #ef4444)',
+                border: '1px solid var(--color-pg-danger, rgba(248, 113, 113, 0.3))',
+                fontSize: '11px',
+                padding: '3px 9px',
+                fontWeight: 600,
                 borderRadius: '6px',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '5px',
                 flexShrink: 0
             }}>
                 <ExclaimIcon />
@@ -96,24 +94,24 @@ export const WarningPill: React.FC<WarningPillProps> = ({
     } else if (diffDays <= 3) {
         let text = '';
         if (diffDays === 0) {
-            text = lang === 'id' ? 'Hari Ini' : 'Today';
+            text = lang === 'id' ? 'Batas Hari Ini' : 'Due Today';
         } else {
             text = lang === 'id'
-                ? `${diffDays} hari lagi`
-                : `${diffDays} more day${diffDays > 1 ? 's' : ''}`;
+            ? `Sisa ${diffDays} hari`
+                : `${diffDays} day${diffDays > 1 ? 's' : ''} left`;
         }
         return (
             <span style={{
-                backgroundColor: 'rgba(251, 191, 36, 0.12)',
-                color: '#fbbf24',
-                border: '1px solid rgba(251, 191, 36, 0.2)',
-                fontSize: '12px',
-                padding: '2px 8px',
-                fontWeight: 700,
+                backgroundColor: 'rgba(251, 191, 36, 0.15)',
+                color: 'var(--color-pg-warning, #f59e0b)',
+                border: '1px solid var(--color-pg-warning, rgba(251, 191, 36, 0.3))',
+                fontSize: '11px',
+                padding: '3px 9px',
+                fontWeight: 600,
                 borderRadius: '6px',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '5px',
                 flexShrink: 0
             }}>
                 <ClockIcon />
@@ -123,20 +121,20 @@ export const WarningPill: React.FC<WarningPillProps> = ({
     } else {
         return (
             <span style={{
-                backgroundColor: 'rgba(52, 211, 153, 0.12)',
-                color: '#34d399',
-                border: '1px solid rgba(52, 211, 153, 0.2)',
-                fontSize: '12px',
-                padding: '2px 8px',
-                fontWeight: 700,
+                backgroundColor: 'rgba(52, 211, 153, 0.15)',
+                color: 'var(--color-pg-success, #10b981)',
+                border: '1px solid var(--color-pg-success, rgba(52, 211, 153, 0.3))',
+                fontSize: '11px',
+                padding: '3px 9px',
+                fontWeight: 600,
                 borderRadius: '6px',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '5px',
                 flexShrink: 0
             }}>
                 <CheckIcon />
-                {lang === 'id' ? 'Normal' : 'Normal'}
+                {lang === 'id' ? 'Aman / Sesuai Jadwal' : 'On Schedule'}
             </span>
         );
     }

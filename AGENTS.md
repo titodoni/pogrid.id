@@ -97,3 +97,6 @@ Controller error flow: `AuthController::login()` checks user existence first (by
 - Tailwind v4 via `@tailwindcss/vite` (no PostCSS, no `tailwind.config.js`). Config in `app.css` via `@import "tailwindcss"`.
 - No `tsconfig.json` — Vite compiles TS.
 - Dual language (EN/ID): `translations` per component + `localStorage` `pogrid_lang`. No i18n framework.
+- Theme System: `pogrid_theme` in `localStorage` toggles theme classes on `html` (`theme-default`, `theme-linear`, `theme-vercel`, `theme-stripe`, `theme-github`, `theme-nordic`, `theme-light` [Mint Cream], `theme-brand`). All components use semantic CSS custom properties (`--color-pg-surface`, `--color-pg-border`, `--color-pg-text`, `--color-pg-text-muted`).
+- Unified Worker Navigation: All worker/kiosk views share `WorkerHeader.tsx` for layout consistency and quick theme switching.
+- Date Formatting: Standardized UI date representations to `dd/mm/yyyy` via `resources/js/Utils/date.ts`.

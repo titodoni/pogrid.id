@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search } from '../Icons';
+import { formatDDMMYYYY } from '../../Utils/date';
 
 interface Props {
     showSearchModal: boolean;
@@ -48,7 +49,8 @@ export default function SearchModal({
             onClick={e => { if (e.target === e.currentTarget) setShowSearchModal(false); }}
         >
             <div style={{
-                backgroundColor: '#18181b',
+                backgroundColor: 'var(--color-pg-surface, #18181b)',
+                color: 'var(--color-pg-text, #fafafa)',
                 border: '1px solid var(--color-pg-border)',
                 borderRadius: '16px',
                 padding: '24px',
@@ -60,8 +62,8 @@ export default function SearchModal({
                 flexDirection: 'column',
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>
-                        {language === 'en' ? 'Search Directory' : 'Cari Data'}
+                    <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--color-pg-text)' }}>
+                        {language === 'en' ? 'Search Directory' : 'Cari Data Proyek'}
                     </h3>
                     <button
                         onClick={() => setShowSearchModal(false)}
@@ -198,7 +200,7 @@ export default function SearchModal({
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>
                                                         <span>{po.client_name}</span>
-                                                        <span>{language === 'en' ? 'Deadline: ' : 'Tenggat: '} {new Date(po.global_deadline).toLocaleDateString()}</span>
+                                                        <span>{language === 'en' ? 'Deadline: ' : 'Tenggat: '} {formatDDMMYYYY(po.global_deadline)}</span>
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                         <div style={{ flex: 1, height: '6px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { translateStatus, Language } from '../Utils/locale';
 
 type BadgeColor = {
     bg: string;
@@ -9,41 +10,46 @@ type BadgeColor = {
 
 const COLOR_MAPS: Record<string, BadgeColor> = {
     // PO and Item General Statuses
-    COMPLETED: { bg: 'rgba(52, 211, 153, 0.12)', text: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)', dot: '#34d399' },
-    IN_PROGRESS: { bg: 'rgba(251, 191, 36, 0.12)', text: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.2)', dot: '#fbbf24' },
-    CANCELLED: { bg: 'rgba(248, 113, 113, 0.12)', text: '#f87171', border: '1px solid rgba(248, 113, 113, 0.2)', dot: '#f87171' },
-    TERMINATED: { bg: 'rgba(161, 161, 170, 0.12)', text: '#a1a1aa', border: '1px solid rgba(161, 161, 170, 0.2)', dot: '#a1a1aa' },
-    PENDING: { bg: 'rgba(99, 102, 241, 0.12)', text: '#818cf8', border: '1px solid var(--color-pg-primary-glow)', dot: '#818cf8' },
+    COMPLETED: { bg: 'rgba(52, 211, 153, 0.15)', text: 'var(--color-pg-success, #10b981)', border: '1px solid var(--color-pg-success, #10b981)', dot: 'var(--color-pg-success, #10b981)' },
+    IN_PROGRESS: { bg: 'rgba(251, 191, 36, 0.15)', text: 'var(--color-pg-warning, #f59e0b)', border: '1px solid var(--color-pg-warning, #f59e0b)', dot: 'var(--color-pg-warning, #f59e0b)' },
+    CANCELLED: { bg: 'rgba(248, 113, 113, 0.15)', text: 'var(--color-pg-danger, #ef4444)', border: '1px solid var(--color-pg-danger, #ef4444)', dot: 'var(--color-pg-danger, #ef4444)' },
+    TERMINATED: { bg: 'var(--color-pg-surface)', text: 'var(--color-pg-text-muted, #71717a)', border: '1px solid var(--color-pg-border)', dot: 'var(--color-pg-text-muted)' },
+    PENDING: { bg: 'var(--color-pg-primary-glow, rgba(99, 102, 241, 0.15))', text: 'var(--color-pg-primary, #6366f1)', border: '1px solid var(--color-pg-primary, #6366f1)', dot: 'var(--color-pg-primary, #6366f1)' },
 
     // PO Lifecycle Statuses
-    DELIVERED: { bg: 'rgba(20, 184, 166, 0.12)', text: '#14b8a6', border: '1px solid rgba(20, 184, 166, 0.2)', dot: '#14b8a6' },
-    CLOSED: { bg: 'rgba(113, 113, 122, 0.12)', text: '#a1a1aa', border: '1px solid rgba(113, 113, 122, 0.2)', dot: '#a1a1aa' },
+    DELIVERED: { bg: 'rgba(20, 184, 166, 0.15)', text: 'var(--color-pg-accent, #14b8a6)', border: '1px solid var(--color-pg-accent, #14b8a6)', dot: 'var(--color-pg-accent, #14b8a6)' },
+    CLOSED: { bg: 'var(--color-pg-surface)', text: 'var(--color-pg-text-secondary, #71717a)', border: '1px solid var(--color-pg-border)', dot: 'var(--color-pg-text-secondary)' },
     
     // Urgency
-    URGENT: { bg: 'rgba(239, 68, 68, 0.15)', text: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.25)', dot: '#ef4444' },
+    URGENT: { bg: 'rgba(239, 68, 68, 0.18)', text: 'var(--color-pg-danger, #ef4444)', border: '1px solid var(--color-pg-danger, #ef4444)', dot: 'var(--color-pg-danger, #ef4444)' },
     
     // Item Type
-    MANUFACTURED: { bg: 'rgba(255, 255, 255, 0.04)', text: '#fafafa', border: '1px solid var(--color-pg-border)' },
-    BUYOUT: { bg: 'rgba(255, 255, 255, 0.04)', text: '#fafafa', border: '1px solid var(--color-pg-border)' },
+    MANUFACTURED: { bg: 'var(--color-pg-surface)', text: 'var(--color-pg-text, #3f3f46)', border: '1px solid var(--color-pg-border)' },
+    MANUFACTURE: { bg: 'var(--color-pg-surface)', text: 'var(--color-pg-text, #3f3f46)', border: '1px solid var(--color-pg-border)' },
+    BUYOUT: { bg: 'var(--color-pg-surface)', text: 'var(--color-pg-text, #3f3f46)', border: '1px solid var(--color-pg-border)' },
+    BUY_OUT: { bg: 'var(--color-pg-surface)', text: 'var(--color-pg-text, #3f3f46)', border: '1px solid var(--color-pg-border)' },
 
     // Drafter / Drawings
-    DRAWING: { bg: 'rgba(139, 92, 246, 0.12)', text: '#a78bfa', border: '1px solid rgba(139, 92, 246, 0.2)' },
-    APPROVED: { bg: 'rgba(52, 211, 153, 0.12)', text: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' },
+    DRAWING: { bg: 'rgba(139, 92, 246, 0.15)', text: '#8b5cf6', border: '1px solid rgba(139, 92, 246, 0.3)' },
+    APPROVED: { bg: 'rgba(52, 211, 153, 0.15)', text: 'var(--color-pg-success, #10b981)', border: '1px solid var(--color-pg-success, #10b981)' },
 
     // Purchasing / Delivery
-    ORDER: { bg: 'rgba(251, 146, 60, 0.12)', text: '#fb923c', border: '1px solid rgba(251, 146, 60, 0.2)' },
-    PROSES: { bg: 'rgba(99, 102, 241, 0.12)', text: '#818cf8', border: '1px solid var(--color-pg-primary-glow)' },
-    READY: { bg: 'rgba(52, 211, 153, 0.12)', text: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' },
+    ORDER: { bg: 'rgba(251, 146, 60, 0.15)', text: 'var(--color-pg-orange, #f97316)', border: '1px solid var(--color-pg-orange, #f97316)' },
+    PROSES: { bg: 'var(--color-pg-primary-glow, rgba(99, 102, 241, 0.15))', text: 'var(--color-pg-primary, #6366f1)', border: '1px solid var(--color-pg-primary, #6366f1)' },
+    READY: { bg: 'rgba(52, 211, 153, 0.15)', text: 'var(--color-pg-success, #10b981)', border: '1px solid var(--color-pg-success, #10b981)' },
 
     // Invoicing
-    UNINVOICED: { bg: 'rgba(255, 255, 255, 0.04)', text: '#a1a1aa', border: '1px solid rgba(255, 255, 255, 0.06)' },
-    PARTIAL: { bg: 'rgba(139, 92, 246, 0.12)', text: '#a78bfa', border: '1px solid rgba(139, 92, 246, 0.2)' },
-    INVOICED: { bg: 'rgba(52, 211, 153, 0.12)', text: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' },
+    UNINVOICED: { bg: 'var(--color-pg-surface)', text: 'var(--color-pg-text-muted, #71717a)', border: '1px solid var(--color-pg-border)' },
+    PARTIAL: { bg: 'rgba(139, 92, 246, 0.15)', text: '#8b5cf6', border: '1px solid rgba(139, 92, 246, 0.3)' },
+    INVOICED: { bg: 'rgba(52, 211, 153, 0.15)', text: 'var(--color-pg-success, #10b981)', border: '1px solid var(--color-pg-success, #10b981)' },
 
     // Payments
-    UNPAID: { bg: 'rgba(255, 255, 255, 0.04)', text: '#a1a1aa', border: '1px solid rgba(255, 255, 255, 0.06)' },
-    PARTIAL_PAID: { bg: 'rgba(99, 102, 241, 0.12)', text: '#818cf8', border: '1px solid var(--color-pg-primary-glow)' },
-    PAID: { bg: 'rgba(52, 211, 153, 0.12)', text: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' },
+    UNPAID: { bg: 'var(--color-pg-surface)', text: 'var(--color-pg-text-muted, #71717a)', border: '1px solid var(--color-pg-border)' },
+    PARTIAL_PAID: { bg: 'var(--color-pg-primary-glow, rgba(99, 102, 241, 0.15))', text: 'var(--color-pg-primary, #6366f1)', border: '1px solid var(--color-pg-primary, #6366f1)' },
+    PAID: { bg: 'rgba(52, 211, 153, 0.15)', text: 'var(--color-pg-success, #10b981)', border: '1px solid var(--color-pg-success, #10b981)' },
+    
+    // Bottlenecks
+    STUCK: { bg: 'rgba(239, 68, 68, 0.18)', text: 'var(--color-pg-danger, #ef4444)', border: '1px solid var(--color-pg-danger, #ef4444)', dot: 'var(--color-pg-danger, #ef4444)' },
 };
 
 interface StatusBadgeProps {
@@ -51,6 +57,7 @@ interface StatusBadgeProps {
     variant?: 'dot' | 'solid';
     style?: React.CSSProperties;
     children?: React.ReactNode;
+    lang?: Language;
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({
@@ -58,15 +65,17 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
     variant = 'dot',
     style,
     children,
+    lang,
 }) => {
     const key = status.toUpperCase().replace(/\s+/g, '_');
     const color = COLOR_MAPS[key] || {
-        bg: 'rgba(255, 255, 255, 0.04)',
-        text: '#a1a1aa',
-        border: '1px solid rgba(255, 255, 255, 0.06)',
+        bg: 'var(--color-pg-surface, rgba(255, 255, 255, 0.04))',
+        text: 'var(--color-pg-text-muted, #71717a)',
+        border: '1px solid var(--color-pg-border)',
     };
 
     const hasDot = variant === 'dot' && color.dot;
+    const displayText = children || translateStatus(status, lang);
 
     return (
         <span
@@ -75,28 +84,31 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
                 backgroundColor: color.bg,
                 color: color.text,
                 border: color.border,
-                fontSize: '10px',
-                padding: '2px 8px',
-                fontWeight: 700,
+                fontSize: '11px',
+                padding: '3px 9px',
+                fontWeight: 600, // Medium importance secondary control
+                letterSpacing: '0.02em',
                 borderRadius: '6px',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '5px',
                 flexShrink: 0,
+                lineHeight: 1.2,
                 ...style,
             }}
         >
             {hasDot && (
                 <span
                     style={{
-                        width: '4px',
-                        height: '4px',
+                        width: '5px',
+                        height: '5px',
                         backgroundColor: color.dot,
                         borderRadius: '50%',
                     }}
                 />
             )}
-            {children || status}
+            {displayText}
         </span>
     );
 };
+

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronDown, Settings, Lock, Plus, Palette, Stop, Broadcast, Globe, Copy, DotGreen, Search } from '../../Components/Icons';
 import { formatDeadline, calculateDeadlineDiff } from '../../Utils/deadline';
+import { formatDDMMYYYY } from '../../Utils/date';
 import { WarningPill } from '../../Components/WarningPill';
 import { localizedDisplay } from '../../Utils/locale';
 import { StatusBadge } from '../../Components/StatusBadge';
@@ -1317,7 +1318,7 @@ ${locationStr}
 
     const changeTheme = (newTheme: string) => {
         localStorage.setItem('pogrid_theme', newTheme);
-        const classes = ['theme-default', 'theme-linear', 'theme-vercel', 'theme-stripe', 'theme-github', 'theme-nordic'];
+        const classes = ['theme-default', 'theme-linear', 'theme-vercel', 'theme-stripe', 'theme-github', 'theme-nordic', 'theme-light', 'theme-brand'];
         classes.forEach(c => document.documentElement.classList.remove(c));
         document.documentElement.classList.add(newTheme);
         setShowThemeDropdown(false);
@@ -1843,7 +1844,8 @@ ${locationStr}
                                 gap: '4px',
                             }}>
                                 {[
-                                    { id: 'theme-default', name: 'Titanium Slate', color: 'var(--color-pg-primary)' },
+                                    { id: 'theme-default', name: 'Titanium Slate (Dark)', color: 'var(--color-pg-primary)' },
+                                    { id: 'theme-light', name: 'Mint Cream (Light)', color: '#f4fff8' },
                                     { id: 'theme-linear', name: 'Obsidian Graphite', color: 'var(--color-pg-primary)' },
                                     { id: 'theme-vercel', name: 'Monochrome Void', color: 'var(--color-pg-primary)' },
                                     { id: 'theme-stripe', name: 'Stripe Navy', color: 'var(--color-pg-primary)' },
@@ -2158,6 +2160,14 @@ ${locationStr}
                 >
                     <span className="tab-label-full">{t.tab_archive}</span>
                     <span className="tab-label-short">{t.tab_archive}</span>
+                </Link>
+                <Link
+                    href="/dashboard/billing"
+                    className="tab"
+                    style={{ textDecoration: 'none' }}
+                >
+                    <span className="tab-label-full">{language === 'id' ? 'Tagihan' : 'Billing'}</span>
+                    <span className="tab-label-short">{language === 'id' ? 'Tagihan' : 'Billing'}</span>
                 </Link>
             </div>
 
@@ -2576,7 +2586,7 @@ ${locationStr}
                                                 
                                                 {issue.itemName ? (
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                        <div style={{ fontSize: '14px', color: '#e4e4e7', fontWeight: 600 }}>
+                                                        <div style={{ fontSize: '14px', color: 'var(--color-pg-text)', fontWeight: 600 }}>
                                                             {issue.itemName} &middot; <span style={{ color: 'var(--color-pg-orange)', fontWeight: 700 }}>Stage: {issue.stage}</span>
                                                         </div>
                                                         {issue.reason ? (
@@ -2594,7 +2604,7 @@ ${locationStr}
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <div style={{ fontSize: '14px', color: '#e4e4e7' }}>
+                                                    <div style={{ fontSize: '14px', color: 'var(--color-pg-text)' }}>
                                                         {issue.message}
                                                     </div>
                                                 )}
@@ -2878,7 +2888,7 @@ ${locationStr}
 
                                                                             {(() => {
                                                                                 const reworkAlert = itemAlerts.find(a => a.severity === 'YELLOW');
-                                                                                const reworkVal = reworkAlert ? (reworkAlert.message ? `Rework: ${reworkAlert.message}` : 'Rework') : null;
+                                                                                const reworkVal = reworkAlert ? (reworkAlert.message || true) : null;
                                                                                 return <WarningPill deadlineDateStr={po.global_deadline} reworkMessage={reworkVal} lang={language} />;
                                                                             })()}
                                                                         </div>
@@ -3385,6 +3395,13 @@ ${locationStr}
                     .sort((a: any, b: any) => b.stuck_count - a.stuck_count)
                     .find((m: any) => m.stuck_count > 0);
 
+                const delayedPosCount: number = telemetry.delayed_pos_count ?? 0;
+                const delayedItemsCount: number = telemetry.delayed_items?.length ?? 0;
+                const avgDelay: number = telemetry.avg_delay_days ?? 0;
+                const redAlerts: number = telemetry.risks?.red ?? 0;
+                const yellowAlerts: number = telemetry.risks?.yellow ?? 0;
+                const isAllNormal = !topStuck && delayedPosCount === 0 && delayedItemsCount === 0 && redAlerts === 0 && yellowAlerts === 0;
+
                 // Auto-narrative (Bahasa Indonesia primary)
                 let narrative = '';
                 if (language === 'id') {
@@ -3395,16 +3412,25 @@ ${locationStr}
                             : ` — turun ${Math.abs(otdrDelta)}% dari periode lalu`;
                     }
                     narrative += '. ';
+                    if (delayedPosCount > 0 || delayedItemsCount > 0 || avgDelay > 0) {
+                        if (delayedPosCount > 0) {
+                            narrative += `Terdapat ${delayedPosCount} PO aktif yang terlambat dari jadwal (rata-rata keterlambatan ${avgDelay} hari). `;
+                        } else {
+                            narrative += `Terdapat item produksi yang mengalami keterlambatan (rata-rata ${avgDelay} hari). `;
+                        }
+                    }
                     if (topStuck) {
-                        narrative += `Bottleneck utama ada di tahap ${topStuck.stage} (${topStuck.stuck_count} macet, rata-rata ${topStuck.avg_cycle_time} hari/item). `;
-                    } else {
-                        narrative += 'Semua tahap produksi berjalan normal. ';
+                        narrative += `Bottleneck utama ada di tahap ${topStuck.stage} (${topStuck.stuck_count} item macet, rata-rata ${topStuck.avg_cycle_time} hari/item). `;
+                    } else if (redAlerts > 0) {
+                        narrative += `Terdapat ${redAlerts} kendala kritis (RED) yang aktif di lantai produksi. `;
+                    } else if (isAllNormal) {
+                        narrative += 'Semua tahap produksi dan waktu pengiriman berjalan normal sesuai jadwal. ';
                     }
                     if ((telemetry.urgent_active || 0) > 0) {
-                        narrative += `Terdapat ${telemetry.urgent_active} PO mendesak yang masih aktif. `;
+                        narrative += `Terdapat ${telemetry.urgent_active} PO mendesak (Urgent) yang sedang diproduksi. `;
                     }
                     if ((telemetry.finance_health?.uninvoiced_count || 0) > 0) {
-                        narrative += `${telemetry.finance_health.uninvoiced_count} item selesai belum difakturkan.`;
+                        narrative += `Perhatian keuangan: ${telemetry.finance_health.uninvoiced_count} item selesai belum dibuatkan faktur.`;
                     }
                 } else {
                     narrative = `This period, the factory completed ${telemetry.otdr}% of orders on time`;
@@ -3414,16 +3440,25 @@ ${locationStr}
                             : ` — down ${Math.abs(otdrDelta)}% vs last period`;
                     }
                     narrative += '. ';
+                    if (delayedPosCount > 0 || delayedItemsCount > 0 || avgDelay > 0) {
+                        if (delayedPosCount > 0) {
+                            narrative += `${delayedPosCount} active order(s) are delayed past deadline (avg delay ${avgDelay} days). `;
+                        } else {
+                            narrative += `Production items are behind schedule (avg delay ${avgDelay} days). `;
+                        }
+                    }
                     if (topStuck) {
                         narrative += `Top bottleneck: ${topStuck.stage} stage (${topStuck.stuck_count} stuck, avg ${topStuck.avg_cycle_time} days/item). `;
-                    } else {
-                        narrative += 'All production stages running normally. ';
+                    } else if (redAlerts > 0) {
+                        narrative += `There are ${redAlerts} active critical (RED) alerts on the production floor. `;
+                    } else if (isAllNormal) {
+                        narrative += 'All production stages and delivery timelines running normally on schedule. ';
                     }
                     if ((telemetry.urgent_active || 0) > 0) {
-                        narrative += `${telemetry.urgent_active} urgent PO(s) still active. `;
+                        narrative += `${telemetry.urgent_active} urgent order(s) currently in production. `;
                     }
                     if ((telemetry.finance_health?.uninvoiced_count || 0) > 0) {
-                        narrative += `${telemetry.finance_health.uninvoiced_count} completed item(s) not yet invoiced.`;
+                        narrative += `Finance alert: ${telemetry.finance_health.uninvoiced_count} completed item(s) pending invoice.`;
                     }
                 }
 
@@ -3484,7 +3519,7 @@ ${locationStr}
 
                         {/* ── Control Row ──────────────────────────────────── */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-                            <div style={{ display: 'flex', gap: '8px', backgroundColor: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ display: 'flex', gap: '8px', backgroundColor: 'var(--color-pg-surface)', padding: '4px', borderRadius: '8px', border: '1px solid var(--color-pg-border)' }}>
                                 {['week', 'month', 'year'].map(r => (
                                     <button
                                         key={r}
@@ -3492,7 +3527,7 @@ ${locationStr}
                                         style={{
                                             padding: '6px 12px',
                                             backgroundColor: selected_range === r ? 'var(--color-pg-primary)' : 'transparent',
-                                            color: selected_range === r ? '#fff' : 'var(--color-pg-text-secondary)',
+                                            color: selected_range === r ? 'var(--color-pg-primary-ink)' : 'var(--color-pg-text-secondary)',
                                             border: 'none',
                                             borderRadius: '6px',
                                             fontWeight: 600,
@@ -3509,9 +3544,9 @@ ${locationStr}
                                     onClick={() => setExportOpen(v => !v)}
                                     style={{
                                         padding: '8px 16px',
-                                        backgroundColor: 'var(--color-pg-border-subtle)',
-                                        color: '#e4e4e7',
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        backgroundColor: 'var(--color-pg-surface)',
+                                        color: 'var(--color-pg-text)',
+                                        border: '1px solid var(--color-pg-border)',
                                         borderRadius: '8px',
                                         fontWeight: 600,
                                         fontSize: '12px',
@@ -3647,7 +3682,7 @@ ${locationStr}
                         </div>
 
                         {/* ── Production Pipeline ──────────────────────────── */}
-                        <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', marginBottom: '22px' }}>
+                        <div style={{ backgroundColor: 'var(--color-pg-surface)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '20px', marginBottom: '22px', boxShadow: '0 4px 15px -3px rgba(0,0,0,0.04)' }}>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '16px' }}>
                                 <h3 className="section-label-v2" style={{ margin: 0 }}>
                                     {language === 'id' ? 'Alur Produksi' : 'Production Pipeline'}
@@ -3658,7 +3693,7 @@ ${locationStr}
                             </div>
                             <div className="pipeline-scroll-container" style={{ display: 'flex', overflowX: 'auto', alignItems: 'center', gap: '0', paddingBottom: '8px', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
                                 {pipelineStages.length === 0 ? (
-                                    <span style={{ color: '#52525b', fontSize: '13px' }}>
+                                    <span style={{ color: 'var(--color-pg-text-muted)', fontSize: '13px' }}>
                                         {language === 'id' ? 'Belum ada data tahap produksi.' : 'No stage data yet.'}
                                     </span>
                                 ) : pipelineStages.map((metric: any, idx: number) => {
@@ -3707,7 +3742,7 @@ ${locationStr}
                                                 <div style={{ fontSize: '20px', fontWeight: 800, color: health.label, lineHeight: 1 }}>
                                                     {metric.active_items}
                                                 </div>
-                                                <div style={{ fontSize: '10px', color: '#52525b', marginTop: '2px' }}>
+                                                <div style={{ fontSize: '10px', color: 'var(--color-pg-text-muted)', marginTop: '2px' }}>
                                                     {language === 'id' ? 'item aktif' : 'active'}
                                                 </div>
                                                 <div style={{ fontSize: '10px', color: health.label, marginTop: '5px', fontWeight: 600, borderTop: `1px solid ${health.border}`, paddingTop: '5px' }}>
@@ -4362,7 +4397,7 @@ ${locationStr}
                                                                 }}
                                                             >
                                                                 <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: colors[idx % colors.length], borderRadius: '50%' }} />
-                                                                <span style={{ color: '#e4e4e7', fontWeight: 600 }}>{key}: {val}</span>
+                                                                <span style={{ color: 'var(--color-pg-text)', fontWeight: 600 }}>{key}: {val}</span>
                                                             </div>
                                                         );
                                                     })}
@@ -5750,7 +5785,7 @@ ${locationStr}
                                                                 </div>
                                                                 <div className="flex justify-between text-xs text-pg-text-secondary mb-1.5">
                                                                     <span>{po.client_name}</span>
-                                                                    <span>{language === 'en' ? 'Deadline: ' : 'Tenggat: '} {new Date(po.global_deadline).toLocaleDateString()}</span>
+                                                                    <span>{language === 'en' ? 'Deadline: ' : 'Tenggat: '} {formatDDMMYYYY(po.global_deadline)}</span>
                                                                 </div>
                                                                 {/* Progress Bar */}
                                                                 <div className="flex items-center gap-2">

@@ -11,90 +11,90 @@ const id = {
     cta: 'Daftar Gratis',
 
     // Hero
-    eyebrow: 'Untuk pemilik pabrik manufaktur & tim purchasing Indonesia',
-    hero_title: 'Pantau langsung posisi order PO Anda. Real-time.',
-    hero_sub: 'Capek telpon lantai produksi hanya untuk tanya status order? Dengan POgrid.id, operator langsung input progress dari HP masing-masing. Anda cukup pantau dashboard KPI: aman, rawan, atau delayed.',
+    eyebrow: 'Sistem Pelacakan PO & Kontrol Produksi Pabrik #1 di Indonesia',
+    hero_title: 'Stop Kejar-Kejar Tim PPIC. Pantau Progress PO Pabrik Real-Time.',
+    hero_sub: 'Operator input progres pengerjaan lewat HP pakai PIN 4 digit. Owner pantau mana PO yang Aman, Rawan, atau Bakal Kena Pinalti Telat Kirim.',
     hero_cta_primary: 'Coba Gratis 30 Hari',
     hero_cta_secondary: 'Lihat Cara Kerja',
-    hero_note: 'Tanpa kartu kredit. Setup pabrik kurang dari 5 menit.',
+    hero_note: '✓ Tanpa kartu kredit  ✓ Tanpa instalasi app  ✓ Setup kurang dari 5 menit',
     hero_stat_1: '100%',
-    hero_stat_1_label: 'Progress terpantau real-time',
-    hero_stat_2: '5 Menit',
-    hero_stat_2_label: 'Setup & langsung buat PO',
+    hero_stat_1_label: 'Visibilitas progress real-time',
+    hero_stat_2: '3 Menit',
+    hero_stat_2_label: 'Setup pabrik & PO pertama',
     hero_stat_3: 'Nol',
     hero_stat_3_label: 'Instalasi aplikasi (cukup browser)',
 
     // Pain
-    pain_title: 'Masalah klasik yang sering bikin owner pabrik pusing',
-    pain_sub: 'Setiap pemilik pabrik & tim purchasing pasti paham masalah ini:',
+    pain_title: 'Masalah Klasik di Bengkel & Lantai Produksi yang Bikin Pusing Owner',
+    pain_sub: 'Setiap pemilik pabrik & tim purchasing di Indonesia pasti akrab dengan masalah ini:',
     pain_items: [
-        { q: '“Barang kita sudah sampai tahap mana?”', a: 'Owner harus telepon ke supervisor atau lantai produksi, operator jawab "masih diproses". Saat klien tanya, Anda bingung menjawabnya.' },
-        { q: 'Baru tahu barang delayed pas hari-H kirim', a: 'Tidak ada warning dari awal. Keterlambatan baru ketahuan saat deadline sudah lewat, berujung kena pinalti denda.' },
-        { q: 'Progres di lantai produksi tidak terpantau', a: 'Semua dicatat di kertas lecek atau sekadar ingatan. Owner kesulitan memantau progress riil di lantai produksi.' },
-        { q: 'Tanggal pengiriman cuma tebak-tebakan', a: 'Susah menentukan estimasi kirim yang akurat ke pelanggan. Akhirnya rawan kena pinalti denda.' },
+        { q: '1. "Pak, barang saya urutan berapa? Kok belum dikirim?"', a: 'Setiap sore HP Anda berdering dikomplain pemesan/klien. Anda bingung menjawab karena data di lantai produksi masih tebak-tebakan.' },
+        { q: '2. Tahu-tahu Telat di Hari-H Kirim & Kena Denda Pinalti', a: 'Tidak ada warning dari awal. Keterlambatan baru ketahuan saat armada siap muat, berujung pinalti denda atau pembatalan order.' },
+        { q: '3. Progres Pengerjaan Cuma Dicatat di Kertas Lecek & Papan Tulis', a: 'Surat jalan/SPK lecek, hilang, atau operator lupa update. Owner kesulitan memantau progress riil di lapangan.' },
+        { q: '4. Menjanjikan Estimasi Kirim Cuma Berdasarkan "Firasat"', a: 'Tanpa data real-time tiap tahapan (potong, bubut, CNC, welding, QC), Anda berisiko salah janji tanggal cair/kirim ke pelanggan.' },
     ],
-    pain_solution: 'POgrid.id hadir untuk satu tujuan: menghilangkan kecemasan owner soal status pengerjaan PO dan memastikan pengiriman tepat waktu bebas pinalti.',
+    pain_solution: 'POgrid.id hadir untuk satu tujuan: menghilangkan kecemasan owner soal status pengerjaan PO dan memastikan pengiriman tepat waktu bebas denda pinalti.',
 
     // How it works
-    how_title: 'Operator input dari HP, owner pantau lewat dashboard',
-    how_sub: 'Sistem praktis untuk memantau progress lantai produksi tanpa birokrasi rumit.',
+    how_title: '3 Langkah Simpel: Operator Update dari HP, Owner Terima Beres',
+    how_sub: 'Tidak perlu mengajari operator komputer rumit. Cukup 3 klik dari HP di meja kerja.',
     steps: [
-        { n: '1', title: 'Operator input progres lewat HP', desc: 'Setiap tahap (potong, CNC, welding, QC, kirim) diupdate pakai PIN di HP. Tinggal input jumlah unit selesai tanpa perlu hitung manual.' },
-        { n: '2', title: 'Sistem kalkulasi progres otomatis', desc: 'POgrid otomatis menghitung persentase progress lintas tahapan secara real-time untuk setiap item PO.' },
-        { n: '3', title: 'Owner dapat dashboard & alert', desc: 'Lihat rincian PO yang on-time, rawan, atau delayed. Dapatkan alert otomatis sebelum deadline terlewati.' },
+        { n: '1', title: 'Operator Input Progres Pakai PIN (3 Detik)', desc: 'Tanpa email atau password. Operator di meja kerja (CNC, Bubut, Las, QC) cukup pilih nama, ketik PIN 4 digit, dan masukkan unit selesai.' },
+        { n: '2', title: 'Sistem Kalkulasi Progres & Sisa Waktu Otomatis', desc: 'POgrid otomatis menghitung persentase progress lintas tahapan (Drafter → Machining → Assembly → QC → Delivery) secara real-time.' },
+        { n: '3', title: 'Owner Pantau Status & Dapatkan Alert Lampu Kuning/Merah', desc: 'Buka dashboard dari laptop atau HP. Dapatkan peringatan dini sebelum PO melewati tenggat pengiriman.' },
     ],
-    how_outcome: 'Hasilnya: Anda tahu persis order PO mana yang aman, rawan, atau delayed, lengkap dengan jadwal kirim.',
+    how_outcome: 'Hasilnya: Anda tahu persis order PO mana yang Aman, Rawan, atau Delayed, lengkap dengan estimasi jadwal kirim.',
 
     // Features
-    feat_title: 'Fitur Utama',
-    feat_sub: 'Pantau status PO dengan mudah, tanpa ribetnya sistem ERP.',
+    feat_title: 'Fitur Utama Kontrol Produksi',
+    feat_sub: 'Pantau status PO dengan cepat & akurat, tanpa ribetnya sistem ERP.',
     features: [
-        { t: 'Progress Real-Time', d: 'Setiap progress di lantai produksi langsung terupdate ke dashboard dalam hitungan detik.' },
-        { t: 'Alert Delayed & Overdue', d: 'Peringatan otomatis untuk item PO yang mendekati deadline atau macet di salah satu tahapan.' },
-        { t: 'Login PIN Operator', d: 'Operator tidak butuh email/password. Cukup pilih nama dan masukkan PIN 4 digit untuk update progress.' },
-        { t: 'Dashboard Owner Lengkap', d: 'Pantau bottleneck produksi, status pengiriman, dan KPI ketepatan waktu dari HP atau laptop.' },
-        { t: 'Multi-Tenant Terisolasi', d: 'Data pabrik Anda terjamin aman dan terisolasi sepenuhnya dari perusahaan lain.' },
-        { t: 'Sederhana & Ringkas (Bukan ERP)', d: 'Fokus pada satu hal: melacak posisi order. Cepat dikonfigurasi dan bisa langsung dipakai hari ini.' },
+        { t: 'Live Dashboard Status PO', d: 'Sekali lirik dari HP/laptop, langsung paham mana order yang On-Time, Macet di QC, atau Mendekati Deadline.' },
+        { t: 'Login PIN Operator (Bebas Email)', d: 'Operator lantai produksi tidak butuh email. Cukup 4 digit PIN seperti ATM, dijamin cepat & anti-ribet.' },
+        { t: 'Sistem Alert Pinalti Keterlambatan', d: 'Peringatan otomatis untuk item PO yang berjalan lambat di salah satu tahapan sebelum terlambat dikirim.' },
+        { t: 'Mode Presentasi / Layar TV Pabrik', d: 'Tampilkan grafik & status PO di TV lantai produksi atau ruang rapat untuk dorong keterbukaan tim.' },
+        { t: 'Bukan ERP Rumit, Tanpa Kontrak Berbulan-bulan', d: 'Tidak perlu bayar konsultan mahal atau setup berbulan-bulan. Cepat dikonfigurasi dan langsung dipakai hari ini.' },
+        { t: 'Multi-Tenant Terisolasi & Aman', d: 'Data order, nama klien, dan kerahasiaan proses pengerjaan pabrik Anda terjamin terisolasi penuh.' },
     ],
 
     // Social proof
-    proof_title: 'Cocok untuk berbagai tipe pabrik & workshop',
-    proof_sub: 'CNC · Fabrikasi · Machining · Perakitan · Industri Manufaktur.',
+    proof_title: 'Dirancang Khusus untuk Berbagai Sektor Manufaktur Indonesia',
+    proof_sub: 'CNC · Fabrikasi · Machining · Perakitan · Stamping · Karoseri · Manufaktur Umum',
     proof_items: [
-        { t: 'Pabrik CNC & Machining', d: 'Lacak alur pengerjaan part: drafter → milling → CNC → QC → kirim.' },
-        { t: 'Pabrik Fabrikasi & Perakitan', d: 'Pantau progress cutting, welding, assembly, hingga finishing dalam satu layar.' },
-        { t: 'Workshop Manufaktur Umum', d: 'Semua data produksi terpusat di satu dashboard, hilangkan tebak-tebakan progress.' },
+        { t: 'Pabrik CNC & Machining', d: 'Lacak alur pengerjaan part spesifik: Drafter → Turning/Milling → CNC Router → QC Dimension → Kirim.' },
+        { t: 'Workshop Fabrikasi & Sheet Metal', d: 'Pantau progress Cutting/Laser → Bending → Welding → Coating → Assembly hingga pengiriman.' },
+        { t: 'Perakitan, Stamping & Moulding', d: 'Hilangkan bottleneck produksi dan pastikan stok part siap rakit tepat waktu bebas keterlambatan.' },
     ],
-    proof_quote: '“Dulu tiap sore saya harus keliling lantai produksi untuk cek progress. Sekarang tinggal buka HP, langsung kelihatan mana PO yang delayed.”',
-    proof_quote_by: '— Owner pabrik manufaktur, Jawa Barat',
+    proof_quote: '“Dulu tiap jam 4 sore saya harus keliling bengkel nanya satu-satu barang mana yang sudah selesai QC. Sekarang sambil luar kota pun saya tahu persis PO mana yang siap jalan armada kirimnya.”',
+    proof_quote_by: '— Pak Hendra, Owner Workshop Fabrikasi & Machining, Cikarang',
 
     // Pricing
     price_title: 'Mulai Lacak Order PO Pabrik Anda Hari Ini',
     price_sub: 'Gratis 30 hari untuk pabrik baru. Tanpa kartu kredit.',
     price_feature_label: 'Semua paket sudah termasuk akses penuh:',
     price_features: [
-        'Dashboard owner real-time & Presentation Mode',
-        'Update progress via HP operator (PIN login)',
-        'Alert delayed otomatis & email recap harian',
-        'Akses instan dari browser, tanpa instalasi',
-        'Tampilan simpel & mudah dipahami operator',
+        'Dashboard owner real-time & Presentation Mode (TV Pabrik)',
+        'Update progress via HP operator (Login PIN 4 digit)',
+        'Alert delayed otomatis & ringkasan status harian',
+        'Akses instan dari browser HP/Laptop, tanpa instalasi',
+        'Tampilan simpel & 100% cocok untuk operator lapangan',
     ],
-    price_cta: 'Coba Gratis Sekarang',
+    price_cta: 'Coba Gratis 30 Hari Sekarang',
 
     // FAQ
     faq_title: 'Tanya Jawab (FAQ)',
     faqs: [
-        { q: 'Apakah ini software ERP atau akuntansi?', a: 'Bukan. POgrid.id adalah tracker progress & ketepatan kirim (on-time delivery). Kami sengaja tidak menyediakan modul stok barang, akuntansi, atau BOM agar sistem tetap ringan dan langsung bisa dipakai.' },
-        { q: 'Operator saya tidak terbiasa dengan komputer, apakah bisa pakai?', a: 'Sangat bisa. Operator hanya perlu memilih nama mereka, memasukkan PIN 4 digit, lalu input unit yang selesai. Sangat sederhana dan tidak butuh email.' },
-        { q: 'Apakah harus install aplikasi tertentu di HP?', a: 'Tidak perlu. Cukup buka link via browser (Chrome/Safari) di HP atau laptop Anda. Data tersimpan aman di cloud dan terupdate real-time.' },
-        { q: 'Berapa lama waktu setup sampai bisa buat PO?', a: 'Sangat cepat. Begitu selesai registrasi (kurang dari 30 detik), Anda bisa langsung membuat PO perdana dan memantau statusnya di dashboard.' },
-        { q: 'Apakah bahasanya Indonesia?', a: 'Ya, antarmuka menggunakan bahasa Indonesia yang santai dengan istilah industri yang sudah familiar di lapangan (seperti PO, Rework, Progress, Delayed, Pinalti).' },
+        { q: 'Apakah ini software ERP atau akuntansi pabrik?', a: 'Bukan. POgrid.id fokus 100% pada pelacakan progress Purchase Order dan ketepatan pengiriman (On-Time Delivery). Kami sengaja tidak membebani Anda dengan modul akuntansi atau stok bahan baku yang rumit agar sistem bisa langsung dipakai hari ini.' },
+        { q: 'Gimana kalau operator saya kurang paham teknologi / gaptek?', a: 'Sangat bisa. Operator tidak perlu mengetik huruf sama sekali. Cukup pilih nama mereka, ketik PIN 4 digit, lalu masukkan angka unit selesai. Diuji bisa dipakai operator dalam 1 menit pelatihan.' },
+        { q: 'Apakah harus install aplikasi tertentu di HP?', a: 'Tidak perlu. Cukup buka link via browser (Chrome/Safari) di HP atau laptop apa saja. Data tersimpan aman di cloud dan terupdate real-time.' },
+        { q: 'Berapa lama waktu setup sampai bisa buat PO?', a: 'Sangat cepat. Kurang dari 3 menit. Begitu selesai registrasi, Anda bisa langsung mengatur tahapan pengerjaan pabrik dan membuat PO pertama.' },
+        { q: 'Apakah bahasanya Indonesia?', a: 'Ya, 100% menggunakan Bahasa Indonesia alami yang akrab dengan istilah lantai produksi lokal (seperti PO, Rework, Milling, CNC, Progress, Delayed, Pinalti).' },
         { q: 'Apakah data pabrik kami aman?', a: 'Terjamin aman. Data setiap perusahaan dipisahkan secara ketat menggunakan Row-Level Security, sehingga tidak akan bercampur atau diakses oleh pihak luar.' },
     ],
 
     // Final CTA
     final_title: 'Pantau langsung, tanpa tebak-tebakan.',
-    final_sub: 'Daftarkan pabrik Anda sekarang dan buat PO pertama dalam 2 menit.',
+    final_sub: 'Daftarkan pabrik Anda sekarang dan buat PO pertama dalam 3 menit.',
     final_cta: 'Coba Gratis 30 Hari',
 
     footer_tag: 'Real-time PO tracking & kontrol produksi untuk pabrik manufaktur & procurement Indonesia.',
@@ -104,7 +104,7 @@ const id = {
     footer_links_company: ['Masuk', 'Daftar', 'Bantuan'],
 };
 
-const MarkerUnderline: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color = '#dc2626' }) => (
+const MarkerUnderline: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color = '#ef4444' }) => (
     <span style={{ position: 'relative', display: 'inline-block', zIndex: 1 }}>
         {children}
         <span style={{
@@ -123,7 +123,7 @@ const MarkerUnderline: React.FC<{ children: React.ReactNode; color?: string }> =
 );
 
 const Check: React.FC<{ size?: number; className?: string }> = ({ size = 16, className }) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <polyline points="20 6 9 17 4 12" />
     </svg>
 );
@@ -143,7 +143,7 @@ const PlayCircle: React.FC<{ size?: number; className?: string }> = ({ size = 16
 );
 
 const StarRow: React.FC = () => (
-    <div style={{ display: 'flex', gap: '2px', color: 'var(--color-pg-warning)' }}>
+    <div style={{ display: 'flex', gap: '2px', color: '#f59e0b', justifyContent: 'center' }}>
         {[0,1,2,3,4].map(i => (
             <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -172,15 +172,51 @@ export default function Landing() {
     return (
         <div style={{
             minHeight: '100vh',
-            backgroundColor: '#f4fff8',
-            color: '#000f08',
+            backgroundColor: '#09090b',
+            color: '#fafafa',
             fontFamily: 'var(--font-sans)',
             WebkitFontSmoothing: 'antialiased',
         }}>
             <Head>
-                <title>POgrid.id — Sistem Kontrol Produksi untuk Owner Pabrik Indonesia</title>
-                <meta name="description" content="Lacak semua Purchase Order produksi dalam 10 detik. Sistem tracking real-time untuk workshop CNC, fabrikasi, dan machining Indonesia. Coba gratis 14 hari." />
-                <meta name="keywords" content="sistem produksi manufaktur, tracking purchase order, software workshop CNC, kontrol produksi pabrik, POgrid Indonesia" />
+                {/* Primary Title & Meta */}
+                <title>POgrid.id — Sistem Pelacakan PO & Kontrol Produksi Pabrik Real-Time</title>
+                <meta name="title" content="POgrid.id — Sistem Pelacakan PO & Kontrol Produksi Pabrik Real-Time" />
+                <meta name="description" content="Stop kejar-kejar Tim PPIC. Pantau progress Purchase Order pabrik CNC, fabrikasi, dan machining dari HP secara real-time. Bebas denda keterlambatan kirim. Coba gratis 30 hari." />
+                <meta name="keywords" content="sistem pelacakan PO pabrik, software kontrol produksi, tracking progress workshop CNC, aplikasi fabrikasi logam, manajemen purchase order manufaktur, POgrid Indonesia" />
+                <meta name="robots" content="index, follow" />
+                <link rel="canonical" href="https://pogrid.id/" />
+
+                {/* Open Graph / Facebook / WhatsApp Preview */}
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://pogrid.id/" />
+                <meta property="og:title" content="POgrid.id — Pantau Progress PO Pabrik Langsung dari HP (Real-Time)" />
+                <meta property="og:description" content="Operator update via HP pakai PIN 4 digit, Owner pantau status order aman/delay di dashboard. Tanpa ribet instalasi ERP." />
+                <meta property="og:image" content="https://pogrid.id/pogrid-logo.png" />
+
+                {/* Twitter Cards */}
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:url" content="https://pogrid.id/" />
+                <meta name="twitter:title" content="POgrid.id — Sistem Kontrol Produksi Pabrik Indonesia" />
+                <meta name="twitter:description" content="Lacak status pengerjaan barang & tenggat kirim PO pabrik Anda tanpa perlu telepon berulang kali ke lantai produksi." />
+                <meta name="twitter:image" content="https://pogrid.id/pogrid-logo.png" />
+
+                {/* JSON-LD Schema.org Structured Data */}
+                <script type="application/ld+json">
+                {JSON.stringify({
+                    "@context": "https://schema.org",
+                    "@type": "SoftwareApplication",
+                    "name": "POgrid.id",
+                    "operatingSystem": "Web Browser",
+                    "applicationCategory": "BusinessApplication",
+                    "offers": {
+                        "@type": "Offer",
+                        "price": "0",
+                        "priceCurrency": "IDR",
+                        "description": "Gratis uji coba 30 hari"
+                    },
+                    "description": "Sistem pelacakan progress Purchase Order (PO) dan kontrol ketepatan pengiriman khusus pabrik manufaktur, workshop CNC, dan fabrikasi di Indonesia."
+                })}
+                </script>
             </Head>
 
             {/* ===== NAV ===== */}
@@ -189,9 +225,9 @@ export default function Landing() {
                 top: 0,
                 zIndex: 50,
                 backdropFilter: 'blur(12px)',
-                backgroundColor: 'rgba(244, 255, 248, 0.85)',
-                borderBottom: scrolled ? '1px solid rgba(28, 55, 56, 0.12)' : '1px solid rgba(28, 55, 56, 0.05)',
-                boxShadow: scrolled ? '0 8px 30px rgba(28, 55, 56, 0.04)' : 'none',
+                backgroundColor: 'rgba(9, 9, 11, 0.85)',
+                borderBottom: scrolled ? '1px solid #1f1f23' : '1px solid transparent',
+                boxShadow: scrolled ? '0 8px 30px rgba(0, 0, 0, 0.5)' : 'none',
                 transition: 'border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease',
             }}>
                 <div style={{
@@ -205,7 +241,7 @@ export default function Landing() {
                     transition: 'padding 0.3s ease',
                 }}>
                     <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-                        <img src="/pogrid-logo.png" alt="POgrid.id Logo" style={{ height: scrolled ? '42px' : '84px', width: 'auto', transition: 'height 0.3s ease' }} />
+                        <img src="/pogrid-logo.png" alt="POgrid.id Logo" style={{ height: scrolled ? '54px' : '66px', width: 'auto', transition: 'height 0.3s ease', objectFit: 'contain' }} />
                     </Link>
 
                     <nav style={{ display: 'none', alignItems: 'center', gap: '26px' }} className="pg-nav-desktop">
@@ -218,18 +254,22 @@ export default function Landing() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Link href="/login" style={{ ...navLink, display: 'none' }} className="pg-nav-desktop">{t.login}</Link>
                         <Link href="/register" style={{
-                            backgroundColor: '#1c3738',
-                            color: '#f4fff8',
+                            backgroundColor: '#6366f1',
+                            color: '#ffffff',
                             fontWeight: 700,
                             fontSize: '14px',
-                            padding: '10px 16px',
+                            padding: '10px 18px',
                             borderRadius: '10px',
                             textDecoration: 'none',
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '6px',
-                            boxShadow: '0 4px 12px rgba(28, 55, 56, 0.2)',
-                        }}>
+                            boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
+                            transition: 'background-color 0.2s',
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#818cf8'}
+                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#6366f1'}
+                        >
                             {t.cta}
                             <ArrowRight size={15} />
                         </Link>
@@ -242,15 +282,9 @@ export default function Landing() {
                 position: 'relative',
                 maxWidth: '1120px',
                 margin: '0 auto',
-                padding: '64px 20px 56px',
+                padding: '48px 20px 40px',
                 overflow: 'hidden',
             }}>
-                <div style={{
-                    position: 'absolute', inset: 0, zIndex: 0,
-                    background: 'radial-gradient(circle at 50% 0%, rgba(139, 170, 173, 0.15) 0%, transparent 65%)',
-                    pointerEvents: 'none',
-                }} />
-                
                 <div className="hero-grid" style={{ position: 'relative', zIndex: 1 }}>
                     {/* Hero Left Column (Copy) */}
                     <div style={{ textAlign: 'left' }}>
@@ -258,9 +292,9 @@ export default function Landing() {
                             display: 'inline-block',
                             fontSize: '12px',
                             fontWeight: 600,
-                            color: '#1c3738',
-                            backgroundColor: 'rgba(139, 170, 173, 0.15)',
-                            border: '1px solid rgba(139, 170, 173, 0.3)',
+                            color: '#818cf8',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            border: '1px solid rgba(99, 102, 241, 0.25)',
                             padding: '6px 14px',
                             borderRadius: '999px',
                             marginBottom: '20px',
@@ -272,7 +306,7 @@ export default function Landing() {
                             fontWeight: 800,
                             letterSpacing: '-0.03em',
                             margin: '0 0 20px',
-                            color: '#000f08',
+                            color: '#ffffff',
                         }}>
                             {t.hero_title}
                         </h1>
@@ -280,17 +314,17 @@ export default function Landing() {
                         <p style={{
                             fontSize: 'clamp(15px, 2vw, 17px)',
                             lineHeight: 1.6,
-                            color: '#4d4847',
+                            color: '#94a3b8',
                             margin: '0 0 32px',
                             maxWidth: '600px',
                         }}>
-                            <span style={{ color: '#dc2626', fontWeight: 700 }}>Capek</span> telpon lantai produksi hanya untuk tanya status order? Dengan <strong>POgrid.id</strong>, operator langsung input progress dari HP masing-masing. Lindungi pabrik Anda dari risiko <MarkerUnderline>Pinalti</MarkerUnderline> dan <MarkerUnderline>denda keterlambatan</MarkerUnderline>.
+                            Operator input progres pengerjaan lewat HP pakai <span style={{ color: '#f0f4f8', fontWeight: 700 }}>PIN 4 digit</span>. Owner pantau mana PO yang <span style={{ color: '#10b981', fontWeight: 700 }}>Aman</span>, <span style={{ color: '#f59e0b', fontWeight: 700 }}>Rawan</span>, atau bakal <MarkerUnderline>Kena Pinalti Telat Kirim</MarkerUnderline>.
                         </p>
 
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
                             <Link href="/register" style={{
-                                backgroundColor: '#1c3738',
-                                color: '#f4fff8',
+                                backgroundColor: '#6366f1',
+                                color: '#ffffff',
                                 fontWeight: 700,
                                 fontSize: '15px',
                                 padding: '14px 26px',
@@ -299,15 +333,19 @@ export default function Landing() {
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '8px',
-                                boxShadow: '0 8px 20px rgba(28, 55, 56, 0.2)',
-                            }}>
+                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
+                                transition: 'background-color 0.15s ease',
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#818cf8'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#6366f1'}
+                            >
                                 {t.hero_cta_primary}
                                 <ArrowRight size={17} />
                             </Link>
                             <a href="#cara" style={{
                                 backgroundColor: 'transparent',
-                                color: '#1c3738',
-                                border: '1px solid rgba(28, 55, 56, 0.2)',
+                                color: '#f0f4f8',
+                                border: '1px solid #f0f4f8',
                                 fontWeight: 600,
                                 fontSize: '15px',
                                 padding: '14px 22px',
@@ -316,13 +354,21 @@ export default function Landing() {
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '8px',
-                            }}>
+                                transition: 'background-color 0.2s, color 0.2s',
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                            >
                                 <PlayCircle size={17} />
                                 {t.hero_cta_secondary}
                             </a>
                         </div>
 
-                        <p style={{ fontSize: '13px', color: '#687d7b', margin: '0 0 40px' }}>{t.hero_note}</p>
+                        <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 20px' }}>{t.hero_note}</p>
 
                         {/* Centered Stats in left column or bottom */}
                         <div style={{
@@ -337,71 +383,115 @@ export default function Landing() {
                                 { v: t.hero_stat_3, l: t.hero_stat_3_label },
                             ].map((s, i) => (
                                 <div key={i} style={{
-                                    backgroundColor: '#ffffff',
-                                    border: '1px solid rgba(28, 55, 56, 0.08)',
+                                    backgroundColor: '#18181b',
+                                    border: '1px solid #27272a',
                                     borderRadius: '12px',
                                     padding: '16px 14px',
-                                    boxShadow: '0 4px 12px rgba(28, 55, 56, 0.02)',
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                                 }}>
-                                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#1c3738', letterSpacing: '-0.02em' }}>{s.v}</div>
-                                    <div style={{ fontSize: '12px', color: '#4d4847', marginTop: '4px', lineHeight: 1.35 }}>{s.l}</div>
+                                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#818cf8', letterSpacing: '-0.02em' }}>{s.v}</div>
+                                    <div style={{ fontSize: '12px', color: '#a1a1aa', marginTop: '4px', lineHeight: 1.35 }}>{s.l}</div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Hero Right Column (CSS Phone Mockup) */}
+                    {/* Hero Right Column (True Smartphone UI Mockup) */}
                     <div className="hero-visual">
                         <div className="phone-mock">
-                            <div className="phone-bar">
-                                <span className="dot"></span>
-                                <span className="dot"></span>
-                                <span className="dot"></span>
+                            {/* iPhone Dynamic Island / Notch */}
+                            <div className="phone-notch">
+                                <span className="notch-camera"></span>
                             </div>
+
+                            {/* Mobile Screen */}
                             <div className="phone-body">
-                                <div className="phone-kpi-row">
-                                    <div className="phone-kpi kpi-ok">
-                                        <span>12</span>
-                                        <label>On Time</label>
-                                    </div>
-                                    <div className="phone-kpi kpi-warn">
-                                        <span>3</span>
-                                        <label>Rawan</label>
-                                    </div>
-                                    <div className="phone-kpi kpi-bad">
-                                        <span>1</span>
-                                        <label>Telat</label>
+                                {/* Status Bar */}
+                                <div className="phone-status-bar">
+                                    <span className="status-time">09:41</span>
+                                    <div className="status-icons">
+                                        <svg width="12" height="10" viewBox="0 0 16 12" fill="currentColor">
+                                            <rect x="0" y="8" width="3" height="4" rx="0.5" />
+                                            <rect x="4" y="6" width="3" height="6" rx="0.5" />
+                                            <rect x="8" y="3" width="3" height="9" rx="0.5" />
+                                            <rect x="12" y="0" width="3" height="12" rx="0.5" />
+                                        </svg>
+                                        <span className="status-wifi">📶</span>
+                                        <div className="status-battery">
+                                            <div className="battery-level"></div>
+                                        </div>
                                     </div>
                                 </div>
-                                <ul className="phone-po-list">
-                                    <li className="phone-po-item">
-                                        <div className="phone-po-meta">
-                                            <span className="phone-po-name">Gearbox A-100</span>
-                                            <span className="phone-po-pct">82%</span>
+
+                                {/* App Header */}
+                                <div className="phone-app-header">
+                                    <div>
+                                        <span className="app-po-code">PO-2026-089</span>
+                                        <div className="app-client-name">PT Astra Otoparts</div>
+                                    </div>
+                                    <span className="app-badge-live">🟢 On Track</span>
+                                </div>
+
+                                {/* Stage Progress List */}
+                                <div className="phone-stages-list">
+                                    <div className="stage-item">
+                                        <div className="stage-header">
+                                            <span className="stage-name">1. Milling & Turning</span>
+                                            <span className="stage-pct ok">100%</span>
                                         </div>
                                         <div className="phone-progress-bg">
-                                            <div className="phone-progress-fill" style={{ width: '82%', backgroundColor: 'var(--color-pg-success)' }}></div>
+                                            <div className="phone-progress-fill" style={{ width: '100%', backgroundColor: '#10b981' }}></div>
                                         </div>
-                                    </li>
-                                    <li className="phone-po-item">
-                                        <div className="phone-po-meta">
-                                            <span className="phone-po-name">Bracket B-22</span>
-                                            <span className="phone-po-pct">45%</span>
-                                        </div>
-                                        <div className="phone-progress-bg">
-                                            <div className="phone-progress-fill" style={{ width: '45%', backgroundColor: 'var(--color-pg-warning)' }}></div>
-                                        </div>
-                                    </li>
-                                    <li className="phone-po-item">
-                                        <div className="phone-po-meta">
-                                            <span className="phone-po-name">Housing C-7</span>
-                                            <span className="phone-po-pct">20%</span>
+                                        <span className="stage-status-label green">✓ Completed</span>
+                                    </div>
+
+                                    <div className="stage-item">
+                                        <div className="stage-header">
+                                            <span className="stage-name">2. CNC Router</span>
+                                            <span className="stage-pct ok">95%</span>
                                         </div>
                                         <div className="phone-progress-bg">
-                                            <div className="phone-progress-fill" style={{ width: '20%', backgroundColor: 'var(--color-pg-danger)' }}></div>
+                                            <div className="phone-progress-fill" style={{ width: '95%', backgroundColor: '#10b981' }}></div>
                                         </div>
-                                    </li>
-                                </ul>
+                                        <span className="stage-status-label green">✓ Completed</span>
+                                    </div>
+
+                                    <div className="stage-item active">
+                                        <div className="stage-header">
+                                            <span className="stage-name">3. QC Inspection</span>
+                                            <span className="stage-pct warn">50%</span>
+                                        </div>
+                                        <div className="phone-progress-bg">
+                                            <div className="phone-progress-fill" style={{ width: '50%', backgroundColor: '#f59e0b' }}></div>
+                                        </div>
+                                        <span className="stage-status-label amber">⚡ In Progress</span>
+                                    </div>
+
+                                    <div className="stage-item">
+                                        <div className="stage-header">
+                                            <span className="stage-name">4. Delivery / Kirim</span>
+                                            <span className="stage-pct muted">0%</span>
+                                        </div>
+                                        <div className="phone-progress-bg">
+                                            <div className="phone-progress-fill" style={{ width: '0%', backgroundColor: '#64748b' }}></div>
+                                        </div>
+                                        <span className="stage-status-label gray">Pending</span>
+                                    </div>
+                                </div>
+
+                                {/* Recent Activity Feed */}
+                                <div className="phone-activity-box">
+                                    <div className="activity-title">Aktivitas Terakhir:</div>
+                                    <div className="activity-row">
+                                        <span className="activity-dot green"></span>
+                                        <span>QC Station checked — OK: 48, NG: 2</span>
+                                    </div>
+                                </div>
+
+                                {/* Quick Action Button */}
+                                <button className="phone-action-btn">
+                                    Update Progress (PIN 4 Digit)
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -421,26 +511,27 @@ export default function Landing() {
                  }}>
                      {t.pain_items.map((p, i) => (
                          <div key={i} style={{
-                             backgroundColor: '#ffffff',
-                             border: '1px solid rgba(28, 55, 56, 0.08)',
+                             backgroundColor: 'rgba(255,255,255,0.04)',
+                             border: '1px solid rgba(255,255,255,0.08)',
+                             borderLeft: '4px solid #ef4444',
                              borderRadius: '16px',
                              padding: '22px',
-                             boxShadow: '0 4px 12px rgba(28, 55, 56, 0.02)',
+                             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                          }}>
-                             <p style={{ fontSize: '15px', fontWeight: 700, lineHeight: 1.4, margin: '0 0 10px', color: '#000f08' }}>{p.q}</p>
-                             <p style={{ fontSize: '14px', color: '#4d4847', lineHeight: 1.55, margin: 0 }}>{p.a}</p>
+                             <p style={{ fontSize: '15px', fontWeight: 700, lineHeight: 1.4, margin: '0 0 10px', color: '#f0f4f8' }}>{p.q}</p>
+                             <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.55, margin: 0 }}>{p.a}</p>
                          </div>
                      ))}
                  </div>
                  <div style={{
                      marginTop: '28px',
-                     backgroundColor: 'rgba(139, 170, 173, 0.12)',
-                     border: '1px solid rgba(139, 170, 173, 0.3)',
-                     borderRadius: '16px',
-                     padding: '22px 26px',
+                     backgroundColor: '#18181b',
+                     border: '1px solid #27272a',
+                     borderRadius: '12px',
+                     padding: '20px 24px',
                      textAlign: 'center',
                  }}>
-                     <p style={{ fontSize: '16px', fontWeight: 600, color: '#1c3738', margin: 0, lineHeight: 1.5 }}>{t.pain_solution}</p>
+                     <p style={{ fontSize: '16px', fontWeight: 600, color: '#818cf8', margin: 0, lineHeight: 1.5 }}>{t.pain_solution}</p>
                  </div>
              </section>
 
@@ -454,26 +545,26 @@ export default function Landing() {
                      {t.steps.map((s, i) => (
                          <div key={i} style={{
                              position: 'relative',
-                             backgroundColor: '#ffffff',
-                             border: '1px solid rgba(28, 55, 56, 0.08)',
+                             backgroundColor: '#18181b',
+                             border: '1px solid #27272a',
                              borderRadius: '18px',
                              padding: '28px 24px',
-                             boxShadow: '0 4px 12px rgba(28, 55, 56, 0.02)',
+                             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                          }}>
                              <div style={{
                                  width: '44px', height: '44px', borderRadius: '12px',
-                                 background: 'linear-gradient(135deg, #1c3738 0%, #000f08 100%)',
-                                 color: '#f4fff8', fontWeight: 800, fontSize: '20px',
+                                 background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                                 color: '#ffffff', fontWeight: 800, fontSize: '20px',
                                  display: 'grid', placeItems: 'center', marginBottom: '18px',
-                                 boxShadow: '0 6px 16px rgba(28, 55, 56, 0.2)',
+                                 boxShadow: '0 6px 16px rgba(99, 102, 241, 0.3)',
                              }}>{s.n}</div>
-                             <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 8px', color: '#000f08' }}>{s.title}</h3>
-                             <p style={{ fontSize: '14px', color: '#4d4847', lineHeight: 1.6, margin: 0 }}>{s.desc}</p>
+                             <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 8px', color: '#fafafa' }}>{s.title}</h3>
+                             <p style={{ fontSize: '14px', color: '#a1a1aa', lineHeight: 1.6, margin: 0 }}>{s.desc}</p>
                          </div>
                      ))}
                  </div>
                  <div style={{ textAlign: 'center', marginTop: '30px' }}>
-                     <p style={{ fontSize: '15px', color: 'var(--color-pg-success)', fontWeight: 600, margin: 0 }}>{t.how_outcome}</p>
+                     <p style={{ fontSize: '15px', color: '#818cf8', fontWeight: 600, margin: 0 }}>{t.how_outcome}</p>
                  </div>
              </section>
 
@@ -486,24 +577,24 @@ export default function Landing() {
                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
                      {t.features.map((f, i) => (
                          <div key={i} style={{
-                             backgroundColor: '#ffffff',
-                             border: '1px solid rgba(28, 55, 56, 0.08)',
+                             backgroundColor: 'rgba(255,255,255,0.04)',
+                             border: '1px solid rgba(255,255,255,0.08)',
                              borderRadius: '16px',
                              padding: '22px',
                              display: 'flex',
                              gap: '14px',
                              alignItems: 'flex-start',
-                             boxShadow: '0 4px 12px rgba(28, 55, 56, 0.02)',
+                             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                          }}>
                              <span style={{
                                  flexShrink: 0, width: '36px', height: '36px', borderRadius: '10px',
-                                 backgroundColor: 'rgba(139, 170, 173, 0.15)',
-                                 color: '#1c3738',
+                                 backgroundColor: 'rgba(99, 102, 241, 0.12)',
+                                 color: '#818cf8',
                                  display: 'grid', placeItems: 'center',
                              }}><Check size={18} /></span>
                              <div>
-                                 <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '2px 0 6px', color: '#000f08' }}>{f.t}</h3>
-                                 <p style={{ fontSize: '13.5px', color: '#4d4847', lineHeight: 1.55, margin: 0 }}>{f.d}</p>
+                                 <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '2px 0 6px', color: '#f0f4f8' }}>{f.t}</h3>
+                                 <p style={{ fontSize: '13.5px', color: '#94a3b8', lineHeight: 1.55, margin: 0 }}>{f.d}</p>
                              </div>
                          </div>
                      ))}
@@ -519,30 +610,30 @@ export default function Landing() {
                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '28px' }}>
                      {t.proof_items.map((p, i) => (
                          <div key={i} style={{
-                             backgroundColor: '#ffffff',
-                             border: '1px solid rgba(28, 55, 56, 0.08)',
+                             backgroundColor: '#18181b',
+                             border: '1px solid #27272a',
                              borderRadius: '16px',
                              padding: '24px',
-                             boxShadow: '0 4px 12px rgba(28, 55, 56, 0.02)',
+                             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                          }}>
-                             <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px', color: '#1c3738' }}>{p.t}</h3>
-                             <p style={{ fontSize: '14px', color: '#4d4847', lineHeight: 1.55, margin: 0 }}>{p.d}</p>
+                             <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px', color: '#818cf8' }}>{p.t}</h3>
+                             <p style={{ fontSize: '14px', color: '#a1a1aa', lineHeight: 1.55, margin: 0 }}>{p.d}</p>
                          </div>
                      ))}
                  </div>
                  <div style={{
-                     backgroundColor: '#ffffff',
-                     border: '1px solid rgba(28, 55, 56, 0.08)',
-                     borderRadius: '18px',
-                     padding: '30px',
+                     backgroundColor: '#18181b',
+                     border: '1px solid #27272a',
+                     borderRadius: '16px',
+                     padding: '28px',
                      textAlign: 'center',
                      maxWidth: '760px',
                      margin: '0 auto',
-                     boxShadow: '0 4px 20px rgba(28, 55, 56, 0.04)',
+                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
                  }}>
                      <StarRow />
-                     <p style={{ fontSize: '17px', fontWeight: 600, lineHeight: 1.6, margin: '14px 0 10px', color: '#000f08' }}>{t.proof_quote}</p>
-                     <p style={{ fontSize: '13px', color: '#4d4847', margin: 0 }}>{t.proof_quote_by}</p>
+                     <p style={{ fontSize: '17px', fontWeight: 600, lineHeight: 1.6, margin: '14px 0 10px', color: '#f0f4f8' }}>{t.proof_quote}</p>
+                     <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>{t.proof_quote_by}</p>
                  </div>
              </section>
 
@@ -554,33 +645,37 @@ export default function Landing() {
                  </div>
                  <div style={{
                      maxWidth: '520px', margin: '0 auto',
-                     backgroundColor: '#ffffff',
-                     border: '1px solid rgba(139, 170, 173, 0.4)',
-                     borderRadius: '22px',
-                     padding: '36px 32px',
-                     boxShadow: '0 20px 60px -20px rgba(28, 55, 56, 0.1)',
+                     backgroundColor: '#18181b',
+                     border: '1px solid #27272a',
+                     borderRadius: '16px',
+                     padding: '32px 28px',
+                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
                  }}>
                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '4px' }}>
-                         <span style={{ fontSize: '40px', fontWeight: 800, letterSpacing: '-0.03em', color: '#000f08' }}>Gratis</span>
-                         <span style={{ fontSize: '15px', color: '#4d4847' }}>30 hari</span>
+                         <span style={{ fontSize: '40px', fontWeight: 800, letterSpacing: '-0.03em', color: '#fafafa' }}>Gratis</span>
+                         <span style={{ fontSize: '15px', color: '#a1a1aa' }}>30 hari</span>
                      </div>
-                     <p style={{ fontSize: '14px', color: '#4d4847', margin: '0 0 22px' }}>{t.price_feature_label}</p>
+                     <p style={{ fontSize: '14px', color: '#a1a1aa', margin: '0 0 22px' }}>{t.price_feature_label}</p>
                      <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 28px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                          {t.price_features.map((f, i) => (
-                             <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14.5px', color: '#000f08' }}>
-                                 <span style={{ color: 'var(--color-pg-success)', display: 'grid', placeItems: 'center' }}><Check size={17} /></span>
+                             <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14.5px', color: '#fafafa' }}>
+                                 <span style={{ color: '#818cf8', display: 'grid', placeItems: 'center' }}><Check size={17} /></span>
                                  {f}
                              </li>
                          ))}
                      </ul>
                      <Link href="/register" style={{
                          display: 'flex', width: '100%', justifyContent: 'center',
-                         backgroundColor: '#1c3738',
-                         color: '#f4fff8', fontWeight: 700, fontSize: '16px',
+                         backgroundColor: '#6366f1',
+                         color: '#ffffff', fontWeight: 700, fontSize: '16px',
                          padding: '15px', borderRadius: '12px', textDecoration: 'none',
                          alignItems: 'center', gap: '8px',
-                         boxShadow: '0 8px 24px rgba(28, 55, 56, 0.2)',
-                     }}>
+                         boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
+                         transition: 'background-color 0.2s',
+                     }}
+                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#818cf8'}
+                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#6366f1'}
+                     >
                          {t.price_cta}
                          <ArrowRight size={18} />
                      </Link>
@@ -597,11 +692,11 @@ export default function Landing() {
                          const open = openFaq === i;
                          return (
                              <div key={i} style={{
-                                 backgroundColor: '#ffffff',
-                                 border: '1px solid rgba(28, 55, 56, 0.08)',
+                                 backgroundColor: 'rgba(255,255,255,0.04)',
+                                 border: '1px solid rgba(255,255,255,0.08)',
                                  borderRadius: '14px',
                                  overflow: 'hidden',
-                                 boxShadow: '0 4px 12px rgba(28, 55, 56, 0.02)',
+                                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                              }}>
                                  <button
                                      type="button"
@@ -617,7 +712,7 @@ export default function Landing() {
                                          justifyContent: 'space-between',
                                          alignItems: 'center',
                                          gap: '12px',
-                                         color: '#000f08',
+                                         color: '#f0f4f8',
                                          fontSize: '15px',
                                          fontWeight: 600,
                                          fontFamily: 'inherit',
@@ -625,14 +720,14 @@ export default function Landing() {
                                  >
                                      {f.q}
                                      <span style={{
-                                         color: '#1c3738',
+                                         color: '#10b981',
                                          transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
                                          transition: 'transform 0.2s',
                                          flexShrink: 0,
                                      }}><ChevronDownIcon /></span>
                                  </button>
                                  {open && (
-                                     <div style={{ padding: '0 20px 18px', fontSize: '14px', color: '#4d4847', lineHeight: 1.6 }}>
+                                     <div style={{ padding: '0 20px 18px', fontSize: '14px', color: '#94a3b8', lineHeight: 1.6 }}>
                                          {f.a}
                                      </div>
                                  )}
@@ -645,21 +740,25 @@ export default function Landing() {
             {/* ===== FINAL CTA ===== */}
              <section style={{ maxWidth: '1120px', margin: '0 auto', padding: '24px 20px 64px' }}>
                  <div style={{
-                     background: 'linear-gradient(135deg, rgba(139, 170, 173, 0.15) 0%, rgba(139, 170, 173, 0.04) 100%)',
-                     border: '1px solid rgba(139, 170, 173, 0.3)',
-                     borderRadius: '24px',
-                     padding: '52px 28px',
+                     backgroundColor: '#18181b',
+                     border: '1px solid #27272a',
+                     borderRadius: '16px',
+                     padding: '44px 28px',
                      textAlign: 'center',
                  }}>
-                     <h2 style={{ fontSize: 'clamp(26px, 5vw, 38px)', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 12px', color: '#000f08' }}>{t.final_title}</h2>
-                     <p style={{ fontSize: '16px', color: '#4d4847', margin: '0 auto 28px', maxWidth: '520px', lineHeight: 1.55 }}>{t.final_sub}</p>
+                     <h2 style={{ fontSize: 'clamp(26px, 5vw, 38px)', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 12px', color: '#fafafa' }}>{t.final_title}</h2>
+                     <p style={{ fontSize: '16px', color: '#a1a1aa', margin: '0 auto 28px', maxWidth: '520px', lineHeight: 1.55 }}>{t.final_sub}</p>
                      <Link href="/register" style={{
                          display: 'inline-flex', alignItems: 'center', gap: '8px',
-                         backgroundColor: '#1c3738', color: '#f4fff8',
+                         backgroundColor: '#6366f1', color: '#ffffff',
                          fontWeight: 700, fontSize: '16px', padding: '16px 32px',
                          borderRadius: '12px', textDecoration: 'none',
-                         boxShadow: '0 8px 24px rgba(28, 55, 56, 0.2)',
-                     }}>
+                         boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
+                         transition: 'background-color 0.2s',
+                     }}
+                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#818cf8'}
+                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#6366f1'}
+                     >
                          {t.final_cta}
                          <ArrowRight size={18} />
                      </Link>
@@ -668,8 +767,8 @@ export default function Landing() {
 
             {/* ===== FOOTER ===== */}
             <footer style={{
-                borderTop: '1px solid var(--color-pg-border)',
-                backgroundColor: 'var(--color-pg-surface)',
+                borderTop: '1px solid #1f1f23',
+                backgroundColor: '#09090b',
             }}>
                 <div style={{
                     maxWidth: '1120px', margin: '0 auto', padding: '40px 20px',
@@ -679,12 +778,12 @@ export default function Landing() {
                 }}>
                     <div style={{ gridColumn: 'span 2', minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
-                            <img src="/pogrid-logo.png" alt="POgrid.id Logo" style={{ height: '120px', width: 'auto' }} />
+                            <img src="/pogrid-logo.png" alt="POgrid.id Logo" style={{ height: '72px', width: 'auto', objectFit: 'contain' }} />
                         </div>
-                        <p style={{ fontSize: '13.5px', color: 'var(--color-pg-text-muted)', lineHeight: 1.55, margin: 0, maxWidth: '320px' }}>{t.footer_tag}</p>
+                        <p style={{ fontSize: '13.5px', color: '#64748b', lineHeight: 1.55, margin: 0, maxWidth: '320px' }}>{t.footer_tag}</p>
                     </div>
                     <div>
-                        <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-pg-text-secondary)', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t.footer_product}</h4>
+                        <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t.footer_product}</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {t.footer_links_product.map((l, i) => (
                                 <li key={i}><a href={hrefFor(i)} style={footerLink}>{l}</a></li>
@@ -692,7 +791,7 @@ export default function Landing() {
                         </ul>
                     </div>
                     <div>
-                        <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-pg-text-secondary)', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t.footer_company}</h4>
+                        <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t.footer_company}</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {t.footer_links_company.map((l, i) => (
                                 <li key={i}><a href={i === 0 ? '/login' : '/register'} style={footerLink}>{l}</a></li>
@@ -700,7 +799,7 @@ export default function Landing() {
                         </ul>
                     </div>
                     <div>
-                        <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-pg-text-secondary)', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Legal</h4>
+                        <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Legal</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <li><Link href="/terms" style={footerLink}>Syarat & Ketentuan</Link></li>
                             <li><Link href="/privacy" style={footerLink}>Kebijakan Privasi</Link></li>
@@ -708,14 +807,13 @@ export default function Landing() {
                     </div>
                 </div>
                 <div style={{
-                    borderTop: '1px solid var(--color-pg-border)',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
                     padding: '18px 20px',
                     textAlign: 'center',
                     fontSize: '12.5px',
-                    color: 'var(--color-pg-text-muted)',
+                    color: '#64748b',
                 }}>
                     <div>© {new Date().getFullYear()} POgrid.id — Dibuat untuk pabrik manufaktur Indonesia.</div>
-                    <div style={{ fontSize: '10.5px', marginTop: '6px', opacity: 0.6 }}>beta1 (2026-07-17)</div>
                 </div>
             </footer>
 
@@ -752,108 +850,215 @@ export default function Landing() {
                         margin-bottom: 20px;
                     }
                 }
+                :root {
+                    --color-pg-success: #10b981;
+                    --color-pg-warning: #f59e0b;
+                    --color-pg-danger: #ef4444;
+                }
+                /* Hardware Smartphone Frame (iPhone Style) */
                 .phone-mock {
-                    width: 270px;
-                    background: var(--color-pg-surface);
-                    border: 1px solid var(--color-pg-border);
-                    border-radius: 28px;
-                    padding: 12px;
-                    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
-                    animation: pgFloat 4s ease-in-out infinite;
+                    width: 290px;
+                    position: relative;
+                    background: #0f172a;
+                    border: 8px solid #27272a;
+                    border-radius: 40px;
+                    padding: 8px;
+                    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
                 }
                 @keyframes pgFloat {
                     0%, 100% { transform: translateY(0); }
                     50% { transform: translateY(-8px); }
                 }
-                .phone-bar {
+
+                /* Dynamic Island Notch */
+                .phone-notch {
+                    position: absolute;
+                    top: 13px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 80px;
+                    height: 18px;
+                    background: #000000;
+                    border-radius: 12px;
+                    z-index: 10;
                     display: flex;
-                    gap: 6px;
-                    padding: 4px 6px 12px;
+                    align-items: center;
+                    justify-content: flex-end;
+                    padding-right: 8px;
                 }
-                .phone-bar .dot {
+                .notch-camera {
                     width: 8px;
                     height: 8px;
+                    background: #111827;
                     border-radius: 50%;
-                    background: var(--color-pg-border);
+                    box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.2);
                 }
+
+                /* Mobile Screen Inner Body */
                 .phone-body {
-                    background: var(--color-pg-border-subtle);
-                    border-radius: 18px;
-                    padding: 16px;
+                    background: #0b1329;
+                    border-radius: 36px;
+                    padding: 24px 14px 14px;
                     text-align: left;
+                    overflow: hidden;
+                    border: 1px solid rgba(255, 255, 255, 0.05);
                 }
-                .phone-kpi-row {
-                    display: flex;
-                    gap: 8px;
-                    margin-bottom: 16px;
-                }
-                .phone-kpi {
-                    flex: 1;
-                    border-radius: 10px;
-                    padding: 10px 4px;
-                    text-align: center;
-                }
-                .phone-kpi span {
-                    display: block;
-                    font-size: 1.3rem;
-                    font-weight: 800;
-                }
-                .phone-kpi label {
-                    font-size: 0.65rem;
-                    color: var(--color-pg-text-secondary);
-                    font-weight: 600;
-                }
-                .kpi-ok {
-                    background: rgba(34, 197, 94, 0.12);
-                    color: var(--color-pg-success);
-                }
-                .kpi-warn {
-                    background: rgba(245, 158, 11, 0.12);
-                    color: var(--color-pg-warning);
-                }
-                .kpi-bad {
-                    background: rgba(239, 68, 68, 0.12);
-                    color: var(--color-pg-danger);
-                }
-                .phone-po-list {
-                    list-style: none;
-                    margin: 0;
-                    padding: 0;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                }
-                .phone-po-item {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 5px;
-                    font-size: 0.75rem;
-                }
-                .phone-po-meta {
+
+                /* Status Bar */
+                .phone-status-bar {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
+                    font-size: 10px;
+                    color: #94a3b8;
+                    margin-bottom: 12px;
+                    font-weight: 700;
                 }
-                .phone-po-name {
-                    color: var(--color-pg-text);
+                .status-icons {
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                }
+                .status-battery {
+                    width: 14px;
+                    height: 7px;
+                    border: 1px solid #94a3b8;
+                    border-radius: 2px;
+                    padding: 1px;
+                }
+                .battery-level {
+                    width: 70%;
+                    height: 100%;
+                    background: #10b981;
+                    border-radius: 1px;
+                }
+
+                /* App Header */
+                .phone-app-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.06);
+                    padding: 10px 12px;
+                    border-radius: 12px;
+                    margin-bottom: 12px;
+                }
+                .app-po-code {
+                    display: block;
+                    font-size: 13px;
+                    font-weight: 800;
+                    color: #f0f4f8;
+                }
+                .app-client-name {
+                    font-size: 10px;
+                    color: #94a3b8;
+                    font-weight: 500;
+                }
+                .app-badge-live {
+                    font-size: 10px;
+                    font-weight: 700;
+                    color: #10b981;
+                    background: rgba(16, 185, 129, 0.12);
+                    padding: 4px 8px;
+                    border-radius: 999px;
+                    border: 1px solid rgba(16, 185, 129, 0.25);
+                }
+
+                /* Stages List */
+                .phone-stages-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    margin-bottom: 12px;
+                }
+                .stage-item {
+                    background: rgba(255, 255, 255, 0.02);
+                    border: 1px solid rgba(255, 255, 255, 0.04);
+                    padding: 8px 10px;
+                    border-radius: 10px;
+                }
+                .stage-item.active {
+                    background: rgba(245, 158, 11, 0.05);
+                    border-color: rgba(245, 158, 11, 0.2);
+                }
+                .stage-header {
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 10.5px;
                     font-weight: 600;
+                    color: #e2e8f0;
+                    margin-bottom: 4px;
                 }
-                .phone-po-pct {
-                    color: var(--color-pg-text-secondary);
-                    font-weight: 600;
-                }
+                .stage-pct.ok { color: #10b981; }
+                .stage-pct.warn { color: #f59e0b; }
+                .stage-pct.muted { color: #64748b; }
+
                 .phone-progress-bg {
-                    background: var(--color-pg-input);
-                    border-radius: 6px;
-                    height: 8px;
+                    background: rgba(255, 255, 255, 0.08);
+                    border-radius: 4px;
+                    height: 5px;
                     overflow: hidden;
                     width: 100%;
+                    margin-bottom: 4px;
                 }
                 .phone-progress-fill {
                     height: 100%;
-                    border-radius: 6px;
-                    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+                    border-radius: 4px;
                 }
+                .stage-status-label {
+                    display: block;
+                    font-size: 9px;
+                    font-weight: 700;
+                }
+                .stage-status-label.green { color: #10b981; }
+                .stage-status-label.amber { color: #f59e0b; }
+                .stage-status-label.gray { color: #64748b; }
+
+                /* Activity Box */
+                .phone-activity-box {
+                    background: rgba(16, 185, 129, 0.05);
+                    border: 1px solid rgba(16, 185, 129, 0.15);
+                    border-radius: 8px;
+                    padding: 6px 8px;
+                    margin-bottom: 10px;
+                }
+                .activity-title {
+                    font-size: 9px;
+                    color: #94a3b8;
+                    font-weight: 600;
+                    margin-bottom: 2px;
+                }
+                .activity-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    font-size: 9.5px;
+                    color: #f1f5f9;
+                    font-weight: 500;
+                }
+                .activity-dot.green {
+                    width: 5px;
+                    height: 5px;
+                    border-radius: 50%;
+                    background: #10b981;
+                }
+
+                /* Mobile Action Button */
+                .phone-action-btn {
+                    width: 100%;
+                    background: #10b981;
+                    color: #ffffff;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 8px;
+                    font-size: 10px;
+                    font-weight: 800;
+                    text-align: center;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+                }
+                html { scroll-behavior: smooth; }
             `}</style>
         </div>
     );
@@ -862,16 +1067,18 @@ export default function Landing() {
 const navLink: React.CSSProperties = {
     fontSize: '14px',
     fontWeight: 600,
-    color: '#1c3738',
+    color: '#94a3b8',
     textDecoration: 'none',
     fontFamily: 'inherit',
+    transition: 'color 0.2s ease',
 };
 
 const footerLink: React.CSSProperties = {
     fontSize: '14px',
-    color: 'var(--color-pg-text-secondary)',
+    color: '#64748b',
     textDecoration: 'none',
     fontFamily: 'inherit',
+    transition: 'color 0.2s ease',
 };
 
 const h2: React.CSSProperties = {
@@ -879,12 +1086,12 @@ const h2: React.CSSProperties = {
     fontWeight: 800,
     letterSpacing: '-0.02em',
     margin: '0 0 10px',
-    color: '#000f08',
+    color: '#f0f4f8',
 };
 
 const sub: React.CSSProperties = {
     fontSize: '15px',
-    color: '#4d4847',
+    color: '#94a3b8',
     margin: 0,
     lineHeight: 1.55,
 };

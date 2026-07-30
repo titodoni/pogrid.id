@@ -141,7 +141,7 @@ class BroadcastTest extends TestCase
     public function test_kendala_reported_triggers_broadcast_job()
     {
         TenantManager::setTenantId($this->tenant->id);
-        Queue::fake();
+        \Illuminate\Support\Facades\Event::fake([KendalaReported::class]);
 
         $po = Po::create([
             'po_number' => 'PO-BC-003',
@@ -170,15 +170,13 @@ class BroadcastTest extends TestCase
 
         broadcast(new KendalaReported($alert));
 
-        Queue::assertPushed(BroadcastEvent::class, function (BroadcastEvent $job) {
-            return $job->event instanceof KendalaReported;
-        });
+        \Illuminate\Support\Facades\Event::assertDispatched(KendalaReported::class);
     }
 
     public function test_production_terminated_triggers_broadcast_job()
     {
         TenantManager::setTenantId($this->tenant->id);
-        Queue::fake();
+        \Illuminate\Support\Facades\Event::fake([ProductionTerminated::class]);
 
         $po = Po::create([
             'po_number' => 'PO-BC-004',
@@ -198,15 +196,13 @@ class BroadcastTest extends TestCase
 
         broadcast(new ProductionTerminated($item));
 
-        Queue::assertPushed(BroadcastEvent::class, function (BroadcastEvent $job) {
-            return $job->event instanceof ProductionTerminated;
-        });
+        \Illuminate\Support\Facades\Event::assertDispatched(ProductionTerminated::class);
     }
 
     public function test_controller_report_kendala_triggers_broadcast_job()
     {
         TenantManager::setTenantId($this->tenant->id);
-        Queue::fake();
+        \Illuminate\Support\Facades\Event::fake([KendalaReported::class]);
 
         $po = Po::create([
             'po_number' => 'PO-BC-005',
@@ -239,15 +235,13 @@ class BroadcastTest extends TestCase
             'kendala_type' => 'Machine Broken',
         ]);
 
-        Queue::assertPushed(BroadcastEvent::class, function (BroadcastEvent $job) {
-            return $job->event instanceof KendalaReported;
-        });
+        \Illuminate\Support\Facades\Event::assertDispatched(KendalaReported::class);
     }
 
     public function test_controller_terminate_midway_triggers_broadcast_job()
     {
         TenantManager::setTenantId($this->tenant->id);
-        Queue::fake();
+        \Illuminate\Support\Facades\Event::fake([ProductionTerminated::class]);
 
         $po = Po::create([
             'po_number' => 'PO-BC-006',
@@ -279,9 +273,7 @@ class BroadcastTest extends TestCase
 
         $this->post("/items/{$item->id}/terminate");
 
-        Queue::assertPushed(BroadcastEvent::class, function (BroadcastEvent $job) {
-            return $job->event instanceof ProductionTerminated;
-        });
+        \Illuminate\Support\Facades\Event::assertDispatched(ProductionTerminated::class);
     }
 
     public function test_mock_broadcaster_production_terminated_receives_correct_payload(): void
@@ -454,6 +446,13 @@ class BroadcastTest extends TestCase
     public function test_presence_channel_authorization_returns_user_data()
     {
         TenantManager::setTenantId($this->tenant->id);
+        config([
+            'broadcasting.default' => 'pusher',
+            'broadcasting.connections.pusher.key' => 'test-key',
+            'broadcasting.connections.pusher.secret' => 'test-secret',
+            'broadcasting.connections.pusher.app_id' => 'test-app-id',
+        ]);
+        require base_path('routes/channels.php');
 
         $user = User::create([
             'tenant_id' => $this->tenant->id,
@@ -475,6 +474,14 @@ class BroadcastTest extends TestCase
 
     public function test_presence_channel_authorization_blocks_other_tenant()
     {
+        config([
+            'broadcasting.default' => 'pusher',
+            'broadcasting.connections.pusher.key' => 'test-key',
+            'broadcasting.connections.pusher.secret' => 'test-secret',
+            'broadcasting.connections.pusher.app_id' => 'test-app-id',
+        ]);
+        require base_path('routes/channels.php');
+
         $tenantB = Tenant::create([
             'company_name' => 'Other Workshop',
             'slug' => 'other-workshop',
@@ -517,7 +524,7 @@ class BroadcastTest extends TestCase
     public function test_data_sync_observer_fires_data_refreshed_on_model_saved()
     {
         TenantManager::setTenantId($this->tenant->id);
-        Queue::fake();
+        \Illuminate\Support\Facades\Event::fake([\App\Events\DataRefreshed::class]);
 
         $po = Po::create([
             'po_number' => 'PO-DS-001',
@@ -537,20 +544,21 @@ class BroadcastTest extends TestCase
 
         $progress = $item->itemProgresses()->first();
         $progress->completed_qty = 2;
+        \App\Observers\DataSyncObserver::$enableInTests = true;
         $progress->save();
+        \App\Observers\DataSyncObserver::$enableInTests = false;
 
-        Queue::assertPushed(BroadcastEvent::class, function (BroadcastEvent $job) {
-            return $job->event instanceof \App\Events\DataRefreshed;
-        });
+        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\DataRefreshed::class);
     }
 
     public function test_po_creation_triggers_task_updated_broadcast()
     {
         TenantManager::setTenantId($this->tenant->id);
-        Queue::fake();
+        \Illuminate\Support\Facades\Event::fake([\App\Events\TaskUpdated::class]);
 
-        $adminRole = \App\Models\Role::create([
+        $adminRole = \App\Models\Role::firstOrCreate([
             'name' => 'ADMIN',
+        ], [
             'level' => 'office',
             'display_name' => 'Admin',
         ]);
@@ -581,23 +589,30 @@ class BroadcastTest extends TestCase
 
         $response->assertRedirect();
 
-        Queue::assertPushed(BroadcastEvent::class, function (BroadcastEvent $job) {
-            return $job->event instanceof \App\Events\TaskUpdated;
-        });
+        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\TaskUpdated::class);
     }
 
     public function test_dashboard_channel_auth_allows_owner_and_office_roles_blocks_worker()
     {
         TenantManager::setTenantId($this->tenant->id);
+        config([
+            'broadcasting.default' => 'pusher',
+            'broadcasting.connections.pusher.key' => 'test-key',
+            'broadcasting.connections.pusher.secret' => 'test-secret',
+            'broadcasting.connections.pusher.app_id' => 'test-app-id',
+        ]);
+        require base_path('routes/channels.php');
 
-        $officeRole = \App\Models\Role::create([
+        $officeRole = \App\Models\Role::firstOrCreate([
             'name' => 'STAFF',
+        ], [
             'level' => 'office',
             'display_name' => 'Staff',
         ]);
 
-        $workerRole = \App\Models\Role::create([
+        $workerRole = \App\Models\Role::firstOrCreate([
             'name' => 'WORKER',
+        ], [
             'level' => 'production',
             'display_name' => 'Worker',
         ]);
@@ -636,6 +651,14 @@ class BroadcastTest extends TestCase
 
     public function test_presence_channel_unauthenticated_user_rejected()
     {
+        config([
+            'broadcasting.default' => 'pusher',
+            'broadcasting.connections.pusher.key' => 'test-key',
+            'broadcasting.connections.pusher.secret' => 'test-secret',
+            'broadcasting.connections.pusher.app_id' => 'test-app-id',
+        ]);
+        require base_path('routes/channels.php');
+
         $response = $this->post('/broadcasting/auth', [
             'channel_name' => 'presence-tenant.'.$this->tenant->id.'.presence',
             'socket_id' => '1234.5678',

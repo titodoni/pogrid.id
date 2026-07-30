@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, AlertTriangle, Settings } from '../../Components/Icons';
+import { formatDDMMYYYY } from '../../Utils/date';
+import { WorkerHeader } from '../../Components/WorkerHeader';
 
 interface CompletedStage {
     id: number;
@@ -98,9 +100,7 @@ const translations = {
 };
 
 function formatDate(iso: string | null): string {
-    if (!iso) return '-';
-    const d = new Date(iso);
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return formatDDMMYYYY(iso);
 }
 
 function formatMonth(month: string): string {
@@ -129,6 +129,11 @@ export default function MyKpi({ completed_stages, summary, stage_breakdown, mont
     const maxTrendCount = Math.max(...monthly_trend.map(m => m.count), 1);
     const maxBreakdownCount = Math.max(...stage_breakdown.map(s => s.count), 1);
 
+    const changeLanguage = (lang: 'en' | 'id') => {
+        setLanguage(lang);
+        localStorage.setItem('pogrid_lang', lang);
+    };
+
     return (
         <div className="dashboard-root" style={{
             backgroundColor: 'var(--color-pg-bg)',
@@ -139,75 +144,15 @@ export default function MyKpi({ completed_stages, summary, stage_breakdown, mont
             fontFamily: 'system-ui, -apple-system, sans-serif',
             position: 'relative',
         }}>
-            <header style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                flexShrink: 0,
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Link
-                        href={`/c/${slug}`}
-                        style={{
-                            width: '40px',
-                            height: '40px',
-                            backgroundColor: 'rgba(255,255,255,0.04)',
-                            border: '1px solid rgba(255,255,255,0.06)',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            textDecoration: 'none',
-                            color: '#a1a1aa',
-                        }}
-                    >
-                        <ChevronLeft size={20} />
-                    </Link>
-                    <div>
-                        <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{t.title}</h1>
-                        <p style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', margin: '2px 0 0', opacity: 0.7 }}>{t.subtitle}</p>
-                    </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    <button
-                        onClick={() => setLanguage(language === 'en' ? 'id' : 'en')}
-                        style={{
-                            minHeight: '44px',
-                            padding: '0 12px',
-                            backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
-                            color: language === 'id' ? '#fff' : '#a1a1aa',
-                            border: `1px solid ${language === 'id' ? '#6366f1' : 'rgba(255,255,255,0.06)'}`,
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: 700,
-                            fontSize: '12px',
-                        }}
-                    >
-                        {language === 'id' ? 'EN' : 'ID'}
-                    </button>
-                    <button
-                        onClick={() => router.post('/logout')}
-                        style={{
-                            minHeight: '44px',
-                            padding: '0 16px',
-                            backgroundColor: '#f87171',
-                            color: '#fff',
-                            fontWeight: 700,
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            boxShadow: '0 4px 12px rgba(248, 113, 113, 0.2)',
-                        }}
-                    >
-                        {t.exit_terminal}
-                    </button>
-                </div>
-            </header>
+            <WorkerHeader
+                slug={slug}
+                auth_user={auth_user}
+                title={t.title}
+                subtitle={t.subtitle}
+                language={language}
+                changeLanguage={changeLanguage}
+                currentView="my-kpi"
+            />
 
             <div className="dashboard-scroll" style={{ padding: '12px', overflowY: 'auto', flex: 1 }}>
                 {completed_stages.length === 0 ? (

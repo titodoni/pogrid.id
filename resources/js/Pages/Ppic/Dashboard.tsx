@@ -596,7 +596,8 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                     padding: '16px',
                 }}>
                     <div style={{
-                        backgroundColor: '#18181b',
+                        backgroundColor: 'var(--color-pg-surface, #18181b)',
+                        color: 'var(--color-pg-text, #fafafa)',
                         border: '1px solid var(--color-pg-border)',
                         borderRadius: '12px',
                         width: '100%',
@@ -604,10 +605,10 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                         padding: '20px',
                         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)',
                     }}>
-                        <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#f4f4f5', margin: '0 0 4px 0' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-pg-text, #f4f4f5)', margin: '0 0 4px 0' }}>
                             {language === 'en' ? 'Reschedule PO' : 'Jadwal Ulang PO'}
                         </h3>
-                        <p style={{ fontSize: '12px', color: '#a1a1aa', margin: '0 0 16px 0' }}>
+                        <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-pg-text-secondary, #a1a1aa)', margin: '0 0 16px 0' }}>
                             {editingPo.po_number} · {editingPo.client_name}
                         </p>
 

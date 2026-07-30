@@ -457,7 +457,7 @@ input, select, textarea {
 }
 .po-accordion:hover {
     border-color: var(--color-pg-primary-hover);
-    box-shadow: 0 0 12px var(--color-pg-primary-glow);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 .po-accordion-header {
     display: flex;
@@ -599,7 +599,7 @@ input, select, textarea {
 @media (hover: hover) {
     .worker-item-card:hover {
         border-color: var(--color-pg-primary-hover) !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px var(--color-pg-primary-glow) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
         transform: translateY(-2px);
     }
 }
@@ -781,16 +781,19 @@ input, select, textarea {
 }
 
 /* ============================================
-   DASHBOARD VIEWPORT LAYOUT
+   DASHBOARD VIEWPORT & RESPONSIVE LAYOUT
+   Mobile-first layout with natural scrolling on both mobile and desktop
    ============================================ */
 
 .dashboard-root {
-    height: 100dvh;
+    min-height: 100vh;
+    height: auto;
     width: 100%;
     max-width: 100vw;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 .dashboard-above-scroll {
     flex-shrink: 0;
@@ -799,29 +802,10 @@ input, select, textarea {
 }
 .dashboard-scroll {
     flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
+    min-height: unset;
+    overflow-y: visible;
+    overflow-x: visible;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-}
-
-/* Natural page scrolling fallback on mobile to avoid locked scroll containers */
-@media (max-width: 768px) {
-    .dashboard-root {
-        height: auto !important;
-        min-height: 100dvh !important;
-        overflow: visible !important;
-    }
-    .dashboard-above-scroll {
-        overflow: visible !important;
-    }
-    .dashboard-scroll {
-        flex: none !important;
-        min-height: unset !important;
-        overflow-y: visible !important;
-        overflow-x: visible !important;
-    }
 }
 
 /* Horizontal scrollable row for filters (e.g. Roles) */
@@ -847,8 +831,8 @@ input, select, textarea {
 }
 .user-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(99, 102, 241, 0.25) !important;
-    background-color: rgba(15, 23, 42, 0.8) !important;
+    border-color: var(--color-pg-primary, rgba(99, 102, 241, 0.25)) !important;
+    background-color: var(--color-pg-card-hover, rgba(15, 23, 42, 0.8)) !important;
     box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.15);
 }
 
@@ -857,6 +841,75 @@ input, select, textarea {
     width: 100px;
     text-align: right;
     flex-shrink: 0;
+}
+
+/* ============================================
+   MODERN SAAS DESIGN SYSTEM UTILITIES
+   Dual Theme (Dark & Light Mode) + Typography Hierarchy Tokens
+   ============================================ */
+
+/* Glassmorphic Surfaces */
+.glass-panel {
+    background-color: var(--color-pg-surface);
+    border: 1px solid var(--color-pg-border);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card {
+    background-color: var(--color-pg-card, var(--color-pg-surface));
+    border: 1px solid var(--color-pg-border-subtle, var(--color-pg-border));
+    border-radius: 12px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-card:hover {
+    background-color: var(--color-pg-card-hover, var(--color-pg-surface));
+    border-color: var(--color-pg-primary, rgba(99, 102, 241, 0.3));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.15), 0 0 16px -4px var(--color-pg-primary-glow, rgba(99, 102, 241, 0.15));
+}
+
+/* Typography Font-Weight Hierarchy based on Importance */
+.text-primary-critical {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-pg-text, #f8fafc);
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+}
+.text-secondary-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-pg-text-secondary, #a1a1aa);
+    line-height: 1.4;
+}
+.text-tertiary-meta {
+    font-size: 0.75rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-pg-text-muted, #71717a);
+}
+
+/* Mobile-First Touch Targets for Floor Operators */
+.touch-btn {
+    min-height: 48px;
+    padding: 0.75rem 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+.touch-btn:active {
+    transform: scale(0.97);
 }
 
 /* ============================================
@@ -876,8 +929,9 @@ input, select, textarea {
     .tab {
         border-bottom: none !important;
         border-radius: 8px !important;
-        border: 1px solid rgba(255, 255, 255, 0.06) !important;
-        background: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid var(--color-pg-border, rgba(255, 255, 255, 0.06)) !important;
+        background: var(--color-pg-surface, rgba(255, 255, 255, 0.02)) !important;
+        color: var(--color-pg-text-secondary, #a1a1aa) !important;
         padding: 7px 6px !important;
         font-size: 12px !important;
         white-space: normal !important;
@@ -887,10 +941,10 @@ input, select, textarea {
     }
 
     .tab-active {
-        background: rgba(99, 102, 241, 0.15) !important;
-        border-color: rgba(99, 102, 241, 0.4) !important;
-        color: #818cf8 !important;
-        box-shadow: 0 2px 8px -2px rgba(99, 102, 241, 0.2) !important;
+        background: var(--color-pg-primary-glow, rgba(99, 102, 241, 0.15)) !important;
+        border-color: var(--color-pg-primary, rgba(99, 102, 241, 0.4)) !important;
+        color: var(--color-pg-primary, #818cf8) !important;
+        box-shadow: 0 2px 8px -2px var(--color-pg-primary-glow, rgba(99, 102, 241, 0.2)) !important;
     }
 
     .progress-bar-mini {
@@ -1031,9 +1085,9 @@ input, select, textarea {
         gap: 0 !important;
         overflow-x: visible !important;
         padding-bottom: 0 !important;
-        background: rgba(15,23,42,0.3);
+        background: var(--color-pg-surface, rgba(15,23,42,0.3));
         border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.05);
+        border: 1px solid var(--color-pg-border, rgba(255,255,255,0.05));
     }
     .pipeline-stage-v2 {
         min-width: 0 !important;
@@ -1197,8 +1251,8 @@ input, select, textarea {
 /* ── KPI Card V2 ─────────────────────────── */
 .kpi-card-v2 {
     position: relative;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: var(--color-pg-surface, rgba(15, 23, 42, 0.6));
+    border: 1px solid var(--color-pg-border, rgba(255,255,255,0.08));
     border-radius: 14px;
     padding: 18px 18px 14px 22px;
     cursor: pointer;
@@ -1207,6 +1261,7 @@ input, select, textarea {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
 }
 .kpi-card-v2::before {
     content: '';
@@ -1220,14 +1275,15 @@ input, select, textarea {
 .kpi-card-v2[data-variant="warning"]::before { background: var(--color-pg-warning); }
 .kpi-card-v2[data-variant="danger"]::before  { background: #ef4444; }
 .kpi-card-v2:hover {
-    border-color: rgba(255,255,255,0.12);
-    box-shadow: 0 8px 24px -8px rgba(0,0,0,0.4);
+    background: var(--color-pg-card-hover, rgba(15, 23, 42, 0.8));
+    border-color: var(--color-pg-border);
+    box-shadow: 0 8px 24px -8px rgba(0,0,0,0.2);
     transform: translateY(-2px);
 }
 .kpi-card-v2[data-selected="true"] {
     border-color: #3b82f6 !important;
     box-shadow: 0 0 0 2px rgba(59,130,246,0.25), 0 0 12px rgba(59,130,246,0.15) !important;
-    background: rgba(59,130,246,0.06);
+    background: var(--color-pg-surface, rgba(59,130,246,0.06));
 }
 .kpi-card-v2 .kpi-label {
     font-size: 11px;
@@ -1281,8 +1337,9 @@ input, select, textarea {
     border-radius: 12px;
     overflow: hidden;
     margin-bottom: 20px;
-    background: rgba(37, 99, 235, 0.05);
-    border: 1px solid rgba(37, 99, 235, 0.15);
+    background: var(--color-pg-surface, rgba(37, 99, 235, 0.05));
+    border: 1px solid var(--color-pg-border, rgba(37, 99, 235, 0.15));
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.04);
 }
 .exec-banner__accent {
     width: 3px;
@@ -1295,8 +1352,8 @@ input, select, textarea {
 }
 .exec-banner__label {
     font-size: 10px;
-    color: var(--color-pg-primary-hover);
-    font-weight: 700;
+    color: var(--color-pg-primary, #3b82f6);
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 4px;
@@ -1304,7 +1361,8 @@ input, select, textarea {
 .exec-banner__text {
     margin: 0;
     font-size: 13px;
-    color: #e4e4e7;
+    color: var(--color-pg-text, #e4e4e7);
+    font-weight: 500;
     line-height: 1.65;
 }
 
@@ -1319,9 +1377,9 @@ input, select, textarea {
 }
 .section-label-v2__sub {
     font-size: 11px;
-    color: #3f3f46;
+    color: var(--color-pg-text-muted, #52525b);
     margin-top: 2px;
-    font-weight: 400;
+    font-weight: 500;
     text-transform: none;
     letter-spacing: normal;
 }
@@ -1338,6 +1396,7 @@ input, select, textarea {
     transition: all 0.2s ease;
     scroll-snap-align: start;
     overflow: hidden;
+    background: var(--color-pg-surface, #18181b);
 }
 .pipeline-stage-v2::before {
     content: '';

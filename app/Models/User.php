@@ -113,6 +113,30 @@ class User extends Authenticatable
 
     public function isManager(): bool
     {
-        return ! $this->isOwner() && $this->roleRelation?->name === 'STAFF' && $this->postRelation?->name === 'Manager';
+        if ($this->isOwner()) {
+            return false;
+        }
+
+        $post = strtolower($this->postRelation?->name ?? '');
+        $role = strtolower($this->roleRelation?->name ?? '');
+
+        return $post === 'manager' || $role === 'manager';
+    }
+
+    public function isSales(): bool
+    {
+        $post = strtolower($this->postRelation?->name ?? '');
+        $role = strtolower($this->roleRelation?->name ?? '');
+
+        return $post === 'sales' || $role === 'sales';
+    }
+
+    public function isAdmin(): bool
+    {
+        if ($this->isOwner() || $this->isManager() || $this->isSales()) {
+            return false;
+        }
+
+        return $this->roleRelation?->level === 'office' || strcasecmp($this->roleRelation?->name ?? '', 'admin') === 0;
     }
 }

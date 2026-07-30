@@ -1,3 +1,5 @@
+import { formatDDMMYYYY } from './date';
+
 export const calculateDeadlineDiff = (deadlineDateStr: string | undefined): { diffDays: number; formattedDate: string } => {
     if (!deadlineDateStr) return { diffDays: 0, formattedDate: '' };
     
@@ -8,7 +10,7 @@ export const calculateDeadlineDiff = (deadlineDateStr: string | undefined): { di
 
     const diffTime = deadlineClean.getTime() - todayClean.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const formattedDate = deadlineClean.toLocaleDateString();
+    const formattedDate = formatDDMMYYYY(deadlineClean);
 
     return { diffDays, formattedDate };
 };

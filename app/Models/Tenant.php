@@ -39,4 +39,17 @@ class Tenant extends Model
     {
         return $this->hasMany(Po::class);
     }
+
+    public function isTrialExpired(): bool
+    {
+        if (in_array(strtoupper($this->subscription_status ?? ''), ['ACTIVE', 'PAID', 'SUBSCRIBED'])) {
+            return false;
+        }
+
+        if ($this->trial_ends_at && $this->trial_ends_at->isPast()) {
+            return true;
+        }
+
+        return false;
+    }
 }

@@ -65,6 +65,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // User Management
     Route::post('/users', [OwnerDashboardController::class, 'createUser']);
+    Route::post('/users/onboarding-create', [OwnerDashboardController::class, 'createOnboardingAdmin']);
     Route::post('/users/{userId}/update', [OwnerDashboardController::class, 'updateUser']);
     Route::post('/users/{userId}/delete', [OwnerDashboardController::class, 'deleteUser']);
 
@@ -86,6 +87,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Rework Logbook
     Route::get('/dashboard/rework-logbook', [OwnerDashboardController::class, 'reworkLogbook'])->name('rework.logbook');
+    Route::get('/dashboard/billing', [OwnerDashboardController::class, 'billing'])->name('dashboard.billing');
 });
 
 // Guard B: Unified Tenant Gateway at c/{slug}
@@ -100,8 +102,10 @@ Route::prefix('c/{slug}')->group(function () {
         Route::get('/export-xlsx', [WorkerDashboardController::class, 'exportXlsx']);
         Route::get('/profile', [ProfileController::class, 'index']);
         Route::get('/trouble-reports', [WorkerDashboardController::class, 'listTroubles'])->name('worker.troubles');
+        Route::post('/alerts/{alertId}/resolve', [WorkerDashboardController::class, 'resolveAlert'])->name('worker.alerts.resolve');
         Route::get('/archive', [WorkerDashboardController::class, 'archive'])->name('worker.archive');
         Route::get('/my-kpi', [WorkerDashboardController::class, 'myKpi'])->name('worker.my-kpi');
+        Route::get('/finance-ledger', [WorkerDashboardController::class, 'financeLedger'])->name('worker.finance-ledger');
         Route::post('/progress/{progressId}/update', [WorkerDashboardController::class, 'updateProgress']);
         Route::post('/progress/{progressId}/cancel-last-update', [WorkerDashboardController::class, 'cancelLastUpdate']);
         Route::post('/progress/{progressId}/kendala', [WorkerDashboardController::class, 'reportKendala']);

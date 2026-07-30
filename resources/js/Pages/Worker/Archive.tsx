@@ -3,6 +3,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, AlertTriangle, Settings } from '../../Components/Icons';
 import { WarningPill } from '../../Components/WarningPill';
 import { formatDeadline } from '../../Utils/deadline';
+import { WorkerHeader } from '../../Components/WorkerHeader';
 
 interface Stage {
     id: number;
@@ -112,130 +113,30 @@ export default function Archive({ items, auth_user, tenant }: Props) {
             fontFamily: 'Inter, sans-serif',
             color: 'var(--color-pg-text)',
         }}>
-            <header className="responsive-header" style={{
-                padding: '12px 16px',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                backgroundColor: 'rgba(9, 9, 11, 0.6)',
-                backdropFilter: 'blur(8px)',
-                flexShrink: 0,
-            }}>
-                <div>
-                    <div className="greeting-name" style={{ fontSize: '13px', color: 'var(--color-pg-primary-hover)', fontWeight: 600, marginBottom: '2px' }}>
-                        {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
-                    </div>
-                    <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.title}</h1>
-                    <p style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', margin: '2px 0 0 0' }}>
-                        {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                        {' · '}
-                        {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '2px', borderRadius: '8px', marginRight: '8px' }}>
-                        <button
-                            onClick={() => changeLanguage('en')}
-                            style={{
-                                padding: '4px 8px',
-                                backgroundColor: language === 'en' ? 'var(--color-pg-primary)' : 'transparent',
-                                border: 'none',
-                                borderRadius: '6px',
-                                color: '#fff',
-                                fontWeight: 600,
-                                fontSize: '10px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            EN
-                        </button>
-                        <button
-                            onClick={() => changeLanguage('id')}
-                            style={{
-                                padding: '4px 8px',
-                                backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
-                                border: 'none',
-                                borderRadius: '6px',
-                                color: '#fff',
-                                fontWeight: 600,
-                                fontSize: '10px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            ID
-                        </button>
-                    </div>
-
-                    <Link
-                        href={`/c/${slug}/profile`}
-                        style={{
-                            padding: '8px',
-                            backgroundColor: 'rgba(255,255,255,0.04)',
-                            color: 'var(--color-pg-text-secondary)',
-                            border: '1px solid rgba(255,255,255,0.06)',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            lineHeight: '1',
-                            display: 'flex',
-                            textDecoration: 'none',
-                        }}
-                        title={language === 'en' ? 'Profile' : 'Profil'}
-                    >
-                        <Settings size={16} />
-                    </Link>
-
-                    <button
-                        onClick={() => router.post('/logout')}
-                        style={{
-                            padding: '8px 14px',
-                            backgroundColor: 'var(--color-pg-danger)',
-                            color: '#fff',
-                            fontWeight: 600,
-                            border: 'none',
-                            borderRadius: '10px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                        }}
-                    >
-                        {t.exit_terminal}
-                    </button>
-                </div>
-            </header>
+            <WorkerHeader
+                slug={slug}
+                auth_user={auth_user}
+                title={t.title}
+                subtitle={t.subtitle}
+                language={language}
+                changeLanguage={changeLanguage}
+                currentView="archive"
+            />
 
             <div className="dashboard-scroll" style={{
                 padding: '24px',
                 boxSizing: 'border-box',
+                flex: 1,
             }}>
                 <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
-                    <div style={{ marginBottom: '16px' }}>
-                        <Link
-                            href={`/c/${slug}`}
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                color: 'var(--color-pg-primary-hover)',
-                                fontSize: '13px',
-                                fontWeight: 600,
-                                textDecoration: 'none',
-                                padding: '8px 16px',
-                                borderRadius: '10px',
-                                backgroundColor: 'rgba(99, 102, 241, 0.12)',
-                                border: '1px solid var(--color-pg-primary-glow)',
-                            }}
-                        >
-                            <ChevronLeft size={16} /> {t.back}
-                        </Link>
-                    </div>
-
-                    <div style={{
-                        backgroundColor: 'rgba(24, 24, 27, 0.7)',
-                        border: '1px solid rgba(255, 255, 255, 0.06)',
-                        borderRadius: '14px',
-                        padding: '20px',
-                        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.5)',
+                    <div className="glass-card" style={{
+                        backgroundColor: 'var(--color-pg-card, rgba(24, 24, 27, 0.7))',
+                        border: '1px solid var(--color-pg-border, rgba(255, 255, 255, 0.08))',
+                        borderRadius: '16px',
+                        padding: '24px',
+                        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.35)',
+                        backdropFilter: 'blur(12px)',
                     }}>
-                        <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px 0' }}>{t.title}</h2>
-                        <p style={{ fontSize: '13px', color: 'var(--color-pg-text-muted)', margin: '0 0 20px 0' }}>{t.subtitle}</p>
 
                         {items.length === 0 ? (
                             <div style={{

@@ -4,37 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "2f60d8b56b48b310",
+        "id": "acec53f6eab481c6",
         "type": "tabs",
         "children": [
           {
-            "id": "968871dcea03dccb",
+            "id": "3d24d29a96bdcc63",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Untitled.md",
+                "file": "Source Docs.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Untitled"
-            }
-          }
-        ]
-      },
-      {
-        "id": "44c63be36321e11f",
-        "type": "tabs",
-        "children": [
-          {
-            "id": "4c95ac9b62053f17",
-            "type": "leaf",
-            "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "title": "Source Docs"
             }
           }
         ]
@@ -199,10 +183,15 @@
       "bases:Create new base": false
     }
   },
-  "active": "381d573584214941",
+  "active": "3d24d29a96bdcc63",
   "lastOpenFiles": [
+    "Real-Time and Pusher.md",
+    "The Soul.md",
+    "Home.md",
+    "Core Paradigm.md",
+    "Auth and Onboarding.md",
+    "Untitled.md",
     "Welcome.md",
-    "create a link.md",
-    "Untitled.md"
+    "create a link.md"
   ]
 }

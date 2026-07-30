@@ -72,6 +72,13 @@ export default function PresentationMode({
         .sort((a: any, b: any) => b.stuck_count - a.stuck_count)
         .find((m: any) => m.stuck_count > 0);
 
+    const delayedPosCount: number = telemetry.delayed_pos_count ?? 0;
+    const delayedItemsCount: number = telemetry.delayed_items?.length ?? 0;
+    const avgDelay: number = telemetry.avg_delay_days ?? 0;
+    const redAlerts: number = telemetry.risks?.red ?? 0;
+    const yellowAlerts: number = telemetry.risks?.yellow ?? 0;
+    const isAllNormal = !topStuck && delayedPosCount === 0 && delayedItemsCount === 0 && redAlerts === 0 && yellowAlerts === 0;
+
     let narrativeText = '';
     if (language === 'id') {
         narrativeText = `Periode ini, pabrik menyelesaikan ${telemetry.otdr}% pesanan tepat waktu`;
@@ -81,16 +88,25 @@ export default function PresentationMode({
                 : ` — turun ${Math.abs(otdrDelta)}% dari periode lalu`;
         }
         narrativeText += '. ';
+        if (delayedPosCount > 0 || delayedItemsCount > 0 || avgDelay > 0) {
+            if (delayedPosCount > 0) {
+                narrativeText += `Terdapat ${delayedPosCount} PO aktif yang terlambat dari jadwal (rata-rata keterlambatan ${avgDelay} hari). `;
+            } else {
+                narrativeText += `Terdapat item produksi yang mengalami keterlambatan (rata-rata ${avgDelay} hari). `;
+            }
+        }
         if (topStuck) {
-            narrativeText += `Bottleneck utama ada di tahap ${topStuck.stage} (${topStuck.stuck_count} macet, rata-rata ${topStuck.avg_cycle_time} hari/item). `;
-        } else {
-            narrativeText += 'Semua tahap produksi berjalan normal. ';
+            narrativeText += `Bottleneck utama ada di tahap ${topStuck.stage} (${topStuck.stuck_count} item macet, rata-rata ${topStuck.avg_cycle_time} hari/item). `;
+        } else if (redAlerts > 0) {
+            narrativeText += `Terdapat ${redAlerts} kendala kritis (RED) yang aktif di lantai produksi. `;
+        } else if (isAllNormal) {
+            narrativeText += 'Semua tahap produksi dan waktu pengiriman berjalan normal sesuai jadwal. ';
         }
         if ((telemetry.urgent_active || 0) > 0) {
-            narrativeText += `Terdapat ${telemetry.urgent_active} PO mendesak yang masih aktif. `;
+            narrativeText += `Terdapat ${telemetry.urgent_active} PO mendesak (Urgent) yang sedang diproduksi. `;
         }
         if ((telemetry.finance_health?.uninvoiced_count || 0) > 0) {
-            narrativeText += `${telemetry.finance_health.uninvoiced_count} item selesai belum difakturkan.`;
+            narrativeText += `Perhatian keuangan: ${telemetry.finance_health.uninvoiced_count} item selesai belum dibuatkan faktur.`;
         }
     } else {
         narrativeText = `This period, the factory completed ${telemetry.otdr}% of orders on time`;
@@ -100,16 +116,25 @@ export default function PresentationMode({
                 : ` — down ${Math.abs(otdrDelta)}% vs last period`;
         }
         narrativeText += '. ';
+        if (delayedPosCount > 0 || delayedItemsCount > 0 || avgDelay > 0) {
+            if (delayedPosCount > 0) {
+                narrativeText += `${delayedPosCount} active order(s) are delayed past deadline (avg delay ${avgDelay} days). `;
+            } else {
+                narrativeText += `Production items are behind schedule (avg delay ${avgDelay} days). `;
+            }
+        }
         if (topStuck) {
             narrativeText += `Top bottleneck: ${topStuck.stage} stage (${topStuck.stuck_count} stuck, avg ${topStuck.avg_cycle_time} days/item). `;
-        } else {
-            narrativeText += 'All production stages running normally. ';
+        } else if (redAlerts > 0) {
+            narrativeText += `There are ${redAlerts} active critical (RED) alerts on the production floor. `;
+        } else if (isAllNormal) {
+            narrativeText += 'All production stages and delivery timelines running normally on schedule. ';
         }
         if ((telemetry.urgent_active || 0) > 0) {
-            narrativeText += `${telemetry.urgent_active} urgent PO(s) still active. `;
+            narrativeText += `${telemetry.urgent_active} urgent order(s) currently in production. `;
         }
         if ((telemetry.finance_health?.uninvoiced_count || 0) > 0) {
-            narrativeText += `${telemetry.finance_health.uninvoiced_count} completed item(s) not yet invoiced.`;
+            narrativeText += `Finance alert: ${telemetry.finance_health.uninvoiced_count} completed item(s) pending invoice.`;
         }
     }
 
@@ -146,49 +171,49 @@ export default function PresentationMode({
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
-                            <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
-                                <div style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                            <div style={{ backgroundColor: 'var(--color-pg-surface)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '24px', textAlign: 'center', boxShadow: '0 4px 15px -3px rgba(0,0,0,0.05)' }}>
+                                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                     {t.on_time_delivery}
                                 </div>
-                                <div style={{ fontSize: '48px', fontWeight: 900, color: telemetry.otdr >= 80 ? '#34d399' : telemetry.otdr >= 60 ? '#fbbf24' : '#ef4444' }}>
+                                <div style={{ fontSize: '48px', fontWeight: 900, color: telemetry.otdr >= 80 ? 'var(--color-pg-success)' : telemetry.otdr >= 60 ? 'var(--color-pg-warning)' : 'var(--color-pg-danger)' }}>
                                     {telemetry.otdr}%
                                 </div>
                                 {otdrDelta != null && (
-                                    <div style={{ fontSize: '13px', fontWeight: 800, color: otdrDelta >= 0 ? '#34d399' : '#ef4444', marginTop: '6px' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 800, color: otdrDelta >= 0 ? 'var(--color-pg-success)' : 'var(--color-pg-danger)', marginTop: '6px' }}>
                                         {otdrDelta >= 0 ? '▲' : '▼'} {Math.abs(otdrDelta)}% vs prev
                                     </div>
                                 )}
                             </div>
 
-                            <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
-                                <div style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                            <div style={{ backgroundColor: 'var(--color-pg-surface)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '24px', textAlign: 'center', boxShadow: '0 4px 15px -3px rgba(0,0,0,0.05)' }}>
+                                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                     {t.parts_manufactured}
                                 </div>
-                                <div style={{ fontSize: '38px', fontWeight: 900, color: '#3b82f6', marginTop: '10px' }}>
-                                    {deliveredCurr} <span style={{ fontSize: '18px', color: '#52525b', fontWeight: 700 }}>/ {telemetry.manufacture?.target ?? 0}</span>
+                                <div style={{ fontSize: '38px', fontWeight: 900, color: 'var(--color-pg-primary, #3b82f6)', marginTop: '10px' }}>
+                                    {deliveredCurr} <span style={{ fontSize: '18px', color: 'var(--color-pg-text-muted)', fontWeight: 700 }}>/ {telemetry.manufacture?.target ?? 0}</span>
                                 </div>
                                 {deliveredDelta != null && (
-                                    <div style={{ fontSize: '13px', fontWeight: 800, color: deliveredDelta >= 0 ? '#34d399' : '#ef4444', marginTop: '12px' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 800, color: deliveredDelta >= 0 ? 'var(--color-pg-success)' : 'var(--color-pg-danger)', marginTop: '12px' }}>
                                         {deliveredDelta >= 0 ? '▲' : '▼'} {Math.abs(deliveredDelta)}% vs prev
                                     </div>
                                 )}
                             </div>
 
-                            <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
-                                <div style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                            <div style={{ backgroundColor: 'var(--color-pg-surface)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '24px', textAlign: 'center', boxShadow: '0 4px 15px -3px rgba(0,0,0,0.05)' }}>
+                                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                     {t.avg_delay}
                                 </div>
-                                <div style={{ fontSize: '38px', fontWeight: 900, color: telemetry.avg_delay_days === 0 ? '#34d399' : telemetry.avg_delay_days <= 3 ? '#fbbf24' : '#ef4444', marginTop: '10px' }}>
-                                    {telemetry.avg_delay_days} <span style={{ fontSize: '18px', color: '#52525b', fontWeight: 700 }}>{language === 'id' ? 'Hari' : 'Days'}</span>
+                                <div style={{ fontSize: '38px', fontWeight: 900, color: telemetry.avg_delay_days === 0 ? 'var(--color-pg-success)' : telemetry.avg_delay_days <= 3 ? 'var(--color-pg-warning)' : 'var(--color-pg-danger)', marginTop: '10px' }}>
+                                    {telemetry.avg_delay_days} <span style={{ fontSize: '18px', color: 'var(--color-pg-text-muted)', fontWeight: 700 }}>{language === 'id' ? 'Hari' : 'Days'}</span>
                                 </div>
                                 {delayDelta != null && (
-                                    <div style={{ fontSize: '13px', fontWeight: 800, color: delayDelta <= 0 ? '#34d399' : '#ef4444', marginTop: '12px' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 800, color: delayDelta <= 0 ? 'var(--color-pg-success)' : 'var(--color-pg-danger)', marginTop: '12px' }}>
                                         {delayDelta >= 0 ? '▲' : '▼'} {Math.abs(delayDelta)} vs prev
                                     </div>
                                 )}
                             </div>
 
-                            <div style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: `1px solid ${(telemetry.urgent_active || 0) > 0 ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.08)'}`, borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
+                            <div style={{ backgroundColor: 'var(--color-pg-surface)', border: `1px solid ${(telemetry.urgent_active || 0) > 0 ? 'rgba(239,68,68,0.4)' : 'var(--color-pg-border)'}`, borderRadius: '16px', padding: '24px', textAlign: 'center', boxShadow: '0 4px 15px -3px rgba(0,0,0,0.05)' }}>
                                 <div style={{ fontSize: '12px', color: '#71717a', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                     {language === 'id' ? 'PO Mendesak' : 'Urgent Active POs'}
                                 </div>
@@ -260,21 +285,21 @@ export default function PresentationMode({
                             })}
                         </div>
 
-                        <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px' }}>
+                        <div style={{ backgroundColor: 'var(--color-pg-surface)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 15px -3px rgba(0,0,0,0.05)' }}>
                             <div style={{ width: '100%', overflowX: 'auto' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                                 <thead>
-                                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                                        <th style={{ textAlign: 'left', padding: '12px 16px', color: '#71717a' }}>{t.stage}</th>
-                                        <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a' }}>{t.active_items}</th>
-                                        <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a' }}>{t.stuck_incidents}</th>
-                                        <th style={{ textAlign: 'center', padding: '12px 16px', color: '#71717a' }}>{t.rework_count}</th>
-                                        <th style={{ textAlign: 'right', padding: '12px 16px', color: '#71717a' }}>{t.avg_cycle_time}</th>
+                                    <tr style={{ borderBottom: '1px solid var(--color-pg-border)' }}>
+                                        <th style={{ textAlign: 'left', padding: '12px 16px', color: 'var(--color-pg-text-muted)' }}>{t.stage}</th>
+                                        <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--color-pg-text-muted)' }}>{t.active_items}</th>
+                                        <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--color-pg-text-muted)' }}>{t.stuck_incidents}</th>
+                                        <th style={{ textAlign: 'center', padding: '12px 16px', color: 'var(--color-pg-text-muted)' }}>{t.rework_count}</th>
+                                        <th style={{ textAlign: 'right', padding: '12px 16px', color: 'var(--color-pg-text-muted)' }}>{t.avg_cycle_time}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {telemetry.stage_metrics?.map((metric: any, idx: number) => (
-                                        <tr key={`slide-detail-stage-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#e4e4e7' }}>
+                                        <tr key={`slide-detail-stage-${idx}`} style={{ borderBottom: '1px solid var(--color-pg-border)', color: 'var(--color-pg-text)' }}>
                                             <td style={{ padding: '10px 16px', fontWeight: 800 }}>{metric.stage.toUpperCase()}</td>
                                             <td style={{ padding: '10px 16px', textAlign: 'center' }}>{metric.active_items}</td>
                                             <td style={{ padding: '10px 16px', textAlign: 'center' }}>
@@ -295,24 +320,24 @@ export default function PresentationMode({
             case 2:
                 return (
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '20px', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
-                        <div style={{ backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '24px' }}>
+                        <div style={{ backgroundColor: 'var(--color-pg-surface)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 15px -3px rgba(0,0,0,0.05)' }}>
                             <div style={{ width: '100%', overflowX: 'auto' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                                 <thead>
-                                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                                        <th style={{ textAlign: 'left', padding: '14px 16px', color: '#71717a' }}>{language === 'id' ? 'Klien' : 'Client'}</th>
-                                        <th style={{ textAlign: 'center', padding: '14px 16px', color: '#71717a' }}>{language === 'id' ? 'PO Aktif' : 'Active POs'}</th>
-                                        <th style={{ textAlign: 'center', padding: '14px 16px', color: '#71717a' }}>{language === 'id' ? 'Ketepatan Waktu' : 'On-Time Rate'}</th>
-                                        <th style={{ textAlign: 'center', padding: '14px 16px', color: '#71717a' }}>{language === 'id' ? 'Item Terlambat' : 'Overdue Items'}</th>
-                                        <th style={{ textAlign: 'center', padding: '14px 16px', color: '#71717a' }}>{language === 'id' ? 'Belum Faktur' : 'Uninvoiced'}</th>
-                                        <th style={{ textAlign: 'center', padding: '14px 16px', color: '#71717a' }}>{language === 'id' ? 'Belum Bayar' : 'Unpaid'}</th>
+                                    <tr style={{ borderBottom: '1px solid var(--color-pg-border)' }}>
+                                        <th style={{ textAlign: 'left', padding: '14px 16px', color: 'var(--color-pg-text-muted)' }}>{language === 'id' ? 'Klien' : 'Client'}</th>
+                                        <th style={{ textAlign: 'center', padding: '14px 16px', color: 'var(--color-pg-text-muted)' }}>{language === 'id' ? 'PO Aktif' : 'Active POs'}</th>
+                                        <th style={{ textAlign: 'center', padding: '14px 16px', color: 'var(--color-pg-text-muted)' }}>{language === 'id' ? 'Ketepatan Waktu' : 'On-Time Rate'}</th>
+                                        <th style={{ textAlign: 'center', padding: '14px 16px', color: 'var(--color-pg-text-muted)' }}>{language === 'id' ? 'Item Terlambat' : 'Overdue Items'}</th>
+                                        <th style={{ textAlign: 'center', padding: '14px 16px', color: 'var(--color-pg-text-muted)' }}>{language === 'id' ? 'Belum Faktur' : 'Uninvoiced'}</th>
+                                        <th style={{ textAlign: 'center', padding: '14px 16px', color: 'var(--color-pg-text-muted)' }}>{language === 'id' ? 'Belum Bayar' : 'Unpaid'}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {telemetry.client_health?.map((client: any, idx: number) => {
-                                        const otdrColor = client.on_time_rate == null ? '#71717a' : client.on_time_rate >= 80 ? '#34d399' : client.on_time_rate >= 60 ? '#fbbf24' : '#ef4444';
+                                        const otdrColor = client.on_time_rate == null ? 'var(--color-pg-text-muted)' : client.on_time_rate >= 80 ? 'var(--color-pg-success)' : client.on_time_rate >= 60 ? 'var(--color-pg-warning)' : 'var(--color-pg-danger)';
                                         return (
-                                            <tr key={`slide-client-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#e4e4e7' }}>
+                                            <tr key={`slide-client-${idx}`} style={{ borderBottom: '1px solid var(--color-pg-border)', color: 'var(--color-pg-text)' }}>
                                                 <td style={{ padding: '12px 16px', fontWeight: 800, fontSize: '15px' }}>{client.client_name}</td>
                                                 <td style={{ padding: '12px 16px', textAlign: 'center', color: '#a1a1aa' }}>{client.active_pos}</td>
                                                 <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 800, color: otdrColor }}>
@@ -340,27 +365,27 @@ export default function PresentationMode({
                 const stuckItems = telemetry.delayed_items || [];
                 return (
                     <div style={{ flex: 1, display: 'flex', gap: '30px', maxWidth: '1100px', margin: '0 auto', width: '100%', height: '100%', overflow: 'hidden' }}>
-                        <div style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column' }}>
-                            <h4 style={{ fontSize: '15px', fontWeight: 800, color: '#ef4444', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ flex: 1, backgroundColor: 'var(--color-pg-surface)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px -3px rgba(0,0,0,0.05)' }}>
+                            <h4 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--color-pg-danger)', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span>⚠️</span> {language === 'id' ? 'Hambatan & Keterlambatan' : 'Stuck & Overdue Items'}
                             </h4>
                             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px' }}>
                                 {stuckItems.length === 0 ? (
-                                    <div style={{ color: '#71717a', fontSize: '13px', padding: '40px 0', textAlign: 'center' }}>{language === 'id' ? 'Tidak ada hambatan aktif.' : 'No active delays.'}</div>
+                                    <div style={{ color: 'var(--color-pg-text-muted)', fontSize: '13px', padding: '40px 0', textAlign: 'center' }}>{language === 'id' ? 'Tidak ada hambatan aktif.' : 'No active delays.'}</div>
                                 ) : stuckItems.map((item: any, idx: number) => (
                                     <div key={`slide-action-stuck-${idx}`} style={{ backgroundColor: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '10px', padding: '12px 14px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                            <span style={{ fontWeight: 800, color: '#fafafa', fontSize: '13px' }}>{item.po_number} · {item.client_name}</span>
-                                            <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444', fontSize: '10px', padding: '2px 6px', borderRadius: '4px' }}>{item.days_overdue}d delay</span>
+                                            <span style={{ fontWeight: 800, color: 'var(--color-pg-text)', fontSize: '13px' }}>{item.po_number} · {item.client_name}</span>
+                                            <span className="badge" style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: 'var(--color-pg-danger)', fontSize: '10px', padding: '2px 6px', borderRadius: '4px' }}>{item.days_overdue}d delay</span>
                                         </div>
-                                        <div style={{ fontSize: '12px', color: '#a1a1aa', fontWeight: 600 }}>{item.item_name} ({Math.round(item.progress_percent)}%)</div>
-                                        <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '6px', fontStyle: 'italic', fontWeight: 500 }}>{item.reason}</div>
+                                        <div style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', fontWeight: 600 }}>{item.item_name} ({Math.round(item.progress_percent)}%)</div>
+                                        <div style={{ fontSize: '11px', color: 'var(--color-pg-danger)', marginTop: '6px', fontStyle: 'italic', fontWeight: 500 }}>{item.reason}</div>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ flex: 1, backgroundColor: 'var(--color-pg-surface)', border: '1px solid var(--color-pg-border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px -3px rgba(0,0,0,0.05)' }}>
                             <h4 style={{ fontSize: '15px', fontWeight: 800, color: '#fbbf24', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span>💼</span> {language === 'id' ? 'Pekerjaan Selesai Belum Difakturkan' : 'Finished Items Not Yet Invoiced'}
                             </h4>

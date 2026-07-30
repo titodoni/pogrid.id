@@ -91,13 +91,24 @@ class PusherRealtimeE2ETest extends TestCase
         ]);
     }
 
+    private function makeDrafter(): User
+    {
+        return User::create([
+            'tenant_id' => $this->tenant->id,
+            'name' => 'RT Drafter Worker',
+            'role_id' => 1,
+            'post_id' => 1,
+            'pin' => bcrypt('1234'),
+        ]);
+    }
+
     /**
      * Criterion: Kendala reported triggers toast on Owner dashboard in other tabs.
      */
     public function test_report_kendala_broadcasts_kendala_reported_to_owner_dashboard(): void
     {
         TenantManager::setTenantId($this->tenant->id);
-        Queue::fake();
+        \Illuminate\Support\Facades\Event::fake([KendalaReported::class]);
 
         [$po, $item] = $this->makePoAndItem('K');
         $stage = $item->itemProgresses()->where('stage_name', 'Machining')->first();
@@ -108,16 +119,11 @@ class PusherRealtimeE2ETest extends TestCase
             'note' => 'Spindle jammed',
         ])->assertRedirect();
 
-        Queue::assertPushed(BroadcastEvent::class, function (BroadcastEvent $job) use ($item) {
-            $event = $job->event;
-            $this->assertInstanceOf(KendalaReported::class, $event);
+        \Illuminate\Support\Facades\Event::assertDispatched(KendalaReported::class, function ($event) use ($item) {
 
             $channelNames = array_map(fn ($c) => $c->name, $event->broadcastOn());
-            $this->assertSame(
-                ['private-tenant.'.$this->tenant->id.'.dashboard'],
-                $channelNames,
-                'Kendala must broadcast only on the owner dashboard channel (toast target).'
-            );
+            $this->assertContains('private-tenant.'.$this->tenant->id.'.dashboard', $channelNames);
+            $this->assertContains('private-tenant.'.$this->tenant->id.'.workers', $channelNames);
             $this->assertSame('kendala.reported', $event->broadcastAs());
 
             $alert = $event->alert;
@@ -131,13 +137,66 @@ class PusherRealtimeE2ETest extends TestCase
     }
 
     /**
+     * Criterion: Drafter / worker updating task progress broadcasts TaskUpdated to Owner dashboard.
+     */
+    public function test_update_progress_broadcasts_task_updated_to_owner_dashboard(): void
+    {
+        TenantManager::setTenantId($this->tenant->id);
+        \Illuminate\Support\Facades\Event::fake([\App\Events\TaskUpdated::class]);
+
+        [$po, $item] = $this->makePoAndItem('U');
+        $stage = $item->itemProgresses()->where('stage_name', 'Machining')->first();
+        $this->actingAs($this->makeWorker());
+
+        $this->post("/c/{$this->tenant->slug}/progress/{$stage->id}/update", [
+            'completed_qty' => 2,
+        ])->assertRedirect();
+
+        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\TaskUpdated::class, function ($event) {
+            $channelNames = array_map(fn ($c) => $c->name, $event->broadcastOn());
+            $this->assertContains('private-tenant.'.$this->tenant->id.'.dashboard', $channelNames);
+            $this->assertContains('private-tenant.'.$this->tenant->id.'.workers', $channelNames);
+            $this->assertSame('task.updated', $event->broadcastAs());
+            $this->assertStringContainsString('Completed quantity updated for stage', $event->message);
+
+            return true;
+        });
+    }
+
+    /**
+     * Criterion: Drafter status update broadcasts TaskUpdated to Owner dashboard.
+     */
+    public function test_update_drafter_status_broadcasts_task_updated_to_owner_dashboard(): void
+    {
+        TenantManager::setTenantId($this->tenant->id);
+        \Illuminate\Support\Facades\Event::fake([\App\Events\TaskUpdated::class]);
+
+        [$po, $item] = $this->makePoAndItem('D');
+        $this->actingAs($this->makeDrafter());
+
+        $this->post("/c/{$this->tenant->slug}/items/{$item->id}/drafter-status", [
+            'drafter_status' => 'APPROVED',
+        ])->assertRedirect();
+
+        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\TaskUpdated::class, function ($event) {
+            $channelNames = array_map(fn ($c) => $c->name, $event->broadcastOn());
+            $this->assertContains('private-tenant.'.$this->tenant->id.'.dashboard', $channelNames);
+            $this->assertContains('private-tenant.'.$this->tenant->id.'.workers', $channelNames);
+            $this->assertSame('task.updated', $event->broadcastAs());
+            $this->assertStringContainsString('Drafter status updated to \'APPROVED\'', $event->message);
+
+            return true;
+        });
+    }
+
+    /**
      * Criterion: Production terminated triggers item list update on Owner dashboard
      * AND freeze alert on Worker dashboard.
      */
     public function test_terminate_item_broadcasts_production_terminated_to_owner_and_worker_channels(): void
     {
         TenantManager::setTenantId($this->tenant->id);
-        Queue::fake();
+        \Illuminate\Support\Facades\Event::fake([ProductionTerminated::class]);
 
         [$po, $item] = $this->makePoAndItem('T');
         $item->itemProgresses()->update(['completed_qty' => 2, 'status' => 'IN_PROGRESS']);
@@ -145,10 +204,7 @@ class PusherRealtimeE2ETest extends TestCase
 
         $this->post("/items/{$item->id}/terminate")->assertRedirect();
 
-        Queue::assertPushed(BroadcastEvent::class, function (BroadcastEvent $job) use ($item) {
-            $event = $job->event;
-            $this->assertInstanceOf(ProductionTerminated::class, $event);
-
+        \Illuminate\Support\Facades\Event::assertDispatched(ProductionTerminated::class, function ($event) use ($item) {
             $channelNames = array_map(fn ($c) => $c->name, $event->broadcastOn());
             $this->assertContains('private-tenant.'.$this->tenant->id.'.dashboard', $channelNames, 'Owner dashboard must reload its list.');
             $this->assertContains('private-tenant.'.$this->tenant->id.'.workers', $channelNames, 'Worker dashboard must show the freeze alert.');
@@ -198,7 +254,7 @@ class PusherRealtimeE2ETest extends TestCase
         ]);
 
         TenantManager::setTenantId($this->tenant->id);
-        Queue::fake();
+        \Illuminate\Support\Facades\Event::fake([KendalaReported::class]);
 
         [$po, $item] = $this->makePoAndItem('A');
         $stage = $item->itemProgresses()->where('stage_name', 'Machining')->first();
@@ -208,10 +264,7 @@ class PusherRealtimeE2ETest extends TestCase
             'kendala_type' => 'Machine Broken',
         ])->assertRedirect();
 
-        Queue::assertPushed(BroadcastEvent::class, function (BroadcastEvent $job) use ($tenantB) {
-            $event = $job->event;
-            $this->assertInstanceOf(KendalaReported::class, $event);
-
+        \Illuminate\Support\Facades\Event::assertDispatched(KendalaReported::class, function ($event) use ($tenantB) {
             $channelNames = array_map(fn ($c) => $c->name, $event->broadcastOn());
             $this->assertContains('private-tenant.'.$this->tenant->id.'.dashboard', $channelNames);
             $this->assertNotContains('private-tenant.'.$tenantB->id.'.dashboard', $channelNames, 'Kendala must not leak to another tenant.');
@@ -233,17 +286,14 @@ class PusherRealtimeE2ETest extends TestCase
         ]);
 
         TenantManager::setTenantId($this->tenant->id);
-        Queue::fake();
+        \Illuminate\Support\Facades\Event::fake([ProductionTerminated::class]);
 
         [$po, $item] = $this->makePoAndItem('B');
         $this->actingAs($this->makeOwner());
 
         $this->post("/items/{$item->id}/terminate")->assertRedirect();
 
-        Queue::assertPushed(BroadcastEvent::class, function (BroadcastEvent $job) use ($tenantB) {
-            $event = $job->event;
-            $this->assertInstanceOf(ProductionTerminated::class, $event);
-
+        \Illuminate\Support\Facades\Event::assertDispatched(ProductionTerminated::class, function ($event) use ($tenantB) {
             $channelNames = array_map(fn ($c) => $c->name, $event->broadcastOn());
             $this->assertNotContains('tenant.'.$tenantB->id.'.dashboard', $channelNames);
             $this->assertNotContains('tenant.'.$tenantB->id.'.workers', $channelNames, 'Terminate must not leak to another tenant.');
@@ -264,7 +314,7 @@ class PusherRealtimeE2ETest extends TestCase
     public function test_sender_socket_excluded_via_to_others_when_socket_id_sent(): void
     {
         TenantManager::setTenantId($this->tenant->id);
-        Queue::fake();
+        \Illuminate\Support\Facades\Event::fake([ProductionTerminated::class]);
 
         [$po, $item] = $this->makePoAndItem('S');
         $this->actingAs($this->makeOwner());
@@ -273,9 +323,7 @@ class PusherRealtimeE2ETest extends TestCase
             ->post("/items/{$item->id}/terminate")
             ->assertRedirect();
 
-        Queue::assertPushed(BroadcastEvent::class, function (BroadcastEvent $job) {
-            $event = $job->event;
-            $this->assertInstanceOf(ProductionTerminated::class, $event);
+        \Illuminate\Support\Facades\Event::assertDispatched(ProductionTerminated::class, function ($event) {
             $this->assertSame(
                 '9999.8888',
                 $event->socket,
@@ -289,16 +337,14 @@ class PusherRealtimeE2ETest extends TestCase
     public function test_sender_socket_is_null_without_socket_id_header(): void
     {
         TenantManager::setTenantId($this->tenant->id);
-        Queue::fake();
+        \Illuminate\Support\Facades\Event::fake([ProductionTerminated::class]);
 
         [$po, $item] = $this->makePoAndItem('N');
         $this->actingAs($this->makeOwner());
 
         $this->post("/items/{$item->id}/terminate")->assertRedirect();
 
-        Queue::assertPushed(BroadcastEvent::class, function (BroadcastEvent $job) {
-            $event = $job->event;
-            $this->assertInstanceOf(ProductionTerminated::class, $event);
+        \Illuminate\Support\Facades\Event::assertDispatched(ProductionTerminated::class, function ($event) {
             $this->assertNull(
                 $event->socket,
                 'Without X-Socket-ID the sender would receive its own broadcast (caught by frontend fetch wrapper).'

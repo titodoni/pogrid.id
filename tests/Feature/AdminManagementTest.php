@@ -547,4 +547,53 @@ class AdminManagementTest extends TestCase
         $response->assertSessionHasErrors(['pin' => 'too_many_attempts']);
         $response->assertSessionHas('retry_after');
     }
+
+    public function test_create_admin_during_onboarding()
+    {
+        \Illuminate\Support\Facades\Notification::fake();
+
+        $tenant = Tenant::create([
+            'company_name' => 'Alpha Corp',
+            'slug' => 'alpha',
+        ]);
+
+        $owner = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Owner Name',
+            'email' => 'owner@alpha.com',
+            'username' => 'owner_alpha',
+            'password' => Hash::make('password123'),
+            'role_id' => 8, // STAFF
+            'post_id' => 11, // Manager
+            'is_owner' => true,
+        ]);
+
+        $this->actingAs($owner);
+        TenantManager::setTenantId($tenant->id);
+
+        $response = $this->post('/users/onboarding-create', [
+            'name' => 'Admin Name',
+            'email' => 'admin@alpha.com',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success');
+
+        // Assert user created
+        $admin = User::where('email', 'admin@alpha.com')->first();
+        $this->assertNotNull($admin);
+        $this->assertEquals('Admin Name', $admin->name);
+        $this->assertEquals($tenant->id, $admin->tenant_id);
+        $this->assertEquals('STAFF', $admin->role_name);
+        $this->assertEquals('Admin', $admin->post_name);
+        $this->assertFalse($admin->is_owner);
+
+        // Assert notification sent
+        \Illuminate\Support\Facades\Notification::assertSentTo(
+            $admin,
+            \App\Notifications\TemporaryPasswordNotification::class
+        );
+    }
 }
+

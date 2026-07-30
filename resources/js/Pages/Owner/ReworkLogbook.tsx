@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, Search } from '../../Components/Icons';
+import { formatDateTimeDDMMYYYY } from '../../Utils/date';
 
 interface ReworkEvent {
     id: number;
@@ -185,10 +186,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
     });
 
     const formatDate = (iso: string) => {
-        const d = new Date(iso);
-        return d.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
-            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-        });
+        return formatDateTimeDDMMYYYY(iso);
     };
 
     const maxTrendEvents = Math.max(...summary.monthly_trend.map(m => m.events), 1);

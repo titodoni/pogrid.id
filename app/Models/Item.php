@@ -24,6 +24,8 @@ class Item extends Model
         'status',
         'vendor_name',
         'vendor_phone',
+        'vendor_po',
+        'eta_date',
         'invoice_status',
         'payment_status',
         'purchasing_status',

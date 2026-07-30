@@ -52,13 +52,16 @@ export const STAGE_ROLE_MAP: StageRoleEntry[] = [
     { keywords: ['material', 'bahan'], allowedRoles: ['PURCHASING'] },
     { keywords: ['machining', 'cnc'], allowedRoles: ['MACHINING', 'CNC', 'PRODUCTION'] },
     { keywords: ['fabrication', 'fabrikasi'], allowedRoles: ['FABRICATION', 'PRODUCTION'] },
+    { keywords: ['assembly', 'perakitan', 'rakit', 'fitting', 'fitter', 'erection'], allowedRoles: ['ASSEMBLY'] },
+    { keywords: ['surface', 'heat treatment', 'powder coating', 'painting', 'cat', 'galvanizing', 'galvanis', 'plating', 'anodizing', 'sandblasting', 'electroplating', 'finishing', 'coating'], allowedRoles: ['SURFACE'] },
+    { keywords: ['maintenance', 'perawatan', 'repair', 'perbaikan'], allowedRoles: ['MAINTENANCE'] },
     { keywords: ['vendor', 'purchasing'], allowedRoles: ['PURCHASING'] },
     { keywords: ['qc'], allowedRoles: ['QC'], exact: true },
     { keywords: ['delivery', 'pengiriman'], allowedRoles: ['DELIVERY'], exact: true },
     { keywords: ['finance'], allowedRoles: ['FINANCE'], exact: true },
 ];
 
-export const OFFICE_ROLES = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
+export const OFFICE_ROLES = ['OWNER', 'ADMIN', 'SALES', 'MANAGER', 'STAFF'];
 
 function matchesStage(stageName: string, entry: StageRoleEntry): boolean {
     const lower = stageName.toLowerCase();

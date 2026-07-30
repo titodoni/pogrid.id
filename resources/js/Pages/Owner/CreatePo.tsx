@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { ChevronLeft, Plus, Close, Check, Broadcast } from '../../Components/Icons';
 import { useUnsavedChanges } from '../../Hooks/useUnsavedChanges';
+import { formatDDMMYYYY } from '../../Utils/date';
 
 interface Props {
     tenant?: {
@@ -628,7 +629,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                             <label style={{ ...labelStyle, margin: 0 }}>{t.delivery_date}</label>
                             {deliveryDate && (
                                 <span style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 600 }}>
-                                    📅 {new Date(deliveryDate + 'T00:00:00').toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                                    📅 {formatDDMMYYYY(deliveryDate + 'T00:00:00')}
                                 </span>
                             )}
                         </div>

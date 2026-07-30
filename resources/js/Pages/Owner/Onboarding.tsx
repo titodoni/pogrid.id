@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, router } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Link, router, usePage, useForm } from '@inertiajs/react';
 
 interface Props {
     tenant: {
@@ -8,37 +8,33 @@ interface Props {
     };
 }
 
-const steps = [
-    {
-        n: 1,
-        title: 'Buat PO pertama',
-        desc: 'Masukkan nomor PO, nama klien, & item yang diminta. Pilih tahapan kerja (drafter, CNC, QC, kirim…).',
-        cta: 'Buat PO Pertama',
-        href: '/pos/create',
-        primary: true,
-    },
-    {
-        n: 2,
-        title: 'Tambah operator (opsional)',
-        desc: 'Daftarkan nama pekerja agar mereka bisa update progres dari HP pakai PIN. Bisa dilewati dulu.',
-        cta: 'Lihat Dashboard Dulu',
-        href: '/dashboard',
-        primary: false,
-    },
-    {
-        n: 3,
-        title: 'Pantau dari dashboard',
-        desc: 'Lihat semua PO, status merah/kuning/hijau, & alert keterlambatan dalam satu layar.',
-        cta: 'Buka Dashboard',
-        href: '/dashboard',
-        primary: false,
-    },
-];
-
 export default function Onboarding({ tenant }: Props) {
-    const go = (href: string) => (e: React.MouseEvent) => {
+    const { flash } = usePage().props as any;
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
+        email: '',
+    });
+
+    const [createdUser, setCreatedUser] = useState<{ name: string; email: string; tempPass?: string } | null>(null);
+
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.visit(href);
+        post('/users/onboarding-create', {
+            onSuccess: (page) => {
+                const successMsg = (page.props.flash as any)?.success || '';
+                let tempPass = '';
+                const match = successMsg.match(/Temporary password '([^']+)'/);
+                if (match) {
+                    tempPass = match[1];
+                }
+                setCreatedUser({
+                    name: data.name,
+                    email: data.email,
+                    tempPass: tempPass,
+                });
+                reset();
+            },
+        });
     };
 
     return (
@@ -51,122 +47,276 @@ export default function Onboarding({ tenant }: Props) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '0 20px',
+            justifyContent: 'center',
+            padding: '40px 20px',
         }}>
+            {/* Ambient Background Glow */}
             <div style={{
                 position: 'absolute', inset: 0, zIndex: 0,
-                background: 'radial-gradient(circle at 50% -10%, rgba(99,102,241,0.18) 0%, transparent 50%)',
+                background: 'radial-gradient(circle at 50% 25%, rgba(99,102,241,0.15) 0%, transparent 60%)',
                 pointerEvents: 'none',
             }} />
 
             <div style={{
                 position: 'relative', zIndex: 1,
-                width: '100%', maxWidth: '640px',
-                padding: '56px 0 64px',
+                width: '100%', maxWidth: '520px',
                 textAlign: 'center',
             }}>
-                <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '8px',
-                    fontSize: '12px', fontWeight: 600,
-                    color: 'var(--color-pg-success)',
-                    backgroundColor: 'rgba(52,211,153,0.12)',
-                    border: '1px solid rgba(52,211,153,0.3)',
-                    padding: '6px 14px', borderRadius: '999px',
-                    marginBottom: '22px',
-                }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Pabrik aktif
-                </span>
-
-                <h1 style={{
-                    fontSize: 'clamp(26px, 5vw, 36px)',
-                    fontWeight: 800,
-                    letterSpacing: '-0.02em',
-                    lineHeight: 1.15,
-                    margin: '0 0 12px',
-                }}>
-                    Selamat datang, {tenant.company_name}!
-                </h1>
-                <p style={{
-                    fontSize: '15px',
-                    color: 'var(--color-pg-text-secondary)',
-                    lineHeight: 1.6,
-                    margin: '0 auto 12px',
-                    maxWidth: '480px',
-                }}>
-                    Pabrik Anda sudah jadi. Sekarang langkah paling penting: buat PO pertama supaya progres mulai terekam.
-                </p>
-
-                {/* Steps */}
-                <div style={{
-                    display: 'flex', flexDirection: 'column', gap: '14px',
-                    marginTop: '36px', textAlign: 'left',
-                }}>
-                    {steps.map((s, i) => (
-                        <div key={i} style={{
-                            backgroundColor: 'var(--color-pg-surface)',
-                            border: s.primary ? '1px solid rgba(99,102,241,0.4)' : '1px solid var(--color-pg-border)',
-                            borderRadius: '16px',
-                            padding: '20px',
-                            display: 'flex',
-                            gap: '16px',
-                            alignItems: 'flex-start',
-                        }}>
-                            <div style={{
-                                flexShrink: 0,
-                                width: '34px', height: '34px', borderRadius: '10px',
-                                background: s.primary
-                                    ? 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)'
-                                    : 'var(--color-pg-card-hover)',
-                                color: s.primary ? '#fff' : 'var(--color-pg-text-secondary)',
-                                fontWeight: 800, fontSize: '15px',
-                                display: 'grid', placeItems: 'center',
-                                boxShadow: s.primary ? '0 6px 16px rgba(99,102,241,0.3)' : 'none',
-                            }}>{s.n}</div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '2px 0 6px' }}>{s.title}</h3>
-                                <p style={{ fontSize: '13.5px', color: 'var(--color-pg-text-secondary)', lineHeight: 1.55, margin: '0 0 14px' }}>{s.desc}</p>
-                                <a
-                                    href={s.href}
-                                    onClick={go(s.href)}
-                                    style={{
-                                        display: 'inline-flex', alignItems: 'center', gap: '8px',
-                                        backgroundColor: s.primary ? 'var(--color-pg-primary)' : 'transparent',
-                                        color: s.primary ? '#fff' : 'var(--color-pg-text)',
-                                        border: s.primary ? 'none' : '1px solid var(--color-pg-border)',
-                                        fontWeight: 700, fontSize: '14px',
-                                        padding: s.primary ? '12px 20px' : '11px 18px',
-                                        borderRadius: '10px', textDecoration: 'none',
-                                        boxShadow: s.primary ? '0 8px 24px var(--color-pg-primary-glow)' : 'none',
-                                    }}
-                                >
-                                    {s.cta}
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <line x1="5" y1="12" x2="19" y2="12" />
-                                        <polyline points="12 5 19 12 12 19" />
-                                    </svg>
-                                </a>
-                            </div>
-                        </div>
-                    ))}
+                {/* Logo / Badge */}
+                <div style={{ marginBottom: '24px' }}>
+                    <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '8px',
+                        fontSize: '12px', fontWeight: 600,
+                        color: 'var(--color-pg-success)',
+                        backgroundColor: 'rgba(52,211,153,0.12)',
+                        border: '1px solid rgba(52,211,153,0.3)',
+                        padding: '6px 14px', borderRadius: '999px',
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                    }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        PABRIK AKTIF &middot; ONBOARDING
+                    </span>
                 </div>
 
-                <p style={{
-                    fontSize: '12.5px', color: 'var(--color-pg-text-muted)',
-                    marginTop: '28px', lineHeight: 1.5,
-                }}>
-                    Butuh bantuan? POgrid.id penuh Bahasa Indonesia & bisa dibuka dari HP maupun laptop.
-                </p>
+                {!createdUser ? (
+                    <>
+                        <h1 style={{
+                            fontSize: 'clamp(24px, 5vw, 32px)',
+                            fontWeight: 800,
+                            letterSpacing: '-0.02em',
+                            lineHeight: 1.2,
+                            margin: '0 0 16px',
+                        }}>
+                            Selamat Datang di POgrid, <span style={{ color: 'var(--color-pg-primary)' }}>{tenant.company_name}</span>!
+                        </h1>
+                        <p style={{
+                            fontSize: '14.5px',
+                            color: 'var(--color-pg-text-secondary)',
+                            lineHeight: 1.6,
+                            margin: '0 auto 28px',
+                            maxWidth: '460px',
+                        }}>
+                            Untuk menjaga integritas data & pemisahan tugas, akun <strong>Owner</strong> hanya bertindak sebagai pemantau. Anda perlu mendaftarkan <strong>Admin</strong> pertama untuk membuat PO dan mengelola produksi.
+                        </p>
 
-                <Link href="/dashboard" style={{
-                    display: 'inline-block', marginTop: '8px',
-                    fontSize: '13px', color: 'var(--color-pg-text-secondary)',
-                    textDecoration: 'underline',
+                        {/* Onboarding Form Card */}
+                        <div style={{
+                            backgroundColor: 'var(--color-pg-surface)',
+                            border: '1px solid var(--color-pg-border)',
+                            borderRadius: '20px',
+                            padding: '32px',
+                            textAlign: 'left',
+                            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                        }}>
+                            <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-pg-primary)' }}>
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                </svg>
+                                Daftarkan Akun Admin
+                            </h2>
+
+                            <form onSubmit={handleSubmit}>
+                                <div style={{ marginBottom: '18px' }}>
+                                    <label style={{
+                                        display: 'block', fontSize: '13px', fontWeight: 600,
+                                        color: 'var(--color-pg-text-secondary)', marginBottom: '8px'
+                                    }}>
+                                        Nama Lengkap Admin
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={data.name}
+                                        onChange={e => setData('name', e.target.value)}
+                                        placeholder="Contoh: Budi Santoso"
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            borderRadius: '10px',
+                                            backgroundColor: 'var(--color-pg-bg)',
+                                            border: errors.name ? '1px solid var(--color-pg-error)' : '1px solid var(--color-pg-border)',
+                                            color: 'var(--color-pg-text)',
+                                            fontSize: '14px',
+                                            outline: 'none',
+                                        }}
+                                        required
+                                    />
+                                    {errors.name && (
+                                        <span style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-error)', marginTop: '6px' }}>
+                                            {errors.name}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div style={{ marginBottom: '24px' }}>
+                                    <label style={{
+                                        display: 'block', fontSize: '13px', fontWeight: 600,
+                                        color: 'var(--color-pg-text-secondary)', marginBottom: '8px'
+                                    }}>
+                                        Email Admin
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={data.email}
+                                        onChange={e => setData('email', e.target.value)}
+                                        placeholder="admin@perusahaan.com"
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            borderRadius: '10px',
+                                            backgroundColor: 'var(--color-pg-bg)',
+                                            border: errors.email ? '1px solid var(--color-pg-error)' : '1px solid var(--color-pg-border)',
+                                            color: 'var(--color-pg-text)',
+                                            fontSize: '14px',
+                                            outline: 'none',
+                                        }}
+                                        required
+                                    />
+                                    {errors.email && (
+                                        <span style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-error)', marginTop: '6px' }}>
+                                            {errors.email}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    style={{
+                                        width: '100%',
+                                        backgroundColor: 'var(--color-pg-primary)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: '10px',
+                                        padding: '14px',
+                                        fontSize: '15px',
+                                        fontWeight: 700,
+                                        cursor: processing ? 'not-allowed' : 'pointer',
+                                        boxShadow: '0 8px 24px var(--color-pg-primary-glow)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        transition: 'opacity 0.2s',
+                                    }}
+                                >
+                                    {processing ? 'Mendaftarkan...' : 'Daftarkan Admin & Kirim Email'}
+                                    {!processing && (
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <line x1="22" y1="2" x2="11" y2="13" />
+                                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                        </svg>
+                                    )}
+                                </button>
+                            </form>
+                        </div>
+
+                        <Link href="/dashboard" style={{
+                            display: 'inline-block', marginTop: '24px',
+                            fontSize: '13px', color: 'var(--color-pg-text-secondary)',
+                            textDecoration: 'underline',
+                            fontWeight: 500,
+                        }}>
+                            Lewati & buka dashboard
+                        </Link>
+                    </>
+                ) : (
+                    /* Onboarding Success Page */
+                    <div style={{
+                        backgroundColor: 'var(--color-pg-surface)',
+                        border: '1px solid var(--color-pg-border)',
+                        borderRadius: '24px',
+                        padding: '40px 32px',
+                        boxShadow: '0 24px 48px rgba(0,0,0,0.25)',
+                        animation: 'fadeIn 0.5s ease-out',
+                    }}>
+                        <div style={{
+                            width: '64px', height: '64px', borderRadius: '50%',
+                            backgroundColor: 'rgba(52,211,153,0.12)',
+                            color: 'var(--color-pg-success)',
+                            display: 'grid', placeItems: 'center',
+                            margin: '0 auto 24px',
+                            border: '1px solid rgba(52,211,153,0.3)',
+                        }}>
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </div>
+
+                        <h1 style={{
+                            fontSize: '24px',
+                            fontWeight: 800,
+                            letterSpacing: '-0.02em',
+                            margin: '0 0 12px',
+                        }}>
+                            Admin Berhasil Terdaftar!
+                        </h1>
+                        <p style={{
+                            fontSize: '14px',
+                            color: 'var(--color-pg-text-secondary)',
+                            lineHeight: 1.6,
+                            marginBottom: '24px',
+                        }}>
+                            Akun admin untuk <strong>{createdUser.name}</strong> ({createdUser.email}) berhasil dibuat. Email berisi informasi login telah dikirimkan.
+                        </p>
+
+                        {createdUser.tempPass && (
+                            <div style={{
+                                backgroundColor: 'var(--color-pg-bg)',
+                                border: '1px dashed var(--color-pg-border)',
+                                borderRadius: '12px',
+                                padding: '16px',
+                                marginBottom: '28px',
+                                textAlign: 'center',
+                            }}>
+                                <span style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-muted)', marginBottom: '6px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    Password Sementara Admin (Salin jika perlu)
+                                </span>
+                                <code style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-pg-success)', letterSpacing: '0.05em' }}>
+                                    {createdUser.tempPass}
+                                </code>
+                            </div>
+                        )}
+
+                        <button
+                            onClick={() => router.visit('/dashboard')}
+                            style={{
+                                width: '100%',
+                                backgroundColor: 'var(--color-pg-success)',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '10px',
+                                padding: '14px',
+                                fontSize: '15px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                boxShadow: '0 8px 24px rgba(52,211,153,0.25)',
+                            }}
+                        >
+                            Masuk Ke Dashboard
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                                <polyline points="12 5 19 12 12 19" />
+                            </svg>
+                        </button>
+                    </div>
+                )}
+
+                <p style={{
+                    fontSize: '12px', color: 'var(--color-pg-text-muted)',
+                    marginTop: '32px', lineHeight: 1.5,
                 }}>
-                    Lewati & buka dashboard
-                </Link>
+                    Butuh bantuan? Silakan hubungi tim support kami. POgrid.id sepenuhnya mendukung Bahasa Indonesia.
+                </p>
             </div>
         </div>
     );
