@@ -6008,8 +6008,8 @@ ${locationStr}
             )}
 
             {selectedItemIds.size > 0 && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[50] flex items-center gap-3 px-5 py-3 bg-gray-800 border border-white/10 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
-                    <span className="text-gray-300 text-sm">
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[50] flex items-center gap-3 px-5 py-3 bg-pg-surface border border-pg-border rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
+                    <span className="text-pg-text-secondary text-sm">
                         {selectedItemIds.size} selected
                     </span>
                     <button
