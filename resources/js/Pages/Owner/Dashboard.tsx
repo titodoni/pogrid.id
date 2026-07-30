@@ -3766,7 +3766,7 @@ ${locationStr}
                         </div>
 
                         {/* ── Active Delay & Risk Directory ────────────────────── */}
-                        <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 mb-5.5">
+                        <div className="bg-pg-surface border border-pg-border rounded-2xl p-5 mb-5.5">
                             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                                 <div className="flex items-center gap-2.5">
                                     <h3 className="section-label-v2" style={{ margin: 0 }}>
@@ -4192,12 +4192,12 @@ ${locationStr}
 
                         {/* ── Section 5: Finance Health Strip ──────────────────── */}
                         {telemetry.finance_health && (
-                            <div className="flex bg-slate-900/40 border border-white/5 rounded-xl overflow-hidden mb-5.5">
+                            <div className="flex bg-pg-surface border border-pg-border rounded-xl overflow-hidden mb-5.5">
                                 <div
                                     onClick={() => setMatrixFilter(prev =>
                                         prev?.type === 'finance_uninvoiced' ? null : { type: 'finance_uninvoiced', value: `${telemetry.finance_health.uninvoiced_count} Items`, label: language === 'id' ? 'Belum Difakturkan' : 'Uninvoiced Items' }
                                     )}
-                                    className="flex-1 px-5 py-3.5 border-r border-white/5 flex items-center gap-3 cursor-pointer transition-all duration-200"
+                                    className="flex-1 px-5 py-3.5 border-r border-pg-border flex items-center gap-3 cursor-pointer transition-all duration-200"
                                     style={{
                                         backgroundColor: matrixFilter?.type === 'finance_uninvoiced' ? 'rgba(37,99,235,0.1)' : 'transparent',
                                     }}
@@ -4239,7 +4239,7 @@ ${locationStr}
                         {/* ── Chart Row ─────────────────────────────────────────── */}
                         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5 mb-5.5">
                             {/* Output and Overdue Trends */}
-                            <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5">
+                            <div className="bg-pg-surface border border-pg-border rounded-2xl p-5">
                                 <h3 className="section-label-v2" style={{ marginBottom: '16px' }}>{t.production_overdue_trends}</h3>
                                 <div className="w-full overflow-x-auto">
                                     <svg width="100%" height="200" viewBox="0 0 500 200" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
@@ -4323,7 +4323,7 @@ ${locationStr}
                             </div>
                             
                             {/* Why Delayed Pie */}
-                            <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5">
+                            <div className="bg-pg-surface border border-pg-border rounded-2xl p-5">
                                 <h3 className="section-label-v2" style={{ marginBottom: '16px' }}>{t.why_delayed_reasons}</h3>
                                 <div className="flex items-center justify-center gap-6 flex-wrap">
                                     {(() => {
@@ -4410,7 +4410,7 @@ ${locationStr}
                         </div>
 
                         {/* ── Bottleneck Detail Table ───────────────────────────── */}
-                        <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 mb-5.5">
+                        <div className="bg-pg-surface border border-pg-border rounded-2xl p-5 mb-5.5">
                             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                                 <h3 className="section-label-v2" style={{ margin: 0 }}>{t.bottleneck_analyzer}</h3>
                                 <button
@@ -4556,7 +4556,7 @@ ${locationStr}
 
                         {/* ── Section 4: Papan Kinerja Klien ───────────────────── */}
                         {telemetry.client_health && telemetry.client_health.length > 0 && (
-                            <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 mb-4">
+                            <div className="bg-pg-surface border border-pg-border rounded-2xl p-5 mb-4">
                                 <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                                     <div className="flex items-baseline gap-2.5">
                                         <h3 className="section-label-v2" style={{ margin: 0 }}>
@@ -4818,7 +4818,7 @@ ${locationStr}
                                 <select
                                     value={userRoleFilter}
                                     onChange={e => setUserRoleFilter(e.target.value)}
-                                    className="w-full p-2.5 px-3.5 bg-slate-900/60 border border-white/8 rounded-lg text-pg-text text-sm font-semibold outline-none"
+                                    className="w-full p-2.5 px-3.5 bg-pg-surface border border-pg-border rounded-lg text-pg-text text-sm font-semibold outline-none"
                                 >
                                     <option value="ALL">{t.filter_all_roles}</option>
                                     {ALL_ROLES.map(role => (
@@ -4895,7 +4895,7 @@ ${locationStr}
                                         return (
                                             <div
                                                 key={user.id}
-                                                className="user-card bg-slate-900/60 border border-white/6 rounded-xl p-4 flex flex-col gap-2.5"
+                                                className="user-card bg-pg-surface border border-pg-border rounded-xl p-4 flex flex-col gap-2.5"
                                             >
                                                 <div className="flex items-center gap-2.5">
                                                     <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-extrabold shrink-0"
@@ -4955,7 +4955,7 @@ ${locationStr}
                             )}
 
                         {/* ── Workflow & Validation Settings ────────────────────── */}
-                        <div className="mt-8 bg-slate-900/60 border border-white/6 rounded-2xl p-6">
+                        <div className="mt-8 bg-pg-surface border border-pg-border rounded-2xl p-6">
                             <div className="mb-4">
                                 <h3 className="text-base font-extrabold text-pg-text m-0 mb-1">
                                     {language === 'en' ? 'Workflow & Validation Rules' : 'Aturan Alur Kerja & Validasi'}
@@ -5064,7 +5064,7 @@ ${locationStr}
                         </div>
 
                         {/* ── Stage Templates Section ───────────────────────── */}
-                        <div className="mt-8 bg-slate-900/60 border border-white/6 rounded-2xl p-6">
+                        <div className="mt-8 bg-pg-surface border border-pg-border rounded-2xl p-6">
                             <div className="mb-4 flex items-center justify-between">
                                 <div>
                                     <h3 className="text-base font-extrabold text-pg-text m-0 mb-1">{t.stage_templates}</h3>
