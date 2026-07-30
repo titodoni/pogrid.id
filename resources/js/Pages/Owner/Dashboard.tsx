@@ -3766,7 +3766,7 @@ ${locationStr}
                         </div>
 
                         {/* ── Active Delay & Risk Directory ────────────────────── */}
-                        <div className="bg-pg-surface border border-pg-border rounded-2xl p-5 mb-5.5">
+                        <div className="bg-pg-surface border border-pg-border rounded-2xl p-5 mb-5.5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04),0_4px_12px_-2px_rgba(0,0,0,0.03)]">
                             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                                 <div className="flex items-center gap-2.5">
                                     <h3 className="section-label-v2" style={{ margin: 0 }}>
@@ -4192,7 +4192,7 @@ ${locationStr}
 
                         {/* ── Section 5: Finance Health Strip ──────────────────── */}
                         {telemetry.finance_health && (
-                            <div className="flex bg-pg-surface border border-pg-border rounded-xl overflow-hidden mb-5.5">
+                            <div className="flex bg-pg-surface border border-pg-border rounded-xl overflow-hidden mb-5.5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04),0_4px_12px_-2px_rgba(0,0,0,0.03)]">
                                 <div
                                     onClick={() => setMatrixFilter(prev =>
                                         prev?.type === 'finance_uninvoiced' ? null : { type: 'finance_uninvoiced', value: `${telemetry.finance_health.uninvoiced_count} Items`, label: language === 'id' ? 'Belum Difakturkan' : 'Uninvoiced Items' }
@@ -4239,7 +4239,7 @@ ${locationStr}
                         {/* ── Chart Row ─────────────────────────────────────────── */}
                         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5 mb-5.5">
                             {/* Output and Overdue Trends */}
-                            <div className="bg-pg-surface border border-pg-border rounded-2xl p-5">
+                            <div className="bg-pg-surface border border-pg-border rounded-2xl p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04),0_4px_12px_-2px_rgba(0,0,0,0.03)]">
                                 <h3 className="section-label-v2" style={{ marginBottom: '16px' }}>{t.production_overdue_trends}</h3>
                                 <div className="w-full overflow-x-auto">
                                     <svg width="100%" height="200" viewBox="0 0 500 200" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
@@ -4323,7 +4323,7 @@ ${locationStr}
                             </div>
                             
                             {/* Why Delayed Pie */}
-                            <div className="bg-pg-surface border border-pg-border rounded-2xl p-5">
+                            <div className="bg-pg-surface border border-pg-border rounded-2xl p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04),0_4px_12px_-2px_rgba(0,0,0,0.03)]">
                                 <h3 className="section-label-v2" style={{ marginBottom: '16px' }}>{t.why_delayed_reasons}</h3>
                                 <div className="flex items-center justify-center gap-6 flex-wrap">
                                     {(() => {
@@ -4410,7 +4410,7 @@ ${locationStr}
                         </div>
 
                         {/* ── Bottleneck Detail Table ───────────────────────────── */}
-                        <div className="bg-pg-surface border border-pg-border rounded-2xl p-5 mb-5.5">
+                        <div className="bg-pg-surface border border-pg-border rounded-2xl p-5 mb-5.5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04),0_4px_12px_-2px_rgba(0,0,0,0.03)]">
                             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                                 <h3 className="section-label-v2" style={{ margin: 0 }}>{t.bottleneck_analyzer}</h3>
                                 <button
@@ -4556,7 +4556,7 @@ ${locationStr}
 
                         {/* ── Section 4: Papan Kinerja Klien ───────────────────── */}
                         {telemetry.client_health && telemetry.client_health.length > 0 && (
-                            <div className="bg-pg-surface border border-pg-border rounded-2xl p-5 mb-4">
+                            <div className="bg-pg-surface border border-pg-border rounded-2xl p-5 mb-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.04),0_4px_12px_-2px_rgba(0,0,0,0.03)]">
                                 <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                                     <div className="flex items-baseline gap-2.5">
                                         <h3 className="section-label-v2" style={{ margin: 0 }}>

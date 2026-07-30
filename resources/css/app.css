@@ -197,19 +197,19 @@ html.theme-nordic {
 }
 
 html.theme-light {
-    --color-pg-bg: #f8fafc;
+    --color-pg-bg: #f1f5f9;
     --color-pg-surface: #ffffff;
     --color-pg-card: #ffffff;
-    --color-pg-card-hover: #f1f5f9;
-    --color-pg-border: #cbd5e1;
-    --color-pg-border-subtle: #e2e8f0;
+    --color-pg-card-hover: #f8fafc;
+    --color-pg-border: #e2e8f0;
+    --color-pg-border-subtle: #f1f5f9;
     --color-pg-input: #ffffff;
     --color-pg-text: #0f172a;
     --color-pg-text-secondary: #334155;
     --color-pg-text-muted: #64748b;
-    --color-pg-primary: #4f46e5;
-    --color-pg-primary-hover: #4338ca;
-    --color-pg-primary-glow: rgba(79, 70, 229, 0.12);
+    --color-pg-primary: #6366f1;
+    --color-pg-primary-hover: #4f46e5;
+    --color-pg-primary-glow: rgba(99, 102, 241, 0.08);
     --color-pg-primary-ink: #ffffff;
     --color-pg-accent: #3b82f6;
     --color-pg-success: #16a34a;
@@ -1251,17 +1251,17 @@ input, select, textarea {
 /* ── KPI Card V2 ─────────────────────────── */
 .kpi-card-v2 {
     position: relative;
-    background: var(--color-pg-surface, rgba(15, 23, 42, 0.6));
-    border: 1px solid var(--color-pg-border, rgba(255,255,255,0.08));
+    background: var(--color-pg-surface);
+    border: 1px solid var(--color-pg-border);
     border-radius: 14px;
     padding: 18px 18px 14px 22px;
     cursor: pointer;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
 }
 .kpi-card-v2::before {
     content: '';
@@ -1275,9 +1275,9 @@ input, select, textarea {
 .kpi-card-v2[data-variant="warning"]::before { background: var(--color-pg-warning); }
 .kpi-card-v2[data-variant="danger"]::before  { background: #ef4444; }
 .kpi-card-v2:hover {
-    background: var(--color-pg-card-hover, rgba(15, 23, 42, 0.8));
+    background: var(--color-pg-card-hover);
     border-color: var(--color-pg-border);
-    box-shadow: 0 8px 24px -8px rgba(0,0,0,0.2);
+    box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
     transform: translateY(-2px);
 }
 .kpi-card-v2[data-selected="true"] {
@@ -1337,9 +1337,9 @@ input, select, textarea {
     border-radius: 12px;
     overflow: hidden;
     margin-bottom: 20px;
-    background: var(--color-pg-surface, rgba(37, 99, 235, 0.05));
-    border: 1px solid var(--color-pg-border, rgba(37, 99, 235, 0.15));
-    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.04);
+    background: var(--color-pg-surface);
+    border: 1px solid var(--color-pg-border);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
 }
 .exec-banner__accent {
     width: 3px;
