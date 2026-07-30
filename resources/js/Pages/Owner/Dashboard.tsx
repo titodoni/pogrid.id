@@ -4034,7 +4034,7 @@ ${locationStr}
                                                                         const { label: displayStatus, color: statusColor, bg: statusBg } = getStatusBadge(item);
 
                                                                         return (
-                                                                            <tr key={`delay-${cName}-${idx}`} className="border-b border-white/4 text-zinc-300">
+                                                                            <tr key={`delay-${cName}-${idx}`} className="border-b border-pg-border text-pg-text">
                                                                                 <td className="px-4 py-3 font-bold">
                                                                                     <button
                                                                                         onClick={() => {
@@ -4265,7 +4265,7 @@ ${locationStr}
                                                     <g key={`bar-${idx}`} className="group cursor-pointer">
                                                         <rect x={x} y={y} width={barWidth} height={barHeight} fill="#3b82f6" rx="2" style={{ transition: 'all 0.3s' }} className="hover:opacity-80" />
                                                         <title>{`${d.label}: ${d.output} Pcs`}</title>
-                                                        <text x={x + barWidth / 2} y={y - 4} textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="600">{d.output}</text>
+                                                        <text x={x + barWidth / 2} y={y - 4} textAnchor="middle" fill="var(--color-pg-text-secondary)" fontSize="8" fontWeight="600">{d.output}</text>
                                                     </g>
                                                 );
                                             });
@@ -4295,7 +4295,7 @@ ${locationStr}
                                                 const step = width / count;
                                                 const x = leftOffset + idx * step + step / 2;
                                                 return (
-                                                    <text key={`lbl-${idx}`} x={x} y={topOffset + chartHeight + 15} textAnchor="middle" fill="#64748b" fontSize="9" fontWeight="600">
+                                                    <text key={`lbl-${idx}`} x={x} y={topOffset + chartHeight + 15} textAnchor="middle" fill="var(--color-pg-text-muted)" fontSize="9" fontWeight="600">
                                                         {d.label}
                                                     </text>
                                                 );
@@ -4470,7 +4470,7 @@ ${locationStr}
                                                                 ? null
                                                                 : { type: 'stage', value: metric.stage, label: language === 'id' ? 'Tahap' : 'Stage' }
                                                         )}
-                                                        className="border-b border-white/4 text-zinc-300 cursor-pointer transition-all duration-200"
+                                                        className="border-b border-pg-border text-pg-text cursor-pointer transition-all duration-200"
                                                         style={{
                                                             backgroundColor: matrixFilter?.type === 'stage' && matrixFilter?.value === metric.stage ? 'rgba(37,99,235,0.1)' : 'transparent',
                                                         }}
@@ -4626,7 +4626,7 @@ ${locationStr}
                                                             : '#ef4444';
                                                         const hasRisk = client.overdue_items > 0 || client.uninvoiced_count > 0 || client.unpaid_count > 0;
                                                         return (
-                                                            <tr key={`client-${idx}`} className="border-b border-white/4 text-zinc-300"
+                                                            <tr key={`client-${idx}`} className="border-b border-pg-border text-pg-text"
                                                                 style={{ backgroundColor: hasRisk ? 'rgba(239,68,68,0.015)' : 'transparent' }}>
                                                                 <td
                                                                     onClick={() => setMatrixFilter({ type: 'client', value: client.client_name, label: language === 'id' ? 'Klien' : 'Client' })}
@@ -4638,7 +4638,7 @@ ${locationStr}
                                                                 <td className="px-4 py-2.75 text-center">
                                                                     {client.on_time_rate != null
                                                                         ? <span className="font-bold" style={{ color: otdrColor }}>{client.on_time_rate}%</span>
-                                                                        : <span className="text-zinc-600 text-[11px]">N/A</span>}
+                                                                        : <span className="text-pg-text-muted text-[11px]">N/A</span>}
                                                                 </td>
                                                                 <td
                                                                     onClick={() => client.overdue_items > 0 && setMatrixFilter({ type: 'client_overdue', value: client.client_name, label: language === 'id' ? 'Overdue Klien' : 'Client Overdue' })}
@@ -5028,7 +5028,7 @@ ${locationStr}
                                             { state: reqQcForDelivery, setter: setReqQcForDelivery, label: language === 'en' ? 'Require QC Completed to start Delivery' : 'Wajib QC Selesai untuk memulai Pengiriman' },
                                             { state: reqDeliveryForFinance, setter: setReqDeliveryForFinance, label: language === 'en' ? 'Require Delivery Completed to start Finance stage' : 'Wajib Pengiriman Selesai untuk memulai Keuangan' }
                                         ].map((rule, idx) => (
-                                            <label key={idx} className="flex items-center gap-2.5 cursor-pointer text-sm text-zinc-300">
+                                            <label key={idx} className="flex items-center gap-2.5 cursor-pointer text-sm text-pg-text">
                                                 <input
                                                     type="checkbox"
                                                     checked={rule.state}
@@ -5329,7 +5329,7 @@ ${locationStr}
                                 <button
                                     type="button"
                                     onClick={closeEditUser}
-                                    className="px-4 py-2.5 bg-white/5 border border-white/8 text-zinc-300 rounded-lg font-semibold text-sm cursor-pointer"
+                                    className="px-4 py-2.5 bg-pg-surface border border-pg-border text-pg-text rounded-lg font-semibold text-sm cursor-pointer"
                                 >
                                     {t.cancel}
                                 </button>
@@ -5508,7 +5508,7 @@ ${locationStr}
                                 <button
                                     type="button"
                                     onClick={() => setShowAddUserModal(false)}
-                                    className="px-4 py-2.5 bg-white/5 border border-white/8 text-zinc-300 rounded-lg font-semibold cursor-pointer"
+                                    className="px-4 py-2.5 bg-pg-surface border border-pg-border text-pg-text rounded-lg font-semibold cursor-pointer"
                                 >
                                     {t.cancel}
                                 </button>
@@ -5640,7 +5640,7 @@ ${locationStr}
                                 <button
                                     type="button"
                                     onClick={() => setShowAddAdminModal(false)}
-                                    className="px-4 py-2.5 bg-white/5 border border-white/8 text-zinc-300 rounded-lg font-semibold cursor-pointer"
+                                    className="px-4 py-2.5 bg-pg-surface border border-pg-border text-pg-text rounded-lg font-semibold cursor-pointer"
                                 >
                                     {t.cancel}
                                 </button>
@@ -5990,7 +5990,7 @@ ${locationStr}
                             </div>
                             <div className="flex gap-3 justify-end mt-6">
                                 <button type="button" onClick={() => setShowTemplateModal(false)}
-                                    className="px-4 py-2.5 bg-white/5 border border-white/8 text-zinc-300 rounded-lg font-semibold cursor-pointer">
+                                    className="px-4 py-2.5 bg-pg-surface border border-pg-border text-pg-text rounded-lg font-semibold cursor-pointer">
                                     {t.cancel}
                                 </button>
                                 <button type="submit" disabled={isSavingTemplate || !templateFormName.trim() || templateFormStages.length === 0}
@@ -6042,7 +6042,7 @@ ${locationStr}
                     </button>
                     <button
                         onClick={() => setSelectedItemIds(new Set())}
-                        className="p-2 bg-transparent text-gray-400 border-none cursor-pointer text-lg"
+                        className="p-2 bg-transparent text-pg-text-muted border-none cursor-pointer text-lg"
                     >
                         &times;
                     </button>
