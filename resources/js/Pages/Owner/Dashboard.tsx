@@ -3251,7 +3251,8 @@ ${locationStr}
                                                                                                         flexDirection: 'column',
                                                                                                         gap: '3px',
                                                                                                         padding: '8px',
-                                                                                                        backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                                                                                                        backgroundColor: 'var(--color-pg-surface)',
+                                                                                                        border: '1px solid var(--color-pg-border)',
                                                                                                         borderRadius: '6px',
                                                                                                         borderLeft: `3px solid ${severityColor}`,
                                                                                                         textAlign: 'left'

@@ -795,7 +795,7 @@ function ItemCard({
                         <div style={{
                             borderTop: '1px solid var(--color-pg-border)',
                             padding: '10px 12px',
-                            backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                            backgroundColor: 'var(--color-pg-surface)',
                         }}>
                             {(() => {
                                 const isDrafterStage = activeStage.stage.stage_name.toLowerCase().includes('design') ||
@@ -814,7 +814,7 @@ function ItemCard({
                                                         </h4>
                                                         <div style={{
                                                             display: 'flex',
-                                                            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                                            backgroundColor: 'var(--color-pg-card-hover)',
                                                             padding: '4px',
                                                             borderRadius: '12px',
                                                             border: '1px solid var(--color-pg-border)',
@@ -878,7 +878,7 @@ function ItemCard({
                                                         </h4>
                                                         <div style={{
                                                             display: 'flex',
-                                                            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                                            backgroundColor: 'var(--color-pg-card-hover)',
                                                             padding: '4px',
                                                             borderRadius: '12px',
                                                             border: '1px solid var(--color-pg-border)',
@@ -1648,7 +1648,7 @@ function ItemCard({
                         <div style={{
                             borderTop: '1px solid var(--color-pg-border)',
                             padding: '12px',
-                            backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                            backgroundColor: 'var(--color-pg-surface)',
                         }}>
                             {/* Role Mismatch Warning if role has no matching stages at all */}
                             {getMatchingStageOrMock(item, userRole) === null ? (
