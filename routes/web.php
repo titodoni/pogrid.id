@@ -12,9 +12,9 @@ use App\Http\Controllers\WorkerDashboardController;
 use App\Http\Controllers\PpicDashboardController;
 use Illuminate\Support\Facades\Route;
 
-// Marketing landing page (guest-facing product homepage)
+// Redirect app root to login page
 Route::get('/', function () {
-    return Inertia\Inertia::render('Landing/Landing');
+    return redirect()->route('login');
 });
 
 // Guard A: Standard Web Auth
