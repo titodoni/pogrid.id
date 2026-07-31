@@ -16,6 +16,7 @@ export default function Onboarding({ tenant }: Props) {
     });
 
     const [createdUser, setCreatedUser] = useState<{ name: string; email: string; tempPass?: string } | null>(null);
+    const [copied, setCopied] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -274,12 +275,60 @@ export default function Onboarding({ tenant }: Props) {
                                 marginBottom: '28px',
                                 textAlign: 'center',
                             }}>
-                                <span style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-muted)', marginBottom: '6px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    Password Sementara Admin (Salin jika perlu)
+                                <span style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-muted)', marginBottom: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    Password Sementara Admin
                                 </span>
-                                <code style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-pg-success)', letterSpacing: '0.05em' }}>
-                                    {createdUser.tempPass}
-                                </code>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                                    <code style={{ 
+                                        fontSize: '20px', 
+                                        fontWeight: 800, 
+                                        color: 'var(--color-pg-success)', 
+                                        letterSpacing: '0.08em',
+                                        backgroundColor: 'var(--color-pg-surface)',
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        border: '1px solid var(--color-pg-border)'
+                                    }}>
+                                        {createdUser.tempPass}
+                                    </code>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (createdUser.tempPass) {
+                                                navigator.clipboard.writeText(createdUser.tempPass);
+                                                setCopied(true);
+                                                setTimeout(() => setCopied(false), 3000);
+                                            }
+                                        }}
+                                        style={{
+                                            padding: '9px 16px',
+                                            backgroundColor: copied ? 'var(--color-pg-success)' : 'var(--color-pg-primary)',
+                                            color: '#ffffff',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            fontSize: '13px',
+                                            fontWeight: 700,
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
+                                            transition: 'background-color 0.2s ease, transform 0.1s ease',
+                                        }}
+                                    >
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            {copied ? (
+                                                <polyline points="20 6 9 17 4 12" />
+                                            ) : (
+                                                <>
+                                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                                </>
+                                            )}
+                                        </svg>
+                                        {copied ? 'Tersalin!' : 'Salin Password'}
+                                    </button>
+                                </div>
                             </div>
                         )}
 

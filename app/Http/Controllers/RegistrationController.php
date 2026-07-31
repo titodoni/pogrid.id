@@ -6,11 +6,13 @@ use App\Models\Post;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\WelcomeAndTutorialNotification;
 use App\Services\TenantManager;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -94,6 +96,15 @@ class RegistrationController extends Controller
         ]);
 
         event(new Registered($user));
+
+        try {
+            $user->notify(new WelcomeAndTutorialNotification($user->name, $tenant->company_name));
+        } catch (\Throwable $e) {
+            Log::error('Failed to send WelcomeAndTutorialNotification upon registration: '.$e->getMessage(), [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+        }
 
         // Log the user in
         Auth::login($user);
