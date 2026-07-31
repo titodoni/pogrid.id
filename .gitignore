@@ -43,3 +43,7 @@ composer.phar
 log_output.txt
 list.txt
 testacc.txt
+
+# Deploy directory containing production secrets
+/deploy/
+
