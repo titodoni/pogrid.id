@@ -12,9 +12,13 @@ use App\Http\Controllers\WorkerDashboardController;
 use App\Http\Controllers\PpicDashboardController;
 use Illuminate\Support\Facades\Route;
 
-// Redirect app root to login page
+// Redirect app subdomain to login page, but serve React Landing page on main domain
 Route::get('/', function () {
-    return redirect()->route('login');
+    $host = request()->getHost();
+    if (str_starts_with($host, 'app.')) {
+        return redirect()->route('login');
+    }
+    return Inertia\Inertia::render('Landing/Landing');
 });
 
 // Guard A: Standard Web Auth
