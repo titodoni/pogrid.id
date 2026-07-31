@@ -206,13 +206,12 @@ export default function Privacy() {
                 </aside>
 
                 {/* Main Legal Copy */}
-                <section style={{
+                <section className="footer-brand-span" style={{
                     backgroundColor: 'var(--color-pg-surface, #ffffff)',
                     border: '1px solid var(--color-pg-border, rgba(0,0,0,0.08))',
                     borderRadius: '16px',
                     padding: '36px 28px',
                     boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-                    gridColumn: 'span 2',
                 }}>
                     <h1 style={{ fontSize: '28px', fontWeight: 800, margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>{t.title}</h1>
                     <p style={{ fontSize: '13px', color: 'var(--color-pg-text-muted, #687d7b)', margin: '0 0 32px 0' }}>{t.subtitle}</p>

@@ -246,10 +246,17 @@ html.theme-brand {
    GLOBAL DESIGN SYSTEM — Motion & Base
    ============================================ */
 
-body {
+html, body {
     background-color: var(--color-pg-bg);
     color: var(--color-pg-text);
     font-family: var(--font-sans);
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+}
+*, *:before, *:after {
+    box-sizing: border-box;
 }
 
 /* Global transitions for all interactive elements */
@@ -260,6 +267,13 @@ button, a, [role="button"], input, select, textarea {
 /* Touch-friendly inputs, selectors, and buttons */
 input, select, textarea {
     min-height: 44px;
+    max-width: 100%;
+}
+
+@media screen and (max-width: 768px) {
+    input, select, textarea {
+        font-size: 16px !important;
+    }
 }
 
 /* ============================================
@@ -917,34 +931,42 @@ input, select, textarea {
    ============================================ */
 @media (max-width: 640px) {
     .tab-bar {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr 1fr !important;
-        overflow-x: visible !important;
-        gap: 4px !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        gap: 8px !important;
         border-bottom: none !important;
-        padding: 0 !important;
-        margin-bottom: 8px !important;
+        padding: 4px 0 !important;
+        margin-bottom: 12px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+    }
+    .tab-bar::-webkit-scrollbar {
+        display: none !important;
     }
 
     .tab {
         border-bottom: none !important;
-        border-radius: 8px !important;
-        border: 1px solid var(--color-pg-border, rgba(255, 255, 255, 0.06)) !important;
-        background: var(--color-pg-surface, rgba(255, 255, 255, 0.02)) !important;
+        border-radius: 9999px !important;
+        border: 1px solid var(--color-pg-border, rgba(255, 255, 255, 0.08)) !important;
+        background: var(--color-pg-surface, rgba(255, 255, 255, 0.03)) !important;
         color: var(--color-pg-text-secondary, #a1a1aa) !important;
-        padding: 7px 6px !important;
-        font-size: 12px !important;
-        white-space: normal !important;
+        padding: 8px 16px !important;
+        font-size: 13px !important;
+        white-space: nowrap !important;
         text-align: center !important;
         line-height: 1.2 !important;
-        flex-shrink: unset !important;
+        flex: 0 0 auto !important;
     }
 
     .tab-active {
-        background: var(--color-pg-primary-glow, rgba(99, 102, 241, 0.15)) !important;
-        border-color: var(--color-pg-primary, rgba(99, 102, 241, 0.4)) !important;
-        color: var(--color-pg-primary, #818cf8) !important;
-        box-shadow: 0 2px 8px -2px var(--color-pg-primary-glow, rgba(99, 102, 241, 0.2)) !important;
+        background: var(--color-pg-primary, #6366f1) !important;
+        border-color: var(--color-pg-primary, #6366f1) !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 8px -2px rgba(99, 102, 241, 0.4) !important;
+        font-weight: 700 !important;
     }
 
     .progress-bar-mini {
@@ -1518,5 +1540,47 @@ input, select, textarea {
     }
     .stage-health-dot-mobile {
         display: block !important;
+    }
+}
+
+/* ============================================
+   GLOBAL MOBILE RESPONSIVE UTILITIES & FIXES
+   ============================================ */
+.footer-brand-span {
+    grid-column: span 1;
+    min-width: 0;
+}
+@media (min-width: 640px) {
+    .footer-brand-span {
+        grid-column: span 2 !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .po-accordion, .item-compact, .worker-item-card {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        word-break: break-word !important;
+    }
+    
+    .po-accordion-header {
+        align-items: flex-start !important;
+    }
+
+    .greeting-name, h1, h2, h3, p, span {
+        max-width: 100%;
+        overflow-wrap: break-word;
+    }
+
+    .btn-responsive-group {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 10px !important;
+    }
+    
+    .btn-responsive-group > * {
+        width: 100% !important;
+        justify-content: center !important;
     }
 }

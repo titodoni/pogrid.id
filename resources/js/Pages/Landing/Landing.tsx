@@ -330,7 +330,7 @@ export default function Landing() {
                             Operator input progres pengerjaan lewat HP pakai <span style={{ color: '#f0f4f8', fontWeight: 700 }}>PIN 4 digit</span>. Owner pantau mana PO yang <span style={{ color: '#10b981', fontWeight: 700 }}>Aman</span>, <span style={{ color: '#f59e0b', fontWeight: 700 }}>Rawan</span>, atau bakal <MarkerUnderline>Kena Pinalti Telat Kirim</MarkerUnderline>.
                         </p>
 
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+                        <div className="btn-responsive-group" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
                             <a href={appUrl('/register')} style={{
                                 backgroundColor: '#6366f1',
                                 color: '#ffffff',
@@ -785,7 +785,7 @@ export default function Landing() {
                     gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
                     gap: '28px',
                 }}>
-                    <div style={{ gridColumn: 'span 2', minWidth: 0 }}>
+                    <div className="footer-brand-span">
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
                             <img src="/pogrid-logo.png" alt="POgrid.id Logo" style={{ height: '72px', width: 'auto', objectFit: 'contain' }} />
                         </div>
