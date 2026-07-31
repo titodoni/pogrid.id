@@ -122,7 +122,7 @@ npm run build && \
 rsync -avz -e 'ssh -p 65002 -i ~/.ssh/id_ed25519' \
   --exclude 'storage' --exclude 'bootstrap/cache/*.php' \
   --exclude '.env' --exclude 'node_modules' --exclude '.git' \
-  --exclude 'deploy' \
+  --exclude 'deploy' --exclude 'database/*.sqlite' \
   /home/tito/pogrid/ \
   u173210759@153.92.8.145:/home/u173210759/domains/pogrid.id/public_html/app/
 ```
@@ -136,7 +136,7 @@ ssh -p 65002 -i ~/.ssh/id_ed25519 u173210759@153.92.8.145 \
 **Production .env**: stored at `deploy/.env` (not committed). Key differences from dev:
 - `APP_ENV=production`, `APP_DEBUG=false`
 - `APP_URL=https://app.pogrid.id`
-- DB: Neon.tech PostgreSQL (`DB_CONNECTION=pgsql`)
+- DB: SQLite (`DB_CONNECTION=sqlite`) due to Hostinger shared hosting missing pdo_pgsql driver.
 - Session/Cache/Queue: SQLite (local)
 - Broadcast: Pusher (live)
 - Mail: Hostinger SMTP (`smtp.hostinger.com:465`, SSL, `admin@pogrid.id`)
