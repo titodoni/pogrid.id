@@ -1817,17 +1817,6 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
             triggerScopedReload(['items']);
         });
         channel.listen('.data.refreshed', () => {
-            // Task 3.3: Named toast on Worker Dashboard (suppress if another notification is already visible or queued)
-            const entry = {
-                message: language === 'en' ? 'Data refreshed' : 'Data diperbarui',
-                severity: 'INFO',
-                id: Date.now(),
-                timestamp: Date.now()
-            };
-            setToastQueue(prev => prev.length > 0 ? prev : [...prev, entry]);
-            setTimeout(() => {
-                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
-            }, 3000);
             triggerScopedReload(['items']);
         });
 

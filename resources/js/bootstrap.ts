@@ -59,10 +59,17 @@ const echo = new Proxy({} as Echo, {
 // excludes the sender's own connection. Without this, the tab that triggers a
 // kendala/terminate would also receive its own real-time event. Inertia v2 issues
 // requests via fetch (not axios), so we wrap window.fetch.
+function getSocketId(): string | undefined {
+    return actualEcho?.socketId?.() ||
+        (echo as any)?.socketId?.() ||
+        (actualEcho as any)?.connector?.pusher?.connection?.socket_id ||
+        (window as any)?.LaravelEchoInstance?.connector?.pusher?.connection?.socket_id;
+}
+
 const originalFetch = window.fetch.bind(window);
 
 window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
-    const socketId = actualEcho?.socketId?.() || (echo as any).socketId?.();
+    const socketId = getSocketId();
     let urlString = '';
     let requestHeaders: HeadersInit | undefined;
 
@@ -92,6 +99,33 @@ window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
     }
 
     return originalFetch(input, init || {});
+};
+
+const originalXhrOpen = XMLHttpRequest.prototype.open;
+const originalXhrSend = XMLHttpRequest.prototype.send;
+
+XMLHttpRequest.prototype.open = function(method: string, url: string | URL, ...args: any[]) {
+    (this as any)._url = url;
+    return (originalXhrOpen as any).apply(this, [method, url, ...args]);
+};
+
+XMLHttpRequest.prototype.send = function(body?: Document | XMLHttpRequestBodyInit | null) {
+    const socketId = getSocketId();
+    if (socketId && (this as any)._url) {
+        let isSameOrigin = false;
+        try {
+            const parsed = new URL(String((this as any)._url), window.location.origin);
+            isSameOrigin = (parsed.origin === window.location.origin);
+        } catch (e) {
+            isSameOrigin = true;
+        }
+        if (isSameOrigin) {
+            try {
+                this.setRequestHeader('X-Socket-ID', socketId);
+            } catch (e) {}
+        }
+    }
+    return (originalXhrSend as any).apply(this, arguments as any);
 };
 
 export default echo;
