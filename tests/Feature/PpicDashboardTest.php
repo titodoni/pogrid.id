@@ -363,4 +363,3 @@ class PpicDashboardTest extends TestCase
         $this->assertFalse($item->fresh()->is_urgent);
     }
 }
-

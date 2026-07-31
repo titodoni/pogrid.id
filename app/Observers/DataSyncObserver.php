@@ -3,6 +3,8 @@
 namespace App\Observers;
 
 use App\Events\DataRefreshed;
+use App\Models\Tenant;
+use App\Services\TenantManager;
 use Illuminate\Database\Eloquent\Model;
 
 class DataSyncObserver
@@ -21,7 +23,7 @@ class DataSyncObserver
 
     protected function broadcastSync(Model $model): void
     {
-        if (app()->runningUnitTests() && !self::$enableInTests) {
+        if (app()->runningUnitTests() && ! self::$enableInTests) {
             return;
         }
 
@@ -32,14 +34,14 @@ class DataSyncObserver
             $tenantId = $model->tenant_id;
         } elseif (method_exists($model, 'tenant') && $model->tenant) {
             $tenantId = $model->tenant->id;
-        } elseif ($model instanceof \App\Models\Tenant) {
+        } elseif ($model instanceof Tenant) {
             $tenantId = $model->id;
         } else {
-            $tenantId = \App\Services\TenantManager::getTenantId();
+            $tenantId = TenantManager::getTenantId();
         }
 
         if ($tenantId) {
-            broadcast(new DataRefreshed((int)$tenantId))->toOthers();
+            broadcast(new DataRefreshed((int) $tenantId))->toOthers();
         }
     }
 }

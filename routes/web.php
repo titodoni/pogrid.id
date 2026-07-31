@@ -5,11 +5,11 @@ use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\OwnerDashboardController;
 use App\Http\Controllers\PinResetController;
+use App\Http\Controllers\PpicDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\WorkerAuthController;
 use App\Http\Controllers\WorkerDashboardController;
-use App\Http\Controllers\PpicDashboardController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect app subdomain to login page, but serve React Landing page on main domain
@@ -18,6 +18,7 @@ Route::get('/', function () {
     if (str_starts_with($host, 'app.')) {
         return redirect()->route('login');
     }
+
     return Inertia\Inertia::render('Landing/Landing');
 });
 
@@ -129,4 +130,3 @@ Route::get('/terms', function () {
 Route::get('/privacy', function () {
     return Inertia\Inertia::render('Legal/Privacy');
 });
-

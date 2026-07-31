@@ -19,10 +19,15 @@ class RoleSecurityRemediationTest extends TestCase
     use RefreshDatabase;
 
     protected Tenant $tenant;
+
     protected Role $staffRole;
+
     protected Role $workerRole;
+
     protected Post $salesPost;
+
     protected Post $managerPost;
+
     protected Post $adminPost;
 
     protected function setUp(): void
@@ -295,7 +300,7 @@ class RoleSecurityRemediationTest extends TestCase
             'eta_date' => '2026-08-15',
         ]);
         $purchResp->assertStatus(302);
-        
+
         $item->refresh();
         $this->assertEquals('PROSES', $item->purchasing_status);
         $this->assertEquals('PT Baja Maju', $item->vendor_name);

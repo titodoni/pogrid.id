@@ -2101,4 +2101,3 @@ class CoreLogicTest extends TestCase
         );
     }
 }
-

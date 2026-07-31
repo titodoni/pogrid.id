@@ -10,4 +10,3 @@ Artisan::command('inspire', function () {
 
 Schedule::command('queue:work --stop-when-empty')->everyMinute()->withoutOverlapping();
 Schedule::command('pogrid:evaluate-timelines')->everyMinute()->withoutOverlapping();
-

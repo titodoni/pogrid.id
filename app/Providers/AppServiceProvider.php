@@ -2,12 +2,22 @@
 
 namespace App\Providers;
 
+use App\Models\Alert;
+use App\Models\DeliveryOrder;
 use App\Models\DoItem;
 use App\Models\Item;
 use App\Models\ItemProgress;
+use App\Models\Po;
+use App\Models\Tenant;
+use App\Models\TenantStageTemplate;
+use App\Models\User;
+use App\Observers\DataSyncObserver;
 use App\Observers\DoItemObserver;
 use App\Observers\ItemObserver;
 use App\Observers\ItemProgressObserver;
+use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 
@@ -26,49 +36,49 @@ class AppServiceProvider extends ServiceProvider
 
         // Register general real-time synchronization observer
         $syncModels = [
-            \App\Models\Po::class,
-            \App\Models\Item::class,
-            \App\Models\ItemProgress::class,
-            \App\Models\Alert::class,
-            \App\Models\User::class,
-            \App\Models\Tenant::class,
-            \App\Models\TenantStageTemplate::class,
-            \App\Models\DoItem::class,
-            \App\Models\DeliveryOrder::class,
+            Po::class,
+            Item::class,
+            ItemProgress::class,
+            Alert::class,
+            User::class,
+            Tenant::class,
+            TenantStageTemplate::class,
+            DoItem::class,
+            DeliveryOrder::class,
         ];
         foreach ($syncModels as $modelClass) {
-            $modelClass::observe(\App\Observers\DataSyncObserver::class);
+            $modelClass::observe(DataSyncObserver::class);
         }
 
-        \Illuminate\Support\Facades\Event::listen(
-            \Illuminate\Mail\Events\MessageSending::class,
-            function (\Illuminate\Mail\Events\MessageSending $event) {
+        Event::listen(
+            MessageSending::class,
+            function (MessageSending $event) {
                 $email = $event->message;
-                
+
                 $toAddresses = [];
                 foreach (($email->getTo() ?: []) as $address) {
                     $toAddresses[] = $address->getAddress();
                 }
                 $to = implode(', ', $toAddresses);
-                
+
                 $subject = $email->getSubject();
                 $body = $email->getHtmlBody() ?: $email->getTextBody();
-                
+
                 $cleanBody = strip_tags($body);
                 $cleanBody = html_entity_decode($cleanBody, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                
+
                 $logContent = "=========================================\n";
-                $logContent .= "Date: " . now()->toDateTimeString() . "\n";
-                $logContent .= "To: " . $to . "\n";
-                $logContent .= "Subject: " . $subject . "\n";
-                $logContent .= "Body:\n" . trim($cleanBody) . "\n";
+                $logContent .= 'Date: '.now()->toDateTimeString()."\n";
+                $logContent .= 'To: '.$to."\n";
+                $logContent .= 'Subject: '.$subject."\n";
+                $logContent .= "Body:\n".trim($cleanBody)."\n";
                 $logContent .= "=========================================\n\n";
-                
+
                 $logsDir = base_path('logs');
-                if (!\Illuminate\Support\Facades\File::exists($logsDir)) {
-                    \Illuminate\Support\Facades\File::makeDirectory($logsDir, 0755, true);
+                if (! File::exists($logsDir)) {
+                    File::makeDirectory($logsDir, 0755, true);
                 }
-                \Illuminate\Support\Facades\File::append($logsDir . '/verification-emails.log', $logContent);
+                File::append($logsDir.'/verification-emails.log', $logContent);
             }
         );
 

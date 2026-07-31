@@ -2,22 +2,24 @@
 
 namespace Tests\Feature;
 
+use App\Events\DataRefreshed;
 use App\Events\KendalaReported;
 use App\Events\ProductionTerminated;
+use App\Events\TaskUpdated;
 use App\Models\Alert;
 use App\Models\Item;
 use App\Models\Po;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Observers\DataSyncObserver;
 use App\Services\TenantManager;
 use Illuminate\Broadcasting\Broadcasters\PusherBroadcaster;
-use Illuminate\Broadcasting\BroadcastEvent;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 class BroadcastTest extends TestCase
@@ -141,7 +143,7 @@ class BroadcastTest extends TestCase
     public function test_kendala_reported_triggers_broadcast_job()
     {
         TenantManager::setTenantId($this->tenant->id);
-        \Illuminate\Support\Facades\Event::fake([KendalaReported::class]);
+        Event::fake([KendalaReported::class]);
 
         $po = Po::create([
             'po_number' => 'PO-BC-003',
@@ -170,13 +172,13 @@ class BroadcastTest extends TestCase
 
         broadcast(new KendalaReported($alert));
 
-        \Illuminate\Support\Facades\Event::assertDispatched(KendalaReported::class);
+        Event::assertDispatched(KendalaReported::class);
     }
 
     public function test_production_terminated_triggers_broadcast_job()
     {
         TenantManager::setTenantId($this->tenant->id);
-        \Illuminate\Support\Facades\Event::fake([ProductionTerminated::class]);
+        Event::fake([ProductionTerminated::class]);
 
         $po = Po::create([
             'po_number' => 'PO-BC-004',
@@ -196,13 +198,13 @@ class BroadcastTest extends TestCase
 
         broadcast(new ProductionTerminated($item));
 
-        \Illuminate\Support\Facades\Event::assertDispatched(ProductionTerminated::class);
+        Event::assertDispatched(ProductionTerminated::class);
     }
 
     public function test_controller_report_kendala_triggers_broadcast_job()
     {
         TenantManager::setTenantId($this->tenant->id);
-        \Illuminate\Support\Facades\Event::fake([KendalaReported::class]);
+        Event::fake([KendalaReported::class]);
 
         $po = Po::create([
             'po_number' => 'PO-BC-005',
@@ -235,13 +237,13 @@ class BroadcastTest extends TestCase
             'kendala_type' => 'Machine Broken',
         ]);
 
-        \Illuminate\Support\Facades\Event::assertDispatched(KendalaReported::class);
+        Event::assertDispatched(KendalaReported::class);
     }
 
     public function test_controller_terminate_midway_triggers_broadcast_job()
     {
         TenantManager::setTenantId($this->tenant->id);
-        \Illuminate\Support\Facades\Event::fake([ProductionTerminated::class]);
+        Event::fake([ProductionTerminated::class]);
 
         $po = Po::create([
             'po_number' => 'PO-BC-006',
@@ -273,7 +275,7 @@ class BroadcastTest extends TestCase
 
         $this->post("/items/{$item->id}/terminate");
 
-        \Illuminate\Support\Facades\Event::assertDispatched(ProductionTerminated::class);
+        Event::assertDispatched(ProductionTerminated::class);
     }
 
     public function test_mock_broadcaster_production_terminated_receives_correct_payload(): void
@@ -510,7 +512,7 @@ class BroadcastTest extends TestCase
     {
         TenantManager::setTenantId($this->tenant->id);
 
-        $event = new \App\Events\TaskUpdated($this->tenant->id, 'Task updated message');
+        $event = new TaskUpdated($this->tenant->id, 'Task updated message');
 
         $channels = $event->broadcastOn();
         $this->assertCount(2, $channels);
@@ -524,7 +526,7 @@ class BroadcastTest extends TestCase
     public function test_data_sync_observer_fires_data_refreshed_on_model_saved()
     {
         TenantManager::setTenantId($this->tenant->id);
-        \Illuminate\Support\Facades\Event::fake([\App\Events\DataRefreshed::class]);
+        Event::fake([DataRefreshed::class]);
 
         $po = Po::create([
             'po_number' => 'PO-DS-001',
@@ -544,19 +546,19 @@ class BroadcastTest extends TestCase
 
         $progress = $item->itemProgresses()->first();
         $progress->completed_qty = 2;
-        \App\Observers\DataSyncObserver::$enableInTests = true;
+        DataSyncObserver::$enableInTests = true;
         $progress->save();
-        \App\Observers\DataSyncObserver::$enableInTests = false;
+        DataSyncObserver::$enableInTests = false;
 
-        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\DataRefreshed::class);
+        Event::assertDispatched(DataRefreshed::class);
     }
 
     public function test_po_creation_triggers_task_updated_broadcast()
     {
         TenantManager::setTenantId($this->tenant->id);
-        \Illuminate\Support\Facades\Event::fake([\App\Events\TaskUpdated::class]);
+        Event::fake([TaskUpdated::class]);
 
-        $adminRole = \App\Models\Role::firstOrCreate([
+        $adminRole = Role::firstOrCreate([
             'name' => 'ADMIN',
         ], [
             'level' => 'office',
@@ -583,13 +585,13 @@ class BroadcastTest extends TestCase
                     'item_type' => 'MANUFACTURE',
                     'target_qty' => 10,
                     'required_stages' => ['Machining'],
-                ]
-            ]
+                ],
+            ],
         ]);
 
         $response->assertRedirect();
 
-        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\TaskUpdated::class);
+        Event::assertDispatched(TaskUpdated::class);
     }
 
     public function test_dashboard_channel_auth_allows_owner_and_office_roles_blocks_worker()
@@ -603,14 +605,14 @@ class BroadcastTest extends TestCase
         ]);
         require base_path('routes/channels.php');
 
-        $officeRole = \App\Models\Role::firstOrCreate([
+        $officeRole = Role::firstOrCreate([
             'name' => 'STAFF',
         ], [
             'level' => 'office',
             'display_name' => 'Staff',
         ]);
 
-        $workerRole = \App\Models\Role::firstOrCreate([
+        $workerRole = Role::firstOrCreate([
             'name' => 'WORKER',
         ], [
             'level' => 'production',

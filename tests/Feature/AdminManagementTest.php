@@ -6,10 +6,12 @@ use App\Models\Item;
 use App\Models\Po;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\TemporaryPasswordNotification;
 use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class AdminManagementTest extends TestCase
@@ -550,7 +552,7 @@ class AdminManagementTest extends TestCase
 
     public function test_create_admin_during_onboarding()
     {
-        \Illuminate\Support\Facades\Notification::fake();
+        Notification::fake();
 
         $tenant = Tenant::create([
             'company_name' => 'Alpha Corp',
@@ -590,10 +592,9 @@ class AdminManagementTest extends TestCase
         $this->assertFalse($admin->is_owner);
 
         // Assert notification sent
-        \Illuminate\Support\Facades\Notification::assertSentTo(
+        Notification::assertSentTo(
             $admin,
-            \App\Notifications\TemporaryPasswordNotification::class
+            TemporaryPasswordNotification::class
         );
     }
 }
-

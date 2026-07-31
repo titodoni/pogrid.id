@@ -13,6 +13,7 @@ class TaskUpdated implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public int $tenantId;
+
     public string $message;
 
     public function __construct(int $tenantId, string $message)

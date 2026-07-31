@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Alert;
 use App\Models\DeliveryOrder;
-use App\Models\Invoice;
 use App\Models\Item;
 use App\Models\ItemProgress;
 use App\Models\Po;
@@ -14,6 +13,7 @@ use App\Models\TenantStageTemplate;
 use App\Models\User;
 use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class TenantScopeAuditTest extends TestCase
@@ -21,10 +21,15 @@ class TenantScopeAuditTest extends TestCase
     use RefreshDatabase;
 
     protected Tenant $tenantA;
+
     protected Tenant $tenantB;
+
     protected User $userA;
+
     protected User $userB;
+
     protected Role $officeRole;
+
     protected Role $workerRole;
 
     protected function setUp(): void
@@ -232,10 +237,10 @@ class TenantScopeAuditTest extends TestCase
 
     public function test_cross_tenant_websocket_broadcasting_channels_blocked()
     {
-        \Illuminate\Support\Facades\Config::set('broadcasting.default', 'pusher');
-        \Illuminate\Support\Facades\Config::set('broadcasting.connections.pusher.key', 'test_key');
-        \Illuminate\Support\Facades\Config::set('broadcasting.connections.pusher.secret', 'test_secret');
-        \Illuminate\Support\Facades\Config::set('broadcasting.connections.pusher.app_id', 'test_app_id');
+        Config::set('broadcasting.default', 'pusher');
+        Config::set('broadcasting.connections.pusher.key', 'test_key');
+        Config::set('broadcasting.connections.pusher.secret', 'test_secret');
+        Config::set('broadcasting.connections.pusher.app_id', 'test_app_id');
 
         $tenantTarget = Tenant::create([
             'company_name' => 'Target Other Workshop',

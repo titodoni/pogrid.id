@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\ProductionTerminated;
+use App\Events\TaskUpdated;
 use App\Jobs\GenerateSunkCostInvoiceJob;
 use App\Models\Alert;
 use App\Models\Item;
@@ -13,11 +14,14 @@ use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\TenantStageTemplate;
 use App\Models\User;
+use App\Notifications\TemporaryPasswordNotification;
 use App\Services\TenantManager;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -238,7 +242,7 @@ class OwnerDashboardController extends Controller
             }
         });
 
-        broadcast(new \App\Events\TaskUpdated($user->tenant_id, "PO {$request->po_number} ({$request->client_name}) telah diterbitkan ke lantai produksi."))->toOthers();
+        broadcast(new TaskUpdated($user->tenant_id, "PO {$request->po_number} ({$request->client_name}) telah diterbitkan ke lantai produksi."))->toOthers();
 
         $tenantSlug = $user->tenant->slug;
 
@@ -770,7 +774,7 @@ class OwnerDashboardController extends Controller
     {
         $authUser = auth()->user();
 
-        if (!$authUser->isOwner()) {
+        if (! $authUser->isOwner()) {
             abort(403, 'Only owners can create admin users during onboarding.');
         }
 
@@ -785,12 +789,12 @@ class OwnerDashboardController extends Controller
         $adminRoleId = Role::where('name', 'STAFF')->value('id');
         $adminPostId = Post::where('name', 'Admin')->value('id');
 
-        if (!$adminRoleId || !$adminPostId) {
+        if (! $adminRoleId || ! $adminPostId) {
             return back()->withErrors(['email' => 'System roles/posts are not seeded correctly. Please run db seed.']);
         }
 
         // Generate temporary password (at least 8 chars, containing a number)
-        $tempPassword = \Illuminate\Support\Str::random(10) . '1';
+        $tempPassword = Str::random(10).'1';
 
         // Generate a unique username from email
         $usernamePrefix = strstr($request->email, '@', true);
@@ -798,9 +802,9 @@ class OwnerDashboardController extends Controller
         if (empty($usernamePrefix)) {
             $usernamePrefix = 'admin';
         }
-        $username = $usernamePrefix . '_' . \Illuminate\Support\Str::random(4);
+        $username = $usernamePrefix.'_'.Str::random(4);
         while (User::where('username', $username)->exists()) {
-            $username = $usernamePrefix . '_' . \Illuminate\Support\Str::random(4);
+            $username = $usernamePrefix.'_'.Str::random(4);
         }
 
         $adminUser = User::create([
@@ -815,7 +819,14 @@ class OwnerDashboardController extends Controller
         ]);
 
         // Send email with temporary password
-        $adminUser->notify(new \App\Notifications\TemporaryPasswordNotification($tempPassword, $adminUser->email));
+        try {
+            $adminUser->notify(new TemporaryPasswordNotification($tempPassword, $adminUser->email));
+        } catch (\Throwable $e) {
+            Log::error('Failed to send TemporaryPasswordNotification during onboarding: '.$e->getMessage(), [
+                'user_id' => $adminUser->id,
+                'email' => $adminUser->email,
+            ]);
+        }
 
         return back()->with('success', "Admin user {$adminUser->name} created successfully. Temporary password '{$tempPassword}' has been sent to their email.");
     }
@@ -833,4 +844,3 @@ class OwnerDashboardController extends Controller
         ]);
     }
 }
-

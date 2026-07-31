@@ -12,7 +12,7 @@ class EnsureEmailIsVerified
     /**
      * Handle an incoming request.
      */
-    public function handle(Request $request, Closure $next, string $redirectToRoute = null): Response
+    public function handle(Request $request, Closure $next, ?string $redirectToRoute = null): Response
     {
         if (app()->environment('testing')) {
             return $next($request);

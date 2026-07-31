@@ -11,9 +11,7 @@ class RedirectToAppDomain
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -23,10 +21,10 @@ class RedirectToAppDomain
         if (str_ends_with($host, 'pogrid.id')) {
             $isAppSubdomain = str_starts_with($host, 'app.');
 
-            if (!$isAppSubdomain && !in_array($request->path(), ['/', 'terms', 'privacy'])) {
+            if (! $isAppSubdomain && ! in_array($request->path(), ['/', 'terms', 'privacy'])) {
                 // If on main domain (pogrid.id / www.pogrid.id) and requesting app routes (e.g. /login, /register),
                 // redirect them to the same route on app.pogrid.id
-                return redirect('https://app.pogrid.id/' . ltrim($request->getRequestUri(), '/'));
+                return redirect('https://app.pogrid.id/'.ltrim($request->getRequestUri(), '/'));
             }
         }
 

@@ -372,7 +372,7 @@ class PpicDashboardController extends Controller
 
         $po->update([
             'global_deadline' => Carbon::parse($request->global_deadline),
-            'is_urgent' => (bool)$request->is_urgent,
+            'is_urgent' => (bool) $request->is_urgent,
         ]);
 
         return back()->with('flash', [
@@ -394,7 +394,7 @@ class PpicDashboardController extends Controller
         $item = Item::where('id', $itemId)->firstOrFail();
 
         $item->update([
-            'is_urgent' => (bool)$request->is_urgent,
+            'is_urgent' => (bool) $request->is_urgent,
         ]);
 
         return back()->with('flash', [
@@ -402,4 +402,3 @@ class PpicDashboardController extends Controller
         ]);
     }
 }
-

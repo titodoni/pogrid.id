@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\KendalaReported;
 use App\Events\QcReworkLogged;
+use App\Events\TaskUpdated;
 use App\Models\Alert;
 use App\Models\DeliveryOrder;
 use App\Models\DoItem;
@@ -147,12 +148,12 @@ class WorkerDashboardController extends Controller
                 $q->where('is_resolved', false);
             },
         ])
-        ->join('pos', 'items.po_id', '=', 'pos.id')
-        ->select('items.*')
-        ->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty')
-        ->orderBy('items.is_urgent', 'desc')
-        ->orderBy('pos.is_urgent', 'desc')
-        ->orderBy('pos.global_deadline', 'asc');
+            ->join('pos', 'items.po_id', '=', 'pos.id')
+            ->select('items.*')
+            ->withSum('doItems as do_items_sum_delivered_qty', 'delivered_qty')
+            ->orderBy('items.is_urgent', 'desc')
+            ->orderBy('pos.is_urgent', 'desc')
+            ->orderBy('pos.global_deadline', 'asc');
 
         if ($roleName === 'FINANCE') {
             $query->where(function ($q) {
@@ -716,8 +717,8 @@ class WorkerDashboardController extends Controller
                     $q->whereBetween('updated_at', [$startDate, $endDate]);
                 });
         })
-        ->with(['doItems'])
-        ->get();
+            ->with(['doItems'])
+            ->get();
 
         $deliveredManufacture = 0;
         $targetManufacture = 0;
@@ -755,9 +756,9 @@ class WorkerDashboardController extends Controller
                     $q->whereBetween('updated_at', [$prevStartDate, $prevEndDate]);
                 });
         })
-        ->where('item_type', 'MANUFACTURE')
-        ->with(['doItems'])
-        ->get();
+            ->where('item_type', 'MANUFACTURE')
+            ->with(['doItems'])
+            ->get();
 
         $prevDeliveredManufacture = 0;
         $prevTargetManufacture = 0;
@@ -1236,7 +1237,7 @@ class WorkerDashboardController extends Controller
         $posInPeriod = Po::whereBetween('global_deadline', [$startDate->toDateString(), $endDate->toDateString()])
             ->where(function ($query) {
                 $query->where('status', 'COMPLETED')
-                      ->orWhere('global_deadline', '<', now()->toDateString());
+                    ->orWhere('global_deadline', '<', now()->toDateString());
             })
             ->with(['deliveryOrders'])
             ->get();
@@ -1576,17 +1577,17 @@ class WorkerDashboardController extends Controller
                           str_contains($stageLowerForEvent, 'material') || str_contains($stageLowerForEvent, 'bahan') || str_contains($stageLowerForEvent, 'vendor') || str_contains($stageLowerForEvent, 'purchasing');
 
         if ($isCustomStageForEvent) {
-            $msg = "Progress updated for stage '{$progress->stage_name}' to " . round($progress->progress_percent) . "% on item '{$item->item_name}' (PO: {$item->po->po_number}).";
+            $msg = "Progress updated for stage '{$progress->stage_name}' to ".round($progress->progress_percent)."% on item '{$item->item_name}' (PO: {$item->po->po_number}).";
         } else {
             if ($item->target_qty > 1) {
                 $inputQty = (int) $request->input('completed_qty', 0);
                 $msg = "Completed quantity updated for stage '{$progress->stage_name}' by +{$inputQty} ({$progress->completed_qty}/{$item->target_qty}) on item '{$item->item_name}' (PO: {$item->po->po_number}).";
             } else {
-                $msg = "Progress updated for stage '{$progress->stage_name}' to " . round($progress->progress_percent) . "% on item '{$item->item_name}' (PO: {$item->po->po_number}).";
+                $msg = "Progress updated for stage '{$progress->stage_name}' to ".round($progress->progress_percent)."% on item '{$item->item_name}' (PO: {$item->po->po_number}).";
             }
         }
 
-        broadcast(new \App\Events\TaskUpdated($item->tenant_id, $msg))->toOthers();
+        broadcast(new TaskUpdated($item->tenant_id, $msg))->toOthers();
 
         return back()->with('success', 'Progress updated.');
     }
@@ -1675,7 +1676,7 @@ class WorkerDashboardController extends Controller
             }
         }
 
-        broadcast(new \App\Events\TaskUpdated($item->tenant_id, "Last progress update reverted for stage '{$progress->stage_name}' on item '{$item->item_name}' (PO: {$item->po->po_number})."))->toOthers();
+        broadcast(new TaskUpdated($item->tenant_id, "Last progress update reverted for stage '{$progress->stage_name}' on item '{$item->item_name}' (PO: {$item->po->po_number})."))->toOthers();
 
         return back()->with('success', 'Last progress update reverted successfully.');
     }
@@ -1891,7 +1892,7 @@ class WorkerDashboardController extends Controller
             ]);
         }
 
-        broadcast(new \App\Events\TaskUpdated($item->tenant_id, "Drafter status updated to '{$request->drafter_status}' for item '{$item->item_name}' (PO: {$item->po->po_number})."))->toOthers();
+        broadcast(new TaskUpdated($item->tenant_id, "Drafter status updated to '{$request->drafter_status}' for item '{$item->item_name}' (PO: {$item->po->po_number})."))->toOthers();
 
         return back()->with('success', 'Drafter status updated.');
     }
@@ -1933,10 +1934,18 @@ class WorkerDashboardController extends Controller
         }
 
         $updateData = ['purchasing_status' => $request->purchasing_status];
-        if ($request->has('vendor_name')) $updateData['vendor_name'] = $request->vendor_name;
-        if ($request->has('vendor_phone')) $updateData['vendor_phone'] = $request->vendor_phone;
-        if ($request->has('vendor_po')) $updateData['vendor_po'] = $request->vendor_po;
-        if ($request->has('eta_date')) $updateData['eta_date'] = $request->eta_date;
+        if ($request->has('vendor_name')) {
+            $updateData['vendor_name'] = $request->vendor_name;
+        }
+        if ($request->has('vendor_phone')) {
+            $updateData['vendor_phone'] = $request->vendor_phone;
+        }
+        if ($request->has('vendor_po')) {
+            $updateData['vendor_po'] = $request->vendor_po;
+        }
+        if ($request->has('eta_date')) {
+            $updateData['eta_date'] = $request->eta_date;
+        }
 
         $item->update($updateData);
 
@@ -1961,7 +1970,7 @@ class WorkerDashboardController extends Controller
             ]);
         }
 
-        broadcast(new \App\Events\TaskUpdated($item->tenant_id, "Purchasing status updated to '{$request->purchasing_status}' for item '{$item->item_name}' (PO: {$item->po->po_number})."))->toOthers();
+        broadcast(new TaskUpdated($item->tenant_id, "Purchasing status updated to '{$request->purchasing_status}' for item '{$item->item_name}' (PO: {$item->po->po_number})."))->toOthers();
 
         return back()->with('success', 'Purchasing status updated.');
     }
@@ -2044,7 +2053,7 @@ class WorkerDashboardController extends Controller
             }
         }
 
-        broadcast(new \App\Events\TaskUpdated($item->tenant_id, "Finance status updated (Invoice: {$invoiceStatus}, Payment: {$request->payment_status}) for item '{$item->item_name}' (PO: {$item->po->po_number})."))->toOthers();
+        broadcast(new TaskUpdated($item->tenant_id, "Finance status updated (Invoice: {$invoiceStatus}, Payment: {$request->payment_status}) for item '{$item->item_name}' (PO: {$item->po->po_number})."))->toOthers();
 
         return back()->with('success', 'Finance status updated.');
     }

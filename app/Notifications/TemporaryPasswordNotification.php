@@ -3,10 +3,11 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TemporaryPasswordNotification extends Notification
+class TemporaryPasswordNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -29,7 +30,7 @@ class TemporaryPasswordNotification extends Notification
             ->greeting('Halo!')
             ->line('Akun Admin Anda telah didaftarkan di POgrid.id.')
             ->line('Gunakan email Anda untuk masuk dengan password sementara berikut:')
-            ->line('**' . $this->tempPassword . '**')
+            ->line('**'.$this->tempPassword.'**')
             ->action('Login ke Dashboard', $url)
             ->line('Demi keamanan, silakan segera ubah password Anda setelah masuk.');
     }
