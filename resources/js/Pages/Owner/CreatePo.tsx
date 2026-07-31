@@ -190,6 +190,106 @@ const labelStyle: React.CSSProperties = {
 
 const DRAFT_KEY = 'pogrid_po_draft';
 
+const toDDMMYYYY = (isoStr: string) => {
+    if (!isoStr || !/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) return '';
+    const [y, m, d] = isoStr.split('-');
+    return `${d}/${m}/${y}`;
+};
+
+const toISO = (dmyStr: string) => {
+    const cleaned = dmyStr.replace(/[^\d]/g, '');
+    if (cleaned.length === 8) {
+        const d = parseInt(cleaned.substring(0, 2), 10);
+        const m = parseInt(cleaned.substring(2, 4), 10);
+        const y = parseInt(cleaned.substring(4, 8), 10);
+        if (m >= 1 && m <= 12 && d >= 1 && d <= 31 && y >= 1900 && y <= 2100) {
+            return `${y.toString().padStart(4, '0')}-${m.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+        }
+    }
+    return '';
+};
+
+function DateInputDDMMYYYY({ value, onChange, style }: { value: string; onChange: (val: string) => void; style: React.CSSProperties }) {
+    const [displayVal, setDisplayVal] = useState(() => toDDMMYYYY(value));
+
+    useEffect(() => {
+        if (value) {
+            const expected = toDDMMYYYY(value);
+            if (displayVal !== expected && toISO(displayVal) !== value) {
+                setDisplayVal(expected);
+            }
+        } else if (toISO(displayVal) !== '') {
+            setDisplayVal('');
+        }
+    }, [value]);
+
+    const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let input = e.target.value;
+        const digits = input.replace(/\D/g, '');
+        let formatted = '';
+        if (digits.length > 0) {
+            formatted = digits.substring(0, 2);
+            if (digits.length >= 3) {
+                formatted += '/' + digits.substring(2, 4);
+            }
+            if (digits.length >= 5) {
+                formatted += '/' + digits.substring(4, 8);
+            }
+        }
+        setDisplayVal(formatted);
+
+        if (digits.length === 8) {
+            const iso = toISO(formatted);
+            if (iso) {
+                onChange(iso);
+            } else {
+                onChange('');
+            }
+        } else if (digits.length === 0) {
+            onChange('');
+        }
+    };
+
+    return (
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <input
+                type="text"
+                value={displayVal}
+                onChange={handleTextChange}
+                placeholder="DD/MM/YYYY"
+                maxLength={10}
+                required
+                style={{ ...style, width: '100%', paddingRight: '44px' }}
+            />
+            <div style={{ position: 'absolute', right: '12px', display: 'flex', alignItems: 'center', cursor: 'pointer', height: '100%' }}>
+                <input
+                    type="date"
+                    value={value || ''}
+                    onChange={(e) => {
+                        const newIso = e.target.value;
+                        if (newIso) {
+                            onChange(newIso);
+                            setDisplayVal(toDDMMYYYY(newIso));
+                        }
+                    }}
+                    style={{
+                        opacity: 0,
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        width: '100%',
+                        height: '100%',
+                        cursor: 'pointer',
+                        zIndex: 2,
+                    }}
+                    title="Pilih dari Kalender"
+                />
+                <span style={{ fontSize: '18px', zIndex: 1 }}>📅</span>
+            </div>
+        </div>
+    );
+}
+
 export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_templates = [] }: Props) {
     const { errors } = usePage().props;
 
@@ -502,7 +602,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                             <option value="">{t.select_previous_po}</option>
                             {recent_pos.map(po => (
                                 <option key={po.id} value={po.id}>
-                                    {po.po_number} — {po.client_name}{po.created_at ? ` (${po.created_at})` : ''}
+                                    {po.po_number} — {po.client_name}{po.created_at ? ` (${formatDDMMYYYY(po.created_at + 'T00:00:00')})` : ''}
                                 </option>
                             ))}
                         </select>
@@ -645,7 +745,10 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                     onClick={() => {
                                         const d = new Date();
                                         d.setDate(d.getDate() + preset.days);
-                                        setDeliveryDate(d.toISOString().split('T')[0]);
+                                        const year = d.getFullYear();
+                                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                                        const day = String(d.getDate()).padStart(2, '0');
+                                        setDeliveryDate(`${year}-${month}-${day}`);
                                     }}
                                     style={{
                                         padding: '4px 10px',
@@ -662,7 +765,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                 </button>
                             ))}
                         </div>
-                        <input type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} required style={inputStyle} />
+                        <DateInputDDMMYYYY value={deliveryDate} onChange={(val) => setDeliveryDate(val)} style={inputStyle} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <input type="checkbox" id="is_urgent" checked={isUrgent} onChange={(e) => setIsUrgent(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#ef4444', cursor: 'pointer' }} />
