@@ -26,7 +26,7 @@ class RedirectToAppDomain
             if (!$isAppSubdomain && $request->path() !== '/') {
                 // If on main domain (pogrid.id) and requesting any route except '/',
                 // redirect them to the same route on app.pogrid.id
-                return redirect()->secure('https://app.pogrid.id/' . ltrim($request->getRequestUri(), '/'));
+                return redirect('https://app.pogrid.id/' . ltrim($request->getRequestUri(), '/'));
             }
         }
 
