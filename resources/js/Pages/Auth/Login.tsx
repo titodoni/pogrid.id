@@ -12,8 +12,8 @@ const translations = {
     en: {
         title: "POgrid.id",
         subtitle: "Live Progress & Delivery Punctuality Tracker",
-        username_label: "Username",
-        username_placeholder: "Enter username",
+        username_label: "Email",
+        username_placeholder: "Enter email",
         password_label: "Password",
         submit_btn: "Sign In",
         logging_in: "Logging in...",
@@ -29,8 +29,8 @@ const translations = {
     id: {
         title: "POgrid.id",
         subtitle: "Pantau Progres Produksi & Ketepatan Pengiriman",
-        username_label: "Username",
-        username_placeholder: "Masukkan username",
+        username_label: "Email",
+        username_placeholder: "Masukkan email",
         password_label: "Password",
         submit_btn: "Masuk",
         logging_in: "Memproses...",

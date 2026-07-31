@@ -796,15 +796,18 @@ class OwnerDashboardController extends Controller
         // Generate temporary password (at least 8 chars, containing a number)
         $tempPassword = Str::random(10).'1';
 
-        // Generate a unique username from email
-        $usernamePrefix = strstr($request->email, '@', true);
-        $usernamePrefix = preg_replace('/[^A-Za-z0-9_]/', '', $usernamePrefix);
+        // Generate a unique username from name
+        $nameWithoutSpaces = str_replace(' ', '.', strtolower(trim($request->name)));
+        $usernamePrefix = preg_replace('/[^a-z0-9\._]/', '', $nameWithoutSpaces);
         if (empty($usernamePrefix)) {
             $usernamePrefix = 'admin';
         }
-        $username = $usernamePrefix.'_'.Str::random(4);
-        while (User::where('username', $username)->exists()) {
+        $username = $usernamePrefix;
+        if (User::where('username', $username)->exists()) {
             $username = $usernamePrefix.'_'.Str::random(4);
+            while (User::where('username', $username)->exists()) {
+                $username = $usernamePrefix.'_'.Str::random(4);
+            }
         }
 
         $adminUser = User::create([

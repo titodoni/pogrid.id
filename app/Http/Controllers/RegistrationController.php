@@ -67,12 +67,26 @@ class RegistrationController extends Controller
         $staffRoleId = Role::where('name', 'STAFF')->value('id');
         $managerPostId = Post::where('name', 'Manager')->value('id');
 
+        // Generate a unique username from name
+        $nameWithoutSpaces = str_replace(' ', '.', strtolower(trim($request->name)));
+        $usernamePrefix = preg_replace('/[^a-z0-9\._]/', '', $nameWithoutSpaces);
+        if (empty($usernamePrefix)) {
+            $usernamePrefix = 'owner';
+        }
+        $username = $usernamePrefix;
+        if (User::where('username', $username)->exists()) {
+            $username = $usernamePrefix.'_'.Str::random(4);
+            while (User::where('username', $username)->exists()) {
+                $username = $usernamePrefix.'_'.Str::random(4);
+            }
+        }
+
         // Create Owner user
         $user = User::create([
             'tenant_id' => $tenant->id,
             'name' => $request->name,
             'email' => $request->email,
-            'username' => 'owner_'.Str::random(6),
+            'username' => $username,
             'password' => Hash::make($request->password),
             'role_id' => $staffRoleId,
             'post_id' => $managerPostId,
