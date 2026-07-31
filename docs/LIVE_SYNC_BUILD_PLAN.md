@@ -354,3 +354,6 @@ During multi-browser testing across user roles (Admin vs. Worker), real-time not
 3. **Channel Authorization Expansion (`routes/channels.php`)**:
    - *Issue*: PPIC users (role level `production`) were rejected by `tenant.{id}.dashboard` (403 Forbidden), and Office users visiting floor dashboards were blocked from `tenant.{id}.workers`.
    - *Fix*: Permitted PPIC roles on `.dashboard` channel and allowed any authenticated tenant user to subscribe to `.workers`.
+4. **Sender Exclusion & Toast Deduplication (`bootstrap.ts` & Dashboards)**:
+   - *Issue*: When making updates, the user performing the action received multiple echoed notifications on their own screen. This occurred because Inertia v2 executes requests via relative URLs (`/c/...`), which failed `url.startsWith(window.location.origin)` checks, leaving `X-Socket-ID` off requests and breaking `broadcast(...)->toOthers()`. Furthermore, cascaded observer saves fired multiple `DataRefreshed` events simultaneously.
+   - *Fix*: Updated `window.fetch` wrapping in `bootstrap.ts` to evaluate relative URLs as same-origin when injecting `X-Socket-ID`. Added toast deduplication in `setToastQueue` across all dashboards to prevent stacking identical or redundant notifications.

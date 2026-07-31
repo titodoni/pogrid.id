@@ -61,21 +61,37 @@ const echo = new Proxy({} as Echo, {
 // requests via fetch (not axios), so we wrap window.fetch.
 const originalFetch = window.fetch.bind(window);
 
-window.fetch = (input: RequestInfo | URL, init: RequestInit = {}) => {
+window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
     const socketId = actualEcho?.socketId?.() || (echo as any).socketId?.();
-    const url = typeof input === 'string'
-        ? input
-        : input instanceof URL
-            ? input.href
-            : input.url;
+    let urlString = '';
+    let requestHeaders: HeadersInit | undefined;
 
-    if (socketId && typeof url === 'string' && url.startsWith(window.location.origin)) {
-        const headers = new Headers(init.headers);
-        headers.set('X-Socket-ID', socketId);
-        init = { ...init, headers };
+    if (typeof input === 'string') {
+        urlString = input;
+    } else if (input instanceof URL) {
+        urlString = input.href;
+    } else if (input && typeof (input as Request).url === 'string') {
+        urlString = (input as Request).url;
+        requestHeaders = (input as Request).headers;
     }
 
-    return originalFetch(input, init);
+    let isSameOrigin = false;
+    try {
+        const parsed = new URL(urlString, window.location.origin);
+        isSameOrigin = (parsed.origin === window.location.origin);
+    } catch (e) {
+        isSameOrigin = true;
+    }
+
+    if (socketId && isSameOrigin) {
+        const newInit = { ...(init || {}) };
+        const headers = new Headers(newInit.headers || requestHeaders || {});
+        headers.set('X-Socket-ID', socketId);
+        newInit.headers = headers;
+        return originalFetch(input, newInit);
+    }
+
+    return originalFetch(input, init || {});
 };
 
 export default echo;

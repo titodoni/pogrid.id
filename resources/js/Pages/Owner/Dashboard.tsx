@@ -958,7 +958,7 @@ ${locationStr}
         channel.listen('.kendala.reported', (e: any) => {
             const alert = e.alert;
             const entry = { message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => [...prev, entry]);
+            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 8000);
@@ -967,7 +967,7 @@ ${locationStr}
         channel.listen('.alert.escalated', (e: any) => {
             const alert = e.alert;
             const entry = { message: alert?.message || '', severity: 'ALERT', id: alert?.id || Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => [...prev, entry]);
+            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 12000);
@@ -978,7 +978,7 @@ ${locationStr}
         });
         channel.listen('.task.updated', (e: any) => {
             const entry = { message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => [...prev, entry]);
+            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 8000);
@@ -987,7 +987,7 @@ ${locationStr}
         channel.listen('.qc.rework.logged', (e: any) => {
             const alert = e.alert;
             const entry = { message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => [...prev, entry]);
+            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 8000);

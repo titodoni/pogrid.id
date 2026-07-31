@@ -1792,7 +1792,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
         });
         channel.listen('.task.updated', (e: any) => {
             const entry = { message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => [...prev, entry]);
+            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 8000);
@@ -1801,7 +1801,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
         channel.listen('.kendala.reported', (e: any) => {
             const alert = e.alert;
             const entry = { message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => [...prev, entry]);
+            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 8000);
@@ -1810,21 +1810,21 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
         channel.listen('.qc.rework.logged', (e: any) => {
             const alert = e.alert;
             const entry = { message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => [...prev, entry]);
+            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 8000);
             triggerScopedReload(['items']);
         });
         channel.listen('.data.refreshed', () => {
-            // Task 3.3: Named toast on Worker Dashboard
+            // Task 3.3: Named toast on Worker Dashboard (suppress if another notification is already visible or queued)
             const entry = {
                 message: language === 'en' ? 'Data refreshed' : 'Data diperbarui',
                 severity: 'INFO',
                 id: Date.now(),
                 timestamp: Date.now()
             };
-            setToastQueue(prev => [...prev, entry]);
+            setToastQueue(prev => prev.length > 0 ? prev : [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 3000);
