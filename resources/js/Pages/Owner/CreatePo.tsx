@@ -719,17 +719,18 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                 </button>
                             )}
 
+                            {/* Row 1: Item Basic Information */}
                             <div style={{
                                 display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-                                gap: '12px',
-                                marginBottom: '16px',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                gap: '16px',
+                                marginBottom: '22px',
                             }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px' }}>{t.item_name}</label>
+                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--color-pg-text-secondary)', marginBottom: '6px' }}>{t.item_name}</label>
                                     <input type="text" value={item.item_name} onChange={(e) => updateItem(index, 'item_name', e.target.value)} required placeholder="e.g. Shaft Steel" style={{
                                         width: '100%',
-                                        padding: '8px 12px',
+                                        padding: '10px 14px',
                                         backgroundColor: 'var(--color-pg-input)',
                                         border: '1px solid var(--color-pg-border)',
                                         borderRadius: '10px',
@@ -737,21 +738,21 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                         fontSize: '13px',
                                         outline: 'none',
                                         boxSizing: 'border-box',
-                                        minHeight: '40px',
+                                        minHeight: '42px',
                                     }} />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px' }}>{t.item_type}</label>
+                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--color-pg-text-secondary)', marginBottom: '6px' }}>{t.item_type}</label>
                                     <select value={item.item_type} onChange={(e) => updateItem(index, 'item_type', e.target.value)} style={{
                                         width: '100%',
-                                        padding: '8px 12px',
+                                        padding: '10px 14px',
                                         backgroundColor: 'var(--color-pg-input)',
                                         border: '1px solid var(--color-pg-border)',
                                         borderRadius: '10px',
                                         color: 'var(--color-pg-text)',
                                         fontSize: '13px',
                                         outline: 'none',
-                                        minHeight: '40px',
+                                        minHeight: '42px',
                                     }}>
                                         <option value="MANUFACTURE">{t.type_manufacture}</option>
                                         <option value="BUY_OUT">{t.type_buyout}</option>
@@ -759,10 +760,10 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                     </select>
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px' }}>{t.quantity}</label>
+                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--color-pg-text-secondary)', marginBottom: '6px' }}>{t.quantity}</label>
                                     <input type="number" min={1} value={item.target_qty} onChange={(e) => updateItem(index, 'target_qty', parseInt(e.target.value) || 1)} style={{
                                         width: '100%',
-                                        padding: '8px 12px',
+                                        padding: '10px 14px',
                                         backgroundColor: 'var(--color-pg-input)',
                                         border: '1px solid var(--color-pg-border)',
                                         borderRadius: '10px',
@@ -770,90 +771,125 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                         fontSize: '13px',
                                         outline: 'none',
                                         boxSizing: 'border-box',
-                                        minHeight: '40px',
+                                        minHeight: '42px',
                                     }} />
                                 </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '6px' }}>{t.stage_templates}</label>
-                                    <div style={{
-                                        display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '10px',
-                                        padding: '6px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '10px',
-                                    }}>
-                                        {[...TEMPLATES, ...stage_templates.map(st => ({ key: `tenant-${st.id}`, labelEn: st.name, labelId: st.name, stages: st.stages }))].map(tmpl => {
-                                            const isActive = item.required_stages.length === tmpl.stages.length &&
-                                                tmpl.stages.every(s => item.required_stages.includes(s));
-                                            return (
-                                                <button
-                                                    key={tmpl.key}
-                                                    type="button"
-                                                    onClick={() => updateItem(index, 'required_stages', [...tmpl.stages])}
+                            </div>
+
+                            {/* Row 2: Stage Templates */}
+                            <div style={{
+                                marginBottom: '22px',
+                                padding: '16px',
+                                backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                                border: '1px solid var(--color-pg-border)',
+                                borderRadius: '12px',
+                            }}>
+                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--color-pg-text-secondary)', marginBottom: '10px' }}>
+                                    ✨ {t.stage_templates}
+                                </label>
+                                <div style={{
+                                    display: 'flex', gap: '8px', flexWrap: 'wrap',
+                                }}>
+                                    {[...TEMPLATES, ...stage_templates.map(st => ({ key: `tenant-${st.id}`, labelEn: st.name, labelId: st.name, stages: st.stages }))].map(tmpl => {
+                                        const isActive = item.required_stages.length === tmpl.stages.length &&
+                                            tmpl.stages.every(s => item.required_stages.includes(s));
+                                        return (
+                                            <button
+                                                key={tmpl.key}
+                                                type="button"
+                                                onClick={() => updateItem(index, 'required_stages', [...tmpl.stages])}
+                                                style={{
+                                                    padding: '8px 14px',
+                                                    fontSize: '12px',
+                                                    fontWeight: 600,
+                                                    border: isActive ? '1px solid #3b82f6' : '1px solid var(--color-pg-border)',
+                                                    borderRadius: '8px',
+                                                    backgroundColor: isActive ? 'rgba(59, 130, 246, 0.2)' : 'var(--color-pg-surface)',
+                                                    color: isActive ? '#60a5fa' : 'var(--color-pg-text-secondary)',
+                                                    boxShadow: isActive ? '0 0 12px rgba(59, 130, 246, 0.25)' : 'none',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.15s ease',
+                                                }}
+                                            >
+                                                {language === 'en' ? tmpl.labelEn : tmpl.labelId}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Row 3: Tahapan Produksi (Stages Selection) */}
+                            <div>
+                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--color-pg-text-secondary)', marginBottom: '10px' }}>
+                                    {t.stages}
+                                </label>
+                                <div style={{ 
+                                    display: 'grid', 
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', 
+                                    gap: '10px' 
+                                }}>
+                                    {ALL_STAGES.map(stage => {
+                                        const isStageDisabled = 
+                                            (item.item_type === 'BUY_OUT' && (stage === 'Machining' || stage === 'Fabrication')) ||
+                                            (item.item_type === 'MANUFACTURE' && stage === 'Vendor');
+                                        const isSelected = item.required_stages.includes(stage);
+
+                                        return (
+                                            <label key={stage} style={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                gap: '10px', 
+                                                padding: '10px 14px',
+                                                backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.12)' : 'rgba(255, 255, 255, 0.02)',
+                                                border: isSelected ? '1px solid rgba(59, 130, 246, 0.5)' : '1px solid var(--color-pg-border)',
+                                                borderRadius: '10px',
+                                                fontSize: '13px', 
+                                                fontWeight: isSelected ? 600 : 500,
+                                                color: isStageDisabled ? 'var(--color-pg-text-muted)' : isSelected ? '#ffffff' : '#cbd5e1', 
+                                                cursor: isStageDisabled ? 'not-allowed' : 'pointer',
+                                                opacity: isStageDisabled ? 0.4 : 1,
+                                                transition: 'all 0.15s ease',
+                                                boxShadow: isSelected ? '0 2px 8px rgba(59, 130, 246, 0.15)' : 'none',
+                                            }}>
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={isSelected} 
+                                                    disabled={isStageDisabled}
+                                                    onChange={() => {
+                                                        if (isStageDisabled) return;
+                                                        const stages = isSelected
+                                                            ? item.required_stages.filter(s => s !== stage)
+                                                            : [...item.required_stages, stage];
+                                                        updateItem(index, 'required_stages', stages);
+                                                    }} 
                                                     style={{
-                                                        padding: '4px 8px',
-                                                        fontSize: '10px',
-                                                        fontWeight: 700,
-                                                        border: isActive ? '1px solid #818cf8' : '1px solid var(--color-pg-border)',
-                                                        borderRadius: '6px',
-                                                        backgroundColor: isActive ? 'var(--color-pg-primary-glow)' : 'transparent',
-                                                        color: isActive ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
-                                                        cursor: 'pointer',
+                                                        width: '16px',
+                                                        height: '16px',
+                                                        accentColor: '#3b82f6',
+                                                        cursor: isStageDisabled ? 'not-allowed' : 'pointer',
                                                     }}
-                                                >
-                                                    {language === 'en' ? tmpl.labelEn : tmpl.labelId}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-
-                                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px' }}>{t.stages}</label>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
-                                        {ALL_STAGES.map(stage => {
-                                            const isStageDisabled = 
-                                                (item.item_type === 'BUY_OUT' && (stage === 'Machining' || stage === 'Fabrication')) ||
-                                                (item.item_type === 'MANUFACTURE' && stage === 'Vendor');
-
-                                            return (
-                                                <label key={stage} style={{ 
-                                                    display: 'flex', 
-                                                    alignItems: 'center', 
-                                                    gap: '4px', 
-                                                    fontSize: '12px', 
-                                                    color: isStageDisabled ? 'var(--color-pg-text-muted)' : '#e2e8f0', 
-                                                    cursor: isStageDisabled ? 'not-allowed' : 'pointer',
-                                                    opacity: isStageDisabled ? 0.5 : 1
-                                                }}>
-                                                    <input 
-                                                        type="checkbox" 
-                                                        checked={item.required_stages.includes(stage)} 
-                                                        disabled={isStageDisabled}
-                                                        onChange={() => {
-                                                            if (isStageDisabled) return;
-                                                            const stages = item.required_stages.includes(stage)
-                                                                ? item.required_stages.filter(s => s !== stage)
-                                                                : [...item.required_stages, stage];
-                                                            updateItem(index, 'required_stages', stages);
-                                                        }} 
-                                                    />
-                                                    {stage === 'Machining' ? t.cnc : stage === 'Fabrication' ? t.fabrication : stage === 'Design' ? t.design : stage === 'Material' ? t.material : stage === 'Assembly' ? t.assembly : stage === 'Surface Treatment' ? t.surface : stage === 'QC' ? t.qc : stage === 'Delivery' ? t.delivery : t.vendor}
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
+                                                />
+                                                <span>{stage === 'Machining' ? t.cnc : stage === 'Fabrication' ? t.fabrication : stage === 'Design' ? t.design : stage === 'Material' ? t.material : stage === 'Assembly' ? t.assembly : stage === 'Surface Treatment' ? t.surface : stage === 'QC' ? t.qc : stage === 'Delivery' ? t.delivery : t.vendor}</span>
+                                            </label>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
                             {item.required_stages.includes('Vendor') && (
                                 <div style={{
                                     display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-                                    gap: '12px',
-                                    paddingTop: '12px',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                    gap: '16px',
+                                    marginTop: '20px',
+                                    paddingTop: '20px',
                                     borderTop: '1px solid var(--color-pg-border)',
                                 }}>
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px' }}>{t.vendor_name}</label>
+                                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--color-pg-text-secondary)', marginBottom: '6px' }}>{t.vendor_name}</label>
                                         <input type="text" value={item.vendor_name || ''} onChange={(e) => updateItem(index, 'vendor_name', e.target.value)} placeholder={t.vendor_name} style={{
                                             width: '100%',
-                                            padding: '8px 12px',
+                                            padding: '10px 14px',
                                             backgroundColor: 'var(--color-pg-input)',
                                             border: '1px solid var(--color-pg-border)',
                                             borderRadius: '10px',
@@ -861,14 +897,14 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                             fontSize: '13px',
                                             outline: 'none',
                                             boxSizing: 'border-box',
-                                            minHeight: '40px',
+                                            minHeight: '42px',
                                         }} />
                                     </div>
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px' }}>{t.vendor_phone}</label>
+                                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--color-pg-text-secondary)', marginBottom: '6px' }}>{t.vendor_phone}</label>
                                         <input type="text" value={item.vendor_phone || ''} onChange={(e) => updateItem(index, 'vendor_phone', e.target.value)} placeholder={t.vendor_phone} style={{
                                             width: '100%',
-                                            padding: '8px 12px',
+                                            padding: '10px 14px',
                                             backgroundColor: 'var(--color-pg-input)',
                                             border: '1px solid var(--color-pg-border)',
                                             borderRadius: '10px',
@@ -876,7 +912,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                             fontSize: '13px',
                                             outline: 'none',
                                             boxSizing: 'border-box',
-                                            minHeight: '40px',
+                                            minHeight: '42px',
                                         }} />
                                     </div>
                                 </div>
