@@ -100,3 +100,50 @@ Controller error flow: `AuthController::login()` checks user existence first (by
 - Theme System: `pogrid_theme` in `localStorage` toggles theme classes on `html` (`theme-default`, `theme-linear`, `theme-vercel`, `theme-stripe`, `theme-github`, `theme-nordic`, `theme-light` [Mint Cream], `theme-brand`). All components use semantic CSS custom properties (`--color-pg-surface`, `--color-pg-border`, `--color-pg-text`, `--color-pg-text-muted`).
 - Unified Worker Navigation: All worker/kiosk views share `WorkerHeader.tsx` for layout consistency and quick theme switching.
 - Date Formatting: Standardized UI date representations to `dd/mm/yyyy` via `resources/js/Utils/date.ts`.
+
+## Deployment (Production)
+
+**Host**: Hostinger shared hosting at `153.92.8.145`, port `65002`.
+
+**SSH access** (key-based, no password):
+```
+ssh -p 65002 -i ~/.ssh/id_ed25519 u173210759@153.92.8.145
+```
+Script shortcut: `deploy/ssh_connect.sh`.
+
+**Server paths**:
+- App root: `/home/u173210759/domains/pogrid.id/public_html/app/`
+- PHP binary: `/usr/bin/php` (PHP 8.4)
+- Artisan: `cd domains/pogrid.id/public_html/app && php artisan ...`
+
+**Deploy files** (rsync from local):
+```bash
+npm run build && \
+rsync -avz -e 'ssh -p 65002 -i ~/.ssh/id_ed25519' \
+  --exclude 'storage' --exclude 'bootstrap/cache/*.php' \
+  --exclude '.env' --exclude 'node_modules' --exclude '.git' \
+  --exclude 'deploy' \
+  /home/tito/pogrid/ \
+  u173210759@153.92.8.145:/home/u173210759/domains/pogrid.id/public_html/app/
+```
+
+**Clear & rebuild cache** (after every deploy):
+```bash
+ssh -p 65002 -i ~/.ssh/id_ed25519 u173210759@153.92.8.145 \
+  'cd domains/pogrid.id/public_html/app && php artisan optimize:clear && php artisan view:cache && php artisan config:cache && php artisan route:cache'
+```
+
+**Production .env**: stored at `deploy/.env` (not committed). Key differences from dev:
+- `APP_ENV=production`, `APP_DEBUG=false`
+- `APP_URL=https://app.pogrid.id`
+- DB: Neon.tech PostgreSQL (`DB_CONNECTION=pgsql`)
+- Session/Cache/Queue: SQLite (local)
+- Broadcast: Pusher (live)
+- Mail: Hostinger SMTP (`smtp.hostinger.com:465`, SSL, `admin@pogrid.id`)
+
+**Domains**: Landing page at `pogrid.id`, app at `app.pogrid.id`. Route logic in `routes/web.php` redirects app subdomain to `/login`, serves React Landing on main domain.
+
+**Troubleshooting**:
+- "Application Error" / "Service Provider not found" → SSH in, run `php artisan optimize:clear`.
+- Queue/cron: `php artisan queue:work --stop-when-empty` (1-min cron, no daemon).
+- Email links: check `storage/logs/laravel.log` if mail driver is `log`.
