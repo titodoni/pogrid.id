@@ -98,16 +98,16 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
         if (!id) return;
 
         const channel = echo.private(`tenant.${id}.workers`);
-        channel.listen('kendala.reported', () => {
+        channel.listen('.kendala.reported', () => {
             router.reload({ only: ['alerts'], preserveState: true, preserveScroll: true });
         });
-        channel.listen('qc.rework.logged', () => {
+        channel.listen('.qc.rework.logged', () => {
             router.reload({ only: ['alerts'], preserveState: true, preserveScroll: true });
         });
-        channel.listen('alert.escalated', () => {
+        channel.listen('.alert.escalated', () => {
             router.reload({ only: ['alerts'], preserveState: true, preserveScroll: true });
         });
-        channel.listen('data.refreshed', () => {
+        channel.listen('.data.refreshed', () => {
             router.reload({ only: ['alerts'], preserveState: true, preserveScroll: true });
         });
 

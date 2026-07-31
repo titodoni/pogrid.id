@@ -1721,7 +1721,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
     const [wsStatus, setWsStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
     const reloadTimeoutRef = useRef<any>(null);
 
-    const triggerScopedReload = useCallback((onlyKeys: string[] = ['pos', 'alerts']) => {
+    const triggerScopedReload = useCallback((onlyKeys: string[] = ['items']) => {
         if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
         reloadTimeoutRef.current = setTimeout(() => {
             router.reload({
@@ -1779,44 +1779,44 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
         } else {
             setWsStatus('disconnected');
             fallbackInterval = setInterval(() => {
-                router.reload({ only: ['pos', 'alerts'], preserveState: true, preserveScroll: true });
+                router.reload({ only: ['items'], preserveState: true, preserveScroll: true });
             }, 30000);
         }
 
         const channel = echo.private(`tenant.${id}.workers`);
-        channel.listen('production.terminated', (e: any) => {
+        channel.listen('.production.terminated', (e: any) => {
             setFrozen({ itemName: e.item?.item_name || '' });
             setTimeout(() => {
                 router.visit(`/c/${slug}`);
             }, 10000);
         });
-        channel.listen('task.updated', (e: any) => {
+        channel.listen('.task.updated', (e: any) => {
             const entry = { message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() };
             setToastQueue(prev => [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 8000);
-            triggerScopedReload(['pos', 'alerts']);
+            triggerScopedReload(['items']);
         });
-        channel.listen('kendala.reported', (e: any) => {
+        channel.listen('.kendala.reported', (e: any) => {
             const alert = e.alert;
             const entry = { message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() };
             setToastQueue(prev => [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 8000);
-            router.reload({ only: ['alerts'], preserveState: true, preserveScroll: true });
+            router.reload({ only: ['items'], preserveState: true, preserveScroll: true });
         });
-        channel.listen('qc.rework.logged', (e: any) => {
+        channel.listen('.qc.rework.logged', (e: any) => {
             const alert = e.alert;
             const entry = { message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() };
             setToastQueue(prev => [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 8000);
-            triggerScopedReload(['alerts', 'pos']);
+            triggerScopedReload(['items']);
         });
-        channel.listen('data.refreshed', () => {
+        channel.listen('.data.refreshed', () => {
             // Task 3.3: Named toast on Worker Dashboard
             const entry = {
                 message: language === 'en' ? 'Data refreshed' : 'Data diperbarui',
@@ -1828,7 +1828,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 3000);
-            triggerScopedReload(['pos', 'alerts']);
+            triggerScopedReload(['items']);
         });
 
         return () => {

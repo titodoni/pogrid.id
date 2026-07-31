@@ -345,10 +345,10 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
         }
 
         const channel = echo.private(`tenant.${id}.dashboard`);
-        channel.listen('production.terminated', () => {
+        channel.listen('.production.terminated', () => {
             router.visit(`/c/${slug}`);
         });
-        channel.listen('task.updated', (e: any) => {
+        channel.listen('.task.updated', (e: any) => {
             const entry = { message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() };
             setToastQueue(prev => [...prev, entry]);
             setTimeout(() => {
@@ -356,7 +356,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
             }, 8000);
             triggerScopedReload();
         });
-        channel.listen('kendala.reported', (e: any) => {
+        channel.listen('.kendala.reported', (e: any) => {
             const alert = e.alert;
             const entry = { message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() };
             setToastQueue(prev => [...prev, entry]);
@@ -365,7 +365,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
             }, 8000);
             triggerScopedReload();
         });
-        channel.listen('qc.rework.logged', (e: any) => {
+        channel.listen('.qc.rework.logged', (e: any) => {
             const alert = e.alert;
             const entry = { message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() };
             setToastQueue(prev => [...prev, entry]);
@@ -374,7 +374,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
             }, 8000);
             triggerScopedReload();
         });
-        channel.listen('data.refreshed', () => {
+        channel.listen('.data.refreshed', () => {
             triggerScopedReload();
         });
 

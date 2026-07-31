@@ -8,7 +8,7 @@ Broadcast::channel('tenant.{tenantId}.dashboard', function (User $user, int $ten
         return false;
     }
 
-    return $user->is_owner || $user->role_level === 'office';
+    return $user->is_owner || $user->role_level === 'office' || strcasecmp($user->role_name, 'PPIC') === 0 || strcasecmp($user->post_name ?? '', 'PPIC') === 0;
 });
 
 Broadcast::channel('tenant.{tenantId}.workers', function (User $user, int $tenantId) {
@@ -16,7 +16,7 @@ Broadcast::channel('tenant.{tenantId}.workers', function (User $user, int $tenan
         return false;
     }
 
-    return $user->role_level === 'production';
+    return true;
 });
 
 Broadcast::channel('tenant.{tenantId}.presence', function (User $user, int $tenantId) {

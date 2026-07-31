@@ -896,7 +896,7 @@ ${locationStr}
     const [wsStatus, setWsStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
     const reloadTimeoutRef = useRef<any>(null);
 
-    const triggerScopedReload = useCallback((onlyKeys: string[] = ['pos', 'alerts']) => {
+    const triggerScopedReload = useCallback((onlyKeys: string[] = ['pos', 'alerts', 'telemetry']) => {
         if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
         reloadTimeoutRef.current = setTimeout(() => {
             router.reload({
@@ -950,51 +950,51 @@ ${locationStr}
         } else {
             setWsStatus('disconnected');
             fallbackInterval = setInterval(() => {
-                router.reload({ only: ['pos', 'alerts'], preserveState: true, preserveScroll: true });
+                router.reload({ only: ['pos', 'alerts', 'telemetry'], preserveState: true, preserveScroll: true });
             }, 30000);
         }
 
         const channel = echo.private(`tenant.${tenantId}.dashboard`);
-        channel.listen('kendala.reported', (e: any) => {
+        channel.listen('.kendala.reported', (e: any) => {
             const alert = e.alert;
             const entry = { message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() };
             setToastQueue(prev => [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 8000);
-            router.reload({ only: ['alerts', 'pos'], preserveState: true, preserveScroll: true });
+            router.reload({ only: ['alerts', 'pos', 'telemetry'], preserveState: true, preserveScroll: true });
         });
-        channel.listen('alert.escalated', (e: any) => {
+        channel.listen('.alert.escalated', (e: any) => {
             const alert = e.alert;
             const entry = { message: alert?.message || '', severity: 'ALERT', id: alert?.id || Date.now(), timestamp: Date.now() };
             setToastQueue(prev => [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 12000);
-            triggerScopedReload(['alerts']);
+            triggerScopedReload(['alerts', 'pos', 'telemetry']);
         });
-        channel.listen('production.terminated', () => {
-            router.reload({ only: ['pos', 'alerts'], preserveState: true, preserveScroll: true });
+        channel.listen('.production.terminated', () => {
+            router.reload({ only: ['pos', 'alerts', 'telemetry'], preserveState: true, preserveScroll: true });
         });
-        channel.listen('task.updated', (e: any) => {
+        channel.listen('.task.updated', (e: any) => {
             const entry = { message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() };
             setToastQueue(prev => [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 8000);
-            triggerScopedReload(['pos', 'alerts']);
+            triggerScopedReload(['pos', 'alerts', 'telemetry']);
         });
-        channel.listen('qc.rework.logged', (e: any) => {
+        channel.listen('.qc.rework.logged', (e: any) => {
             const alert = e.alert;
             const entry = { message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() };
             setToastQueue(prev => [...prev, entry]);
             setTimeout(() => {
                 setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
             }, 8000);
-            triggerScopedReload(['alerts', 'pos']);
+            triggerScopedReload(['alerts', 'pos', 'telemetry']);
         });
-        channel.listen('data.refreshed', () => {
-            triggerScopedReload(['pos', 'alerts']);
+        channel.listen('.data.refreshed', () => {
+            triggerScopedReload(['pos', 'alerts', 'telemetry']);
         });
 
         return () => {

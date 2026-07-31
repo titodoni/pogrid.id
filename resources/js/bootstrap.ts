@@ -27,6 +27,7 @@ export function initializeEcho(key: string, cluster: string) {
         key: key || import.meta.env.VITE_PUSHER_APP_KEY || '',
         cluster: cluster || import.meta.env.VITE_PUSHER_APP_CLUSTER || '',
         forceTLS: true,
+        namespace: '',
     });
     window.LaravelEchoInstance = actualEcho;
     return actualEcho;

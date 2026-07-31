@@ -336,5 +336,21 @@ Phase 1 (Queue) → Phase 2 (Presence) → Phase 3 (Smart Reload) → Phase 4 (H
 
 ---
 
-*Last updated: 2026-07-21*
+*Last updated: 2026-07-31 (Live Sync Audit & Remediation)*
 *Cross-reference: `NEXT_TODO.md` §4 Realtime Push, `TODO.md` §BACKLOG Pusher live toast*
+
+---
+
+## 🛠️ Live Sync Audit & Remediation Log (2026-07-31)
+
+During multi-browser testing across user roles (Admin vs. Worker), real-time notifications and state synchronization required manual page refreshes. A full architectural audit revealed and resolved three critical gaps:
+
+1. **Event Name Namespace Matching (`bootstrap.ts` & Echo listeners)**:
+   - *Issue*: Custom events emitted via `broadcastAs()` (e.g. `task.updated`, `data.refreshed`) were not matching because Laravel Echo prepended `App\Events\` by default.
+   - *Fix*: Set `namespace: ''` in Echo client options in `bootstrap.ts` and explicitly prefixed all custom event names with a dot (`.task.updated`, `.data.refreshed`, etc.) across all four dashboard and report components.
+2. **Worker Dashboard Partial Reload Props (`Worker/Dashboard.tsx`)**:
+   - *Issue*: Worker Dashboard listeners called `router.reload({ only: ['pos', 'alerts'] })`, ignoring the actual table data prop (`items`), leaving floor task tables stale when Admin added POs or peers updated jobs.
+   - *Fix*: Updated all reload operations on Worker Dashboard to target `only: ['items']`. Added `telemetry` to Owner Dashboard partial reloads.
+3. **Channel Authorization Expansion (`routes/channels.php`)**:
+   - *Issue*: PPIC users (role level `production`) were rejected by `tenant.{id}.dashboard` (403 Forbidden), and Office users visiting floor dashboards were blocked from `tenant.{id}.workers`.
+   - *Fix*: Permitted PPIC roles on `.dashboard` channel and allowed any authenticated tenant user to subscribe to `.workers`.
