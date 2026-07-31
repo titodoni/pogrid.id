@@ -291,59 +291,69 @@ export default function Landing() {
                 position: 'relative',
                 maxWidth: '1120px',
                 margin: '0 auto',
-                padding: '48px 20px 40px',
+                padding: '48px 16px 40px',
                 overflow: 'hidden',
+                boxSizing: 'border-box',
             }}>
-                <div className="hero-grid" style={{ position: 'relative', zIndex: 1 }}>
+                <div className="hero-grid" style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '100%', minWidth: 0 }}>
                     {/* Hero Left Column (Copy) */}
-                    <div style={{ textAlign: 'left' }}>
+                    <div style={{ textAlign: 'left', width: '100%', maxWidth: '100%', minWidth: 0, overflow: 'hidden', wordBreak: 'break-word' as const }}>
                         <span style={{
                             display: 'inline-block',
-                            fontSize: '12px',
+                            fontSize: '11px',
                             fontWeight: 600,
                             color: '#818cf8',
                             backgroundColor: 'rgba(99, 102, 241, 0.1)',
                             border: '1px solid rgba(99, 102, 241, 0.25)',
-                            padding: '6px 14px',
+                            padding: '6px 12px',
                             borderRadius: '999px',
-                            marginBottom: '20px',
+                            marginBottom: '16px',
+                            maxWidth: '100%',
+                            whiteSpace: 'normal' as const,
+                            lineHeight: 1.4,
                         }}>{t.eyebrow}</span>
 
                         <h1 style={{
-                            fontSize: 'clamp(30px, 5.5vw, 48px)',
-                            lineHeight: 1.12,
+                            fontSize: 'clamp(24px, 6vw, 48px)',
+                            lineHeight: 1.15,
                             fontWeight: 800,
                             letterSpacing: '-0.03em',
-                            margin: '0 0 20px',
+                            margin: '0 0 16px',
                             color: '#ffffff',
+                            wordBreak: 'break-word' as const,
+                            overflowWrap: 'break-word' as const,
                         }}>
                             {t.hero_title}
                         </h1>
 
                         <p style={{
-                            fontSize: 'clamp(15px, 2vw, 17px)',
+                            fontSize: 'clamp(14px, 2vw, 17px)',
                             lineHeight: 1.6,
                             color: '#94a3b8',
-                            margin: '0 0 32px',
-                            maxWidth: '600px',
+                            margin: '0 0 24px',
+                            maxWidth: '100%',
+                            wordBreak: 'break-word' as const,
                         }}>
                             Operator input progres pengerjaan lewat HP pakai <span style={{ color: '#f0f4f8', fontWeight: 700 }}>PIN 4 digit</span>. Owner pantau mana PO yang <span style={{ color: '#10b981', fontWeight: 700 }}>Aman</span>, <span style={{ color: '#f59e0b', fontWeight: 700 }}>Rawan</span>, atau bakal <MarkerUnderline>Kena Pinalti Telat Kirim</MarkerUnderline>.
                         </p>
 
-                        <div className="btn-responsive-group" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+                        <div className="btn-responsive-group" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px', maxWidth: '100%' }}>
                             <a href={appUrl('/register')} style={{
                                 backgroundColor: '#6366f1',
                                 color: '#ffffff',
                                 fontWeight: 700,
                                 fontSize: '15px',
-                                padding: '14px 26px',
+                                padding: '14px 24px',
                                 borderRadius: '10px',
                                 textDecoration: 'none',
-                                display: 'inline-flex',
+                                display: 'flex',
                                 alignItems: 'center',
+                                justifyContent: 'center',
                                 gap: '8px',
                                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
                                 transition: 'background-color 0.15s ease',
+                                boxSizing: 'border-box' as const,
+                                width: '100%',
                             }}
                             onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#818cf8'}
                             onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#6366f1'}
@@ -357,13 +367,16 @@ export default function Landing() {
                                 border: '1px solid #f0f4f8',
                                 fontWeight: 600,
                                 fontSize: '15px',
-                                padding: '14px 22px',
+                                padding: '14px 20px',
                                 borderRadius: '10px',
                                 textDecoration: 'none',
-                                display: 'inline-flex',
+                                display: 'flex',
                                 alignItems: 'center',
+                                justifyContent: 'center',
                                 gap: '8px',
                                 transition: 'background-color 0.2s, color 0.2s',
+                                boxSizing: 'border-box' as const,
+                                width: '100%',
                             }}
                             onMouseOver={(e) => {
                                 e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
@@ -377,13 +390,14 @@ export default function Landing() {
                             </a>
                         </div>
 
-                        <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 20px' }}>{t.hero_note}</p>
+                        <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 16px', lineHeight: 1.5, wordBreak: 'break-word' as const }}>{t.hero_note}</p>
 
                         {/* Centered Stats in left column or bottom */}
-                        <div style={{
+                        <div className="hero-stats-grid" style={{
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                            gap: '12px',
+                            gap: '10px',
+                            width: '100%',
+                            minWidth: 0,
                             maxWidth: '560px',
                         }}>
                             {[
@@ -515,8 +529,10 @@ export default function Landing() {
                  </div>
                  <div style={{
                      display: 'grid',
-                     gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                     gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
                      gap: '16px',
+                     width: '100%',
+                     minWidth: 0,
                  }}>
                      {t.pain_items.map((p, i) => (
                          <div key={i} style={{
@@ -550,7 +566,7 @@ export default function Landing() {
                      <h2 style={h2}>{t.how_title}</h2>
                      <p style={sub}>{t.how_sub}</p>
                  </div>
-                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', position: 'relative' }}>
+                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', position: 'relative', width: '100%', minWidth: 0 }}>
                      {t.steps.map((s, i) => (
                          <div key={i} style={{
                              position: 'relative',
@@ -583,7 +599,7 @@ export default function Landing() {
                      <h2 style={h2}>{t.feat_title}</h2>
                      <p style={sub}>{t.feat_sub}</p>
                  </div>
-                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', width: '100%', minWidth: 0 }}>
                      {t.features.map((f, i) => (
                          <div key={i} style={{
                              backgroundColor: 'rgba(255,255,255,0.04)',
@@ -616,7 +632,7 @@ export default function Landing() {
                      <h2 style={h2}>{t.proof_title}</h2>
                      <p style={sub}>{t.proof_sub}</p>
                  </div>
-                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '28px', width: '100%', minWidth: 0 }}>
                      {t.proof_items.map((p, i) => (
                          <div key={i} style={{
                              backgroundColor: '#18181b',
@@ -830,19 +846,45 @@ export default function Landing() {
                 @media (min-width: 860px) {
                     .pg-nav-desktop { display: flex !important; }
                 }
+
+                /* Hero stats grid - 1 column on mobile, 3 on wider */
+                .hero-stats-grid {
+                    grid-template-columns: 1fr 1fr;
+                }
+                @media (min-width: 480px) {
+                    .hero-stats-grid {
+                        grid-template-columns: repeat(3, 1fr);
+                    }
+                }
+
+                /* CTA buttons - full-width column on mobile, row on desktop */
+                @media (min-width: 520px) {
+                    .btn-responsive-group {
+                        flex-direction: row !important;
+                    }
+                    .btn-responsive-group > a {
+                        width: auto !important;
+                    }
+                }
+
+                /* Prevent any grid child from overflowing */
+                * { box-sizing: border-box; }
                 
                 /* Hero layout grid */
                 .hero-grid {
                     display: grid;
-                    grid-template-columns: 1fr;
-                    gap: 48px;
+                    grid-template-columns: minmax(0, 1fr);
+                    gap: 36px;
                     align-items: center;
-                    text-align: center;
+                    text-align: left;
+                    width: 100%;
+                    max-width: 100%;
+                    min-width: 0;
                 }
                 @media (min-width: 860px) {
                     .hero-grid {
-                        grid-template-columns: 1.15fr 0.85fr;
-                        text-align: left;
+                        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+                        gap: 48px;
                     }
                 }
 
@@ -850,12 +892,17 @@ export default function Landing() {
                 .hero-visual {
                     display: flex;
                     justify-content: center;
+                    align-items: center;
                     position: relative;
                     z-index: 1;
+                    width: 100%;
+                    max-width: 100%;
+                    min-width: 0;
                 }
                 @media (max-width: 859px) {
                     .hero-visual {
-                        order: -1; /* Display mockup above text on mobile */
+                        order: 2; /* Display mockup cleanly below text & CTA buttons on mobile */
+                        margin-top: 10px;
                         margin-bottom: 20px;
                     }
                 }
