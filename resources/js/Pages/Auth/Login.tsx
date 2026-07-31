@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { useForm, Link } from '@inertiajs/react';
 
+function landingUrl(): string {
+    if (typeof window !== 'undefined' && window.location.hostname.endsWith('pogrid.id')) {
+        return 'https://pogrid.id/';
+    }
+    return '/';
+}
+
 const translations = {
     en: {
         title: "POgrid.id",
@@ -84,8 +91,8 @@ export default function Login() {
             overflow: 'hidden',
         }}>
             {/* Back Button */}
-            <Link
-                href="/"
+            <a
+                href={landingUrl()}
                 style={{
                     position: 'absolute',
                     top: '16px',
@@ -118,7 +125,7 @@ export default function Login() {
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
                 {t.back_to_home}
-            </Link>
+            </a>
 
             {/* Glowing background shapes */}
             <div style={{

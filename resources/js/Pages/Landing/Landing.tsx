@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Head } from '@inertiajs/react';
 
+function appUrl(path: string): string {
+    if (typeof window === 'undefined') return path;
+    const search = window.location.search || '';
+    if (window.location.hostname.endsWith('pogrid.id') || window.location.hostname.endsWith('www.pogrid.id')) {
+        return `https://app.pogrid.id${path}${search}`;
+    }
+    return `${path}${search}`;
+}
+
 const id = {
     brand: 'POgrid.id',
     nav_product: 'Fitur',
@@ -252,8 +261,8 @@ export default function Landing() {
                     </nav>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Link href="/login" style={{ ...navLink, display: 'none' }} className="pg-nav-desktop">{t.login}</Link>
-                        <Link href="/register" style={{
+                        <a href={appUrl('/login')} style={{ ...navLink, display: 'none' }} className="pg-nav-desktop">{t.login}</a>
+                        <a href={appUrl('/register')} style={{
                             backgroundColor: '#6366f1',
                             color: '#ffffff',
                             fontWeight: 700,
@@ -272,7 +281,7 @@ export default function Landing() {
                         >
                             {t.cta}
                             <ArrowRight size={15} />
-                        </Link>
+                        </a>
                     </div>
                 </div>
             </header>
@@ -322,7 +331,7 @@ export default function Landing() {
                         </p>
 
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
-                            <Link href="/register" style={{
+                            <a href={appUrl('/register')} style={{
                                 backgroundColor: '#6366f1',
                                 color: '#ffffff',
                                 fontWeight: 700,
@@ -341,7 +350,7 @@ export default function Landing() {
                             >
                                 {t.hero_cta_primary}
                                 <ArrowRight size={17} />
-                            </Link>
+                            </a>
                             <a href="#cara" style={{
                                 backgroundColor: 'transparent',
                                 color: '#f0f4f8',
@@ -664,7 +673,7 @@ export default function Landing() {
                              </li>
                          ))}
                      </ul>
-                     <Link href="/register" style={{
+                     <a href={appUrl('/register')} style={{
                          display: 'flex', width: '100%', justifyContent: 'center',
                          backgroundColor: '#6366f1',
                          color: '#ffffff', fontWeight: 700, fontSize: '16px',
@@ -678,7 +687,7 @@ export default function Landing() {
                      >
                          {t.price_cta}
                          <ArrowRight size={18} />
-                     </Link>
+                     </a>
                  </div>
              </section>
 
@@ -748,7 +757,7 @@ export default function Landing() {
                  }}>
                      <h2 style={{ fontSize: 'clamp(26px, 5vw, 38px)', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 12px', color: '#fafafa' }}>{t.final_title}</h2>
                      <p style={{ fontSize: '16px', color: '#a1a1aa', margin: '0 auto 28px', maxWidth: '520px', lineHeight: 1.55 }}>{t.final_sub}</p>
-                     <Link href="/register" style={{
+                     <a href={appUrl('/register')} style={{
                          display: 'inline-flex', alignItems: 'center', gap: '8px',
                          backgroundColor: '#6366f1', color: '#ffffff',
                          fontWeight: 700, fontSize: '16px', padding: '16px 32px',
@@ -761,7 +770,7 @@ export default function Landing() {
                      >
                          {t.final_cta}
                          <ArrowRight size={18} />
-                     </Link>
+                     </a>
                  </div>
              </section>
 
@@ -794,7 +803,7 @@ export default function Landing() {
                         <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t.footer_company}</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {t.footer_links_company.map((l, i) => (
-                                <li key={i}><a href={i === 0 ? '/login' : '/register'} style={footerLink}>{l}</a></li>
+                                <li key={i}><a href={appUrl(i === 0 ? '/login' : '/register')} style={footerLink}>{l}</a></li>
                             ))}
                         </ul>
                     </div>

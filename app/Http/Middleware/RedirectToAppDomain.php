@@ -23,8 +23,8 @@ class RedirectToAppDomain
         if (str_ends_with($host, 'pogrid.id')) {
             $isAppSubdomain = str_starts_with($host, 'app.');
 
-            if (!$isAppSubdomain && $request->path() !== '/') {
-                // If on main domain (pogrid.id) and requesting any route except '/',
+            if (!$isAppSubdomain && !in_array($request->path(), ['/', 'terms', 'privacy'])) {
+                // If on main domain (pogrid.id / www.pogrid.id) and requesting app routes (e.g. /login, /register),
                 // redirect them to the same route on app.pogrid.id
                 return redirect('https://app.pogrid.id/' . ltrim($request->getRequestUri(), '/'));
             }
