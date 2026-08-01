@@ -15,6 +15,7 @@ use App\Observers\DataSyncObserver;
 use App\Observers\DoItemObserver;
 use App\Observers\ItemObserver;
 use App\Observers\ItemProgressObserver;
+use App\Services\TenantManager;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
@@ -101,14 +102,14 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Inertia::share('tenant', function () {
-            $tenantId = \App\Services\TenantManager::getTenantId();
+            $tenantId = TenantManager::getTenantId();
             if (! $tenantId && auth()->check()) {
                 $tenantId = auth()->user()->tenant_id;
             }
             if ($tenantId) {
-                \App\Services\TenantManager::bypass();
+                TenantManager::bypass();
                 $tenant = Tenant::find($tenantId);
-                \App\Services\TenantManager::enableScope();
+                TenantManager::enableScope();
                 if ($tenant) {
                     return [
                         'id' => $tenant->id,
@@ -120,6 +121,7 @@ class AppServiceProvider extends ServiceProvider
                     ];
                 }
             }
+
             return null;
         });
     }

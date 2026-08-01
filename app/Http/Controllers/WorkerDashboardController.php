@@ -1692,7 +1692,11 @@ class WorkerDashboardController extends Controller
         ]);
 
         $progress = ItemProgress::findOrFail($progressId);
-        $this->validateStageAccess($progress, auth()->user());
+
+        // Ensure item belongs to active tenant (all worker roles in tenant can report trouble)
+        if ($progress->item && $progress->item->tenant_id !== TenantManager::getTenantId()) {
+            abort(403, 'Unauthorized tenant access.');
+        }
 
         $progress->update(['status' => 'STUCK']);
 
