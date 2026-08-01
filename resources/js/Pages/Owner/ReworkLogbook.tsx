@@ -154,7 +154,7 @@ const Bar: React.FC<{ value: number; max: number; color: string; height?: number
     );
 };
 
-export default function ReworkLogbook({ rework_events, summary, selected_range }: Props) {
+export default function ReworkLogbook({ rework_events, summary, selected_range, tenant }: Props) {
     const { errors } = usePage().props;
 
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
@@ -173,10 +173,11 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
         router.get('/dashboard/rework-logbook', { range }, { preserveState: true });
     };
 
-    const filtered = rework_events.filter(e => {
+    const filteredEvents = rework_events.filter(e => {
         if (!search.trim()) return true;
         const q = search.toLowerCase();
         return (
+            (e.rework_reason?.toLowerCase() || '').includes(q) ||
             e.item?.item_name.toLowerCase().includes(q) ||
             e.item?.po?.po_number.toLowerCase().includes(q) ||
             e.item?.po?.client_name.toLowerCase().includes(q) ||
@@ -205,14 +206,19 @@ export default function ReworkLogbook({ rework_events, summary, selected_range }
                     padding: '10px 16px 8px',
                     borderBottom: '1px solid var(--color-pg-border)',
                 }}>
-                    <div className="owner-header-title">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Link href="/dashboard" style={{ color: 'var(--color-pg-text-secondary)', textDecoration: 'none', display: 'flex' }}>
-                                <ChevronLeft size={18} />
-                            </Link>
-                            <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.page_title}</h1>
+                    <div className="owner-header-title" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {tenant?.logo_path && (
+                            <img src={tenant.logo_path} alt="Company Logo" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
+                        )}
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <Link href="/dashboard" style={{ color: 'var(--color-pg-text-secondary)', textDecoration: 'none', display: 'flex' }}>
+                                    <ChevronLeft size={18} />
+                                </Link>
+                                <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.page_title}</h1>
+                            </div>
+                            <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>{t.subtitle}</span>
                         </div>
-                        <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>{t.subtitle}</span>
                     </div>
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         <button

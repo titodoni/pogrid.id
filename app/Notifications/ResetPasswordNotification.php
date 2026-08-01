@@ -3,11 +3,10 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ResetPasswordNotification extends Notification implements ShouldQueue
+class ResetPasswordNotification extends Notification
 {
     use Queueable;
 
@@ -25,11 +24,12 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
         $url = url("/reset-password/{$this->token}?email=".urlencode($notifiable->getEmailForPasswordReset()));
 
         return (new MailMessage)
-            ->subject('Reset Your POgrid.id Password')
-            ->greeting('Hello!')
-            ->line('You are receiving this email because we received a password reset request for your account.')
-            ->action('Reset Password', $url)
-            ->line('This password reset link will expire in 60 minutes.')
-            ->line('If you did not request a password reset, no further action is required.');
+            ->subject('Atur Ulang Kata Sandi Akun POgrid.id Anda')
+            ->greeting('Halo, selamat pagi/siang!')
+            ->line('Kami menerima permintaan untuk mengatur ulang kata sandi (password) untuk akun POgrid.id Anda. Jangan khawatir, hal ini biasa terjadi dan kami siap membantu Anda agar bisa segera masuk kembali ke dalam dasbor.')
+            ->line('Silakan klik tombol di bawah ini untuk membuat kata sandi baru yang aman dan mudah Anda ingat:')
+            ->action('Atur Ulang Kata Sandi', $url)
+            ->line('Tautan (link) ini berfungsí selama 60 menit ke depan demi menjaga keamanan akun dan data produksi usaha Anda.')
+            ->line('Jika Anda merasa tidak pernah meminta pengaturan ulang kata sandi ini, abaikan saja email ini. Akun Anda tetap aman bersama kami!');
     }
 }

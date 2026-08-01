@@ -99,5 +99,28 @@ class AppServiceProvider extends ServiceProvider
                 'cluster' => config('broadcasting.connections.pusher.options.cluster'),
             ];
         });
+
+        Inertia::share('tenant', function () {
+            $tenantId = \App\Services\TenantManager::getTenantId();
+            if (! $tenantId && auth()->check()) {
+                $tenantId = auth()->user()->tenant_id;
+            }
+            if ($tenantId) {
+                \App\Services\TenantManager::bypass();
+                $tenant = Tenant::find($tenantId);
+                \App\Services\TenantManager::enableScope();
+                if ($tenant) {
+                    return [
+                        'id' => $tenant->id,
+                        'company_name' => $tenant->company_name,
+                        'slug' => $tenant->slug,
+                        'logo_path' => $tenant->logo_path,
+                        'theme' => $tenant->theme ?? 'theme-default',
+                        'workflow_settings' => $tenant->workflow_settings,
+                    ];
+                }
+            }
+            return null;
+        });
     }
 }

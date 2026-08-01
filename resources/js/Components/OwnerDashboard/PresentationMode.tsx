@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface Telemetry {
-    otdr: number;
+    otdr: number | null;
     previous?: any;
     manufacture?: { delivered?: number; completed?: number; target?: number };
     avg_delay_days: number;
@@ -45,6 +45,8 @@ interface Props {
     setPresentationSlide: React.Dispatch<React.SetStateAction<number>>;
     setPresentationAutoPlay: React.Dispatch<React.SetStateAction<boolean>>;
     changeTab: (tab: string) => void;
+    pos?: Array<any>;
+    tenant?: { company_name?: string; slug?: string; logo_path?: string | null; theme?: string };
 }
 
 export default function PresentationMode({
@@ -59,10 +61,12 @@ export default function PresentationMode({
     setPresentationSlide,
     setPresentationAutoPlay,
     changeTab,
+    pos = [],
+    tenant,
 }: Props) {
     const prev = (telemetry.previous || {}) as any;
     const rangeLabel = selected_range === 'week' ? t.this_week : selected_range === 'year' ? t.this_year : t.this_month;
-    const otdrDelta: number | null = prev.otdr != null ? Math.round((telemetry.otdr - prev.otdr) * 10) / 10 : null;
+    const otdrDelta: number | null = (telemetry.otdr != null && prev.otdr != null) ? Math.round((telemetry.otdr - prev.otdr) * 10) / 10 : null;
     const deliveredCurr: number = telemetry.manufacture?.delivered ?? telemetry.manufacture?.completed ?? 0;
     const deliveredPrev: number = prev.manufacture?.delivered ?? 0;
     const deliveredDelta: number | null = deliveredPrev > 0 ? Math.round(((deliveredCurr - deliveredPrev) / deliveredPrev) * 100) : null;
@@ -81,7 +85,9 @@ export default function PresentationMode({
 
     let narrativeText = '';
     if (language === 'id') {
-        narrativeText = `Periode ini, pabrik menyelesaikan ${telemetry.otdr}% pesanan tepat waktu`;
+        narrativeText = telemetry.otdr != null
+            ? `Periode ini, pabrik menyelesaikan ${telemetry.otdr}% pesanan tepat waktu`
+            : `Periode ini, belum ada pesanan yang selesai untuk dihitung ketepatan waktunya`;
         if (otdrDelta != null) {
             narrativeText += otdrDelta >= 0
                 ? ` — naik ${Math.abs(otdrDelta)}% dari periode lalu`
@@ -109,7 +115,9 @@ export default function PresentationMode({
             narrativeText += `Perhatian keuangan: ${telemetry.finance_health.uninvoiced_count} item selesai belum dibuatkan faktur.`;
         }
     } else {
-        narrativeText = `This period, the factory completed ${telemetry.otdr}% of orders on time`;
+        narrativeText = telemetry.otdr != null
+            ? `This period, the factory completed ${telemetry.otdr}% of orders on time`
+            : `This period, no completed orders yet to evaluate on-time rate`;
         if (otdrDelta != null) {
             narrativeText += otdrDelta >= 0
                 ? ` — up ${Math.abs(otdrDelta)}% vs last period`
@@ -175,8 +183,8 @@ export default function PresentationMode({
                                 <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                     {t.on_time_delivery}
                                 </div>
-                                <div style={{ fontSize: '48px', fontWeight: 900, color: telemetry.otdr >= 80 ? 'var(--color-pg-success)' : telemetry.otdr >= 60 ? 'var(--color-pg-warning)' : 'var(--color-pg-danger)' }}>
-                                    {telemetry.otdr}%
+                                <div style={{ fontSize: '48px', fontWeight: 900, color: telemetry.otdr == null ? 'var(--color-pg-text-muted)' : telemetry.otdr >= 80 ? 'var(--color-pg-success)' : telemetry.otdr >= 60 ? 'var(--color-pg-warning)' : 'var(--color-pg-danger)' }}>
+                                    {telemetry.otdr != null ? `${telemetry.otdr}%` : 'N/A'}
                                 </div>
                                 {otdrDelta != null && (
                                     <div style={{ fontSize: '13px', fontWeight: 800, color: otdrDelta >= 0 ? 'var(--color-pg-success)' : 'var(--color-pg-danger)', marginTop: '6px' }}>
@@ -413,6 +421,141 @@ export default function PresentationMode({
                         </div>
                     </div>
                 );
+            case 4:
+                const ongoingPos = [...pos]
+                    .filter((p: any) => p.status !== 'COMPLETED' && p.status !== 'CANCELLED')
+                    .sort((a: any, b: any) => new Date(a.global_deadline).getTime() - new Date(b.global_deadline).getTime());
+
+                return (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: '1300px', margin: '0 auto', width: '100%', height: '100%', overflow: 'hidden' }}>
+                        <div style={{
+                            flex: 1,
+                            backgroundColor: 'var(--color-pg-surface)',
+                            border: '1px solid var(--color-pg-border)',
+                            borderRadius: '20px',
+                            padding: '28px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                            backdropFilter: 'blur(16px)',
+                            overflow: 'hidden'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--color-pg-border)', paddingBottom: '14px' }}>
+                                <h4 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-pg-text)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span>⚙️</span>
+                                    <span>{language === 'id' ? 'Daftar PO Berjalan & Status Pengerjaan Pabrik' : 'Ongoing POs & Live Factory Status'}</span>
+                                </h4>
+                                <span style={{ backgroundColor: 'var(--color-pg-primary, #6366f1)22', color: 'var(--color-pg-primary, #818cf8)', border: '1px solid var(--color-pg-primary, #6366f1)44', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 800 }}>
+                                    {ongoingPos.length} {language === 'id' ? 'PO Aktif' : 'Active POs'}
+                                </span>
+                            </div>
+
+                            <div style={{ flex: 1, overflowY: 'auto', paddingRight: '6px' }}>
+                                {ongoingPos.length === 0 ? (
+                                    <div style={{ color: 'var(--color-pg-text-muted)', fontSize: '15px', padding: '60px 0', textAlign: 'center', fontWeight: 600 }}>
+                                        {language === 'id' ? 'Tidak ada PO aktif saat ini.' : 'No ongoing POs at this time.'}
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {ongoingPos.map((po: any, idx: number) => {
+                                            const progress = Math.round(po.items?.length > 0 ? po.items.reduce((sum: number, item: any) => sum + (parseFloat(item.progress_percent) || 0), 0) / po.items.length : 0);
+                                            const deadline = new Date(po.global_deadline);
+                                            const diffTime = deadline.getTime() - new Date().setHours(0,0,0,0);
+                                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                                            let statusBadge = { label: language === 'id' ? 'AMAN' : 'ON TRACK', bg: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '#10b98155' };
+                                            if (diffDays < 0) {
+                                                statusBadge = { label: language === 'id' ? 'TERLAMBAT' : 'DELAYED', bg: 'rgba(239, 68, 68, 0.18)', color: '#ef4444', border: '#ef444455' };
+                                            } else if (diffDays <= 3) {
+                                                statusBadge = { label: language === 'id' ? 'RAWAN' : 'AT RISK', bg: 'rgba(245, 158, 11, 0.18)', color: '#f59e0b', border: '#f59e0b55' };
+                                            }
+
+                                            return (
+                                                <div key={`slide-po-${po.id || idx}`} style={{
+                                                    backgroundColor: 'var(--color-pg-bg)',
+                                                    border: '1px solid var(--color-pg-border)',
+                                                    borderRadius: '14px',
+                                                    padding: '16px 20px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    gap: '20px',
+                                                    transition: 'all 0.2s',
+                                                }}>
+                                                    {/* Left: PO & Client */}
+                                                    <div style={{ flex: '1 1 30%', minWidth: 0 }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                                                            <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-pg-text)' }}>
+                                                                {po.po_number}
+                                                            </span>
+                                                            {po.is_urgent && (
+                                                                <span style={{ backgroundColor: '#ef4444', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '6px', textTransform: 'uppercase' }}>
+                                                                    {language === 'id' ? 'KRITIS / URGENT' : 'URGENT'}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div style={{ fontSize: '13px', color: 'var(--color-pg-text-secondary)', fontWeight: 600 }}>
+                                                            🏢 {po.client_name}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Middle: Deadline & Countdown */}
+                                                    <div style={{ flex: '1 1 25%', textAlign: 'center' }}>
+                                                        <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-pg-text-muted)', fontWeight: 700, marginBottom: '2px' }}>
+                                                            {language === 'id' ? 'Deadline Kirim' : 'Delivery Deadline'}
+                                                        </div>
+                                                        <div style={{ fontSize: '14px', fontWeight: 800, color: diffDays < 0 ? '#ef4444' : diffDays <= 3 ? '#f59e0b' : 'var(--color-pg-text)' }}>
+                                                            {deadline.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                            <span style={{ fontSize: '12px', marginLeft: '6px', opacity: 0.9 }}>
+                                                                ({diffDays < 0 ? `${Math.abs(diffDays)} ${language === 'id' ? 'hari telat' : 'd late'}` : diffDays === 0 ? (language === 'id' ? 'Hari ini' : 'Today') : `${diffDays} ${language === 'id' ? 'hari lagi' : 'd left'}`})
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Middle: Progress bar */}
+                                                    <div style={{ flex: '1 1 25%', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 700 }}>
+                                                            <span style={{ color: 'var(--color-pg-text-secondary)' }}>{language === 'id' ? 'Progres Order' : 'Progress'}</span>
+                                                            <span style={{ color: 'var(--color-pg-primary, #818cf8)' }}>{progress}%</span>
+                                                        </div>
+                                                        <div style={{ height: '8px', width: '100%', backgroundColor: 'var(--color-pg-border)', borderRadius: '4px', overflow: 'hidden' }}>
+                                                            <div style={{
+                                                                height: '100%',
+                                                                width: `${progress}%`,
+                                                                background: progress >= 100 ? '#10b981' : 'linear-gradient(90deg, #6366f1 0%, #a855f7 100%)',
+                                                                borderRadius: '4px',
+                                                                transition: 'width 0.5s ease'
+                                                            }} />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Right: Condition Status Badge */}
+                                                    <div style={{ flex: '0 0 120px', textAlign: 'right' }}>
+                                                        <span style={{
+                                                            display: 'inline-block',
+                                                            backgroundColor: statusBadge.bg,
+                                                            color: statusBadge.color,
+                                                            border: `1px solid ${statusBadge.border}`,
+                                                            padding: '6px 14px',
+                                                            borderRadius: '8px',
+                                                            fontSize: '12px',
+                                                            fontWeight: 800,
+                                                            letterSpacing: '0.04em',
+                                                            textAlign: 'center',
+                                                            boxShadow: `0 0 12px ${statusBadge.color}22`
+                                                        }}>
+                                                            {statusBadge.label}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
             default:
                 return null;
         }
@@ -437,7 +580,12 @@ export default function PresentationMode({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-pg-border)', paddingBottom: '16px' }}>
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em', color: '#fff' }}>POgrid.id</span>
+                        {tenant?.logo_path && (
+                            <img src={tenant.logo_path} alt="Logo" style={{ height: '42px', width: 'auto', objectFit: 'contain' }} />
+                        )}
+                        <span style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em', color: '#fff' }}>
+                            {tenant?.company_name || 'POgrid.id'}
+                        </span>
                         <span style={{ backgroundColor: 'var(--color-pg-surface)', border: '1px solid var(--color-pg-border)', color: 'var(--color-pg-text-secondary)', borderRadius: '6px', padding: '3px 8px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>
                             {rangeLabel}
                         </span>
@@ -454,7 +602,8 @@ export default function PresentationMode({
                         {presentationSlide === 0 ? (language === 'id' ? 'Ringkasan Kinerja' : 'Performance Summary') :
                          presentationSlide === 1 ? (language === 'id' ? 'Alur Produksi' : 'Production Pipeline') :
                          presentationSlide === 2 ? (language === 'id' ? 'Kinerja Klien' : 'Client Board') :
-                         (language === 'id' ? 'Tindakan Diperlukan' : 'Action Items')}
+                         presentationSlide === 3 ? (language === 'id' ? 'Tindakan Diperlukan' : 'Action Items') :
+                         (language === 'id' ? 'Status PO Berjalan' : 'Ongoing PO Status')}
                     </div>
                     <button
                         onClick={togglePresentationMode}
@@ -514,7 +663,7 @@ export default function PresentationMode({
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    {[0, 1, 2, 3].map(slideIdx => (
+                    {[0, 1, 2, 3, 4].map(slideIdx => (
                         <button
                             key={`slide-dot-${slideIdx}`}
                             onClick={() => setPresentationSlide(slideIdx)}

@@ -18,6 +18,8 @@ interface Tenant {
     id: number;
     company_name: string;
     slug: string;
+    logo_path?: string | null;
+    theme?: string;
 }
 
 interface Props {
@@ -75,6 +77,14 @@ const translations = {
 };
 
 export default function WorkerLogin({ tenant, workers }: Props) {
+    useEffect(() => {
+        if (typeof window !== 'undefined' && tenant.theme) {
+            const classes = ['theme-default', 'theme-linear', 'theme-vercel', 'theme-stripe', 'theme-github', 'theme-nordic', 'theme-light', 'theme-brand'];
+            classes.forEach(c => document.documentElement.classList.remove(c));
+            document.documentElement.classList.add(tenant.theme);
+        }
+    }, [tenant.theme]);
+
     const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
         user_id: '',
         pin: '',
@@ -231,6 +241,9 @@ export default function WorkerLogin({ tenant, workers }: Props) {
         }}>
             <div className="login-card animate-in w-full max-w-[420px] bg-[var(--color-pg-surface)] backdrop-blur-xl border border-[var(--color-pg-border)] rounded-2xl p-6 shadow-2xl">
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                    {tenant.logo_path && (
+                        <img src={tenant.logo_path} alt={`${tenant.company_name} Logo`} style={{ height: '54px', width: 'auto', margin: '0 auto 12px auto', objectFit: 'contain' }} />
+                    )}
                     <h2 style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-pg-primary-hover)', fontWeight: 700, letterSpacing: '0.1em', margin: 0 }}>
                         {tenant.company_name}
                     </h2>

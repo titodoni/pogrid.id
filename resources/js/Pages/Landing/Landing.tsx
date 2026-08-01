@@ -10,12 +10,15 @@ function appUrl(path: string): string {
     return `${path}${search}`;
 }
 
+const WA_DEMO_URL = 'https://wa.me/628151678101?text=Halo%20saya%20berminat%20dengan%20POgrid..';
+
 const id = {
     brand: 'POgrid.id',
     nav_product: 'Fitur',
     nav_how: 'Cara Kerja',
     nav_price: 'Harga',
     nav_faq: 'FAQ',
+    nav_demo: 'Minta Demo',
     login: 'Masuk',
     cta: 'Daftar Gratis',
 
@@ -24,6 +27,7 @@ const id = {
     hero_title: 'Stop Kejar-Kejar Tim PPIC. Pantau Progress PO Pabrik Real-Time.',
     hero_sub: 'Operator input progres pengerjaan lewat HP pakai PIN 4 digit. Owner pantau mana PO yang Aman, Rawan, atau Bakal Kena Pinalti Telat Kirim.',
     hero_cta_primary: 'Coba Gratis 30 Hari',
+    hero_cta_demo: 'Minta Demo',
     hero_cta_secondary: 'Lihat Cara Kerja',
     hero_note: '✓ Tanpa kartu kredit  ✓ Tanpa instalasi app  ✓ Setup kurang dari 5 menit',
     hero_stat_1: '100%',
@@ -151,6 +155,12 @@ const PlayCircle: React.FC<{ size?: number; className?: string }> = ({ size = 16
     </svg>
 );
 
+const WhatsAppIcon: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+    </svg>
+);
+
 const StarRow: React.FC = () => (
     <div style={{ display: 'flex', gap: '2px', color: '#f59e0b', justifyContent: 'center' }}>
         {[0,1,2,3,4].map(i => (
@@ -261,6 +271,32 @@ export default function Landing() {
                     </nav>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <a href={WA_DEMO_URL} target="_blank" rel="noopener noreferrer" style={{
+                            backgroundColor: 'transparent',
+                            color: '#10b981',
+                            border: '1px solid #10b981',
+                            fontWeight: 600,
+                            fontSize: '14px',
+                            padding: '9px 15px',
+                            borderRadius: '10px',
+                            textDecoration: 'none',
+                            display: 'none',
+                            alignItems: 'center',
+                            gap: '6px',
+                            transition: 'all 0.2s',
+                        }}
+                        className="pg-nav-desktop"
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor = '#10b981';
+                            e.currentTarget.style.color = '#ffffff';
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.color = '#10b981';
+                        }}
+                        >
+                            <WhatsAppIcon size={16} /> {t.nav_demo}
+                        </a>
                         <a href={appUrl('/login')} style={{ ...navLink, display: 'none' }} className="pg-nav-desktop">{t.login}</a>
                         <a href={appUrl('/register')} style={{
                             backgroundColor: '#6366f1',
@@ -360,6 +396,29 @@ export default function Landing() {
                             >
                                 {t.hero_cta_primary}
                                 <ArrowRight size={17} />
+                            </a>
+                            <a href={WA_DEMO_URL} target="_blank" rel="noopener noreferrer" style={{
+                                backgroundColor: '#10b981',
+                                color: '#ffffff',
+                                fontWeight: 700,
+                                fontSize: '15px',
+                                padding: '14px 24px',
+                                borderRadius: '10px',
+                                textDecoration: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
+                                transition: 'background-color 0.15s ease',
+                                boxSizing: 'border-box' as const,
+                                width: '100%',
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#059669'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
+                            >
+                                <WhatsAppIcon size={18} />
+                                {t.hero_cta_demo}
                             </a>
                             <a href="#cara" style={{
                                 backgroundColor: 'transparent',
@@ -773,20 +832,36 @@ export default function Landing() {
                  }}>
                      <h2 style={{ fontSize: 'clamp(26px, 5vw, 38px)', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 12px', color: '#fafafa' }}>{t.final_title}</h2>
                      <p style={{ fontSize: '16px', color: '#a1a1aa', margin: '0 auto 28px', maxWidth: '520px', lineHeight: 1.55 }}>{t.final_sub}</p>
-                     <a href={appUrl('/register')} style={{
-                         display: 'inline-flex', alignItems: 'center', gap: '8px',
-                         backgroundColor: '#6366f1', color: '#ffffff',
-                         fontWeight: 700, fontSize: '16px', padding: '16px 32px',
-                         borderRadius: '12px', textDecoration: 'none',
-                         boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
-                         transition: 'background-color 0.2s',
-                     }}
-                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#818cf8'}
-                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#6366f1'}
-                     >
-                         {t.final_cta}
-                         <ArrowRight size={18} />
-                     </a>
+                     <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                         <a href={appUrl('/register')} style={{
+                             display: 'inline-flex', alignItems: 'center', gap: '8px',
+                             backgroundColor: '#6366f1', color: '#ffffff',
+                             fontWeight: 700, fontSize: '16px', padding: '16px 32px',
+                             borderRadius: '12px', textDecoration: 'none',
+                             boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
+                             transition: 'background-color 0.2s',
+                         }}
+                         onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#818cf8'}
+                         onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#6366f1'}
+                         >
+                             {t.final_cta}
+                             <ArrowRight size={18} />
+                         </a>
+                         <a href={WA_DEMO_URL} target="_blank" rel="noopener noreferrer" style={{
+                             display: 'inline-flex', alignItems: 'center', gap: '8px',
+                             backgroundColor: '#10b981', color: '#ffffff',
+                             fontWeight: 700, fontSize: '16px', padding: '16px 32px',
+                             borderRadius: '12px', textDecoration: 'none',
+                             boxShadow: '0 8px 24px rgba(16, 185, 129, 0.25)',
+                             transition: 'background-color 0.2s',
+                         }}
+                         onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#059669'}
+                         onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
+                         >
+                             <WhatsAppIcon size={18} />
+                             {t.hero_cta_demo}
+                         </a>
+                     </div>
                  </div>
              </section>
 

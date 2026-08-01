@@ -28,6 +28,8 @@ class WorkerAuthController extends Controller
                 'id' => $tenant->id,
                 'company_name' => $tenant->company_name,
                 'slug' => $tenant->slug,
+                'logo_path' => $tenant->logo_path,
+                'theme' => $tenant->theme ?? 'theme-default',
             ],
             'workers' => $workers,
         ]);

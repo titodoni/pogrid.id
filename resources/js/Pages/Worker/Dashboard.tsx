@@ -70,6 +70,7 @@ interface Props {
         post_display_name_id?: string | null;
     };
     tenant_id?: number;
+    tenant?: { id: number; company_name: string; slug: string; logo_path?: string | null; theme?: string };
 }
 
 const translations = {
@@ -1139,6 +1140,7 @@ function ItemCard({
 
                                 const stageNameLower = activeStage.stage.stage_name.toLowerCase();
                                 const isQcStage = stageNameLower === 'qc';
+                                const isDeliveryStage = stageNameLower === 'delivery' || stageNameLower === 'pengiriman';
 
                                 // Determine the maximum allowed quantity for this stage
                                 let maxQty = item.target_qty;
@@ -1289,7 +1291,36 @@ function ItemCard({
                                             </div>
                                         )}
 
-                                        {item.target_qty === 1 && !isQcStage && (
+                                        {item.target_qty === 1 && isDeliveryStage && (
+                                            <div style={{ marginBottom: '8px' }}>
+                                                <button
+                                                    disabled={loading || activeStage.stage.completed_qty >= item.target_qty}
+                                                    onClick={() => {
+                                                        if (!loading) {
+                                                            setLocalProgressPercent('100');
+                                                            setLocalCompletedQty(1);
+                                                        }
+                                                    }}
+                                                    className="focus:outline-none focus:ring-2 focus:ring-emerald-500/50 hover:brightness-105 active:scale-[0.98] disabled:opacity-50 transition-all duration-150"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '16px 8px',
+                                                        borderRadius: '8px',
+                                                        border: localProgressPercent === '100' ? '2px solid #ffffff' : 'none',
+                                                        backgroundColor: localProgressPercent === '100' ? '#10b981' : 'var(--color-pg-success)',
+                                                        color: '#ffffff',
+                                                        fontSize: '14px',
+                                                        fontWeight: 800,
+                                                        cursor: (loading || activeStage.stage.completed_qty >= item.target_qty) ? 'not-allowed' : 'pointer',
+                                                        boxShadow: localProgressPercent === '100' ? '0 0 12px rgba(16, 185, 129, 0.5)' : 'none',
+                                                    }}
+                                                >
+                                                    {language === 'en' ? 'Delivered' : 'Terkirim'}
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {item.target_qty === 1 && !isQcStage && !isDeliveryStage && (
                                             <div style={{
                                                 display: 'grid',
                                                 gridTemplateColumns: 'repeat(5, 1fr)',
@@ -1698,11 +1729,19 @@ function ItemCard({
     );
 }
 
-export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) {
+export default function WorkerDashboard({ items, auth_user, tenant_id, tenant }: Props) {
     const { props, url } = usePage();
     const pathParts = url.split('/');
     const slug = pathParts[2] || '';
     const userRole = auth_user?.role_name ? auth_user.role_name.toUpperCase() : '';
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && tenant?.theme) {
+            const classes = ['theme-default', 'theme-linear', 'theme-vercel', 'theme-stripe', 'theme-github', 'theme-nordic', 'theme-light', 'theme-brand'];
+            classes.forEach(c => document.documentElement.classList.remove(c));
+            document.documentElement.classList.add(tenant.theme);
+        }
+    }, [tenant?.theme]);
 
     const [language, setLanguage] = useState<'en' | 'id'>(() => {
         if (typeof window !== 'undefined') {
@@ -1918,6 +1957,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id }: Props) 
                 currentView="dashboard"
                 onlineUsersCount={onlineUsers.length}
                 wsStatus={wsStatus}
+                logoPath={tenant?.logo_path}
             />
 
             {/* Connection Disconnected Warning Banner */}

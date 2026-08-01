@@ -89,6 +89,8 @@ class WorkerDashboardController extends Controller
                     'id' => $tenant->id,
                     'company_name' => $tenant->company_name,
                     'slug' => $tenant->slug,
+                    'logo_path' => $tenant->logo_path,
+                    'theme' => $tenant->theme ?? 'theme-default',
                 ],
                 'workers' => $workers,
             ]);
@@ -176,6 +178,7 @@ class WorkerDashboardController extends Controller
             'items' => $items,
             'auth_user' => $user,
             'tenant_id' => $tenant->id,
+            'tenant' => $tenant,
         ]);
     }
 
@@ -458,7 +461,7 @@ class WorkerDashboardController extends Controller
 
             // ── Summary Section ──
             fputcsv($handle, ['KPI Summary', '', '']);
-            fputcsv($handle, ['OTDR (%)', $telemetry['otdr'], '']);
+            fputcsv($handle, ['OTDR (%)', $telemetry['otdr'] ?? 'N/A', '']);
             fputcsv($handle, ['Manufacture Delivered', $telemetry['manufacture']['delivered'], 'Target: '.$telemetry['manufacture']['target']]);
             fputcsv($handle, ['Buyout Completed', $telemetry['buyout']['completed'], 'Target: '.$telemetry['buyout']['target']]);
             fputcsv($handle, ['Service Completed', $telemetry['service']['completed'], 'Target: '.$telemetry['service']['target']]);
@@ -576,7 +579,7 @@ class WorkerDashboardController extends Controller
             $sheet1->setName('KPI Summary');
 
             $writer->addRow(Row::fromValuesWithStyle(['Metric', 'Value', 'Note'], $boldStyle));
-            $writer->addRow(Row::fromValues(['OTDR (%)', $telemetry['otdr'], '']));
+            $writer->addRow(Row::fromValues(['OTDR (%)', $telemetry['otdr'] ?? 'N/A', '']));
             $writer->addRow(Row::fromValues(['Manufacture Delivered', $telemetry['manufacture']['delivered'], 'Target: '.$telemetry['manufacture']['target']]));
             $writer->addRow(Row::fromValues(['Buyout Completed', $telemetry['buyout']['completed'], 'Target: '.$telemetry['buyout']['target']]));
             $writer->addRow(Row::fromValues(['Service Completed', $telemetry['service']['completed'], 'Target: '.$telemetry['service']['target']]));
@@ -1232,7 +1235,7 @@ class WorkerDashboardController extends Controller
     // ── Helper: OTDR for a given range ───────────────────────────────────────
     // Filters by global_deadline IN the range (not created_at).
 
-    private function calcOtdr(Carbon $startDate, Carbon $endDate): float
+    private function calcOtdr(Carbon $startDate, Carbon $endDate): ?float
     {
         $posInPeriod = Po::whereBetween('global_deadline', [$startDate->toDateString(), $endDate->toDateString()])
             ->where(function ($query) {
@@ -1270,7 +1273,7 @@ class WorkerDashboardController extends Controller
             }
         }
 
-        return $totalConsidered > 0 ? round(($onTimeCount / $totalConsidered) * 100, 1) : 100.0;
+        return $totalConsidered > 0 ? round(($onTimeCount / $totalConsidered) * 100, 1) : null;
     }
 
     // ── Helper: Average Delay for a given range ───────────────────────────────

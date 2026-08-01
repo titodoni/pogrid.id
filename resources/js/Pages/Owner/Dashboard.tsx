@@ -8,6 +8,7 @@ import { localizedDisplay } from '../../Utils/locale';
 import { StatusBadge } from '../../Components/StatusBadge';
 import PresentationMode from '../../Components/OwnerDashboard/PresentationMode';
 import SearchModal from '../../Components/OwnerDashboard/SearchModal';
+import { CompanyBrandingSetup } from '../../Components/OwnerDashboard/CompanyBrandingSetup';
 import { useImperativeAlertDialog } from '@astryxdesign/core';
 import echo from '../../bootstrap';
 
@@ -209,6 +210,8 @@ interface Props {
     tenant?: {
         company_name: string;
         slug: string;
+        logo_path?: string | null;
+        theme?: string;
         workflow_settings?: {
             workflow_mode: 'strict' | 'loose' | 'custom';
             require_design_approved_for_production: boolean;
@@ -1021,7 +1024,7 @@ ${locationStr}
     useEffect(() => {
         if (!isPresentationMode || !presentationAutoPlay) return;
         const interval = setInterval(() => {
-            setPresentationSlide(prev => (prev + 1) % 4);
+            setPresentationSlide(prev => (prev + 1) % 5);
         }, 10000);
         return () => clearInterval(interval);
     }, [isPresentationMode, presentationAutoPlay]);
@@ -1716,6 +1719,8 @@ ${locationStr}
                 setPresentationSlide={setPresentationSlide}
                 setPresentationAutoPlay={setPresentationAutoPlay}
                 changeTab={changeTab}
+                pos={pos}
+                tenant={tenant}
             />
         );
     }
@@ -1764,20 +1769,54 @@ ${locationStr}
                 padding: '10px 16px 8px',
                 borderBottom: '1px solid var(--color-pg-border)',
             }}>
-                <div className="owner-header-title">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.owner_command_center}</h1>
-                        <span className="owner-header-datetime" style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>
-                            {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                            {' · '}
-                            {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                    </div>
-                    <div className="owner-greeting" style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 600, marginTop: '1px' }}>
-                        {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
+                <div className="owner-header-title" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    {tenant?.logo_path && (
+                        <img src={tenant.logo_path} alt={`${tenant.company_name} Logo`} style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
+                    )}
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
+                                {tenant?.company_name ? `${tenant.company_name} · ${t.owner_command_center}` : t.owner_command_center}
+                            </h1>
+                            <span className="owner-header-datetime" style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>
+                                {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                {' · '}
+                                {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                        </div>
+                        <div className="owner-greeting" style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 600, marginTop: '1px' }}>
+                            {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
+                        </div>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }} className="owner-header-actions">
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }} className="owner-header-actions">
+                    {canBroadcastPo && (
+                        <button
+                            className="new-po-btn animate-pulse"
+                            onClick={() => router.get('/pos/create')}
+                            style={{
+                                padding: '8px 16px',
+                                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                                color: '#fff',
+                                fontWeight: 800,
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 4px 14px rgba(99, 102, 241, 0.45)',
+                                transition: 'all 0.2s',
+                                zIndex: 10,
+                            }}
+                            onMouseOver={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                            onMouseOut={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'; e.currentTarget.style.transform = 'none'; }}
+                            title="Buat PO Baru / Broadcast New PO"
+                        >
+                            <Broadcast size={16} /> {t.broadcast_new_po}
+                        </button>
+                    )}
                     {/* Search Modal Button */}
                     <button
                         onClick={() => {
@@ -2145,6 +2184,12 @@ ${locationStr}
                         </span>
                     </button>
                 )}
+                {(!auth_user?.role_name || (!auth_user.role_name.toLowerCase().includes('manager') && !auth_user.role_name.toLowerCase().includes('sales'))) && (
+                    <button className={`tab ${activeTab === 'branding' ? 'tab-active' : ''}`} onClick={() => changeTab('branding')}>
+                        <span className="tab-label-full">{language === 'id' ? 'Branding & Logo' : 'Branding & Logo'}</span>
+                        <span className="tab-label-short">Branding</span>
+                    </button>
+                )}
                 <Link
                     href="/dashboard/rework-logbook"
                     className="tab"
@@ -2220,7 +2265,7 @@ ${locationStr}
                         : 0;
 
                     const prev = (telemetry?.previous || {}) as any;
-                    const otdrDelta: number | null = (telemetry && prev?.otdr != null)
+                    const otdrDelta: number | null = (telemetry && telemetry.otdr != null && prev?.otdr != null)
                         ? Math.round((telemetry.otdr - prev.otdr) * 10) / 10
                         : null;
 
@@ -2323,8 +2368,8 @@ ${locationStr}
                                 </div>
                                 {telemetry && (
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: 800, color: telemetry.otdr >= 80 ? 'var(--color-pg-success)' : telemetry.otdr >= 60 ? 'var(--color-pg-warning)' : '#ef4444' }}>
-                                            {telemetry.otdr}%
+                                        <div style={{ fontSize: '24px', fontWeight: 800, color: telemetry.otdr == null ? 'var(--color-pg-text-muted)' : telemetry.otdr >= 80 ? 'var(--color-pg-success)' : telemetry.otdr >= 60 ? 'var(--color-pg-warning)' : '#ef4444' }}>
+                                            {telemetry.otdr != null ? `${telemetry.otdr}%` : (language === 'id' ? 'N/A' : 'N/A')}
                                         </div>
                                         {otdrDelta !== null && (
                                             <div style={{ fontSize: '11px', fontWeight: 700, color: otdrDelta >= 0 ? 'var(--color-pg-success)' : '#ef4444' }}>
@@ -2645,29 +2690,6 @@ ${locationStr}
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                         <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{t.po_directory}</h2>
-                        {canBroadcastPo && (
-                            <button
-                                className="new-po-btn"
-                                onClick={() => router.get('/pos/create')}
-                                style={{
-                                    padding: '10px 18px',
-                                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                                    color: '#fff',
-                                    fontWeight: 600,
-                                    border: 'none',
-                                    borderRadius: '10px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px'
-                                }}
-                                onMouseOver={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)')}
-                                onMouseOut={(e) => (e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)')}
-                            >
-                                <Broadcast size={16} /> {t.broadcast_new_po}
-                            </button>
-                        )}
                     </div>
                     {activeTab === 'active' && (
                         <div className="po-filter-row" style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap', marginBottom: '16px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
@@ -3377,7 +3399,7 @@ ${locationStr}
                 const prev = (telemetry.previous || {}) as any;
                 const rangeLabel = selected_range === 'week' ? t.this_week : selected_range === 'year' ? t.this_year : t.this_month;
 
-                const otdrDelta: number | null = prev.otdr != null
+                const otdrDelta: number | null = (telemetry.otdr != null && prev.otdr != null)
                     ? Math.round((telemetry.otdr - prev.otdr) * 10) / 10
                     : null;
 
@@ -3406,7 +3428,9 @@ ${locationStr}
                 // Auto-narrative (Bahasa Indonesia primary)
                 let narrative = '';
                 if (language === 'id') {
-                    narrative = `Periode ini, pabrik menyelesaikan ${telemetry.otdr}% pesanan tepat waktu`;
+                    narrative = telemetry.otdr != null
+                        ? `Periode ini, pabrik menyelesaikan ${telemetry.otdr}% pesanan tepat waktu`
+                        : `Periode ini, belum ada pesanan yang selesai untuk dihitung ketepatan waktunya`;
                     if (otdrDelta != null && otdrDelta !== 0) {
                         narrative += otdrDelta > 0
                             ? ` — naik ${Math.abs(otdrDelta)}% dari periode lalu`
@@ -3434,7 +3458,9 @@ ${locationStr}
                         narrative += `Perhatian keuangan: ${telemetry.finance_health.uninvoiced_count} item selesai belum dibuatkan faktur.`;
                     }
                 } else {
-                    narrative = `This period, the factory completed ${telemetry.otdr}% of orders on time`;
+                    narrative = telemetry.otdr != null
+                        ? `This period, the factory completed ${telemetry.otdr}% of orders on time`
+                        : `This period, no completed orders yet to evaluate on-time rate`;
                     if (otdrDelta != null && otdrDelta !== 0) {
                         narrative += otdrDelta > 0
                             ? ` — up ${Math.abs(otdrDelta)}% vs last period`
@@ -3599,15 +3625,15 @@ ${locationStr}
                             {/* OTDR */}
                             <div
                                 onClick={() => setMatrixFilter(prev =>
-                                    prev?.type === 'kpi_otdr' ? null : { type: 'kpi_otdr', value: `${telemetry.otdr}%`, label: language === 'id' ? 'Tepat Waktu' : 'On-Time' }
+                                    prev?.type === 'kpi_otdr' ? null : { type: 'kpi_otdr', value: telemetry.otdr != null ? `${telemetry.otdr}%` : 'N/A', label: language === 'id' ? 'Tepat Waktu' : 'On-Time' }
                                 )}
                                 className="kpi-card-v2"
-                                data-variant={telemetry.otdr >= 80 ? 'success' : telemetry.otdr >= 60 ? 'warning' : 'danger'}
+                                data-variant={telemetry.otdr == null ? 'neutral' : telemetry.otdr >= 80 ? 'success' : telemetry.otdr >= 60 ? 'warning' : 'danger'}
                                 data-selected={matrixFilter?.type === 'kpi_otdr' ? 'true' : undefined}
                             >
                                 <span className="kpi-label">{t.on_time_delivery}</span>
-                                <span className="kpi-value" style={{ color: telemetry.otdr >= 80 ? 'var(--color-pg-success)' : telemetry.otdr >= 60 ? 'var(--color-pg-warning)' : '#ef4444' }}>
-                                    {telemetry.otdr}<span className="kpi-unit">%</span>
+                                <span className="kpi-value" style={{ color: telemetry.otdr == null ? 'var(--color-pg-text-muted)' : telemetry.otdr >= 80 ? 'var(--color-pg-success)' : telemetry.otdr >= 60 ? 'var(--color-pg-warning)' : '#ef4444' }}>
+                                    {telemetry.otdr != null ? <>{telemetry.otdr}<span className="kpi-unit">%</span></> : (language === 'id' ? 'N/A' : 'N/A')}
                                 </span>
                                 {otdrDelta != null && otdrDelta !== 0 && (
                                     <span className="kpi-delta" style={{ color: otdrDelta >= 0 ? 'var(--color-pg-success)' : '#ef4444' }}>
@@ -5153,6 +5179,12 @@ ${locationStr}
                     </div>
                 );
             })()}
+
+            {activeTab === 'branding' && (
+                <div style={{ paddingTop: '20px' }}>
+                    <CompanyBrandingSetup tenant={tenant} language={language} />
+                </div>
+            )}
 
             {confirmAlert.element}
 

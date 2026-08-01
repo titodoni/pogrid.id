@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { AlertTriangle, Settings, Palette, ChevronLeft } from './Icons';
 import { localizedDisplay } from '../Utils/locale';
 
@@ -24,6 +24,7 @@ interface WorkerHeaderProps {
     onlineUsersCount?: number;
     wsStatus?: string;
     backUrl?: string;
+    logoPath?: string | null;
 }
 
 export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
@@ -37,10 +38,22 @@ export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
     currentView,
     onlineUsersCount,
     wsStatus,
-    backUrl
+    backUrl,
+    logoPath
 }) => {
+    const page = usePage();
+    const sharedTenant = (page.props as any).tenant;
+    const activeLogoPath = logoPath ?? sharedTenant?.logo_path;
+
     const [currentTime, setCurrentTime] = useState(new Date());
     const [showThemeDropdown, setShowThemeDropdown] = useState(false);
+
+    useEffect(() => {
+        const themeToApply = sharedTenant?.theme || localStorage.getItem('pogrid_theme');
+        if (themeToApply) {
+            document.documentElement.className = themeToApply;
+        }
+    }, [sharedTenant?.theme]);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 30000);
@@ -100,18 +113,22 @@ export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
                         <span>{language === 'id' ? 'Kembali' : 'Back'}</span>
                     </Link>
                 )}
-                <div>
-                    {auth_user && (
-                        <div className="greeting-name" style={{ fontSize: '13px', color: 'var(--color-pg-primary, #6366f1)', fontWeight: 600, marginBottom: '2px' }}>
-                            {language === 'en'
-                                ? `Hello, ${auth_user.name}${auth_user.post_display_name ? ` (${localizedDisplay({ display_name: auth_user.post_display_name, display_name_id: auth_user.post_display_name_id }, language)})` : (role ? ` (${role})` : '')}`
-                                : `Halo, ${auth_user.name}${auth_user.post_display_name ? ` (${localizedDisplay({ display_name: auth_user.post_display_name, display_name_id: auth_user.post_display_name_id }, language)})` : (role ? ` (${role})` : '')}`}
-                        </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {activeLogoPath && (
+                        <img src={activeLogoPath} alt="Company Logo" style={{ height: '42px', width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
                     )}
-                    <h1 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: 'var(--color-pg-text, #f8fafc)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-                        {title}
-                    </h1>
-                    <p style={{ fontSize: '12px', color: 'var(--color-pg-text-muted, #71717a)', margin: '2px 0 0 0' }}>
+                    <div>
+                        {auth_user && (
+                            <div className="greeting-name" style={{ fontSize: '13px', color: 'var(--color-pg-primary, #6366f1)', fontWeight: 600, marginBottom: '2px' }}>
+                                {language === 'en'
+                                    ? `Hello, ${auth_user.name}${auth_user.post_display_name ? ` (${localizedDisplay({ display_name: auth_user.post_display_name, display_name_id: auth_user.post_display_name_id }, language)})` : (role ? ` (${role})` : '')}`
+                                    : `Halo, ${auth_user.name}${auth_user.post_display_name ? ` (${localizedDisplay({ display_name: auth_user.post_display_name, display_name_id: auth_user.post_display_name_id }, language)})` : (role ? ` (${role})` : '')}`}
+                            </div>
+                        )}
+                        <h1 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: 'var(--color-pg-text, #f8fafc)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                            {title}
+                        </h1>
+                        <p style={{ fontSize: '12px', color: 'var(--color-pg-text-muted, #71717a)', margin: '2px 0 0 0' }}>
                         {subtitle ? `${subtitle} · ` : ''}
                         {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         {' · '}
@@ -119,6 +136,7 @@ export const WorkerHeader: React.FC<WorkerHeaderProps> = ({
                     </p>
                 </div>
             </div>
+        </div>
 
             {/* Right Section: Unified Action Toolbar */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>

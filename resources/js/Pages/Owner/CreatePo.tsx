@@ -497,23 +497,31 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                 borderBottom: '1px solid var(--color-pg-border)',
                 backgroundColor: 'var(--color-pg-bg)',
                 zIndex: 40,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
             }}>
-                <button onClick={goBack} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 12px',
-                    backgroundColor: 'var(--color-pg-border-subtle)',
-                    border: '1px solid var(--color-pg-border)',
-                    color: 'var(--color-pg-text-secondary)',
-                    borderRadius: '10px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    fontSize: '13px',
-                }}>
-                    <ChevronLeft size={16} />
-                    <span>{t.back}</span>
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <button onClick={goBack} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 12px',
+                        backgroundColor: 'var(--color-pg-border-subtle)',
+                        border: '1px solid var(--color-pg-border)',
+                        color: 'var(--color-pg-text-secondary)',
+                        borderRadius: '10px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                    }}>
+                        <ChevronLeft size={16} />
+                        <span>{t.back}</span>
+                    </button>
+                    {tenant?.logo_path && (
+                        <img src={tenant.logo_path} alt="Company Logo" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
+                    )}
+                </div>
                 <button type="submit" form="po-form" disabled={submitting} style={{
                     display: 'flex',
                     alignItems: 'center',

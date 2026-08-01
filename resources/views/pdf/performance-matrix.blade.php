@@ -209,7 +209,7 @@
     @php
         $prev = $telemetry['previous'] ?? [];
         $otdrDelta = null;
-        if (isset($prev['otdr']) && $prev['otdr'] !== null) {
+        if (isset($telemetry['otdr']) && $telemetry['otdr'] !== null && isset($prev['otdr']) && $prev['otdr'] !== null) {
             $otdrDelta = round(($telemetry['otdr'] - $prev['otdr']), 1);
         }
 
@@ -229,7 +229,9 @@
         $yellowAlerts = $telemetry['risks']['yellow'] ?? 0;
         $isAllNormal = !$topStuck && $delayedPosCount == 0 && $delayedItemsCount == 0 && $redAlerts == 0 && $yellowAlerts == 0;
 
-        $narrative = "Periode ini, pabrik menyelesaikan {$telemetry['otdr']}% pesanan tepat waktu";
+        $narrative = isset($telemetry['otdr']) && $telemetry['otdr'] !== null
+            ? "Periode ini, pabrik menyelesaikan {$telemetry['otdr']}% pesanan tepat waktu"
+            : "Periode ini, belum ada pesanan yang selesai untuk dihitung ketepatan waktunya";
         if ($otdrDelta !== null && $otdrDelta != 0) {
             $narrative .= $otdrDelta >= 0
                 ? " — naik " . abs($otdrDelta) . "% dari periode lalu"
@@ -272,7 +274,7 @@
     <div class="kpi-container">
         <div class="kpi-card">
             <div class="kpi-label">On-Time Delivery Rate</div>
-            <div class="kpi-val">{{ $telemetry['otdr'] }}%</div>
+            <div class="kpi-val">{{ isset($telemetry['otdr']) && $telemetry['otdr'] !== null ? $telemetry['otdr'] . '%' : 'N/A' }}</div>
             @if($otdrDelta !== null)
                 <div class="kpi-delta {{ $otdrDelta >= 0 ? 'delta-up' : 'delta-down' }}">
                     {{ $otdrDelta >= 0 ? '▲' : '▼' }} {{ abs($otdrDelta) }}% vs prev

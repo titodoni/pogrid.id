@@ -51,6 +51,8 @@ class OwnerDashboardController extends Controller
             'tenant' => [
                 'company_name' => $tenant->company_name,
                 'slug' => $tenant->slug,
+                'logo_path' => $tenant->logo_path,
+                'theme' => $tenant->theme ?? 'theme-default',
             ],
         ]);
     }
@@ -63,12 +65,27 @@ class OwnerDashboardController extends Controller
 
         $request->validate([
             'company_name' => ['required', 'string', 'max:255'],
+            'theme' => ['nullable', 'string', 'max:50'],
+            'logo' => ['nullable', 'image', 'max:2048'],
         ]);
 
         $tenant = Tenant::find(TenantManager::getTenantId());
-        $tenant->update([
+        $data = [
             'company_name' => $request->company_name,
-        ]);
+        ];
+
+        if ($request->has('theme') && ! empty($request->theme)) {
+            $data['theme'] = $request->theme;
+        }
+
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
+            $filename = 'logo_'.$tenant->id.'_'.time().'.'.$file->getClientOriginalExtension();
+            $file->move(public_path('uploads/logos'), $filename);
+            $data['logo_path'] = '/uploads/logos/'.$filename;
+        }
+
+        $tenant->update($data);
 
         return back()->with('success', 'Company settings updated successfully.');
     }
@@ -767,6 +784,7 @@ class OwnerDashboardController extends Controller
                 ])->values(),
             ],
             'selected_range' => $range,
+            'tenant' => Tenant::find(TenantManager::getTenantId()),
         ]);
     }
 
