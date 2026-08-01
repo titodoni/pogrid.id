@@ -108,7 +108,7 @@ export default function Archive({ items, auth_user, tenant }: Props) {
     };
 
     return (
-        <div className="dashboard-root" style={{
+        <div className="dashboard-root lg:ml-64 pb-24 lg:pb-8" style={{
             backgroundColor: 'var(--color-pg-bg)',
             fontFamily: 'Inter, sans-serif',
             color: 'var(--color-pg-text)',

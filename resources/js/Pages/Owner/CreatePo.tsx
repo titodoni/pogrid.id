@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { ChevronLeft, Plus, Close, Check, Broadcast } from '../../Components/Icons';
+import { AppLayout } from '../../Components/AppLayout';
 import { useUnsavedChanges } from '../../Hooks/useUnsavedChanges';
 import { formatDDMMYYYY } from '../../Utils/date';
 
@@ -490,7 +491,8 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
     }
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-pg-bg)', color: 'var(--color-pg-text)', fontFamily: 'Inter, sans-serif' }}>
+        <AppLayout activeNav="create-po" title={t.page_title}>
+            <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
             {/* Header */}
             <header className="responsive-header" style={{
                 padding: '12px 16px',
@@ -1122,6 +1124,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                     <Broadcast size={16} /> {submitting ? '...' : t.submit}
                 </button>
             </div>
-        </div>
+            </div>
+        </AppLayout>
     );
 }

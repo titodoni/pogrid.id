@@ -1,0 +1,22 @@
+{
+  "name": "pogrid-e2e-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "End-to-end tests for POgrid.id using Puppeteer and Jest",
+  "scripts": {
+    "test": "jest --runInBand --forceExit",
+    "test:headless": "HEADLESS=true jest --runInBand --forceExit",
+    "test:verbose": "jest --runInBand --forceExit --verbose",
+    "test:auth": "jest --runInBand --forceExit auth",
+    "test:worker": "jest --runInBand --forceExit worker",
+    "test:dashboard": "jest --runInBand --forceExit dashboard",
+    "test:po": "jest --runInBand --forceExit po",
+    "test:multitenant": "jest --runInBand --forceExit multitenant"
+  },
+  "dependencies": {
+    "jest": "^29.7.0",
+    "jest-puppeteer": "^10.1.3",
+    "puppeteer": "^23.6.0",
+    "@types/jest": "^29.5.14"
+  }
+}

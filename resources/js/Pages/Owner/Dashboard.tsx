@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronDown, Settings, Lock, Plus, Palette, Stop, Broadcast, Globe, Copy, DotGreen, Search } from '../../Components/Icons';
+import { AppLayout } from '../../Components/AppLayout';
 import { formatDeadline, calculateDeadlineDiff } from '../../Utils/deadline';
 import { formatDDMMYYYY } from '../../Utils/date';
 import { WarningPill } from '../../Components/WarningPill';
@@ -831,17 +832,17 @@ ${locationStr}
         };
     };
 
-    const [activeTab, setActiveTab] = useState<'alerts' | 'active' | 'completed' | 'matrix' | 'team'>(() => {
+    const [activeTab, setActiveTab] = useState<'alerts' | 'active' | 'completed' | 'matrix' | 'team' | 'branding'>(() => {
         const isOwner = auth_user?.is_owner === true;
         if (typeof window !== 'undefined') {
             const urlParams = new URLSearchParams(window.location.search);
             const tabParam = urlParams.get('tab');
-            if (tabParam && ['alerts', 'active', 'completed', 'matrix', 'team'].includes(tabParam)) {
+            if (tabParam && ['alerts', 'active', 'completed', 'matrix', 'team', 'branding'].includes(tabParam)) {
                 if (tabParam === 'team' && isOwner) return 'alerts';
                 return tabParam as any;
             }
             const localSaved = localStorage.getItem('owner_active_tab');
-            if (localSaved && ['alerts', 'active', 'completed', 'matrix', 'team'].includes(localSaved)) {
+            if (localSaved && ['alerts', 'active', 'completed', 'matrix', 'team', 'branding'].includes(localSaved)) {
                 if (localSaved === 'team' && isOwner) return 'alerts';
                 return localSaved as any;
             }
@@ -849,7 +850,7 @@ ${locationStr}
         return 'alerts';
     });
 
-    const changeTab = (tab: 'alerts' | 'active' | 'completed' | 'matrix' | 'team') => {
+    const changeTab = (tab: 'alerts' | 'active' | 'completed' | 'matrix' | 'team' | 'branding') => {
         const isOwner = auth_user?.is_owner === true;
         if (tab === 'team' && isOwner) return;
         setActiveTab(tab);
@@ -1726,11 +1727,8 @@ ${locationStr}
     }
 
     return (
-        <div className="dashboard-root" style={{
-            backgroundColor: 'var(--color-pg-bg)',
-            fontFamily: 'Inter, sans-serif',
-            color: 'var(--color-pg-text)',
-        }}>
+        <AppLayout activeNav="dashboard" onSearchClick={() => setShowSearchModal(true)}>
+            <div className="dashboard-root px-3 sm:px-6 py-4">
             {toastQueue.length > 0 && (
                 <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {toastQueue.map(t => (
@@ -1765,31 +1763,28 @@ ${locationStr}
                 </div>
             )}
             <div className="dashboard-above-scroll">
-            <header className="responsive-header owner-dashboard-header" style={{
-                padding: '10px 16px 8px',
-                borderBottom: '1px solid var(--color-pg-border)',
-            }}>
-                <div className="owner-header-title" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    {tenant?.logo_path && (
-                        <img src={tenant.logo_path} alt={`${tenant.company_name} Logo`} style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
-                    )}
-                    <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
-                                {tenant?.company_name ? `${tenant.company_name} · ${t.owner_command_center}` : t.owner_command_center}
-                            </h1>
-                            <span className="owner-header-datetime" style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>
-                                {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                                {' · '}
-                                {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                        </div>
-                        <div className="owner-greeting" style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 600, marginTop: '1px' }}>
-                            {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
+                <div className="flex items-center justify-between gap-4 py-2 border-b border-[var(--color-pg-border)] mb-4 flex-wrap">
+                    <div className="owner-header-title" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                        {tenant?.logo_path && (
+                            <img src={tenant.logo_path} alt={`${tenant.company_name} Logo`} style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
+                        )}
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
+                                    {tenant?.company_name ? `${tenant.company_name} · ${t.owner_command_center}` : t.owner_command_center}
+                                </h1>
+                                <span className="owner-header-datetime" style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>
+                                    {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                    {' · '}
+                                    {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                            </div>
+                            <div className="owner-greeting" style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 600, marginTop: '1px' }}>
+                                {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }} className="owner-header-actions">
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }} className="owner-header-actions">
                     {canBroadcastPo && (
                         <button
                             className="new-po-btn animate-pulse"
@@ -1982,7 +1977,7 @@ ${locationStr}
                         {language === 'en' ? 'Exit' : 'Keluar'}
                     </button>
                 </div>
-            </header>
+            </div>
 
             <div style={{ padding: '0 16px 6px' }}>
             {/* Error Messages */}
@@ -2190,30 +2185,6 @@ ${locationStr}
                         <span className="tab-label-short">Branding</span>
                     </button>
                 )}
-                <Link
-                    href="/dashboard/rework-logbook"
-                    className="tab"
-                    style={{ textDecoration: 'none' }}
-                >
-                    <span className="tab-label-full">Logbook</span>
-                    <span className="tab-label-short">Logbook</span>
-                </Link>
-                <Link
-                    href={`/c/${tenant?.slug || ''}/archive`}
-                    className="tab"
-                    style={{ textDecoration: 'none' }}
-                >
-                    <span className="tab-label-full">{t.tab_archive}</span>
-                    <span className="tab-label-short">{t.tab_archive}</span>
-                </Link>
-                <Link
-                    href="/dashboard/billing"
-                    className="tab"
-                    style={{ textDecoration: 'none' }}
-                >
-                    <span className="tab-label-full">{language === 'id' ? 'Tagihan' : 'Billing'}</span>
-                    <span className="tab-label-short">{language === 'id' ? 'Tagihan' : 'Billing'}</span>
-                </Link>
             </div>
 
             {/* Removed State Summary Bar from sticky header */}
@@ -6088,7 +6059,8 @@ ${locationStr}
                     to { transform: translateX(0); opacity: 1; }
                 }
             `}</style>
-        </div>
+            </div>
+        </AppLayout>
     );
 }
 

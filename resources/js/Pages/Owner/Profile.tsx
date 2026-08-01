@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, router } from '@inertiajs/react';
 import { ChevronLeft, Lock, Palette } from '../../Components/Icons';
+import { AppLayout } from '../../Components/AppLayout';
 import { localizedDisplay } from '../../Utils/locale';
 
 interface Props {
@@ -147,11 +148,8 @@ export default function Profile({ tenant, auth_user }: Props) {
     };
 
     return (
-        <div className="dashboard-root" style={{
-            backgroundColor: 'var(--color-pg-bg)',
-            fontFamily: 'Inter, sans-serif',
-            color: 'var(--color-pg-text)'
-        }}>
+        <AppLayout activeNav="profile" title={t.page_title}>
+            <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
             <header className="responsive-header" style={{
                 padding: '12px 16px',
                 borderBottom: '1px solid var(--color-pg-border)',
@@ -411,6 +409,7 @@ export default function Profile({ tenant, auth_user }: Props) {
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        </AppLayout>
     );
 }

@@ -142,7 +142,7 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
     };
 
     return (
-        <div className="dashboard-root" style={{
+        <div className="dashboard-root lg:ml-64 pb-24 lg:pb-8" style={{
             backgroundColor: 'var(--color-pg-bg, var(--color-pg-bg))',
             minHeight: '100vh',
             color: 'var(--color-pg-text, var(--color-pg-text))',

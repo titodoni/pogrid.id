@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "test:e2e": "cd e2e-tests && npm test",
+    "test:e2e:debug": "cd e2e-tests && HEADLESS=false SLOWMO=100 npm test"
   },
   "dependencies": {
     "@inertiajs/react": "^2.0.0",

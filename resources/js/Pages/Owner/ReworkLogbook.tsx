@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, Search } from '../../Components/Icons';
+import { AppLayout } from '../../Components/AppLayout';
 import { formatDateTimeDDMMYYYY } from '../../Utils/date';
 
 interface ReworkEvent {
@@ -195,12 +196,8 @@ export default function ReworkLogbook({ rework_events, summary, selected_range, 
     const maxClientEvents = Math.max(...summary.client_breakdown.map(c => c.events), 1);
 
     return (
-        <div className="dashboard-root" style={{
-            backgroundColor: 'var(--color-pg-bg)',
-            fontFamily: 'Inter, sans-serif',
-            color: 'var(--color-pg-text)',
-            minHeight: '100vh',
-        }}>
+        <AppLayout activeNav="rework" title={t.page_title} subtitle={t.subtitle}>
+            <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
             <div className="dashboard-above-scroll">
                 <header className="responsive-header owner-dashboard-header" style={{
                     padding: '10px 16px 8px',
@@ -553,6 +550,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range, 
                     </>
                 )}
             </div>
-        </div>
+            </div>
+        </AppLayout>
     );
 }

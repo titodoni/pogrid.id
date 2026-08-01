@@ -17,6 +17,7 @@ Design system: [Astryx](https://astryx.design) (`@astryxdesign/core` provides CS
 - `./dev.sh` — start all (Docker PHP+Node, server, queue, Vite). Need Docker.
 - `composer test` — `config:clear` then `php artisan test` (PHPUnit 10.5).
 - `npm run dev` / `npm run build` — Vite HMR / production build.
+- `npm run test:e2e` / `npm run test:e2e:debug` — Puppeteer+Jest E2E suite in `e2e-tests/` (see `e2e-tests/README.md`). Needs Laravel server on `http://localhost:8000` + seeded DB.
 - `vendor/bin/pint` — formatting (no npm lint/typecheck, no `tsconfig.json`).
 - `php artisan pogrid:evaluate-timelines` — cron for timeline alerts.
 - `php artisan queue:work --stop-when-empty` — cron task (1-min interval, no daemon).

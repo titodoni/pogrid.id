@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import { AppLayout } from '../../Components/AppLayout';
 import { ChevronLeft, AlertTriangle } from '../../Components/Icons';
 import { formatDDMMYYYY } from '../../Utils/date';
 
@@ -79,14 +80,8 @@ export default function Billing({ tenant, is_expired }: Props) {
     const isPaid = statusStr === 'ACTIVE' || statusStr === 'PAID' || statusStr === 'SUBSCRIBED';
 
     return (
-        <div className="dashboard-root" style={{
-            backgroundColor: 'var(--color-pg-bg, #09090b)',
-            minHeight: '100vh',
-            color: 'var(--color-pg-text, #f8fafc)',
-            fontFamily: 'var(--font-sans, system-ui, sans-serif)',
-            padding: '32px',
-        }}>
-            <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+        <AppLayout activeNav="billing" title={t.title} subtitle={t.subtitle}>
+            <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
                 {/* Header Navigation */}
                 <header style={{
                     display: 'flex',
@@ -298,6 +293,6 @@ export default function Billing({ tenant, is_expired }: Props) {
                     </a>
                 </div>
             </div>
-        </div>
+        </AppLayout>
     );
 }

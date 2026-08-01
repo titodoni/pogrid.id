@@ -135,7 +135,7 @@ export default function MyKpi({ completed_stages, summary, stage_breakdown, mont
     };
 
     return (
-        <div className="dashboard-root" style={{
+        <div className="dashboard-root lg:ml-64 pb-24 lg:pb-8" style={{
             backgroundColor: 'var(--color-pg-bg)',
             color: 'var(--color-pg-text)',
             minHeight: '100vh',

@@ -90,9 +90,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // PIN Reset Approval (admin only)
     Route::post('/pin-reset/{alertId}/approve', [PinResetController::class, 'approvePinReset']);
 
-    // Rework Logbook
+    // Rework Logbook & Billing
     Route::get('/dashboard/rework-logbook', [OwnerDashboardController::class, 'reworkLogbook'])->name('rework.logbook');
+    Route::get('/rework-logbook', [OwnerDashboardController::class, 'reworkLogbook']);
     Route::get('/dashboard/billing', [OwnerDashboardController::class, 'billing'])->name('dashboard.billing');
+    Route::get('/billing', [OwnerDashboardController::class, 'billing']);
+    // Profile & Settings
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
 });
 
 // Guard B: Unified Tenant Gateway at c/{slug}
