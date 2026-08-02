@@ -35,6 +35,9 @@ export default function SearchModal({
     return (
         <div
             id="search-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={language === 'en' ? 'Search Directory' : 'Cari Data Proyek'}
             style={{
                 position: 'fixed',
                 top: 0, left: 0, right: 0, bottom: 0,
@@ -67,6 +70,7 @@ export default function SearchModal({
                     </h3>
                     <button
                         onClick={() => setShowSearchModal(false)}
+                        aria-label={language === 'en' ? 'Close search' : 'Tutup pencarian'}
                         style={{
                             background: 'none',
                             border: 'none',

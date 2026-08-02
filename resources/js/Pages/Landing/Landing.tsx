@@ -1415,7 +1415,7 @@ export default function Landing() {
                                         <span className="inline-flex items-center justify-center w-10 h-10 border border-slate-200 bg-white">
                                             {featureIcons[i] || <Check size={18} className="text-blue-700" />}
                                         </span>
-                                        <span className="mono text-[11px] font-medium tracking-[0.14em] text-slate-300">F.0{i + 1}</span>
+                                        <span className="mono text-[11px] font-medium tracking-[0.14em] text-slate-400">F.0{i + 1}</span>
                                     </div>
                                     <h3 className="text-base font-bold text-slate-900 mb-2 leading-snug">{f.t}</h3>
                                     <p className="text-sm text-slate-500 leading-relaxed">{f.d}</p>
@@ -1437,7 +1437,7 @@ export default function Landing() {
                                 <thead>
                                     <tr className="border-b border-slate-200 bg-slate-50">
                                         <th className="mono py-4 px-6 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500 w-[34%]">{t.compare_aspect}</th>
-                                        <th className="mono py-4 px-6 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400">
+                                        <th className="mono py-4 px-6 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
                                             {t.compare_cols[0]}
                                         </th>
                                         <th className="mono py-4 px-6 text-[11px] font-semibold uppercase tracking-[0.14em] text-blue-800 border-l-2 border-l-blue-700">

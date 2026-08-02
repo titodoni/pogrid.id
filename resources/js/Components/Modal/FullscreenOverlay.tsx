@@ -44,6 +44,9 @@ export const FullscreenOverlay: React.FC<FullscreenOverlayProps> = ({
 
     return (
         <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Modal"
             style={{
                 position: 'fixed',
                 top: 0,

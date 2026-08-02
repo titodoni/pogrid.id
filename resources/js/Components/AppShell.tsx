@@ -243,18 +243,18 @@ export const AppShell: React.FC<AppShellProps> = ({
         <div className="relative">
             <button
                 onClick={() => setShowThemeDropdown(!showThemeDropdown)}
-                className={`${c ? 'w-9 h-9' : 'w-7 h-7'} rounded-[2px] border border-white/15 bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors`}
+                className={`${c ? 'w-9 h-9' : 'w-7 h-7'} rounded-[2px] border border-[var(--color-pg-nav-border)] bg-[var(--color-pg-nav-hover)] flex items-center justify-center text-[var(--color-pg-nav-muted)] hover:text-[var(--color-pg-nav-text)] transition-colors`}
                 title="Theme"
             >
                 <Palette size={c ? 16 : 14} />
             </button>
             {showThemeDropdown && (
-                <div className={`absolute z-50 w-40 bg-slate-900 border border-white/15 rounded-[2px] shadow-xl p-1 ${c ? 'left-full ml-2 top-0' : 'bottom-full mb-2 left-0'}`}>
+                <div className={`absolute z-50 min-w-[10rem] bg-[var(--color-pg-nav)] border border-[var(--color-pg-nav-border)] rounded-[6px] shadow-xl p-1 ${c ? 'left-full ml-2 top-0' : 'bottom-full mb-2 left-0'}`}>
                     {THEME_CLASSES.map((th) => (
                         <button
                             key={th}
                             onClick={() => changeTheme(th)}
-                            className="w-full text-left px-2.5 py-1.5 mono text-[11px] text-slate-300 hover:bg-white/5 hover:text-white rounded-[2px] uppercase tracking-[0.1em] transition-colors"
+                            className="w-full text-left px-2.5 py-1.5 mono text-[11px] text-[var(--color-pg-nav-muted)] hover:bg-[var(--color-pg-nav-hover)] hover:text-[var(--color-pg-nav-text)] rounded-[4px] uppercase tracking-[0.1em] transition-colors"
                         >
                             {th.replace('theme-', '')}
                         </button>
@@ -267,26 +267,26 @@ export const AppShell: React.FC<AppShellProps> = ({
     // ===== SIDEBAR =====
     const sidebar = (
         <aside
-            className={`${sidebarVisibility} flex-col fixed top-0 left-0 bottom-0 z-40 bg-slate-950 border-r border-white/10 transition-all duration-300 ${sidebarWidthClass}`}
+            className={`${sidebarVisibility} flex-col fixed top-0 left-0 bottom-0 z-40 bg-[var(--color-pg-nav)] border-r border-[var(--color-pg-nav-border)] transition-all duration-300 ${sidebarWidthClass}`}
         >
             <div className="absolute top-0 left-0 right-0 h-[2px] line-grad z-20" />
 
             {/* Brand */}
-            <div className={`px-4 h-16 flex items-center border-b border-white/10 ${collapsed ? 'justify-center' : 'justify-between'}`}>
+            <div className={`px-4 h-16 flex items-center border-b border-[var(--color-pg-nav-border)] ${collapsed ? 'justify-center' : 'justify-between'}`}>
                 <Link href={homeHref} className={`flex items-center gap-2.5 overflow-hidden group ${collapsed ? 'justify-center' : ''}`}>
                     {activeLogoPath ? (
                         <img src={activeLogoPath} alt={companyName} className="h-8 w-auto max-w-[36px] object-contain flex-shrink-0" />
                     ) : (
-                        <div className="mono w-9 h-9 rounded-[2px] border border-white/15 bg-white/5 text-blue-300 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                        <div className="mono w-9 h-9 rounded-[2px] border border-[var(--color-pg-nav-border)] bg-[var(--color-pg-nav-hover)] text-[var(--color-pg-accent)] flex items-center justify-center font-bold text-sm flex-shrink-0">
                             {companyName.charAt(0)}
                         </div>
                     )}
                     {!collapsed && (
                         <div className="flex flex-col min-w-0">
-                            <span className="font-bold text-sm text-white truncate leading-tight">{companyName}</span>
+                            <span className="font-bold text-sm text-[var(--color-pg-nav-text)] truncate leading-tight">{companyName}</span>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="mono text-[10px] text-blue-300 uppercase tracking-[0.14em]">POgrid.id</span>
-                                <span className="mono text-[9px] font-semibold px-1.5 py-0.5 rounded-[2px] bg-white/5 text-slate-300 border border-white/15 uppercase tracking-[0.14em]">
+                                <span className="mono text-[10px] text-[var(--color-pg-accent)] uppercase tracking-[0.14em]">POgrid.id</span>
+                                <span className="mono text-[9px] font-semibold px-1.5 py-0.5 rounded-[2px] bg-[var(--color-pg-nav-hover)] text-[var(--color-pg-nav-muted)] border border-[var(--color-pg-nav-border)] uppercase tracking-[0.14em]">
                                     {config.badgeLabel}
                                 </span>
                             </div>
@@ -296,7 +296,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                 {isOffice && !collapsed && (
                     <button
                         onClick={toggleSidebar}
-                        className="w-7 h-7 rounded-[2px] flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/5 transition-colors"
+                        className="w-7 h-7 rounded-[2px] flex items-center justify-center text-[var(--color-pg-nav-muted)] hover:text-[var(--color-pg-nav-text)] hover:bg-[var(--color-pg-nav-hover)] transition-colors"
                         title="Collapse"
                     >
                         <ChevronLeft size={16} />
@@ -306,7 +306,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             {isOffice && collapsed && (
                 <button
                     onClick={toggleSidebar}
-                    className="mx-auto mt-2 w-7 h-7 rounded-[2px] flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/5"
+                    className="mx-auto mt-2 w-7 h-7 rounded-[2px] flex items-center justify-center text-[var(--color-pg-nav-muted)] hover:text-[var(--color-pg-nav-text)] hover:bg-[var(--color-pg-nav-hover)]"
                     title="Expand"
                 >
                     <ChevronRight size={16} />
@@ -317,7 +317,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             <div className={collapsed ? 'px-2 py-2' : 'p-3'}>
                 <Link
                     href={config.primaryCta.href}
-                    className={`${collapsed ? 'w-10 h-10 mx-auto' : 'w-full py-2.5 px-3'} bg-white text-slate-900 hover:bg-slate-200 font-semibold rounded-[2px] flex items-center justify-center gap-2 transition-all active:scale-[0.98]`}
+                    className={`${collapsed ? 'w-10 h-10 mx-auto' : 'w-full py-2.5 px-3'} bg-[var(--color-pg-primary)] text-[var(--color-pg-primary-ink)] hover:bg-[var(--color-pg-primary-hover)] font-semibold rounded-[2px] flex items-center justify-center gap-2 transition-all active:scale-[0.98]`}
                     title={language === 'en' ? config.primaryCta.labelEn : config.primaryCta.labelId}
                 >
                     <config.primaryCta.icon size={16} />
@@ -331,7 +331,7 @@ export const AppShell: React.FC<AppShellProps> = ({
 
             {/* Nav */}
             <nav className="flex-1 px-3 py-2 overflow-y-auto">
-                <div className={`mono text-[10px] font-medium text-slate-600 uppercase tracking-[0.18em] px-2 mb-2 ${collapsed ? 'text-center' : ''}`}>
+                <div className={`mono text-[10px] font-medium text-[var(--color-pg-nav-muted)] uppercase tracking-[0.18em] px-2 mb-2 ${collapsed ? 'text-center' : ''}`}>
                     {collapsed ? '•' : (language === 'en' ? 'Navigation' : 'Navigasi')}
                 </div>
                 <div className="space-y-0.5">
@@ -348,17 +348,17 @@ export const AppShell: React.FC<AppShellProps> = ({
                                     collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5'
                                 } ${
                                     isActive
-                                        ? 'bg-white/5 border-white/10 text-white'
-                                        : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'
+                                        ? 'bg-[var(--color-pg-nav-active)] border-[var(--color-pg-nav-border)] text-[var(--color-pg-nav-text)]'
+                                        : 'border-transparent text-[var(--color-pg-nav-muted)] hover:text-[var(--color-pg-nav-text)] hover:bg-[var(--color-pg-nav-hover)]'
                                 }`}
                             >
-                                {isActive && <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-blue-500" />}
+                                {isActive && <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-[var(--color-pg-primary)]" />}
                                 <Icon size={16} className="flex-shrink-0" />
                                 {!collapsed && (
                                     <span className="mono text-[11px] uppercase tracking-[0.12em] truncate flex-1">{label}</span>
                                 )}
                                 {!collapsed && item.badgeEn && (
-                                    <span className="mono text-[9px] font-semibold px-1.5 py-0.5 rounded-[2px] bg-blue-500/15 text-blue-300 border border-blue-500/30 uppercase">
+                                    <span className="mono text-[9px] font-semibold px-1.5 py-0.5 rounded-[2px] bg-[var(--color-pg-accent)]/15 text-[var(--color-pg-accent)] border border-[var(--color-pg-accent)]/30 uppercase">
                                         {language === 'en' ? item.badgeEn : item.badgeId}
                                     </span>
                                 )}
@@ -369,26 +369,26 @@ export const AppShell: React.FC<AppShellProps> = ({
             </nav>
 
             {/* Footer */}
-            <div className="p-3 border-t border-white/10">
+            <div className="p-3 border-t border-[var(--color-pg-nav-border)]">
                 {!collapsed ? (
                     <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2.5 p-2 rounded-[2px] border border-white/10 bg-white/5">
-                            <div className="mono w-7 h-7 rounded-[2px] bg-blue-500/15 text-blue-300 border border-blue-500/30 flex items-center justify-center font-bold text-[11px] flex-shrink-0 relative">
+                        <div className="flex items-center gap-2.5 p-2 rounded-[2px] border border-[var(--color-pg-nav-border)] bg-[var(--color-pg-nav-hover)]">
+                            <div className="mono w-7 h-7 rounded-[2px] bg-[var(--color-pg-accent)]/15 text-[var(--color-pg-accent)] border border-[var(--color-pg-accent)]/30 flex items-center justify-center font-bold text-[11px] flex-shrink-0 relative">
                                 {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                                <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
+                                <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-[var(--color-pg-success)] ring-2 ring-[var(--color-pg-nav)]" />
                             </div>
                             <div className="flex flex-col min-w-0 flex-1">
-                                <span className="text-xs font-bold text-white truncate">{user.name || 'User'}</span>
-                                <span className="mono text-[10px] text-slate-500 truncate uppercase tracking-[0.1em]">{roleLabel}</span>
+                                <span className="text-xs font-bold text-[var(--color-pg-nav-text)] truncate">{user.name || 'User'}</span>
+                                <span className="mono text-[10px] text-[var(--color-pg-nav-muted)] truncate uppercase tracking-[0.1em]">{roleLabel}</span>
                             </div>
                         </div>
                         <div className="flex items-center gap-1.5">
-                            <div className="mono flex items-center border border-white/15 rounded-[2px] bg-white/5" style={{ padding: 2 }}>
+                            <div className="mono flex items-center border border-[var(--color-pg-nav-border)] rounded-[2px] bg-[var(--color-pg-nav-hover)]" style={{ padding: 2 }}>
                                 {(['en', 'id'] as Lang[]).map((l) => (
                                     <button
                                         key={l}
                                         onClick={() => changeLanguage(l)}
-                                        className={`uppercase tracking-[0.12em] transition-all ${language === l ? 'bg-white text-slate-900' : 'text-slate-500 hover:text-white'}`}
+                                        className={`uppercase tracking-[0.12em] transition-all ${language === l ? 'bg-[var(--color-pg-nav-text)] text-[var(--color-pg-nav)]' : 'text-[var(--color-pg-nav-muted)] hover:text-[var(--color-pg-nav-text)]'}`}
                                         style={{ paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3, fontSize: 10 }}
                                     >
                                         {l}
@@ -398,7 +398,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                             <ThemeMenu collapsed={false} />
                             <button
                                 onClick={() => router.post('/logout')}
-                                className="ml-auto w-7 h-7 rounded-[2px] border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 flex items-center justify-center transition-colors"
+                                className="ml-auto w-7 h-7 rounded-[2px] border border-[var(--color-pg-danger)]/25 bg-[var(--color-pg-danger)]/10 text-[var(--color-pg-danger)] hover:bg-[var(--color-pg-danger)]/20 flex items-center justify-center transition-colors"
                                 title={language === 'en' ? 'Log out' : 'Keluar'}
                             >
                                 <LogOut size={14} />
@@ -407,13 +407,13 @@ export const AppShell: React.FC<AppShellProps> = ({
                     </div>
                 ) : (
                     <div className="flex flex-col items-center gap-2">
-                        <div className="mono w-9 h-9 rounded-[2px] bg-blue-500/15 text-blue-300 border border-blue-500/30 flex items-center justify-center font-bold text-xs" title={user.name || 'User'}>
+                        <div className="mono w-9 h-9 rounded-[2px] bg-[var(--color-pg-accent)]/15 text-[var(--color-pg-accent)] border border-[var(--color-pg-accent)]/30 flex items-center justify-center font-bold text-xs" title={user.name || 'User'}>
                             {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <ThemeMenu collapsed />
                         <button
                             onClick={() => router.post('/logout')}
-                            className="w-9 h-9 rounded-[2px] border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 flex items-center justify-center"
+                            className="w-9 h-9 rounded-[2px] border border-[var(--color-pg-danger)]/25 bg-[var(--color-pg-danger)]/10 text-[var(--color-pg-danger)] hover:bg-[var(--color-pg-danger)]/20 flex items-center justify-center"
                             title={language === 'en' ? 'Log out' : 'Keluar'}
                         >
                             <LogOut size={16} />
@@ -426,11 +426,11 @@ export const AppShell: React.FC<AppShellProps> = ({
 
     // ===== HEADER =====
     const header = (
-        <header className="sticky top-0 z-30 bg-slate-950 border-b border-white/10 px-4 sm:px-6 h-16 flex items-center justify-between">
+        <header className="sticky top-0 z-30 bg-[var(--color-pg-surface)] border-b border-[var(--color-pg-nav-border)] px-4 sm:px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
                 <button
                     onClick={() => setMobileDrawerOpen(true)}
-                    className={`${mobileOnly} w-9 h-9 rounded-[2px] border border-white/15 bg-white/5 flex items-center justify-center text-white active:scale-95 transition-transform`}
+                    className={`${mobileOnly} w-9 h-9 rounded-[2px] border border-[var(--color-pg-border)] bg-[var(--color-pg-card-hover)] flex items-center justify-center text-[var(--color-pg-text)] active:scale-95 transition-transform`}
                     aria-label="Menu"
                 >
                     <MenuIcon size={18} />
@@ -438,7 +438,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                 {backUrl && (
                     <Link
                         href={backUrl}
-                        className="w-9 h-9 rounded-[2px] border border-white/15 bg-white/5 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+                        className="w-9 h-9 rounded-[2px] border border-[var(--color-pg-border)] bg-[var(--color-pg-card-hover)] flex items-center justify-center text-[var(--color-pg-text-secondary)] hover:text-[var(--color-pg-text)] transition-colors"
                         title={language === 'en' ? 'Back' : 'Kembali'}
                     >
                         <ChevronLeft size={18} />
@@ -448,36 +448,36 @@ export const AppShell: React.FC<AppShellProps> = ({
                     <img src={activeLogoPath} alt={companyName} className={`h-7 w-auto object-contain flex-shrink-0 ${mobileOnly}`} />
                 )}
                 <div className="flex flex-col min-w-0">
-                    <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate leading-tight">
+                    <h1 className="text-sm sm:text-base font-bold text-[var(--color-pg-text)] tracking-tight truncate leading-tight">
                         {title || companyName}
                     </h1>
                     {subtitle && (
-                        <span className="mono text-[10px] text-slate-500 uppercase tracking-[0.1em] truncate">{subtitle}</span>
+                        <span className="mono text-[10px] text-[var(--color-pg-text-muted)] uppercase tracking-[0.1em] truncate">{subtitle}</span>
                     )}
                 </div>
             </div>
 
             <div className="flex items-center gap-2">
                 {showClock && (
-                    <span className="mono hidden sm:inline text-[11px] text-slate-400 tracking-[0.1em]">
+                    <span className="mono hidden sm:inline text-[11px] text-[var(--color-pg-text-secondary)] tracking-[0.1em]">
                         {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                 )}
                 {wsStatus && (
-                    <span className="mono hidden sm:inline-flex items-center gap-1.5 text-[10px] text-emerald-300 border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 rounded-[2px] uppercase tracking-[0.1em]">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <span className="mono hidden sm:inline-flex items-center gap-1.5 text-[10px] text-[var(--color-pg-success)] border border-[var(--color-pg-success)]/25 bg-[var(--color-pg-success)]/10 px-2 py-1 rounded-[2px] uppercase tracking-[0.1em]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-pg-success)]" />
                         {wsStatus}
                     </span>
                 )}
                 {typeof onlineUsersCount === 'number' && (
-                    <span className="mono hidden sm:inline text-[10px] text-slate-400 border border-white/15 bg-white/5 px-2 py-1 rounded-[2px] uppercase tracking-[0.1em]">
+                    <span className="mono hidden sm:inline text-[10px] text-[var(--color-pg-text-muted)] border border-[var(--color-pg-border)] bg-[var(--color-pg-card-hover)] px-2 py-1 rounded-[2px] uppercase tracking-[0.1em]">
                         {onlineUsersCount} {language === 'en' ? 'online' : 'aktif'}
                     </span>
                 )}
                 {onSearchClick && (
                     <button
                         onClick={onSearchClick}
-                        className="h-9 px-3 rounded-[2px] border border-white/15 bg-white/5 text-slate-300 hover:text-white flex items-center gap-2 text-xs font-semibold transition-colors"
+                        className="h-9 px-3 rounded-[2px] border border-[var(--color-pg-border)] bg-[var(--color-pg-card-hover)] text-[var(--color-pg-text-secondary)] hover:text-[var(--color-pg-text)] flex items-center gap-2 text-xs font-semibold transition-colors"
                     >
                         <Search size={15} />
                         <span className="hidden sm:inline">{language === 'en' ? 'Search' : 'Cari'}</span>
@@ -485,14 +485,14 @@ export const AppShell: React.FC<AppShellProps> = ({
                 )}
                 <Link
                     href={settingsHref}
-                    className="h-9 w-9 rounded-[2px] border border-white/15 bg-white/5 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+                    className="h-9 w-9 rounded-[2px] border border-[var(--color-pg-border)] bg-[var(--color-pg-card-hover)] flex items-center justify-center text-[var(--color-pg-text-secondary)] hover:text-[var(--color-pg-text)] transition-colors"
                     title={language === 'en' ? 'Settings' : 'Pengaturan'}
                 >
                     <Settings size={16} />
                 </Link>
                 <button
                     onClick={() => router.post('/logout')}
-                    className="h-9 px-3 rounded-[2px] bg-red-500 text-white font-bold text-xs flex items-center gap-1.5 hover:bg-red-600 transition-colors"
+                    className="h-9 px-3 rounded-[2px] bg-[var(--color-pg-danger)] text-white font-bold text-xs flex items-center gap-1.5 hover:brightness-110 transition-all"
                     title={language === 'en' ? 'Log out' : 'Keluar'}
                 >
                     <LogOut size={15} />
@@ -507,22 +507,22 @@ export const AppShell: React.FC<AppShellProps> = ({
     const drawer = mobileDrawerOpen ? (
         <div className={`${mobileOnly} fixed inset-0 z-50 flex`}>
             <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMobileDrawerOpen(false)} />
-            <div className="relative w-4/5 max-w-xs bg-slate-950 border-r border-white/10 flex flex-col h-full z-10 shadow-2xl">
+            <div className="relative w-4/5 max-w-xs bg-[var(--color-pg-nav)] border-r border-[var(--color-pg-nav-border)] flex flex-col h-full z-10 shadow-2xl">
                 <div className="absolute top-0 left-0 right-0 h-[2px] line-grad" />
-                <div className="h-16 px-4 flex items-center justify-between border-b border-white/10">
+                <div className="h-16 px-4 flex items-center justify-between border-b border-[var(--color-pg-nav-border)]">
                     <div className="flex items-center gap-2 min-w-0">
                         {activeLogoPath ? (
                             <img src={activeLogoPath} alt={companyName} className="h-7 w-auto object-contain flex-shrink-0" />
                         ) : (
-                            <div className="mono w-7 h-7 rounded-[2px] border border-white/15 bg-white/5 text-blue-300 flex items-center justify-center font-bold text-xs">
+                            <div className="mono w-7 h-7 rounded-[2px] border border-[var(--color-pg-nav-border)] bg-[var(--color-pg-nav-hover)] text-[var(--color-pg-accent)] flex items-center justify-center font-bold text-xs">
                                 {companyName.charAt(0)}
                             </div>
                         )}
-                        <span className="font-bold text-sm text-white truncate">{companyName}</span>
+                        <span className="font-bold text-sm text-[var(--color-pg-nav-text)] truncate">{companyName}</span>
                     </div>
                     <button
                         onClick={() => setMobileDrawerOpen(false)}
-                        className="w-8 h-8 rounded-[2px] border border-white/15 bg-white/5 flex items-center justify-center text-slate-400"
+                        className="w-8 h-8 rounded-[2px] border border-[var(--color-pg-nav-border)] bg-[var(--color-pg-nav-hover)] flex items-center justify-center text-[var(--color-pg-nav-muted)]"
                         aria-label="Close"
                     >
                         <Close size={16} />
@@ -533,7 +533,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                     <Link
                         href={config.primaryCta.href}
                         onClick={() => setMobileDrawerOpen(false)}
-                        className="w-full py-2.5 px-3 bg-white text-slate-900 font-semibold rounded-[2px] flex items-center justify-center gap-2"
+                        className="w-full py-2.5 px-3 bg-[var(--color-pg-primary)] text-[var(--color-pg-primary-ink)] font-semibold rounded-[2px] flex items-center justify-center gap-2"
                     >
                         <config.primaryCta.icon size={16} />
                         <span className="mono text-[11px] uppercase tracking-[0.12em]">
@@ -553,10 +553,10 @@ export const AppShell: React.FC<AppShellProps> = ({
                                 href={item.href}
                                 onClick={() => setMobileDrawerOpen(false)}
                                 className={`relative flex items-center gap-3 px-3 py-3 rounded-[2px] border transition-colors ${
-                                    isActive ? 'bg-white/5 border-white/10 text-white' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'
+                                    isActive ? 'bg-[var(--color-pg-nav-active)] border-[var(--color-pg-nav-border)] text-[var(--color-pg-nav-text)]' : 'border-transparent text-[var(--color-pg-nav-muted)] hover:text-[var(--color-pg-nav-text)] hover:bg-[var(--color-pg-nav-hover)]'
                                 }`}
                             >
-                                {isActive && <span className="absolute left-0 top-2 bottom-2 w-[2px] bg-blue-500" />}
+                                {isActive && <span className="absolute left-0 top-2 bottom-2 w-[2px] bg-[var(--color-pg-primary)]" />}
                                 <Icon size={16} />
                                 <span className="mono text-[11px] uppercase tracking-[0.12em]">{label}</span>
                             </Link>
@@ -564,18 +564,18 @@ export const AppShell: React.FC<AppShellProps> = ({
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-white/10 space-y-2">
+                <div className="p-4 border-t border-[var(--color-pg-nav-border)] space-y-2">
                     <Link
                         href={settingsHref}
                         onClick={() => setMobileDrawerOpen(false)}
-                        className="w-full py-2.5 rounded-[2px] border border-white/15 bg-white/5 text-white font-semibold text-xs flex items-center justify-center gap-2"
+                        className="w-full py-2.5 rounded-[2px] border border-[var(--color-pg-nav-border)] bg-[var(--color-pg-nav-hover)] text-[var(--color-pg-nav-text)] font-semibold text-xs flex items-center justify-center gap-2"
                     >
                         <Settings size={15} />
                         <span>{language === 'en' ? 'Account Settings' : 'Pengaturan Akun'}</span>
                     </Link>
                     <button
                         onClick={() => router.post('/logout')}
-                        className="w-full py-2.5 rounded-[2px] bg-red-500 text-white font-bold text-xs flex items-center justify-center gap-2"
+                        className="w-full py-2.5 rounded-[2px] bg-[var(--color-pg-danger)] text-white font-bold text-xs flex items-center justify-center gap-2"
                     >
                         <LogOut size={15} />
                         <span>{language === 'en' ? 'Log out' : 'Keluar'}</span>
@@ -588,10 +588,10 @@ export const AppShell: React.FC<AppShellProps> = ({
     // ===== MOBILE BOTTOM NAV =====
     const bottomNav = (
         <nav
-            className={`${mobileOnly} fixed bottom-0 left-0 right-0 z-50 bg-slate-950 border-t border-white/10 flex items-stretch`}
+            className={`${mobileOnly} fixed bottom-0 left-0 right-0 z-50 bg-[var(--color-pg-surface)] border-t border-[var(--color-pg-nav-border)] flex items-stretch`}
             style={{ height: 64 }}
         >
-            {config.bottomItems.map((item) => {
+{config.bottomItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeNav === item.key;
                 return (
@@ -599,10 +599,10 @@ export const AppShell: React.FC<AppShellProps> = ({
                         key={item.key}
                         href={item.href}
                         className={`relative flex-1 flex flex-col items-center justify-center pt-1.5 transition-colors ${
-                            isActive ? 'text-white' : 'text-slate-500 hover:text-slate-300'
+                            isActive ? 'text-[var(--color-pg-primary)]' : 'text-[var(--color-pg-text-muted)] hover:text-[var(--color-pg-text-secondary)]'
                         }`}
                     >
-                        {isActive && <span className="absolute top-0 left-3 right-3 h-[2px] bg-blue-500" />}
+                        {isActive && <span className="absolute top-0 left-3 right-3 h-[2px] bg-[var(--color-pg-primary)]" />}
                         <Icon size={18} />
                         <span className="mono text-[9px] font-semibold mt-1 uppercase tracking-[0.1em] truncate max-w-full px-1">
                             {language === 'en' ? item.labelEn : item.labelId}
@@ -629,7 +629,7 @@ export const AppShell: React.FC<AppShellProps> = ({
 
     // Office: full shell wrapping children.
     return (
-        <div className="min-h-screen bg-[var(--color-pg-bg,#09090b)] text-[var(--color-pg-text,#fafafa)] flex flex-col font-sans max-w-full overflow-x-hidden relative">
+        <div className="min-h-screen bg-[var(--color-pg-bg)] text-[var(--color-pg-text)] flex flex-col font-sans max-w-full overflow-x-hidden relative">
             {sidebar}
             <div className={`flex-1 transition-all duration-300 min-w-0 max-w-full overflow-x-hidden flex flex-col ${collapsed ? 'md:ml-20' : 'md:ml-64 lg:ml-72'}`}>
                 {header}

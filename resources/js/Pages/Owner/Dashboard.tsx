@@ -9,6 +9,7 @@ import { localizedDisplay } from '../../Utils/locale';
 import { StatusBadge } from '../../Components/StatusBadge';
 import PresentationMode from '../../Components/OwnerDashboard/PresentationMode';
 import SearchModal from '../../Components/OwnerDashboard/SearchModal';
+import BroadcastToasts from '../../Components/BroadcastToasts';
 import { CompanyBrandingSetup } from '../../Components/OwnerDashboard/CompanyBrandingSetup';
 import { useImperativeAlertDialog } from '@astryxdesign/core';
 import echo from '../../bootstrap';
@@ -1729,39 +1730,11 @@ ${locationStr}
     return (
         <AppLayout activeNav="dashboard" onSearchClick={() => setShowSearchModal(true)}>
             <div className="dashboard-root px-3 sm:px-6 py-4">
-            {toastQueue.length > 0 && (
-                <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {toastQueue.map(t => (
-                        <div key={t.timestamp} onClick={() => setToastQueue(prev => prev.filter(x => x.timestamp !== t.timestamp))}
-                            style={{
-                                backgroundColor: t.severity === 'RED' ? 'rgba(239, 68, 68, 0.95)' : t.severity === 'ALERT' ? 'rgba(251, 191, 36, 0.95)' : t.severity === 'INFO' ? 'rgba(59, 130, 246, 0.95)' : 'rgba(251, 191, 36, 0.95)',
-                                color: '#fff', padding: '12px 20px', borderRadius: '10px',
-                                fontSize: '13px', fontWeight: 600, maxWidth: '360px',
-                                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                                display: 'flex', alignItems: 'center', gap: '8px',
-                                animation: 'slideIn 0.3s ease-out', cursor: 'pointer',
-                            }}>
-                            <span style={{ fontSize: '18px' }}>{t.severity === 'RED' ? '🚨' : t.severity === 'ALERT' ? '🔴' : t.severity === 'INFO' ? 'ℹ️' : '⚠️'}</span>
-                            <div>
-                                <div style={{ fontWeight: 700, marginBottom: '2px' }}>
-                                    {t.severity === 'RED'
-                                        ? (language === 'en' ? 'Kendala Reported' : 'Kendala Dilaporkan')
-                                        : t.severity === 'ALERT'
-                                        ? (language === 'en' ? 'Alert Escalated' : 'Peringatan Dinaikkan')
-                                        : t.severity === 'INFO'
-                                        ? (language === 'en' ? 'Task Updated' : 'Tugas Diperbarui')
-                                        : (language === 'en' ? 'QC Rework' : 'Rework QC')}
-                                </div>
-                                <div style={{ opacity: 0.9, fontSize: '12px' }}>{t.message}</div>
-                            </div>
-                            <button onClick={(e) => { e.stopPropagation(); setToastQueue(prev => prev.filter(x => x.timestamp !== t.timestamp)); }}
-                                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '18px', opacity: 0.7 }}>
-                                ×
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            )}
+            <BroadcastToasts
+                toasts={toastQueue}
+                language={language}
+                onDismiss={(timestamp) => setToastQueue((prev) => prev.filter((x) => x.timestamp !== timestamp))}
+            />
             <div className="dashboard-above-scroll">
                 <div className="flex items-center justify-between gap-4 py-2 border-b border-[var(--color-pg-border)] mb-4 flex-wrap">
                     <div className="owner-header-title" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -2783,7 +2756,7 @@ ${locationStr}
                                                     })()}
                                                 </div>
                                                 <div style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginTop: '3px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
-                                                    <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-pg-text-muted)' }}>{po.po_number}</span>
+                                                    <span className="mono" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-pg-text-muted)' }}>{po.po_number}</span>
                                                     <span style={{ color: 'var(--color-pg-border)' }}>&middot;</span>
                                                     <span style={{ fontSize: '12px', fontWeight: 500 }}>{formatDeadline(po.global_deadline, language)}</span>
                                                     {!isExpanded && po.items.length > 0 && (
@@ -5778,7 +5751,7 @@ ${locationStr}
                                                                 className="bg-white/3 border border-white/6 rounded-lg p-3 cursor-pointer hover-grow"
                                                             >
                                                                 <div className="flex justify-between items-center mb-1.5">
-                                                                    <span className="text-sm font-extrabold text-pg-text">{po.po_number}</span>
+                                                                    <span className="mono text-sm font-extrabold text-pg-text">{po.po_number}</span>
                                                                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded"
                                                                         style={{
                                                                             color: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? 'var(--color-pg-success)' : 'var(--color-pg-warning)',
@@ -6053,12 +6026,6 @@ ${locationStr}
                 </div>
             )}
 
-            <style>{`
-                @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-            `}</style>
             </div>
         </AppLayout>
     );

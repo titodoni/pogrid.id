@@ -47,6 +47,9 @@ export const ModalShell: React.FC<ModalShellProps> = ({
 
     return (
         <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
             style={{
                 position: 'fixed',
                 top: 0,
@@ -87,6 +90,7 @@ export const ModalShell: React.FC<ModalShellProps> = ({
                     </div>
                     <button
                         onClick={onClose}
+                        aria-label={`Close ${title}`}
                         style={{
                             background: 'none',
                             border: 'none',

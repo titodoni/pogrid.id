@@ -6,6 +6,7 @@ import { localizedDisplay } from '../../Utils/locale';
 import { isStageLocked, getStageLockReason, getMatchingStages, getMatchingStageOrMock, getAllStages } from '../../Utils/permissions';
 import { WarningPill } from '../../Components/WarningPill';
 import { WorkerHeader } from '../../Components/WorkerHeader';
+import BroadcastToasts from '../../Components/BroadcastToasts';
 import echo from '../../bootstrap';
 
 interface Stage {
@@ -658,7 +659,7 @@ function ItemCard({
                     <span style={{ color: 'var(--color-pg-text-secondary)', fontSize: '12px', fontWeight: 500 }}>
                         {formatDeadline(item.po?.global_deadline, language)}
                     </span>
-                    <span style={{ color: 'var(--color-pg-text-muted)', fontSize: '11px', fontWeight: 600, textAlign: 'right' }}>
+                    <span className="mono" style={{ color: 'var(--color-pg-text-muted)', fontSize: '11px', fontWeight: 600, textAlign: 'right' }}>
                         {item.po?.po_number || ''}
                     </span>
                 </div>
@@ -1913,39 +1914,11 @@ export default function WorkerDashboard({ items, auth_user, tenant_id, tenant }:
             fontFamily: 'Inter, sans-serif',
             color: 'var(--color-pg-text)',
         }}>
-            {toastQueue.length > 0 && (
-                <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {toastQueue.map(t => (
-                        <div key={t.timestamp} onClick={() => setToastQueue(prev => prev.filter(x => x.timestamp !== t.timestamp))}
-                            style={{
-                                backgroundColor: t.severity === 'RED' ? 'rgba(239, 68, 68, 0.95)' : t.severity === 'ALERT' ? 'rgba(251, 191, 36, 0.95)' : t.severity === 'INFO' ? 'rgba(59, 130, 246, 0.95)' : 'rgba(251, 191, 36, 0.95)',
-                                color: 'var(--color-pg-text)', padding: '12px 20px', borderRadius: '10px',
-                                fontSize: '13px', fontWeight: 600, maxWidth: '360px',
-                                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                                display: 'flex', alignItems: 'center', gap: '8px',
-                                animation: 'slideIn 0.3s ease-out', cursor: 'pointer',
-                            }}>
-                            <span style={{ fontSize: '18px' }}>{t.severity === 'RED' ? '🚨' : t.severity === 'ALERT' ? '🔴' : t.severity === 'INFO' ? 'ℹ️' : '⚠️'}</span>
-                            <div>
-                                <div style={{ fontWeight: 700, marginBottom: '2px' }}>
-                                    {t.severity === 'RED'
-                                        ? (language === 'en' ? 'Kendala Reported' : 'Kendala Dilaporkan')
-                                        : t.severity === 'ALERT'
-                                        ? (language === 'en' ? 'Alert Escalated' : 'Peringatan Dinaikkan')
-                                        : t.severity === 'INFO'
-                                        ? (language === 'en' ? 'Task Updated' : 'Tugas Diperbarui')
-                                        : (language === 'en' ? 'QC Rework' : 'Rework QC')}
-                                </div>
-                                <div style={{ opacity: 0.9, fontSize: '12px' }}>{t.message}</div>
-                            </div>
-                            <button onClick={(e) => { e.stopPropagation(); setToastQueue(prev => prev.filter(x => x.timestamp !== t.timestamp)); }}
-                                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--color-pg-text)', cursor: 'pointer', fontSize: '18px', opacity: 0.7 }}>
-                                ×
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            )}
+            <BroadcastToasts
+                toasts={toastQueue}
+                language={language}
+                onDismiss={(timestamp) => setToastQueue((prev) => prev.filter((x) => x.timestamp !== timestamp))}
+            />
             {/* Header */}
             <WorkerHeader
                 slug={slug}
