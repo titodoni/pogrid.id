@@ -2,7 +2,7 @@
 
 ## Knowledge Graph (graphify)
 
-Before answering codebase questions, load `graphify-out/GRAPH_REPORT.md` and run `graphify query "<question>"` for graph-traversed context. Graph at `graphify-out/graph.json` (648 nodes, 1203 edges, 65 communities). Updated automatically post-commit.
+For codebase questions, first run `graphify query "<question>"` when `graphify-out/graph.json` exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts — these return a scoped subgraph, usually much smaller than grep output. Read `graphify-out/GRAPH_REPORT.md` only for broad architecture review when query/path/explain don't surface enough context. After modifying code, run `graphify update .` (auto-runs post-commit via hook).
 
 God nodes: TenantManager, Item, User, Po, Alert, ItemProgress, Role, Post.
 
@@ -14,15 +14,13 @@ Design system: [Astryx](https://astryx.design) (`@astryxdesign/core` provides CS
 
 - `composer setup` — full setup (composer install, .env, key:generate, migrate). No frontend build — run `npm install --legacy-peer-deps --ignore-scripts && chmod +x node_modules/.bin/* && npm run build` if needed.
 - `composer dev` — run PHP services (server, queue, pail). No Vite — run `npm run dev` separately.
-- `./dev.sh` — start all (Docker PHP+Node, server, queue, Vite). Need Docker.
-- `composer test` — `config:clear` then `php artisan test` (PHPUnit 10.5).
+- `./dev.sh` — start all (Docker PHP+Node, server, queue, Vite). Also installs graphify + sets up post-commit hooks. Need Docker.
+- `composer test` — `config:clear` then `php artisan test` (PHPUnit 10.5). Args are NOT forwarded (`@no_additional_args`), so for single tests use `php artisan test --filter=MethodName` or `php artisan test tests/Feature/CoreLogicTest.php` directly.
 - `npm run dev` / `npm run build` — Vite HMR / production build.
 - `npm run test:e2e` / `npm run test:e2e:debug` — Puppeteer+Jest E2E suite in `e2e-tests/` (see `e2e-tests/README.md`). Needs Laravel server on `http://localhost:8000` + seeded DB.
 - `vendor/bin/pint` — formatting (no npm lint/typecheck, no `tsconfig.json`).
 - `php artisan pogrid:evaluate-timelines` — cron for timeline alerts.
 - `php artisan queue:work --stop-when-empty` — cron task (1-min interval, no daemon).
-- `graphify update /home/tito/pogrid` — refresh knowledge graph after code changes (auto-runs post-commit).
-- `./dev.sh` — start all (Docker PHP+Node, server, queue, Vite). Also installs graphify + sets up post-commit hooks. Need Docker.
 - `git config core.hooksPath .githooks` — enable post-commit graphify auto-update (run once per clone).
 
 ## Routes & Auth
@@ -79,10 +77,26 @@ Controller error flow: `AuthController::login()` checks user existence first (by
 ## Architecture
 
 - **Multi-tenancy**: row-level `TenantScope` + `TenantManager` singleton. Models use `BelongsToTenant`. `TenantManager::bypass()`/`enableScope()` for tests and admin contexts.
-- **Observer chain** (registered in `AppServiceProvider::boot()`): `Item::created` auto-creates `ItemProgress` rows per `required_stages`. `ItemProgress::saved` recalculates weighted progress, cascades PO status. `DoItem::saved` marks PO COMPLETED when all items delivered.
-- **QC stage**: `target_qty === 1` shows NG (auto-submits rework qty=1) + OK (marks 100%) buttons. `target_qty > 1` uses percentage buttons + rework form (with qty input), same as other stages.
+- **Observer chain** (registered in `AppServiceProvider::boot()`): `Item::created` auto-creates `ItemProgress` rows per `required_stages`. `ItemProgress::saved` recalculates weighted progress, cascades PO status. `DoItem::saved` marks PO DELIVERED when all non-cancelled items delivered. Business logic lives in observers, NOT controllers.
+- **Progress system**: workers log *additive deltas* (+3 pcs), not absolute totals. Multi-piece (`target_qty > 1`): `Item % = Σ(completed_qty all stages) / (target_qty × stage_count) × 100`. Single-piece (`target_qty == 1`): `Item % = Σ(stage progress%) / stage_count`.
+- **Status transitions**: item `PENDING → IN_PROGRESS → COMPLETED → DELIVERED/PAID` (CANCELLED at 0% only; >0% becomes TERMINATED — sunk-cost protection). PO: `PENDING → IN_PROGRESS → COMPLETED → DELIVERED → CLOSED` (CLOSED when all invoiced/paid, set manually by Finance).
+- **Stage access gate** (`WorkerDashboardController::validateStageAccess()`): `STAGE_ROLE_MAP` config maps role keywords → stage names; all preceding stages must be COMPLETED before QC can update; unmatched stages fall to PRODUCTION role.
+- **QC rework**: logging `reject_qty` spawns a `"{stage} - REWORK"` sub-stage, decrements original stage `completed_qty`, creates YELLOW alert, reverts COMPLETED item to IN_PROGRESS. REWORK stage counts toward numerator but NOT denominator. UI: `target_qty === 1` shows NG (auto-submits rework qty=1) + OK (marks 100%) buttons; `target_qty > 1` uses percentage buttons + rework form with qty input.
+- **Alerts**: RED — Stuck (worker clicks Lapor Kendala, auto-resolves on resume) / Overdue (past deadline, auto-resolves at 100%). YELLOW — Risk (≤3 days left AND progress < 70%) / Rework (QC reject, manual resolve). BLUE — PIN reset requested (resolves on admin approve). Timeline evaluation via cron `pogrid:evaluate-timelines` (1-min).
 - **Session, cache, queue**: database driver (SQLite dev, PostgreSQL prod). **Broadcast**: Pusher, defaults to `log` in dev. No Redis.
 - **Cron-dependent**: no daemons. Queue + timeline evaluation run by cron at 1-min.
+
+## Key Files
+
+| Concern | Location |
+|---------|----------|
+| Progress update / QC rework / stage gate / finance | `app/Http/Controllers/WorkerDashboardController.php` (`updateProgress`, `logQcRework`, `validateStageAccess`, `updateFinanceStatus`) |
+| Tenant context | `app/Services/TenantManager.php` |
+| Observers | `app/Observers/{ItemObserver,ItemProgressObserver,DoItemObserver}.php` |
+| Timeline cron | `app/Console/Commands/EvaluateTimelines.php` |
+| Auth | `app/Http/Controllers/{AuthController,WorkerAuthController,PinResetController}.php` |
+| Owner dashboard | `app/Http/Controllers/OwnerDashboardController.php` |
+| Routes | `routes/web.php` |
 
 ## Testing
 
@@ -99,7 +113,9 @@ Controller error flow: `AuthController::login()` checks user existence first (by
 - No `tsconfig.json` — Vite compiles TS.
 - Dual language (EN/ID): `translations` per component + `localStorage` `pogrid_lang`. No i18n framework.
 - Theme System: `pogrid_theme` in `localStorage` toggles theme classes on `html` (`theme-default`, `theme-linear`, `theme-vercel`, `theme-stripe`, `theme-github`, `theme-nordic`, `theme-light` [Mint Cream], `theme-brand`). All components use semantic CSS custom properties (`--color-pg-surface`, `--color-pg-border`, `--color-pg-text`, `--color-pg-text-muted`).
-- Unified Worker Navigation: All worker/kiosk views share `WorkerHeader.tsx` for layout consistency and quick theme switching.
+- **Shared app chrome** — `resources/js/Components/AppShell.tsx` renders the sidebar + header + mobile drawer/bottom-nav for BOTH office and worker views. Thin wrappers: `AppLayout.tsx` (office pages, variant="office", chrome at `md+`) and `WorkerHeader.tsx` (worker pages, variant="worker", chrome at `lg+`; worker pages offset content with `dashboard-root lg:ml-64`). Breakpoint classes inside AppShell are written as **string literals** (`sidebarVisibility`, `mobileOnly`) — never interpolated — or Tailwind's scanner drops them and the sidebar/mobile chrome break. Keep `lg:ml-64` / `md:ml-64`/`lg:ml-72` content offsets in sync with `w-64` / `w-64 lg:w-72` sidebar widths.
+- **Design system**: `app.css` declares `@layer reset, astryx, theme, base, components, utilities;` so Tailwind utilities outrank Astryx's `@layer reset` (fixes heading font-size inheritance). Landing shares `.mono`, `.line-grad`, `.line-grad-fade` (defined globally in `app.css`); Landing-only primitives (`hero-grid`, `line-grid`, `cell-hover`, `btn-dark`, `btn-white`, `grad-text`, etc.) live in the page's inline `<style>`. Primary brand color is blue (`#2563eb`, was indigo `#6366f1`).
+- `e2e-tests/check-hero.js` — standalone Puppeteer probe that verifies the cascade-layer fix (h1 font-size on the Landing hero).
 - Date Formatting: Standardized UI date representations to `dd/mm/yyyy` via `resources/js/Utils/date.ts`.
 
 ## Deployment (Production)
