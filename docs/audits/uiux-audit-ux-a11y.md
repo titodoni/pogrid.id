@@ -99,6 +99,47 @@ was deliberately partial per the scope decision.
 
 ---
 
+## Round 3 — Landing honest-social-proof & display-font scope
+
+### 7. Fabricated social proof (CRITICAL)
+
+**Finding:** Now affirmatively rejected (no longer "left in place"). The landing sold on a hero
+trust bar of invented initials (HG/RK/DF/JS) + 5 stars, and a testimonials/quote section — there
+is verifiably no real, consenting customer yet.
+
+**Fix:** Removed the fake star+initials trust bar and replaced it with an honest early-access
+gate (new keys `hero_access_label` / `hero_access_note` in both lang dicts); removed the
+testimonials section and the dead `StarRow` / `QuoteIcon` components. **ZERO testimonials shipped.**
+
+**Sell via capability, not borrowed voice:** hero now leads with the "Papan PO" demo mockup —
+live Aman/Rawan/Telat statuses.
+
+### 8. Display-font scope creep (MEDIUM)
+
+**Decision:** Oswald stencil type is applied **only** to headings / section titles
+(`.landing-display`), never to body or data.
+
+- body stays Inter; data/mono stays IBM Plex Mono (added Oswald line to the Webfonts import).
+- `metrics` count-up band removed entirely (dead `CountUp` gone), stats now appear only once,
+  integrated into the untouched "Cara Kerja" section.
+
+### 9. Stats duplication (LOW)
+
+**Finding:** stats appeared twice (hero + full METRICS BAND). Removed the band; single instance
+remains in "Cara Kerja".
+
+### 10. 01/02/03 numbering (MEDIUM)
+
+**Decision:** numbering retained only where it denotes real process order (actual familiarization
+"a + b = c" style), not as decorative index labels.
+
+### Builds
+
+- `npm run build` passes after all round-3 cuts; Landing chunk shrank **83.9 → 80.7 kB** gzip.
+- `CountUp`, `StarRow`, `QuoteIcon` confirmed dead (no references) before removal.
+
+---
+
 ## Non-findings / rejects
 
 - **Landing test persons + 5-star block** — previously flagged as fabricated social proof.
@@ -111,13 +152,13 @@ was deliberately partial per the scope decision.
 
 | File | Change |
 |------|--------|
-| `resources/css/app.css` | nav tokens (×8 themes), focus-visible rule |
+| `resources/css/app.css` | nav tokens (×8 themes), focus-visible rule; Oswald added to Webfonts (r3) |
 | `resources/js/Components/AppShell.tsx` | chrome rewired to nav tokens |
 | `resources/js/Components/BroadcastToasts.tsx` | **new** shared toast component |
 | `resources/js/Components/Modal/ModalShell.tsx` | dialog a11y |
 | `resources/js/Components/Modal/FullscreenOverlay.tsx` | dialog a11y |
 | `resources/js/Components/OwnerDashboard/SearchModal.tsx` | dialog a11y + close label |
-| `resources/js/Pages/Landing/Landing.tsx` | light-bg contrast bumps |
+| `resources/js/Pages/Landing/Landing.tsx` | light-bg contrast bumps; round-3 hero/proof/mono rewrite |
 | `resources/js/Pages/Owner/Dashboard.tsx` | shared toasts, mono PO, dialog (via modal) |
 | `resources/js/Pages/Worker/Dashboard.tsx` | shared toasts, mono PO |
 | `resources/js/Pages/Ppic/Dashboard.tsx` | shared toasts, dialog role |
@@ -126,4 +167,5 @@ was deliberately partial per the scope decision.
 
 - `npm run build` — passes; confirmed all nav-token utilities and rgba overlays generated in the
   compiled CSS (`color-pg-nav`, `-border`, `-hover`, `-active`, `-text`, `-muted`).
+- Round 3: `npm run build` passes after dead-code removal; Landing chunk **83.9 → 80.7 kB** gzip.
 - No PHP files touched → Pint N/A.

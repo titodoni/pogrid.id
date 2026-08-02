@@ -65,7 +65,8 @@ const translations = {
         hero_cta_demo: 'Request a Demo',
         hero_cta_secondary: 'See How It Works',
         hero_notes: ['No credit card required', 'No app installation', 'Setup in under 5 minutes'],
-        hero_social: 'Trusted by workshop & factory owners across Indonesia',
+        hero_access_label: 'Early access — limited launch cohort',
+        hero_access_note: 'We are onboarding a select group of factories as this is tested on real production floors.',
         hero_stats: [
             { v: '100%', l: 'Real-time progress visibility' },
             { v: '3 min', l: 'To set up your plant & first PO' },
@@ -77,13 +78,6 @@ const translations = {
         marquee_items: ['CNC & Machining', 'Fabrication & Sheet Metal', 'Stamping & Press', 'Coachbuilding', 'Assembly', 'Moulding', 'General Manufacturing', 'Engineering Workshops'],
 
         logo_strip_label: 'Powering workshops across Indonesia',
-
-        metrics: [
-            { end: 100, suffix: '%', label: 'Real-time progress visibility' },
-            { end: 3, suffix: ' min', label: 'Plant setup & first PO' },
-            { end: 0, suffix: '', label: 'App installations — browser only' },
-            { end: 30, suffix: ' days', label: 'Free trial, no credit card' },
-        ],
 
         pain_eyebrow: 'The Problem',
         pain_title: 'The daily reality on the shop floor that keeps owners guessing',
@@ -256,7 +250,8 @@ const translations = {
         hero_cta_demo: 'Minta Demo',
         hero_cta_secondary: 'Lihat Cara Kerja',
         hero_notes: ['Tanpa kartu kredit', 'Tanpa instalasi app', 'Setup kurang dari 5 menit'],
-        hero_social: 'Dipercaya owner workshop & pabrik di Indonesia',
+        hero_access_label: 'Early access — kohort peluncuran terbatas',
+        hero_access_note: 'Kami mengonboarding sejumlah pabrik terpilih, karena produk ini masih diuji di lantai produksi sesungguhnya.',
         hero_stats: [
             { v: '100%', l: 'Visibilitas progress real-time' },
             { v: '3 Menit', l: 'Setup pabrik & PO pertama' },
@@ -268,13 +263,6 @@ const translations = {
         marquee_items: ['CNC & Machining', 'Fabrikasi & Sheet Metal', 'Stamping & Press', 'Karoseri', 'Perakitan / Assembly', 'Moulding', 'General Manufacturing', 'Workshop Engineering'],
 
         logo_strip_label: 'Memperkuat workshop di seluruh Indonesia',
-
-        metrics: [
-            { end: 100, suffix: '%', label: 'Visibilitas progress real-time' },
-            { end: 3, suffix: ' Menit', label: 'Setup pabrik & PO pertama' },
-            { end: 0, suffix: '', label: 'Instalasi app — cukup browser' },
-            { end: 30, suffix: ' Hari', label: 'Uji coba gratis tanpa kartu kredit' },
-        ],
 
         pain_eyebrow: 'Masalah Nyata',
         pain_title: 'Masalah klasik di bengkel & lantai produksi yang bikin pusing owner',
@@ -461,48 +449,6 @@ const Reveal: React.FC<{ children: React.ReactNode; delay?: number; className?: 
     );
 };
 
-const CountUp: React.FC<{ end: number; prefix?: string; suffix?: string; decimals?: number; duration?: number; locale?: string; className?: string }> = ({
-    end, prefix = '', suffix = '', decimals = 0, duration = 1500, locale = 'en-US', className = '',
-}) => {
-    const ref = useRef<HTMLSpanElement>(null);
-    const started = useRef(false);
-    const [val, setVal] = useState(0);
-
-    useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-        const obs = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((e) => {
-                    if (e.isIntersecting && !started.current) {
-                        started.current = true;
-                        const start = performance.now();
-                        const tick = (now: number) => {
-                            const p = Math.min(1, (now - start) / duration);
-                            const eased = 1 - Math.pow(1 - p, 3);
-                            setVal(end * eased);
-                            if (p < 1) requestAnimationFrame(tick);
-                        };
-                        requestAnimationFrame(tick);
-                        obs.disconnect();
-                    }
-                });
-            },
-            { threshold: 0.4 }
-        );
-        obs.observe(el);
-        return () => obs.disconnect();
-    }, [end, duration]);
-
-    return (
-        <span ref={ref} className={className}>
-            {prefix}
-            {val.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}
-            {suffix}
-        </span>
-    );
-};
-
 const SectionHead: React.FC<{ num?: string; eyebrow: string; title: React.ReactNode; sub?: string }> = ({ num, eyebrow, title, sub }) => (
     <Reveal className="mb-12 md:mb-16">
         <div className="flex items-center gap-4 mb-7">
@@ -575,16 +521,6 @@ const WhatsAppIcon: React.FC<IconProps> = ({ size = 18, className }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
     </svg>
-);
-
-const StarRow: React.FC<{ className?: string }> = ({ className = 'text-amber-400' }) => (
-    <div className={`flex gap-0.5 ${className}`}>
-        {[0, 1, 2, 3, 4].map((i) => (
-            <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-            </svg>
-        ))}
-    </div>
 );
 
 const CncIcon: React.FC<IconProps> = ({ className, size = 24 }) => (
@@ -683,12 +619,6 @@ const CardIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
         <rect x="1" y="4" width="22" height="16" rx="2" />
         <line x1="1" y1="10" x2="23" y2="10" />
         <path d="M5 14h4" />
-    </svg>
-);
-
-const QuoteIcon: React.FC<IconProps> = ({ className, size = 24 }) => (
-    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M9.583 17.321C8.553 16.227 8 15 8 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 0 1-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm-8 0C.553 16.227 0 15 0 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C6.409 11.678 7.83 13.159 7.83 15a3.5 3.5 0 0 1-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z" />
     </svg>
 );
 
@@ -1013,20 +943,9 @@ export default function Landing() {
 
                             <Reveal delay={360} className="w-full">
                                 <div className="flex items-center gap-4 mb-10">
-                                    <div className="flex -space-x-2">
-                                        {['HG', 'RK', 'DF', 'JS'].map((ini, i) => (
-                                            <div
-                                                key={ini}
-                                                className="mono w-9 h-9 rounded-[2px] border-2 border-slate-950 bg-slate-700 text-white text-[10px] font-semibold flex items-center justify-center"
-                                                style={{ zIndex: 10 - i }}
-                                            >
-                                                {ini}
-                                            </div>
-                                        ))}
-                                    </div>
                                     <div className="text-left">
-                                        <StarRow />
-                                        <p className="text-[12.5px] text-slate-400 mt-1 font-medium">{t.hero_social}</p>
+                                        <div className="mono text-[11px] text-slate-400 uppercase tracking-[0.14em] mb-1.5">{t.hero_access_label}</div>
+                                        <p className="text-[12.5px] text-slate-400 font-medium">{t.hero_access_note}</p>
                                     </div>
                                 </div>
                             </Reveal>
@@ -1326,25 +1245,6 @@ export default function Landing() {
                 </div>
             </section>
 
-            {/* ===== METRICS BAND ===== */}
-            <section className="border-b border-slate-200">
-                <div className="max-w-[1200px] mx-auto border-x border-slate-200 px-4 md:px-10 py-16 md:py-20">
-                    <Reveal>
-                        <div className="line-grid grid grid-cols-2 lg:grid-cols-4 border border-slate-200">
-                            {t.metrics.map((m, i) => (
-                                <div key={i} className="cell-hover px-6 py-10 md:px-8 md:py-12">
-                                    <div className="mono text-[10px] font-medium tracking-[0.18em] text-slate-400 uppercase mb-4">M.0{i + 1}</div>
-                                    <div className="mono text-4xl md:text-5xl font-semibold text-slate-900 tracking-tight mb-3">
-                                        <CountUp end={m.end} suffix={m.suffix} locale={lang === 'id' ? 'id-ID' : 'en-US'} />
-                                    </div>
-                                    <div className="text-[13px] text-slate-500 leading-snug">{m.label}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </Reveal>
-                </div>
-            </section>
-
             {/* ===== PAIN ===== */}
             <section className="border-b border-slate-200 bg-slate-50">
                 <div className="max-w-[1200px] mx-auto border-x border-slate-200 px-4 md:px-10 py-16 md:py-24">
@@ -1491,27 +1391,6 @@ export default function Landing() {
                                         <div className="mono text-[10px] font-medium tracking-[0.18em] text-slate-400 uppercase mb-2">{t.sector_tag} 0{i + 1}</div>
                                         <h3 className="text-base md:text-lg font-bold text-slate-900 mb-3">{p.t}</h3>
                                         <p className="text-sm text-slate-500 leading-relaxed">{p.d}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </Reveal>
-
-                    <Reveal>
-                        <div className="line-grid grid grid-cols-1 lg:grid-cols-3 border border-slate-200 bg-white">
-                            {t.testimonials.map((tm, i) => (
-                                <div key={i} className="cell-hover p-7 md:p-8 flex flex-col">
-                                    <QuoteIcon size={22} className="text-slate-300 mb-5" />
-                                    <p className="text-sm md:text-[15px] text-slate-600 leading-relaxed flex-1">&ldquo;{tm.quote}&rdquo;</p>
-                                    <div className="flex items-center gap-3 mt-7 pt-6 border-t border-slate-100">
-                                        <div className="mono w-10 h-10 rounded-[2px] bg-slate-900 text-white text-xs font-semibold flex items-center justify-center flex-shrink-0">
-                                            {tm.initial}
-                                        </div>
-                                        <div>
-                                            <div className="text-sm font-bold text-slate-900">{tm.name}</div>
-                                            <div className="text-[11px] text-slate-500">{tm.role}</div>
-                                        </div>
-                                        <div className="ml-auto mono text-[11px] font-medium text-slate-300">0{i + 1}</div>
                                     </div>
                                 </div>
                             ))}
@@ -1747,8 +1626,8 @@ export default function Landing() {
                     -webkit-font-smoothing: antialiased;
                 }
                 .landing-display {
-                    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-                    letter-spacing: -0.025em;
+                    font-family: 'Oswald', 'Inter', ui-sans-serif, system-ui, sans-serif;
+                    letter-spacing: -0.02em;
                 }
                 .mono {
                     font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
