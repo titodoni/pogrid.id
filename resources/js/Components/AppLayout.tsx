@@ -16,7 +16,8 @@ export interface AppLayoutProps {
         | 'finance-ledger'
         | 'my-kpi'
         | 'archive'
-        | 'trouble-reports';
+        | 'trouble-reports'
+        | 'logs';
     userRole?: string;
     slug?: string;
     onSearchClick?: () => void;

@@ -189,4 +189,14 @@ export const ChevronRight: React.FC<IconProps> = ({ size = 18, className }) => (
     </svg>
 );
 
+export const ScrollText: React.FC<IconProps> = ({ size = 18, className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M8 21h12a2 2 0 0 0 2-2v-1H7a4 4 0 0 0 0 8h5" />
+        <polyline points="21 3 21 8" />
+        <path d="M21 3c0 5-1 7-4 8-1 .6-5 3-5 3" />
+        <path d="M3 4h9" />
+        <path d="M3 8h4" />
+    </svg>
+);
+
 

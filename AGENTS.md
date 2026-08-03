@@ -92,7 +92,8 @@ Controller error flow: `AuthController::login()` checks user existence first (by
 |---------|----------|
 | Progress update / QC rework / stage gate / finance | `app/Http/Controllers/WorkerDashboardController.php` (`updateProgress`, `logQcRework`, `validateStageAccess`, `updateFinanceStatus`) |
 | Tenant context | `app/Services/TenantManager.php` |
-| Observers | `app/Observers/{ItemObserver,ItemProgressObserver,DoItemObserver}.php` |
+| Observers | `app/Observers/{ItemObserver,ItemProgressObserver,DoItemObserver,AlertObserver}.php` |
+| Activity/audit log | `app/Services/ActivityLogger.php` + `app/Models/ActivityLog.php` (`activity_logs` table) |
 | Timeline cron | `app/Console/Commands/EvaluateTimelines.php` |
 | Auth | `app/Http/Controllers/{AuthController,WorkerAuthController,PinResetController}.php` |
 | Owner dashboard | `app/Http/Controllers/OwnerDashboardController.php` |
@@ -104,6 +105,7 @@ Controller error flow: `AuthController::login()` checks user existence first (by
 - Base `TestCase` resets `TenantManager` — tests must manage tenant state explicitly.
 - `ItemObserver` creates `ItemProgress` on Item creation — account for this in progress assertions.
 - Core files: `tests/Feature/CoreLogicTest.php` (tenant isolation, progress, DO, QC rework, alerts, timeline) and `AdminManagementTest.php` (auth, CRUD, broadcast, PIN login).
+- Logging: `tests/Feature/ProjectLogsTest.php` (activity-log capture + `/logs` page). `activity_logs` rows are auto-written by observers for item/progress/alert actions; `project_created`/`user_created` only via HTTP controllers. Non-owner accounts cannot modify/delete owner accounts (`RoleSecurityRemediationTest`).
 
 ## Quirks
 

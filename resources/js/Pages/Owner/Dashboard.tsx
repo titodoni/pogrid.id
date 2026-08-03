@@ -834,17 +834,14 @@ ${locationStr}
     };
 
     const [activeTab, setActiveTab] = useState<'alerts' | 'active' | 'completed' | 'matrix' | 'team' | 'branding'>(() => {
-        const isOwner = auth_user?.is_owner === true;
         if (typeof window !== 'undefined') {
             const urlParams = new URLSearchParams(window.location.search);
             const tabParam = urlParams.get('tab');
             if (tabParam && ['alerts', 'active', 'completed', 'matrix', 'team', 'branding'].includes(tabParam)) {
-                if (tabParam === 'team' && isOwner) return 'alerts';
                 return tabParam as any;
             }
             const localSaved = localStorage.getItem('owner_active_tab');
             if (localSaved && ['alerts', 'active', 'completed', 'matrix', 'team', 'branding'].includes(localSaved)) {
-                if (localSaved === 'team' && isOwner) return 'alerts';
                 return localSaved as any;
             }
         }
@@ -852,8 +849,6 @@ ${locationStr}
     });
 
     const changeTab = (tab: 'alerts' | 'active' | 'completed' | 'matrix' | 'team' | 'branding') => {
-        const isOwner = auth_user?.is_owner === true;
-        if (tab === 'team' && isOwner) return;
         setActiveTab(tab);
         if (typeof window !== 'undefined') {
             localStorage.setItem('owner_active_tab', tab);
@@ -1727,8 +1722,10 @@ ${locationStr}
         );
     }
 
+    const activeNav = activeTab === 'completed' ? 'archive' : 'dashboard';
+
     return (
-        <AppLayout activeNav="dashboard" onSearchClick={() => setShowSearchModal(true)}>
+        <AppLayout activeNav={activeNav} onSearchClick={() => setShowSearchModal(true)}>
             <div className="dashboard-root px-3 sm:px-6 py-4">
             <BroadcastToasts
                 toasts={toastQueue}
@@ -2136,22 +2133,20 @@ ${locationStr}
                     <span className="tab-label-full">{t.performance_matrix}</span>
                     <span className="tab-label-short">{t.tab_matrix}</span>
                 </button>
-                {!isOwner && (
-                    <button className={`tab ${activeTab === 'team' ? 'tab-active' : ''}`} onClick={() => changeTab('team')}>
-                        <span className="tab-label-full">{t.team_tab}</span>
-                        <span className="tab-label-short">{t.tab_team}</span>
-                        <span style={{
-                            marginLeft: '4px',
-                            fontSize: '10px',
-                            backgroundColor: 'var(--color-pg-surface)',
-                            color: 'var(--color-pg-text-secondary)',
-                            padding: '1px 5px',
-                            borderRadius: '8px'
-                        }}>
-                            {users.length}
-                        </span>
-                    </button>
-                )}
+                <button className={`tab ${activeTab === 'team' ? 'tab-active' : ''}`} onClick={() => changeTab('team')}>
+                    <span className="tab-label-full">{t.team_tab}</span>
+                    <span className="tab-label-short">{t.tab_team}</span>
+                    <span style={{
+                        marginLeft: '4px',
+                        fontSize: '10px',
+                        backgroundColor: 'var(--color-pg-surface)',
+                        color: 'var(--color-pg-text-secondary)',
+                        padding: '1px 5px',
+                        borderRadius: '8px'
+                    }}>
+                        {users.length}
+                    </span>
+                </button>
                 {(!auth_user?.role_name || (!auth_user.role_name.toLowerCase().includes('manager') && !auth_user.role_name.toLowerCase().includes('sales'))) && (
                     <button className={`tab ${activeTab === 'branding' ? 'tab-active' : ''}`} onClick={() => changeTab('branding')}>
                         <span className="tab-label-full">{language === 'id' ? 'Branding & Logo' : 'Branding & Logo'}</span>
@@ -4745,7 +4740,7 @@ ${locationStr}
             </div>
 
             {/* ── Team / User Management Tab ─────────────────────────────── */}
-            {activeTab === 'team' && !isOwner && (() => {
+            {activeTab === 'team' && (() => {
                 const ALL_ROLES = (roles ?? []).map(r => r.name);
                 const filteredUsers = userRoleFilter === 'ALL'
                     ? [...users]
@@ -4772,7 +4767,7 @@ ${locationStr}
                                 <p className="text-xs text-pg-text-muted m-0">{t.team_subtitle}</p>
                             </div>
                             <button
-                                onClick={openAddUser}
+                                onClick={isOwner ? openAddAdmin : openAddUser}
                                 className="px-3.5 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-pg-success text-xs font-bold cursor-pointer flex items-center gap-1.5 shrink-0"
                             >
                                 <Plus size={14} /> {t.add_user}

@@ -10,6 +10,7 @@ import {
     TrendingUp,
     FolderArchive,
     Coins,
+    ScrollText,
     Palette,
     MenuIcon,
     Close,
@@ -62,24 +63,37 @@ interface RoleConfig {
 
 function getRoleConfig(variant: 'office' | 'worker', user: AppShellUser, slug: string): RoleConfig {
     if (variant === 'office') {
-        return {
-            badgeLabel: 'OFFICE',
-            navItems: [
-                { key: 'dashboard', labelEn: 'Dashboard', labelId: 'Dasbor Utama', href: '/dashboard', icon: LayoutDashboard },
-                { key: 'create-po', labelEn: 'Broadcast PO', labelId: 'Broadcast PO', href: '/pos/create', icon: Broadcast, badgeEn: 'New', badgeId: 'Baru' },
-                { key: 'rework', labelEn: 'Rework Logbook', labelId: 'Logbook Rework', href: '/rework-logbook', icon: Repeat },
-                { key: 'archive', labelEn: 'PO Archive', labelId: 'Arsip PO', href: slug ? `/c/${slug}/archive` : '/dashboard', icon: FolderArchive },
-                { key: 'billing', labelEn: 'Billing & Plan', labelId: 'Langganan & Paket', href: '/billing', icon: CreditCard },
-                { key: 'profile', labelEn: 'Settings & Team', labelId: 'Pengaturan & Tim', href: '/profile', icon: UserIcon },
-            ],
-            bottomItems: [
-                { key: 'dashboard', labelEn: 'Dashboard', labelId: 'Dasbor', href: '/dashboard', icon: LayoutDashboard },
+        const officeRole = (user.role_name || user.role || '').toUpperCase();
+        // Owners, Managers, and Sales are denied PO creation/broadcast (POST /pos → 403),
+        // so they must not see PO-creation entry points in the chrome.
+        const cannotPo = user.is_owner === true || officeRole === 'MANAGER' || officeRole === 'SALES';
+
+        const navItems: NavItem[] = [
+            { key: 'dashboard', labelEn: 'Dashboard', labelId: 'Dasbor Utama', href: '/dashboard', icon: LayoutDashboard },
+            ...(cannotPo ? [] : [
+                { key: 'create-po', labelEn: 'Broadcast PO', labelId: 'Broadcast PO', href: '/pos/create', icon: Broadcast, badgeEn: 'New', badgeId: 'Baru' } as NavItem,
+            ]),
+            { key: 'rework', labelEn: 'Rework Logbook', labelId: 'Logbook Rework', href: '/rework-logbook', icon: Repeat },
+            { key: 'logs', labelEn: 'Project Logs', labelId: 'Log Proyek', href: '/logs', icon: ScrollText },
+            { key: 'archive', labelEn: 'PO Archive', labelId: 'Arsip PO', href: slug ? `/c/${slug}?tab=completed` : '/dashboard', icon: FolderArchive },
+            { key: 'billing', labelEn: 'Billing & Plan', labelId: 'Langganan & Paket', href: '/billing', icon: CreditCard },
+            { key: 'profile', labelEn: 'Settings & Team', labelId: 'Pengaturan & Tim', href: '/profile', icon: UserIcon },
+        ];
+
+        const bottomItems: BottomItem[] = [
+            { key: 'dashboard', labelEn: 'Dashboard', labelId: 'Dasbor', href: '/dashboard', icon: LayoutDashboard },
+            ...(cannotPo ? [] : [
                 { key: 'create-po', labelEn: 'New PO', labelId: 'Buat PO', href: '/pos/create', icon: Broadcast },
-                { key: 'rework', labelEn: 'Rework', labelId: 'Rework', href: '/rework-logbook', icon: Repeat },
-                { key: 'profile', labelEn: 'Settings', labelId: 'Pengaturan', href: '/profile', icon: Settings },
-            ],
-            primaryCta: { labelEn: 'Broadcast PO', labelId: 'Broadcast PO', href: '/pos/create', icon: Broadcast },
-        };
+            ]),
+            { key: 'rework', labelEn: 'Rework', labelId: 'Rework', href: '/rework-logbook', icon: Repeat },
+            { key: 'profile', labelEn: 'Settings', labelId: 'Pengaturan', href: '/profile', icon: Settings },
+        ];
+
+        const primaryCta = cannotPo
+            ? { labelEn: 'Dashboard', labelId: 'Dasbor', href: '/dashboard', icon: LayoutDashboard }
+            : { labelEn: 'Broadcast PO', labelId: 'Broadcast PO', href: '/pos/create', icon: Broadcast };
+
+        return { badgeLabel: 'OFFICE', navItems, bottomItems, primaryCta };
     }
 
     const role = (user.role_name || user.role || '').toUpperCase();

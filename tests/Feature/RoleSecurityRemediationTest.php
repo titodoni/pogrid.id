@@ -367,4 +367,83 @@ class RoleSecurityRemediationTest extends TestCase
         ]);
         $respSuccess->assertStatus(302);
     }
+
+    public function test_non_owner_cannot_update_or_delete_owner_account(): void
+    {
+        $owner = User::create([
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Boss Owner',
+            'username' => 'boss_owner',
+            'password' => Hash::make('password'),
+            'role_id' => $this->staffRole->id,
+            'post_id' => $this->adminPost->id,
+            'is_owner' => true,
+        ]);
+
+        $adminUser = User::create([
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Alice Admin',
+            'username' => 'alice_admin',
+            'password' => Hash::make('password'),
+            'role_id' => $this->staffRole->id,
+            'post_id' => $this->adminPost->id,
+            'is_owner' => false,
+        ]);
+
+        $this->actingAs($adminUser);
+        TenantManager::setTenantId($this->tenant->id);
+
+        // Admin must not be able to modify the owner account (e.g. change password/role)
+        $updateResp = $this->post("/users/{$owner->id}/update", [
+            'login_method' => 'PASSWORD',
+            'name' => 'Hijacked Owner',
+            'role_id' => $this->staffRole->id,
+            'username' => 'boss_owner',
+            'password' => 'pwn3d123',
+            'password_confirmation' => 'pwn3d123',
+        ]);
+        $updateResp->assertStatus(403);
+
+        $this->assertEquals('Boss Owner', $owner->refresh()->name);
+
+        // Admin must not be able to delete the owner account
+        $deleteResp = $this->post("/users/{$owner->id}/delete");
+        $deleteResp->assertStatus(403);
+
+        $this->assertDatabaseHas('users', ['id' => $owner->id]);
+    }
+
+    public function test_owner_can_update_non_owner_admin(): void
+    {
+        $owner = User::create([
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Boss Owner',
+            'username' => 'boss_owner',
+            'password' => Hash::make('password'),
+            'role_id' => $this->staffRole->id,
+            'post_id' => $this->adminPost->id,
+            'is_owner' => true,
+        ]);
+
+        $adminUser = User::create([
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Alice Admin',
+            'username' => 'alice_admin',
+            'password' => Hash::make('password'),
+            'role_id' => $this->staffRole->id,
+            'post_id' => $this->adminPost->id,
+            'is_owner' => false,
+        ]);
+
+        $this->actingAs($owner);
+        TenantManager::setTenantId($this->tenant->id);
+
+        $updateResp = $this->post("/users/{$adminUser->id}/update", [
+            'name' => 'Alice Renamed',
+            'role_id' => $this->staffRole->id,
+            'username' => 'alice_admin',
+        ]);
+        $updateResp->assertStatus(302);
+        $this->assertEquals('Alice Renamed', $adminUser->refresh()->name);
+    }
 }

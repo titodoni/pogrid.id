@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\ProductionTerminated;
 use App\Events\TaskUpdated;
 use App\Jobs\GenerateSunkCostInvoiceJob;
+use App\Models\ActivityLog;
 use App\Models\Alert;
 use App\Models\Item;
 use App\Models\ItemProgress;
@@ -15,6 +16,7 @@ use App\Models\Tenant;
 use App\Models\TenantStageTemplate;
 use App\Models\User;
 use App\Notifications\TemporaryPasswordNotification;
+use App\Services\ActivityLogger;
 use App\Services\TenantManager;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -233,7 +235,7 @@ class OwnerDashboardController extends Controller
             }
         }
 
-        DB::transaction(function () use ($request, $deadline) {
+        DB::transaction(function () use ($request, $deadline, &$po) {
             $po = Po::create([
                 'tenant_id' => TenantManager::getTenantId(),
                 'po_number' => $request->po_number,
@@ -262,6 +264,8 @@ class OwnerDashboardController extends Controller
         broadcast(new TaskUpdated($user->tenant_id, "PO {$request->po_number} ({$request->client_name}) telah diterbitkan ke lantai produksi."))->toOthers();
 
         $tenantSlug = $user->tenant->slug;
+
+        ActivityLogger::logPoCreated($po);
 
         return redirect("/c/{$tenantSlug}")->with('success', 'Purchase Order broadcasted successfully.');
     }
@@ -355,18 +359,27 @@ class OwnerDashboardController extends Controller
             $userData['password'] = null;
         }
 
-        User::create($userData);
+        $user = User::create($userData);
+
+        ActivityLogger::logUserCreated($user);
 
         return back()->with('success', 'User created successfully.');
     }
 
     public function updateUser(Request $request, $userId)
     {
-        if (auth()->user()->isManager() || auth()->user()->isSales()) {
+        $actor = auth()->user();
+
+        if ($actor->isManager() || $actor->isSales()) {
             abort(403, 'Managers and Sales cannot manage users.');
         }
 
         $user = User::findOrFail($userId);
+
+        // Only owners may modify owner accounts.
+        if ($user->is_owner && ! $actor->isOwner()) {
+            abort(403, 'Only owners can modify owner accounts.');
+        }
 
         $loginMethod = $request->input('login_method');
         if (! $loginMethod) {
@@ -430,11 +443,18 @@ class OwnerDashboardController extends Controller
 
     public function deleteUser(Request $request, $userId)
     {
-        if (auth()->user()->isManager() || auth()->user()->isSales()) {
+        $actor = auth()->user();
+
+        if ($actor->isManager() || $actor->isSales()) {
             abort(403, 'Managers and Sales cannot manage users.');
         }
 
         $user = User::findOrFail($userId);
+
+        // Only owners may delete owner accounts.
+        if ($user->is_owner && ! $actor->isOwner()) {
+            abort(403, 'Only owners can delete owner accounts.');
+        }
 
         if ($user->id === auth()->id()) {
             abort(403, 'You cannot delete yourself.');
@@ -839,6 +859,8 @@ class OwnerDashboardController extends Controller
             'is_owner' => false,
         ]);
 
+        ActivityLogger::logUserCreated($adminUser);
+
         // Send email with temporary password
         try {
             $adminUser->notify(new TemporaryPasswordNotification($tempPassword, $adminUser->email));
@@ -862,6 +884,34 @@ class OwnerDashboardController extends Controller
         return Inertia::render('Owner/Billing', [
             'tenant' => $tenant,
             'is_expired' => $tenant ? $tenant->isTrialExpired() : false,
+        ]);
+    }
+
+    public function logs(Request $request)
+    {
+        $user = auth()->user();
+        TenantManager::setTenantId($user->tenant_id);
+
+        $projectFilter = $request->integer('project_id') ?: null;
+
+        $query = ActivityLog::query()
+            ->with(['project:id,po_number,client_name', 'item:id,item_name', 'user:id,name'])
+            ->latest('created_at');
+
+        if ($projectFilter) {
+            $query->where('project_id', $projectFilter);
+        }
+
+        $logs = $query->paginate(50)->withQueryString();
+
+        $projects = Po::query()
+            ->orderBy('po_number')
+            ->get(['id', 'po_number', 'client_name']);
+
+        return Inertia::render('Owner/Logs', [
+            'logs' => $logs,
+            'projects' => $projects,
+            'selected_project' => $projectFilter,
         ]);
     }
 }

@@ -4,9 +4,13 @@ namespace App\Observers;
 
 use App\Models\Item;
 use App\Models\ItemProgress;
+use App\Services\ActivityLogger;
 
 class ItemObserver
 {
+    /** @var array<int,string> transient prior status keyed by item id */
+    protected static array $priorStatus = [];
+
     public function creating(Item $item): void
     {
         // No auto-injection — admin's exact stage selection is preserved.
@@ -29,6 +33,24 @@ class ItemObserver
 
                 ItemProgress::create($data);
             }
+        }
+
+        ActivityLogger::logItemCreated($item);
+    }
+
+    public function updating(Item $item): void
+    {
+        // Capture prior status before it is overwritten by the save.
+        self::$priorStatus[$item->id] = (string) $item->getOriginal('status');
+    }
+
+    public function updated(Item $item): void
+    {
+        // Audit any explicit item status transition (cancelled / terminated / completed).
+        $prior = self::$priorStatus[$item->id] ?? null;
+        unset(self::$priorStatus[$item->id]);
+        if ($prior !== null && $prior !== $item->status) {
+            ActivityLogger::logItemStatus($item, $prior, (string) $item->status);
         }
     }
 }

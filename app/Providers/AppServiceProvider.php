@@ -11,6 +11,7 @@ use App\Models\Po;
 use App\Models\Tenant;
 use App\Models\TenantStageTemplate;
 use App\Models\User;
+use App\Observers\AlertObserver;
 use App\Observers\DataSyncObserver;
 use App\Observers\DoItemObserver;
 use App\Observers\ItemObserver;
@@ -34,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
         Item::observe(ItemObserver::class);
         ItemProgress::observe(ItemProgressObserver::class);
         DoItem::observe(DoItemObserver::class);
+        Alert::observe(AlertObserver::class);
 
         // Register general real-time synchronization observer
         $syncModels = [

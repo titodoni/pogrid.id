@@ -3,9 +3,18 @@
 namespace App\Observers;
 
 use App\Models\ItemProgress;
+use App\Services\ActivityLogger;
 
 class ItemProgressObserver
 {
+    public function updated(ItemProgress $itemProgress): void
+    {
+        // Real worker progress deltas (completed_qty / progress_percent changed).
+        if ($itemProgress->wasChanged('completed_qty') || $itemProgress->wasChanged('progress_percent')) {
+            ActivityLogger::logProgress($itemProgress);
+        }
+    }
+
     public function saved(ItemProgress $itemProgress): void
     {
         $item = $itemProgress->item;
