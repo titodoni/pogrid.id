@@ -77,7 +77,7 @@ function getRoleConfig(variant: 'office' | 'worker', user: AppShellUser, slug: s
             { key: 'logs', labelEn: 'Project Logs', labelId: 'Log Proyek', href: '/logs', icon: ScrollText },
             { key: 'archive', labelEn: 'PO Archive', labelId: 'Arsip PO', href: slug ? `/c/${slug}?tab=completed` : '/dashboard', icon: FolderArchive },
             { key: 'billing', labelEn: 'Billing & Plan', labelId: 'Langganan & Paket', href: '/billing', icon: CreditCard },
-            { key: 'profile', labelEn: 'Settings & Team', labelId: 'Pengaturan & Tim', href: '/profile', icon: UserIcon },
+            { key: 'profile', labelEn: 'Settings & Team', labelId: 'Pengaturan & Tim', href: slug ? `/c/${slug}?tab=team` : '/profile', icon: UserIcon },
         ];
 
         const bottomItems: BottomItem[] = [
@@ -86,7 +86,7 @@ function getRoleConfig(variant: 'office' | 'worker', user: AppShellUser, slug: s
                 { key: 'create-po', labelEn: 'New PO', labelId: 'Buat PO', href: '/pos/create', icon: Broadcast },
             ]),
             { key: 'rework', labelEn: 'Rework', labelId: 'Rework', href: '/rework-logbook', icon: Repeat },
-            { key: 'profile', labelEn: 'Settings', labelId: 'Pengaturan', href: '/profile', icon: Settings },
+            { key: 'profile', labelEn: 'Settings', labelId: 'Pengaturan', href: slug ? `/c/${slug}?tab=team` : '/profile', icon: Settings },
         ];
 
         const primaryCta = cannotPo

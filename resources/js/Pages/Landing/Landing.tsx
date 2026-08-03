@@ -787,14 +787,17 @@ export default function Landing() {
             <div className="h-[2px] w-full line-grad" />
 
             {/* ===== NAV ===== */}
-            <header className={`sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200 transition-shadow duration-300 ${scrolled ? 'shadow-[0_4px_20px_rgba(15,23,42,0.05)]' : ''}`}>
-                <div className="max-w-[1200px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-6">
-                    <Link href="/" className="flex items-center group">
+            <header className={`sticky top-0 z-50 backdrop-blur-sm border-b transition-all duration-300 ${scrolled ? 'bg-transparent border-transparent shadow-[0_4px_20px_rgba(15,23,42,0.06)]' : 'bg-white/95 border-slate-200'}`}>
+                <div className={`max-w-[1200px] mx-auto px-4 md:px-6 flex items-center justify-between gap-6 transition-all duration-300 ${scrolled ? 'h-14' : 'h-16'}`}>
+                    <Link href="/" className="flex items-center gap-2.5 group">
                         <img
                             src="/pogrid-logo.png"
                             alt="POgrid.id Logo"
-                            style={{ height: '34px', width: 'auto', objectFit: 'contain' }}
+                            style={{ height: scrolled ? '34px' : '44px', width: 'auto', objectFit: 'contain', transition: 'height 300ms' }}
                         />
+                        <span className={`mono font-bold tracking-tight text-slate-900 transition-all duration-300 ${scrolled ? 'text-lg' : 'text-xl'}`}>
+                            POgrid<span className="text-slate-400">.id</span>
+                        </span>
                     </Link>
 
                     <nav className="hidden lg:flex items-center gap-8">
@@ -1562,7 +1565,7 @@ export default function Landing() {
                         <img
                             src="/pogrid-logo.png"
                             alt="POgrid.id Logo"
-                            style={{ height: '32px', width: 'auto', objectFit: 'contain' }}
+                            style={{ height: '44px', width: 'auto', objectFit: 'contain' }}
                             className="mb-5"
                         />
                         <p className="text-xs md:text-sm text-slate-500 leading-relaxed max-w-[320px] mb-6">{t.footer_tag}</p>
@@ -1762,6 +1765,8 @@ export default function Landing() {
 
                 html { scroll-behavior: smooth; }
                 section[id] { scroll-margin-top: 5rem; }
+                /* overflow-x: hidden on body breaks position: sticky; clip does not */
+                html, body { overflow-x: clip !important; }
             `}</style>
         </div>
     );

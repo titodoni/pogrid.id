@@ -1722,7 +1722,7 @@ ${locationStr}
         );
     }
 
-    const activeNav = activeTab === 'completed' ? 'archive' : 'dashboard';
+    const activeNav = activeTab === 'completed' ? 'archive' : activeTab === 'team' ? 'profile' : 'dashboard';
 
     return (
         <AppLayout activeNav={activeNav} onSearchClick={() => setShowSearchModal(true)}>
@@ -2132,20 +2132,6 @@ ${locationStr}
                 <button className={`tab ${activeTab === 'matrix' ? 'tab-active' : ''}`} onClick={() => changeTab('matrix')}>
                     <span className="tab-label-full">{t.performance_matrix}</span>
                     <span className="tab-label-short">{t.tab_matrix}</span>
-                </button>
-                <button className={`tab ${activeTab === 'team' ? 'tab-active' : ''}`} onClick={() => changeTab('team')}>
-                    <span className="tab-label-full">{t.team_tab}</span>
-                    <span className="tab-label-short">{t.tab_team}</span>
-                    <span style={{
-                        marginLeft: '4px',
-                        fontSize: '10px',
-                        backgroundColor: 'var(--color-pg-surface)',
-                        color: 'var(--color-pg-text-secondary)',
-                        padding: '1px 5px',
-                        borderRadius: '8px'
-                    }}>
-                        {users.length}
-                    </span>
                 </button>
                 {(!auth_user?.role_name || (!auth_user.role_name.toLowerCase().includes('manager') && !auth_user.role_name.toLowerCase().includes('sales'))) && (
                     <button className={`tab ${activeTab === 'branding' ? 'tab-active' : ''}`} onClick={() => changeTab('branding')}>
