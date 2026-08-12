@@ -24,13 +24,14 @@ jobs:
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite3, pdo_sqlite, bcmath, soap, intl, readline, ldap, msgpack, igbinary, redis, swoole, pcov
           coverage: none
 
+      - name: Prepare Environment
+        run: cp .env.example .env
+
       - name: Install Composer Dependencies
         run: composer install -q --no-ansi --no-interaction --no-progress --prefer-dist
 
-      - name: Prepare Laravel Environment
-        run: |
-          cp .env.example .env
-          php artisan key:generate
+      - name: Generate Application Key
+        run: php artisan key:generate
 
       - name: Run Tests
         run: |
@@ -40,7 +41,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install NPM Dependencies
         run: npm install --legacy-peer-deps --ignore-scripts
