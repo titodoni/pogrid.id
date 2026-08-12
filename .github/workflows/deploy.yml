@@ -25,7 +25,7 @@ jobs:
           coverage: none
 
       - name: Install Composer Dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+        run: composer install -q --no-ansi --no-interaction --no-progress --prefer-dist
 
       - name: Prepare Laravel Environment
         run: |
@@ -46,7 +46,9 @@ jobs:
         run: npm install --legacy-peer-deps --ignore-scripts
 
       - name: Build Frontend
-        run: npm run build
+        run: |
+          chmod +x node_modules/.bin/* || true
+          npm run build
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
