@@ -706,6 +706,25 @@
           </ul>
         </div>
       </div>
+      <!-- Done 7 -->
+      <div class="mitigation-item done">
+        <div class="mitigation-header">
+          <div class="mitigation-title">7. Implement Authorization Policies (Laravel Gates)</div>
+          <span class="badge badge-pass">✅ DONE (Sprint 3)</span>
+        </div>
+        <div class="mitigation-desc">
+          Semua route HTTP kini diamankan secara terpusat menggunakan Laravel Policies, mengeliminasi pengecekan peran <code>abort(403)</code> secara inline di controller.
+        </div>
+        <div class="mitigation-details">
+          <strong>Detail Eksekusi:</strong>
+          <ul>
+            <li>Membuat Policy Classes (<code>ItemPolicy</code>, <code>UserPolicy</code>, <code>PoPolicy</code>, <code>TenantPolicy</code>) di <code>app/Policies</code>.</li>
+            <li>Mendefinisikan kustom Gates di <code>AppServiceProvider</code> (misal: <code>manage-company-settings</code>).</li>
+            <li>Mengganti puluhan logika inline controller dengan <code>$this-&gt;authorize()</code>.</li>
+            <li>Verifikasi penuh keamanan lewat 158 system testing.</li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <!-- SECTION 3 -->
@@ -714,20 +733,6 @@
       <h2>Part II: Pending Roadmap (NOT DONE)</h2>
       <div class="section-divider"></div>
       <p>Bagian ini mendefinisikan pekerjaan yang <strong>BELUM SELESAI</strong> dan dijadwalkan untuk Sprint berikutnya. Ini mencakup perbaikan skalabilitas jangka menengah hingga panjang.</p>
-
-      <!-- Pending 1 -->
-      <div class="mitigation-item pending">
-        <div class="mitigation-header">
-          <div class="mitigation-title">1. Implement Authorization Policies (Laravel Gates)</div>
-          <span class="badge badge-medium">⏳ PENDING (Sprint 3/4)</span>
-        </div>
-        <div class="mitigation-desc">
-          Saat ini, banyak route HTTP yang menggunakan check peran secara inline di controller (misal: <code>if($user->role !== 'admin') abort(403);</code>). Ini rentan terlewat.
-        </div>
-        <div class="mitigation-details">
-          <strong>Action Plan:</strong> Membuat Policy Classes untuk setiap model (ItemPolicy, UserPolicy, dll) untuk mensentralisasi aturan keamanan hak akses antar entitas, menggantikan logika inline.
-        </div>
-      </div>
 
       <!-- Pending 2 -->
       <div class="mitigation-item pending">
