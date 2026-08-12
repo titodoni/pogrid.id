@@ -1,0 +1,104 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-and-build:
+    name: Test & Build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite3, pdo_sqlite, bcmath, soap, intl, readline, ldap, msgpack, igbinary, redis, swoole, pcov
+          coverage: none
+
+      - name: Install Composer Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Prepare Laravel Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run Tests
+        run: |
+          touch database/database.sqlite
+          php artisan test
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install NPM Dependencies
+        run: npm install --legacy-peer-deps --ignore-scripts
+
+      - name: Build Frontend
+        run: npm run build
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            public/build/
+            public/hot
+          retention-days: 1
+
+  deploy:
+    name: Deploy to Production
+    needs: test-and-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: public/build/
+
+      - name: Deploy via RSYNC
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          HOSTINGER_USERNAME: ${{ secrets.HOSTINGER_USERNAME }}
+          HOSTINGER_IP: ${{ secrets.HOSTINGER_IP }}
+          HOSTINGER_PORT: 65002
+        run: |
+          # Setup SSH
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p $HOSTINGER_PORT $HOSTINGER_IP >> ~/.ssh/known_hosts
+          
+          # Deploy using the exact rsync command from the docs
+          rsync -avz -e "ssh -p $HOSTINGER_PORT -i ~/.ssh/id_ed25519" \
+            --exclude 'storage' --exclude 'bootstrap/cache/*.php' \
+            --exclude '.env' --exclude 'node_modules' --exclude '.git' \
+            --exclude 'deploy' --exclude 'database/*.sqlite' --exclude '.github' \
+            ./ $HOSTINGER_USERNAME@$HOSTINGER_IP:/home/$HOSTINGER_USERNAME/domains/pogrid.id/public_html/app/
+
+      - name: Clear Server Cache
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          HOSTINGER_USERNAME: ${{ secrets.HOSTINGER_USERNAME }}
+          HOSTINGER_IP: ${{ secrets.HOSTINGER_IP }}
+          HOSTINGER_PORT: 65002
+        run: |
+          ssh -p $HOSTINGER_PORT -i ~/.ssh/id_ed25519 $HOSTINGER_USERNAME@$HOSTINGER_IP \
+            "cd domains/pogrid.id/public_html/app && /opt/alt/php83/usr/bin/php artisan optimize:clear && /opt/alt/php83/usr/bin/php artisan view:cache && /opt/alt/php83/usr/bin/php artisan config:cache && /opt/alt/php83/usr/bin/php artisan route:cache"
