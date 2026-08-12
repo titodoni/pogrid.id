@@ -725,6 +725,25 @@
           </ul>
         </div>
       </div>
+      <!-- Done 8 -->
+      <div class="mitigation-item done">
+        <div class="mitigation-header">
+          <div class="mitigation-title">8. Centralize Export & i18n Logic</div>
+          <span class="badge badge-pass">✅ DONE (Sprint 4)</span>
+        </div>
+        <div class="mitigation-desc">
+          Mengeliminasi redundansi logika pembuatan dokumen (PDF/CSV/XLSX) dan menormalisasi sistem bahasa (i18n) di seluruh komponen React.
+        </div>
+        <div class="mitigation-details">
+          <strong>Detail Eksekusi:</strong>
+          <ul>
+            <li>Ekstraksi fungsi export menjadi <code>app/Services/ExportService.php</code> untuk efisiensi kueri metrik.</li>
+            <li>Ekstraksi ratusan <code>translations</code> inline di React menjadi <code>en.json</code> dan <code>id.json</code> terpusat.</li>
+            <li>Implementasi kustom <code>useTranslation</code> hook.</li>
+            <li>Total kode monolith berhasil dikurangi &gt;2,000 baris.</li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <!-- SECTION 3 -->
@@ -733,20 +752,6 @@
       <h2>Part II: Pending Roadmap (NOT DONE)</h2>
       <div class="section-divider"></div>
       <p>Bagian ini mendefinisikan pekerjaan yang <strong>BELUM SELESAI</strong> dan dijadwalkan untuk Sprint berikutnya. Ini mencakup perbaikan skalabilitas jangka menengah hingga panjang.</p>
-
-      <!-- Pending 2 -->
-      <div class="mitigation-item pending">
-        <div class="mitigation-header">
-          <div class="mitigation-title">2. Centralize Export & i18n Logic</div>
-          <span class="badge badge-medium">⏳ PENDING (Sprint 4)</span>
-        </div>
-        <div class="mitigation-desc">
-          Terdapat duplikasi kode pada fungsi export (CSV, PDF, XLSX) dan bahasa (terjemahan inline <code>language === 'id' ? 'X' : 'Y'</code>).
-        </div>
-        <div class="mitigation-details">
-          <strong>Action Plan:</strong> Ekstrak 3 metode export yang serupa menjadi 1 <code>ExportService</code>. Implementasikan pustaka i18n (seperti <code>react-i18next</code> atau Inertia translations) untuk skalabilitas bahasa.
-        </div>
-      </div>
 
       <!-- Pending 3 -->
       <div class="mitigation-item pending">
