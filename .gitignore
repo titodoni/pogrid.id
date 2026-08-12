@@ -44,8 +44,12 @@ log_output.txt
 list.txt
 testacc.txt
 
-# Deploy directory containing production secrets
-/deploy/
+# Deploy — block secrets, allow templates
+/deploy/.env
+/deploy/*.key
+/deploy/*.pem
+!/deploy/.env.example
+!/deploy/ssh_connect.sh
 
 # E2E tests
 /e2e-tests/node_modules
