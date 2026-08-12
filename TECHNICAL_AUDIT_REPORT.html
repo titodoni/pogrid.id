@@ -1140,13 +1140,13 @@
           <table>
             <thead><tr><th>#</th><th>Action Item</th><th>Severity</th><th>Effort</th></tr></thead>
             <tbody>
-              <tr><td>1</td><td><strong>Rotasi semua production secrets</strong> — invalidate dan regenerate credentials DB (Neon.tech), Pusher, SMTP yang ter-expose di <code>deploy/.env</code></td><td><span class="badge badge-critical">Critical</span></td><td>1 jam</td></tr>
-              <tr><td>2</td><td><strong>Hapus <code>deploy/.env</code> dari git</strong> — <code>git rm --cached deploy/.env</code> + tambahkan ke <code>.gitignore</code></td><td><span class="badge badge-critical">Critical</span></td><td>10 menit</td></tr>
-              <tr><td>3</td><td><strong>Ubah <code>ShouldBroadcastNow</code> → <code>ShouldBroadcast</code></strong> di <code>DataRefreshed.php</code> agar broadcast masuk queue</td><td><span class="badge badge-critical">Critical</span></td><td>30 menit</td></tr>
-              <tr><td>4</td><td><strong>Lock <code>barryvdh/laravel-dompdf</code></strong> ke versi spesifik (e.g., <code>^3.0</code>)</td><td><span class="badge badge-high">High</span></td><td>5 menit</td></tr>
+              <tr><td>1</td><td>✅ <strong>Rotasi semua production secrets</strong> — invalidate dan regenerate credentials DB (Neon.tech), Pusher, SMTP yang ter-expose di <code>deploy/.env</code></td><td><span class="badge badge-critical">Critical</span></td><td>1 jam</td></tr>
+              <tr><td>2</td><td>✅ <strong>Hapus <code>deploy/.env</code> dari git</strong> — <code>git rm --cached deploy/.env</code> + tambahkan ke <code>.gitignore</code></td><td><span class="badge badge-critical">Critical</span></td><td>10 menit</td></tr>
+              <tr><td>3</td><td>✅ <strong>Ubah <code>ShouldBroadcastNow</code> → <code>ShouldBroadcast</code></strong> di <code>DataRefreshed.php</code> agar broadcast masuk queue</td><td><span class="badge badge-critical">Critical</span></td><td>30 menit</td></tr>
+              <tr><td>4</td><td>✅ <strong>Lock <code>barryvdh/laravel-dompdf</code></strong> ke versi spesifik (e.g., <code>^3.0</code>)</td><td><span class="badge badge-high">High</span></td><td>5 menit</td></tr>
               <tr><td>5</td><td><strong>Set <code>SESSION_SECURE_COOKIE=true</code></strong> di production <code>.env</code></td><td><span class="badge badge-medium">Medium</span></td><td>5 menit</td></tr>
-              <tr><td>6</td><td><strong>Tambahkan index</strong> pada <code>items.is_urgent</code></td><td><span class="badge badge-medium">Medium</span></td><td>15 menit</td></tr>
-              <tr><td>7</td><td><strong>Pindahkan <code>progress_percent</code>, <code>status</code></strong> dari <code>$fillable</code> di <code>Item.php</code></td><td><span class="badge badge-medium">Medium</span></td><td>30 menit</td></tr>
+              <tr><td>6</td><td>✅ <strong>Tambahkan index</strong> pada <code>items.is_urgent</code></td><td><span class="badge badge-medium">Medium</span></td><td>15 menit</td></tr>
+              <tr><td>7</td><td>✅ <strong>Pindahkan <code>progress_percent</code>, <code>status</code></strong> dari <code>$fillable</code> di <code>Item.php</code></td><td><span class="badge badge-medium">Medium</span></td><td>30 menit</td></tr>
             </tbody>
           </table>
         </div>
@@ -1159,16 +1159,16 @@
           <table>
             <thead><tr><th>#</th><th>Action Item</th><th>Effort</th><th>Impact</th></tr></thead>
             <tbody>
-              <tr><td>1</td><td><strong>Pecah <code>Owner/Dashboard.tsx</code></strong> (6K baris) → <code>DashboardMetrics</code>, <code>AlertsList</code>, <code>ActivePOs</code>, <code>UserManagement</code></td><td>3–5 hari</td><td>Maintainability + Render Performance</td></tr>
-              <tr><td>2</td><td><strong>Extract business logic ke Service layer</strong> — <code>PoService</code>, <code>ProgressService</code>, <code>ExportService</code>, <code>KpiService</code></td><td>3–5 hari</td><td>Testability + SRP compliance</td></tr>
+              <tr><td>1</td><td>✅ <strong>Pecah <code>Owner/Dashboard.tsx</code></strong> (6K baris) → <code>DashboardMetrics</code>, <code>AlertsList</code>, <code>ActivePOs</code>, <code>UserManagement</code></td><td>3–5 hari</td><td>Maintainability + Render Performance</td></tr>
+              <tr><td>2</td><td>✅ <strong>Extract business logic ke Service layer</strong> — <code>PoService</code>, <code>ProgressService</code>, <code>ExportService</code>, <code>KpiService</code></td><td>3–5 hari</td><td>Testability + SRP compliance</td></tr>
               <tr><td>3</td><td><strong>Implementasi Laravel Policies/Gates</strong> menggantikan inline role checks</td><td>2–3 hari</td><td>Authorization consistency</td></tr>
-              <tr><td>4</td><td><strong>Migrasi <code>getTelemetryData()</code></strong> dari PHP loop → SQL <code>SUM()/GROUP BY</code></td><td>1–2 hari</td><td>Query Performance</td></tr>
+              <tr><td>4</td><td>✅ <strong>Migrasi <code>getTelemetryData()</code></strong> dari PHP loop → SQL <code>SUM()/GROUP BY</code></td><td>1–2 hari</td><td>Query Performance</td></tr>
               <tr><td>5</td><td><strong>Implementasi <code>useForm</code> Inertia</strong> di semua form submissions</td><td>2 hari</td><td>UX (loading states, errors)</td></tr>
               <tr><td>6</td><td><strong>Extract shared <code>FormRequest</code> classes</strong> untuk validasi</td><td>1–2 hari</td><td>Code cleanliness</td></tr>
               <tr><td>7</td><td><strong>Shared <code>ExportService</code></strong> menggantikan 3 method yang 90% identik</td><td>1–2 hari</td><td>Duplication reduction</td></tr>
               <tr><td>8</td><td><strong>Centralize i18n</strong> — <code>react-i18next</code> atau Inertia middleware translations</td><td>2–3 hari</td><td>Maintainability</td></tr>
-              <tr><td>9</td><td><strong>Definisikan TypeScript interfaces</strong> (<code>types.ts</code>) — eliminasi <code>: any</code></td><td>3–5 hari</td><td>Type safety</td></tr>
-              <tr><td>10</td><td><strong>Tambahkan <code>lockForUpdate()</code></strong> pada progress calculation di observer</td><td>1 hari</td><td>Race condition prevention</td></tr>
+              <tr><td>9</td><td>✅ <strong>Definisikan TypeScript interfaces</strong> (<code>types.ts</code>) — eliminasi <code>: any</code></td><td>3–5 hari</td><td>Type safety</td></tr>
+              <tr><td>10</td><td>✅ <strong>Tambahkan <code>lockForUpdate()</code></strong> pada progress calculation di observer</td><td>1 hari</td><td>Race condition prevention</td></tr>
             </tbody>
           </table>
         </div>
@@ -1188,7 +1188,7 @@
               <tr><td>5</td><td><strong>Optimistic UI Updates</strong> — update local state instantly, revert on error</td><td>Q1 2027</td><td>Perceived zero-latency</td></tr>
               <tr><td>6</td><td><strong>React Context / Zustand</strong> untuk global state management</td><td>Q1 2027</td><td>Eliminate prop drilling</td></tr>
               <tr><td>7</td><td><strong>TenantManager refactor</strong> — container-bound singleton</td><td>Q1 2027</td><td>Octane/queue compatibility</td></tr>
-              <tr><td>8</td><td><strong>Strict TypeScript</strong> — add <code>tsconfig.json</code> + enforce</td><td>Q1 2027</td><td>Compile-time safety</td></tr>
+              <tr><td>8</td><td>✅ <strong>Strict TypeScript</strong> — add <code>tsconfig.json</code> + enforce</td><td>Q1 2027</td><td>Compile-time safety</td></tr>
               <tr><td>9</td><td><strong>Dedicated PostgreSQL</strong> — move off Neon.tech free tier</td><td>Q2 2027</td><td>Eliminate cold-start, increase storage</td></tr>
               <tr><td>10</td><td><strong>Search index</strong> (Meilisearch/Scout) untuk PO &amp; item search</td><td>Q2 2027</td><td>Fast full-text search at scale</td></tr>
             </tbody>
