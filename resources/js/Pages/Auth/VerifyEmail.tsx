@@ -1,50 +1,14 @@
 import React, { useState } from 'react';
 import { useForm, usePage, Link } from '@inertiajs/react';
-
-const translations = {
-    en: {
-        title: "POgrid.id",
-        subtitle: "Verify Your Email",
-        notice: "Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn't receive the email, we will gladly send you another.",
-        dev_mode_msg: "In development mode, verification links are logged. Check storage/logs/laravel.log for the verification URL.",
-        status_sent: "A new verification link has been sent to the email address you provided during registration.",
-        resend_btn: "Resend Verification Email",
-        resending: "Sending...",
-        logout_btn: "Log Out"
-    },
-    id: {
-        title: "POgrid.id",
-        subtitle: "Verifikasi Email Anda",
-        notice: "Terima kasih telah mendaftar! Sebelum memulai, silakan verifikasi alamat email Anda dengan mengklik link yang baru saja kami kirimkan ke email Anda. Jika Anda tidak menerima email tersebut, kami dengan senang hati akan mengirimkan yang baru.",
-        dev_mode_msg: "Dalam mode pengembangan, link verifikasi dicatat pada file log. Silakan periksa storage/logs/laravel.log untuk melihat URL.",
-        status_sent: "Link verifikasi baru telah dikirim ke alamat email yang Anda berikan saat pendaftaran.",
-        resend_btn: "Kirim Ulang Email Verifikasi",
-        resending: "Mengirim...",
-        logout_btn: "Keluar"
-    }
-};
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface VerifyEmailProps {
     status?: string;
 }
 
 export default function VerifyEmail({ status }: VerifyEmailProps) {
+    const { t, language, changeLanguage } = useTranslation('Auth_VerifyEmail');
     const { post, processing } = useForm({});
-    
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'id';
-        }
-        return 'id';
-    });
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
-    const t = translations[language];
-
     const handleResend = (e: React.FormEvent) => {
         e.preventDefault();
         post('/email/verification-notification');

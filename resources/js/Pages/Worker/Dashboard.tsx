@@ -8,6 +8,7 @@ import { WarningPill } from '../../Components/WarningPill';
 import { WorkerHeader } from '../../Components/WorkerHeader';
 import BroadcastToasts from '../../Components/BroadcastToasts';
 import echo from '../../bootstrap';
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface Stage {
     id: number;
@@ -73,107 +74,6 @@ interface Props {
     tenant_id?: number;
     tenant?: { id: number; company_name: string; slug: string; logo_path?: string | null; theme?: string };
 }
-
-const translations = {
-    en: {
-        floor_terminal: "Floor Terminal",
-        subtitle_realtime: "Log production progress in real-time",
-        exit_terminal: "Exit",
-        active_items: "Active Production Items",
-        no_active_items: "No active items on the floor.",
-        no_qc_items: "No items require QC inspection yet.",
-        no_delivery_items: "No items delivered / finished yet.",
-        no_finance_items: "No items delivered / finished yet.",
-        client: "Client",
-        deadline: "Deadline",
-        qty: "Qty",
-        completed: "Completed",
-        progress: "Progress",
-        log_rework: "Rework",
-        report_failure: "Kendala",
-        cancel: "Cancel",
-        submit: "Submit",
-        rework_dialog_title: "QC Rework",
-        reject_qty_label: "Rejected Qty",
-        rework_reason_label: "Rework Reason",
-        rework_reason_placeholder: "Enter reason for rework (e.g. dimensional error, surface scratch)...",
-        failure_dialog_title: "Report Kendala",
-        failure_type_label: "Cause",
-        machine_broken: "Machine Broken",
-        material_delay: "Material Delay",
-        power_outage: "Power Outage",
-        human_error: "Human Error",
-        operator_sick: "Operator Sick",
-        locked_qc: "Locked: Requires Machining & Fabrication to finish",
-        locked_delivery: "Locked: Requires QC completed quantity > 0",
-        locked_finance: "Locked: Requires Delivery to finish",
-        finance_status: "Finance Status",
-        invoiced: "Invoiced",
-        partially_invoiced: "Partially Invoiced",
-        uninvoiced: "Uninvoiced",
-        paid: "Paid",
-        partially_paid: "Partial Paid",
-        unpaid: "Unpaid",
-        invoice_label: "Invoice",
-        payment_label: "Payment",
-        save: "Save",
-        issue_invoice: "Issue Invoice",
-        record_payment: "Record Payment",
-        revoke: "Revoke",
-        finance_completed: "Completed",
-        off_state: "Off State: Inactive for this production type",
-        role_mismatch: "Read Only: Unauthorized operator role",
-    },
-    id: {
-        floor_terminal: "Terminal Operator",
-        subtitle_realtime: "Input progres produksi secara langsung",
-        exit_terminal: "Keluar",
-        active_items: "Pekerjaan Aktif",
-        no_active_items: "Tidak ada pekerjaan aktif.",
-        no_qc_items: "Belum ada barang yang perlu inspeksi QC.",
-        no_delivery_items: "Belum ada barang yang dikirim / selesai.",
-        no_finance_items: "Belum ada barang yang dikirim / selesai.",
-        client: "Klien",
-        deadline: "Batas Waktu",
-        qty: "Jumlah",
-        completed: "Selesai",
-        progress: "Progres",
-        log_rework: "Rework",
-        report_failure: "Kendala",
-        cancel: "Batal",
-        submit: "Kirim",
-        rework_dialog_title: "Rework QC",
-        reject_qty_label: "Jumlah Reject",
-        rework_reason_label: "Alasan Rework",
-        rework_reason_placeholder: "Masukkan alasan rework (misal: kesalahan dimensi, tergores)...",
-        failure_dialog_title: "Lapor Kendala",
-        failure_type_label: "Penyebab",
-        machine_broken: "Mesin Rusak",
-        material_delay: "Keterlambatan Material",
-        power_outage: "Listrik Padam",
-        human_error: "Kesalahan Operator",
-        operator_sick: "Operator Sakit",
-        locked_qc: "Terkunci: Menunggu Machining & Fabrikasi selesai",
-        locked_delivery: "Terkunci: Menunggu QC selesai > 0",
-        locked_finance: "Terkunci: Menunggu Pengiriman (Delivery) selesai",
-        finance_status: "Status Keuangan",
-        invoiced: "Sudah Difakturkan",
-        partially_invoiced: "Faktur Sebagian",
-        uninvoiced: "Belum Difakturkan",
-        paid: "Lunas",
-        partially_paid: "Bayar Sebagian",
-        unpaid: "Belum Bayar",
-        invoice_label: "Invoice",
-        payment_label: "Pembayaran",
-        save: "Simpan",
-        issue_invoice: "Terbitkan Invoice",
-        record_payment: "Catat Pembayaran",
-        revoke: "Batalkan",
-        finance_completed: "Selesai",
-        off_state: "Nonaktif: Tidak digunakan untuk jenis produksi ini",
-        role_mismatch: "Hanya Baca: Role Anda tidak diizinkan melakukan input",
-    }
-};
 
 // isStageLocked moved to ../../Utils/permissions
 
@@ -1731,6 +1631,7 @@ function ItemCard({
 }
 
 export default function WorkerDashboard({ items, auth_user, tenant_id, tenant }: Props) {
+    const { t, language, changeLanguage } = useTranslation('Worker_Dashboard');
     const { props, url } = usePage();
     const pathParts = url.split('/');
     const slug = pathParts[2] || '';
@@ -1743,16 +1644,6 @@ export default function WorkerDashboard({ items, auth_user, tenant_id, tenant }:
             document.documentElement.classList.add(tenant.theme);
         }
     }, [tenant?.theme]);
-
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
-        }
-        return 'en';
-    });
-
-    const t = translations[language];
-
     const [currentTime, setCurrentTime] = useState(new Date());
     const [frozen, setFrozen] = useState<{ itemName: string } | null>(null);
     const [showThemeDropdown, setShowThemeDropdown] = useState(false);
@@ -1870,12 +1761,6 @@ export default function WorkerDashboard({ items, auth_user, tenant_id, tenant }:
             if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
         };
     }, [tenant_id, (props as any).tenant_id, language]);
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
     if (frozen) {
         return (
             <div style={{

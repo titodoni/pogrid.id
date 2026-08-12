@@ -3,6 +3,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, AlertTriangle, Settings } from '../../Components/Icons';
 import { formatDDMMYYYY } from '../../Utils/date';
 import { WorkerHeader } from '../../Components/WorkerHeader';
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface CompletedStage {
     id: number;
@@ -54,51 +55,6 @@ interface Props {
     };
 }
 
-const translations = {
-    en: {
-        title: 'My Completed Tasks',
-        subtitle: 'Your completed stage history & cycle time performance',
-        back: 'Back to Dashboard',
-        total_completed: 'Completed',
-        avg_cycle: 'Avg Cycle',
-        fastest_cycle: 'Fastest',
-        slowest_cycle: 'Slowest',
-        days: 'days',
-        no_data: 'No completed stages yet.',
-        stage: 'Stage',
-        item: 'Item',
-        qty: 'Qty',
-        po: 'PO',
-        client: 'Client',
-        cycle_days: 'Cycle (Days)',
-        completed_at: 'Completed At',
-        stage_breakdown: 'By Stage',
-        monthly_trend: 'Monthly Trend',
-        exit_terminal: 'Exit',
-    },
-    id: {
-        title: 'Tugasku Selesai',
-        subtitle: 'Riwayat tahapan selesai & performa waktu siklus',
-        back: 'Kembali ke Dasbor',
-        total_completed: 'Selesai',
-        avg_cycle: 'Rata Siklus',
-        fastest_cycle: 'Tercepat',
-        slowest_cycle: 'Terlama',
-        days: 'hari',
-        no_data: 'Belum ada tahapan selesai.',
-        stage: 'Tahap',
-        item: 'Item',
-        qty: 'Jml',
-        po: 'PO',
-        client: 'Klien',
-        cycle_days: 'Siklus (Hari)',
-        completed_at: 'Selesai Pada',
-        stage_breakdown: 'Per Tahap',
-        monthly_trend: 'Tren Bulanan',
-        exit_terminal: 'Keluar',
-    }
-};
-
 function formatDate(iso: string | null): string {
     return formatDDMMYYYY(iso);
 }
@@ -110,30 +66,15 @@ function formatMonth(month: string): string {
 }
 
 export default function MyKpi({ completed_stages, summary, stage_breakdown, monthly_trend, auth_user, tenant }: Props) {
+    const { t, language, changeLanguage } = useTranslation('Worker_MyKpi');
     const { url } = usePage();
     const pathParts = url.split('/');
     const slug = tenant?.slug || pathParts[2] || '';
-
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
-        }
-        return 'en';
-    });
-
     useEffect(() => {
         localStorage.setItem('pogrid_lang', language);
     }, [language]);
-
-    const t = translations[language];
     const maxTrendCount = Math.max(...monthly_trend.map(m => m.count), 1);
     const maxBreakdownCount = Math.max(...stage_breakdown.map(s => s.count), 1);
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
     return (
         <div className="dashboard-root lg:ml-64 pb-24 lg:pb-8" style={{
             backgroundColor: 'var(--color-pg-bg)',

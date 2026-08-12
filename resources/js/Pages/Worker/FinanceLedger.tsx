@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, DotGreen, AlertTriangle } from '../../Components/Icons';
 import { WorkerHeader } from '../../Components/WorkerHeader';
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface Item {
     id: number;
@@ -40,71 +41,11 @@ interface Props {
     };
 }
 
-const translations = {
-    en: {
-        title: 'Finance Ledger & Billing Control',
-        subtitle: 'Monitor invoicing, delivered items, and payment reconciliation per PO',
-        po_number: 'PO Number',
-        client: 'Client',
-        deadline: 'Deadline',
-        status: 'Status',
-        items: 'Items Drill-Down',
-        no_pos: 'No active Purchase Orders recorded in ledger.',
-        item_name: 'Item Name',
-        target_qty: 'Target Qty',
-        delivered_qty: 'Delivered',
-        invoice_status: 'Invoice Status',
-        payment_status: 'Payment Status',
-        back: 'Back to Dashboard',
-        exit: 'Exit',
-        lang_en: 'English',
-        lang_id: 'Bahasa Indonesia',
-        uninvoiced: 'Uninvoiced',
-        partial: 'Partial',
-        invoiced: 'Invoiced',
-        unpaid: 'Unpaid',
-        partial_paid: 'Partial Paid',
-        paid: 'Paid',
-    },
-    id: {
-        title: 'Buku Besar Keuangan & Tagihan',
-        subtitle: 'Pantau invoice, barang terkirim, dan rekonsiliasi pembayaran per PO',
-        po_number: 'Nomor PO',
-        client: 'Klien',
-        deadline: 'Tenggat',
-        status: 'Status',
-        items: 'Rincian Barang',
-        no_pos: 'Tidak ada Purchase Order tercatat di buku besar.',
-        item_name: 'Nama Barang',
-        target_qty: 'Jml Target',
-        delivered_qty: 'Terkirim',
-        invoice_status: 'Status Invoice',
-        payment_status: 'Status Pembayaran',
-        back: 'Kembali ke Dasbor',
-        exit: 'Keluar',
-        lang_en: 'English',
-        lang_id: 'Bahasa Indonesia',
-        uninvoiced: 'Belum Tagih',
-        partial: 'Sebagian',
-        invoiced: 'Tertagih',
-        unpaid: 'Belum Bayar',
-        partial_paid: 'Bayar Sebagian',
-        paid: 'Lunas',
-    }
-};
-
 export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
+    const { t, language, changeLanguage } = useTranslation('Worker_FinanceLedger');
     const { url } = usePage();
     const pathParts = url.split('/');
     const slug = tenant?.slug || pathParts[2] || '';
-
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
-        }
-        return 'en';
-    });
-
     const [expandedPos, setExpandedPos] = useState<Record<number, boolean>>(() => {
         const initial: Record<number, boolean> = {};
         pos.forEach((po) => {
@@ -114,14 +55,6 @@ export default function FinanceLedger({ pos = [], auth_user, tenant }: Props) {
     });
 
     const [loadingId, setLoadingId] = useState<number | null>(null);
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
-    const t = translations[language];
-
     const togglePo = (id: number) => {
         setExpandedPos((prev) => ({ ...prev, [id]: !prev[id] }));
     };

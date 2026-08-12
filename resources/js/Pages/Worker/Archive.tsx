@@ -4,6 +4,7 @@ import { ChevronLeft, AlertTriangle, Settings } from '../../Components/Icons';
 import { WarningPill } from '../../Components/WarningPill';
 import { formatDeadline } from '../../Utils/deadline';
 import { WorkerHeader } from '../../Components/WorkerHeader';
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface Stage {
     id: number;
@@ -44,61 +45,17 @@ interface Props {
     };
 }
 
-const translations = {
-    en: {
-        title: 'Archive',
-        subtitle: 'Completed work history',
-        back: 'Back to Dashboard',
-        no_items: 'No archived items yet.',
-        client: 'Client',
-        qty: 'Qty',
-        delivered: 'Delivered',
-        completed: 'Completed',
-        exit_terminal: 'Exit',
-        manufactured: 'Manufactured',
-        buyout: 'Buyout',
-    },
-    id: {
-        title: 'Arsip',
-        subtitle: 'Riwayat pekerjaan selesai',
-        back: 'Kembali ke Dasbor',
-        no_items: 'Belum ada item yang diarsipkan.',
-        client: 'Klien',
-        qty: 'Jml',
-        delivered: 'Terkirim',
-        completed: 'Selesai',
-        exit_terminal: 'Keluar',
-        manufactured: 'Produksi Internal',
-        buyout: 'Beli Jadi',
-    }
-};
-
 export default function Archive({ items, auth_user, tenant }: Props) {
+    const { t, language, changeLanguage } = useTranslation('Worker_Archive');
     const { url } = usePage();
     const pathParts = url.split('/');
     const slug = tenant?.slug || pathParts[2] || '';
-
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
-        }
-        return 'en';
-    });
-
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 30000);
         return () => clearInterval(timer);
     }, []);
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
-    const t = translations[language];
-
     const getStageCount = (item: Item): { completed: number; total: number } => {
         const stages = item.item_progresses;
         return {

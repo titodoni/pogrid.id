@@ -3,6 +3,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, Search } from '../../Components/Icons';
 import { AppLayout } from '../../Components/AppLayout';
 import { formatDateTimeDDMMYYYY } from '../../Utils/date';
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface ReworkEvent {
     id: number;
@@ -62,85 +63,6 @@ interface Props {
     selected_range: string;
 }
 
-const translations = {
-    en: {
-        page_title: 'Rework Logbook',
-        subtitle: 'QC rework analytics — 6-month trend, per-client & per-item breakdown',
-        back_to_dashboard: 'Back to Dashboard',
-        total_events: 'Total Events',
-        total_rework_qty: 'Total Rejected Qty',
-        unresolved: 'Unresolved',
-        resolved: 'Resolved',
-        rework_rate: 'Rework Rate',
-        of_inspected: 'of inspected items',
-        top_rework_stages: 'Top Rework Stages',
-        stage: 'Stage',
-        count: 'Count',
-        monthly_trend: '6-Month Rework Trend',
-        events_label: 'Events',
-        qty_label: 'Rejected Qty',
-        client_breakdown: 'Rework by Client',
-        item_breakdown: 'Most Reworked Items',
-        no_rework: 'No rework events found.',
-        po_number: 'PO',
-        client: 'Client',
-        item_name: 'Item',
-        qty: 'Rejected Qty',
-        stage_label: 'Stage',
-        inspector: 'Inspector',
-        date: 'Date',
-        status: 'Status',
-        reason: 'Reason',
-        filter_range: 'Period',
-        this_week: 'This Week',
-        this_month: 'This Month',
-        this_year: 'This Year',
-        all_time: 'All Time',
-        yes: 'Yes',
-        no: 'No',
-        table_tab: 'Events',
-        analytics_tab: 'Analytics',
-    },
-    id: {
-        page_title: 'Logbook Rework',
-        subtitle: 'Analitik rework QC — tren 6 bulan, per-klien & per-item',
-        back_to_dashboard: 'Kembali ke Dasbor',
-        total_events: 'Total Kejadian',
-        total_rework_qty: 'Total Qty Ditolak',
-        unresolved: 'Belum Selesai',
-        resolved: 'Selesai',
-        rework_rate: 'Tingkat Rework',
-        of_inspected: 'dari item diperiksa',
-        top_rework_stages: 'Tahap Rework Teratas',
-        stage: 'Tahap',
-        count: 'Jumlah',
-        monthly_trend: 'Tren Rework 6 Bulan',
-        events_label: 'Kejadian',
-        qty_label: 'Jml Ditolak',
-        client_breakdown: 'Rework per Klien',
-        item_breakdown: 'Item Paling Sering Rework',
-        no_rework: 'Belum ada kejadian rework.',
-        po_number: 'PO',
-        client: 'Klien',
-        item_name: 'Barang',
-        qty: 'Jml Ditolak',
-        stage_label: 'Tahap',
-        inspector: 'Inspektur',
-        date: 'Tanggal',
-        status: 'Status',
-        reason: 'Alasan',
-        filter_range: 'Periode',
-        this_week: 'Minggu Ini',
-        this_month: 'Bulan Ini',
-        this_year: 'Tahun Ini',
-        all_time: 'Semua',
-        yes: 'Ya',
-        no: 'Tidak',
-        table_tab: 'Kejadian',
-        analytics_tab: 'Analitik',
-    },
-};
-
 const Bar: React.FC<{ value: number; max: number; color: string; height?: number }> = ({ value, max, color, height = 48 }) => {
     const pct = max > 0 ? (value / max) * 100 : 0;
     return (
@@ -156,20 +78,10 @@ const Bar: React.FC<{ value: number; max: number; color: string; height?: number
 };
 
 export default function ReworkLogbook({ rework_events, summary, selected_range, tenant }: Props) {
+    const { t, language, changeLanguage } = useTranslation('Owner_ReworkLogbook');
     const { errors } = usePage().props;
-
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
-        }
-        return 'en';
-    });
-
     const [search, setSearch] = useState('');
     const [view, setView] = useState<'analytics' | 'table'>('analytics');
-
-    const t = translations[language];
-
     const handleRangeChange = (range: string) => {
         router.get('/dashboard/rework-logbook', { range }, { preserveState: true });
     };

@@ -1,88 +1,9 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-
-const translations = {
-    en: {
-        title: "Privacy Policy",
-        subtitle: "Last updated: July 17, 2026",
-        back_to_home: "Back to Home",
-        table_of_contents: "Table of Contents",
-        sections: [
-            {
-                title: "1. Information We Collect",
-                content: "We collect two main categories of information: (a) Tenant metadata: corporate name, factory slug, employee rosters, and office admin emails. (b) Production telemetry: Purchase Order details, item progress increments, and operator trouble logs."
-            },
-            {
-                title: "2. How We Use Data",
-                content: "All collected data is used strictly to power your active tracking dashboard, compute weighted stage completions, trigger risk/delay alerts, and generate performance metrics. We do not sell or monetize your operational logs or client list data."
-            },
-            {
-                title: "3. Multi-Tenant Data Protection",
-                content: "We deploy strict row-level security (Tenant Scope) inside our databases. Each tenant's data is isolated programmatically. Floor operator updates via PIN can only retrieve or mutate items explicitly belonging to their designated Tenant scope."
-            },
-            {
-                title: "4. Worker PIN & Authenticator Security",
-                content: "Operator login PIN codes are encrypted and stored securely. Office passwords are hashed using bcrypt. Our support team cannot read your worker PIN codes; they can only trigger a reset request upon administrative approval."
-            },
-            {
-                title: "5. Data Retention & Backups",
-                content: "Your operational logs, KPI stats, and order records are retained as long as your tenant subscription is active. Daily database backups are encrypted and stored in secure cloud nodes with 14-day rotation periods."
-            },
-            {
-                title: "6. Changes to this Policy",
-                content: "We may update this Privacy Policy from time to time. When changes are made, we will update the 'Last updated' date at the top of this page. Continued use of POgrid.id constitutes acceptance of updated terms."
-            }
-        ]
-    },
-    id: {
-        title: "Kebijakan Privasi",
-        subtitle: "Terakhir diperbarui: 17 Juli 2026",
-        back_to_home: "Kembali ke Beranda",
-        table_of_contents: "Daftar Isi",
-        sections: [
-            {
-                title: "1. Informasi yang Kami Kumpulkan",
-                content: "Kami mengumpulkan dua kategori informasi utama: (a) Metadata Tenant: nama perusahaan, slug pabrik, daftar karyawan, dan email admin kantor. (b) Telemetri Produksi: Detail Purchase Order, progres penyelesaian item, dan laporan kendala operator."
-            },
-            {
-                title: "2. Penggunaan Informasi Anda",
-                content: "Semua data yang dikumpulkan digunakan murni untuk menampilkan dashboard pelacakan aktif Anda, menghitung persentase progress tahapan, mengirimkan alert keterlambatan, dan menyusun laporan matriks kinerja. Kami tidak menjual atau menyebarkan data operasional pabrik atau daftar klien Anda kepada pihak ketiga."
-            },
-            {
-                title: "3. Keamanan & Isolasi Data Multi-Tenant",
-                content: "Kami menerapkan skema row-level security (Tenant Scope) yang ketat pada database. Setiap data tenant terisolasi secara programatik. Input operator lantai melalui PIN hanya dapat mengakses data yang berada dalam cakupan tenant pabrik yang bersangkutan."
-            },
-            {
-                title: "4. Kriptografi & Keamanan PIN Operator",
-                content: "Kode PIN login operator dienkripsi dan disimpan secara aman. Password akun admin di-hash menggunakan algoritma Bcrypt. Tim dukungan kami tidak dapat melihat kode PIN operator Anda; kami hanya dapat melayani permohonan reset PIN atas persetujuan admin pabrik Anda."
-            },
-            {
-                title: "5. Retensi & Backup Data",
-                content: "Log operasional, KPI kinerja, dan data PO Anda akan disimpan selama masa langganan tenant Anda aktif. Backup database harian dienkripsi dan disimpan pada server cloud cadangan yang aman dengan siklus rotasi 14 hari."
-            },
-            {
-                title: "6. Perubahan Kebijakan Ini",
-                content: "Kami dapat memperbarui Kebijakan Privasi ini sewaktu-waktu. Jika ada perubahan material, kami akan memperbarui tanggal 'Terakhir diperbarui' di bagian atas halaman ini. Penggunaan berkelanjutan atas layanan kami dianggap sebagai persetujuan Anda."
-            }
-        ]
-    }
-};
+import { useTranslation } from "@/i18n/useTranslation";
 
 export default function Privacy() {
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'id';
-        }
-        return 'id';
-    });
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
-    const t = translations[language];
-
+    const { t, language, changeLanguage } = useTranslation('Legal_Privacy');
     return (
         <div style={{
             backgroundColor: 'var(--color-pg-bg, #f4fff8)',

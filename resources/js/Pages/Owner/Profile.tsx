@@ -3,6 +3,7 @@ import { Link, router } from '@inertiajs/react';
 import { ChevronLeft, Lock, Palette } from '../../Components/Icons';
 import { AppLayout } from '../../Components/AppLayout';
 import { localizedDisplay } from '../../Utils/locale';
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface Props {
     tenant?: {
@@ -22,59 +23,6 @@ interface Props {
     };
 }
 
-const translations = {
-    en: {
-        page_title: 'Profile Settings',
-        back: 'Back to Dashboard',
-        greeting: 'Hello,',
-        change_password: 'Change Password',
-        current_password: 'Current Password',
-        new_password: 'New Password',
-        confirm_password: 'Confirm Password',
-        save_changes: 'Save Changes',
-        cancel: 'Cancel',
-        language_label: 'Language',
-        lang_en: 'English',
-        lang_id: 'Bahasa Indonesia',
-        company: 'Company',
-        role: 'Role',
-        password_changed: 'Password changed successfully.',
-        theme_label: 'Backdrop Theme',
-        theme_desc: 'Select your preferred background and card style. The brand accent remains unified.',
-        theme_default: 'Titanium Slate',
-        theme_linear: 'Obsidian Graphite',
-        theme_vercel: 'Monochrome Void',
-        theme_stripe: 'Stripe Navy',
-        theme_github: 'GitHub Slate',
-        theme_nordic: 'Nordic Polar',
-    },
-    id: {
-        page_title: 'Pengaturan Profil',
-        back: 'Kembali ke Dasbor',
-        greeting: 'Halo,',
-        change_password: 'Ganti Password',
-        current_password: 'Password Saat Ini',
-        new_password: 'Password Baru',
-        confirm_password: 'Konfirmasi Password',
-        save_changes: 'Simpan Perubahan',
-        cancel: 'Batal',
-        language_label: 'Bahasa',
-        lang_en: 'English',
-        lang_id: 'Bahasa Indonesia',
-        company: 'Perusahaan',
-        role: 'Jabatan',
-        password_changed: 'Password berhasil diubah.',
-        theme_label: 'Tema Latar Belakang',
-        theme_desc: 'Pilih latar belakang dan gaya kartu pilihan Anda. Warna aksen utama tetap sama.',
-        theme_default: 'Titanium Slate',
-        theme_linear: 'Obsidian Graphite',
-        theme_vercel: 'Monochrome Void',
-        theme_stripe: 'Stripe Navy',
-        theme_github: 'GitHub Slate',
-        theme_nordic: 'Nordic Polar',
-    }
-};
-
 const themeOptions = [
     { id: 'theme-default', name: 'Titanium Slate', translationKey: 'theme_default', primaryCol: 'var(--color-pg-primary)', bgCol: 'var(--color-pg-bg)', cardBg: 'var(--color-pg-surface)', textCol: 'var(--color-pg-text)' },
     { id: 'theme-linear', name: 'Obsidian Graphite', translationKey: 'theme_linear', primaryCol: 'var(--color-pg-primary)', bgCol: '#0b0a13', cardBg: '#12111f', textCol: '#f3f0ff' },
@@ -87,13 +35,7 @@ const themeOptions = [
 ];
 
 export default function Profile({ tenant, auth_user }: Props) {
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
-        }
-        return 'en';
-    });
-
+    const { t, language, changeLanguage } = useTranslation('Owner_Profile');
     const [theme, setTheme] = useState<string>(() => {
         if (typeof window !== 'undefined') {
             return localStorage.getItem('pogrid_theme') || 'theme-default';
@@ -107,12 +49,6 @@ export default function Profile({ tenant, auth_user }: Props) {
         const timer = setInterval(() => setCurrentTime(new Date()), 30000);
         return () => clearInterval(timer);
     }, []);
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
     const changeTheme = (newTheme: string) => {
         setTheme(newTheme);
         localStorage.setItem('pogrid_theme', newTheme);
@@ -120,9 +56,6 @@ export default function Profile({ tenant, auth_user }: Props) {
         classes.forEach(c => document.documentElement.classList.remove(c));
         document.documentElement.classList.add(newTheme);
     };
-
-    const t = translations[language];
-
     const [cpCurrentPassword, setCpCurrentPassword] = useState('');
     const [cpNewPassword, setCpNewPassword] = useState('');
     const [cpConfirmPassword, setCpConfirmPassword] = useState('');

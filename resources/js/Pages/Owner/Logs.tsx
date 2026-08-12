@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
 import { AppLayout } from '../../Components/AppLayout';
 import { formatDateTimeDDMMYYYY } from '../../Utils/date';
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface LogEntry {
     id: number;
@@ -47,59 +48,8 @@ const ACTION_LABELS: Record<string, { en: string; id: string; tone: string }> = 
     user_created: { en: 'User created', id: 'User dibuat', tone: 'neutral' },
 };
 
-const translations = {
-    en: {
-        page_title: 'Project Logs',
-        subtitle: 'Audit trail — every action across projects & items',
-        all_projects: 'All Projects',
-        filter: 'Filter by project',
-        user: 'User',
-        action: 'Action',
-        details: 'Details',
-        project: 'Project',
-        item: 'Item',
-        date: 'Date & Time',
-        no_logs: 'No activity found.',
-        prev: 'Prev',
-        next: 'Next',
-        showing: 'Showing',
-        to: 'to',
-        of: 'of',
-        entries: 'entries',
-    },
-    id: {
-        page_title: 'Log Proyek',
-        subtitle: 'Jejak audit — setiap aksi di seluruh proyek & item',
-        all_projects: 'Semua Proyek',
-        filter: 'Saring berdasarkan proyek',
-        user: 'Pengguna',
-        action: 'Aksi',
-        details: 'Rincian',
-        project: 'Proyek',
-        item: 'Item',
-        date: 'Waktu',
-        no_logs: 'Belum ada aktivitas.',
-        prev: 'Sebelumnya',
-        next: 'Berikutnya',
-        showing: 'Menampilkan',
-        total: 'dari',
-        of: 'dari',
-        entries: 'entri',
-    },
-};
-
 export default function Logs({ logs, projects, selected_project }: Props) {
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window === 'undefined') return 'id';
-        return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'id';
-    });
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
-    const t = translations[language];
-
+    const { t, language, changeLanguage } = useTranslation('Owner_Logs');
     const applyProjectFilter = (value: string) => {
         router.reload({
             only: ['logs', 'selected_project'],

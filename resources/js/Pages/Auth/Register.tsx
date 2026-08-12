@@ -1,52 +1,6 @@
 import React, { useState } from 'react';
 import { useForm, Link } from '@inertiajs/react';
-
-const translations = {
-    en: {
-        title: "Setup POgrid.id",
-        subtitle: "Register your factory & configure the Owner Administrator account",
-        company_details: "1. Company Details",
-        company_name_label: "Company / Factory Name",
-        company_name_placeholder: "e.g. CV. Teknik Mandiri",
-        slug_label: "Company URL Slug / Short Name",
-        slug_placeholder: "e.g. MTR",
-        slug_desc: "Used for your login URL. Alphanumeric only (letters & numbers), max 10 characters. No spaces/dashes.",
-        admin_account: "2. Administrator Account",
-        full_name_label: "Full Name",
-        full_name_placeholder: "e.g. Budi Santoso",
-        email_label: "Email Address",
-        email_placeholder: "e.g. owner@factory.com",
-        password_label: "Password",
-        password_desc: "Must contain numbers and be at least 8 characters.",
-        confirm_password_label: "Confirm Password",
-        submit_btn: "Register & Setup Onboarding",
-        registering: "Registering...",
-        already_have_account: "Already have an account?",
-        sign_in: "Sign In"
-    },
-    id: {
-        title: "Pendaftaran POgrid.id",
-        subtitle: "Daftarkan perusahaan Anda & atur akun Owner (Pengelola)",
-        company_details: "1. Profil Perusahaan",
-        company_name_label: "Nama Perusahaan / Pabrik",
-        company_name_placeholder: "misal: CV. Teknik Mandiri",
-        slug_label: "Slug URL Perusahaan (Nama Pendek)",
-        slug_placeholder: "misal: MTR",
-        slug_desc: "Digunakan untuk alamat link masuk (login). Hanya huruf & angka (maksimal 10 karakter), tanpa spasi atau tanda hubung.",
-        admin_account: "2. Akun Owner",
-        full_name_label: "Nama Lengkap",
-        full_name_placeholder: "misal: Budi Santoso",
-        email_label: "Email",
-        email_placeholder: "misal: owner@factory.com",
-        password_label: "Password",
-        password_desc: "Wajib mengandung angka dan minimal 8 karakter.",
-        confirm_password_label: "Konfirmasi Password",
-        submit_btn: "Daftar & Mulai Penggunaan",
-        registering: "Memproses...",
-        already_have_account: "Sudah punya akun?",
-        sign_in: "Masuk"
-    }
-};
+import { useTranslation } from "@/i18n/useTranslation";
 
 function readAttribution(): Record<string, string> {
     if (typeof window === 'undefined') return {};
@@ -75,6 +29,7 @@ function getPasswordError(error: string | undefined, lang: 'en' | 'id') {
 }
 
 export default function Register() {
+    const { t, language, changeLanguage } = useTranslation('Auth_Register');
     const attribution = readAttribution();
     const { data, setData, post, processing, errors } = useForm({
         company_name: '',
@@ -89,21 +44,6 @@ export default function Register() {
         utm_content: attribution.utm_content || '',
         ref: attribution.ref || '',
     });
-
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'id';
-        }
-        return 'id';
-    });
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
-    const t = translations[language];
-
     const generateSlug = (companyName: string) => {
         let cleaned = companyName.replace(/^(PT|CV|UD)\.?\s+/i, '').trim();
         if (!cleaned) return '';

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useForm, Link } from '@inertiajs/react';
+import { useTranslation } from "@/i18n/useTranslation";
 
 function landingUrl(): string {
     if (typeof window !== 'undefined' && window.location.hostname.endsWith('pogrid.id')) {
@@ -8,65 +9,13 @@ function landingUrl(): string {
     return '/';
 }
 
-const translations = {
-    en: {
-        title: "POgrid.id",
-        subtitle: "Live Progress & Delivery Punctuality Tracker",
-        username_label: "Email",
-        username_placeholder: "Enter email",
-        password_label: "Password",
-        submit_btn: "Sign In",
-        logging_in: "Logging in...",
-        new_company: "New company?",
-        register: "Register POgrid",
-        forgot_password: "Forgot Password?",
-        auth_failed: "These credentials do not match our records.",
-        user_not_found: "No account found with that username/email.",
-        wrong_password: "Incorrect password. Please try again.",
-        network_error: "Poor network connection. Please check your internet.",
-        back_to_home: "Back to Home"
-    },
-    id: {
-        title: "POgrid.id",
-        subtitle: "Pantau Progres Produksi & Ketepatan Pengiriman",
-        username_label: "Email",
-        username_placeholder: "Masukkan email",
-        password_label: "Password",
-        submit_btn: "Masuk",
-        logging_in: "Memproses...",
-        new_company: "Perusahaan baru?",
-        register: "Daftar POgrid",
-        forgot_password: "Lupa Password?",
-        auth_failed: "Kredensial yang Anda masukkan salah.",
-        user_not_found: "Tidak ada akun dengan username/email tersebut.",
-        wrong_password: "Password salah. Silakan coba lagi.",
-        network_error: "Koneksi buruk. Silakan periksa jaringan internet Anda.",
-        back_to_home: "Kembali ke Beranda"
-    }
-};
-
 export default function Login() {
+    const { t, language, changeLanguage } = useTranslation('Auth_Login');
     const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
         username: '',
         password: '',
     });
-
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
-        }
-        return 'en';
-    });
-
     const [showPassword, setShowPassword] = useState(false);
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
-    const t = translations[language];
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         clearErrors();

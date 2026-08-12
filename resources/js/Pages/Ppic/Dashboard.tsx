@@ -7,6 +7,7 @@ import { WarningPill } from '../../Components/WarningPill';
 import { StatusBadge } from '../../Components/StatusBadge';
 import BroadcastToasts from '../../Components/BroadcastToasts';
 import echo from '../../bootstrap';
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface ScheduleItem {
     id: number;
@@ -131,107 +132,6 @@ interface Props {
     capacity_view: CapacityEntry[];
 }
 
-const translations = {
-    en: {
-        ppic_dashboard: 'PPIC Dashboard',
-        production_planning: 'Production Planning View',
-        exit_terminal: 'Exit',
-        overdue_count: 'Overdue',
-        stuck_total: 'Stuck',
-        due_soon: 'Due Soon',
-        active_pos: 'Active POs',
-        total_active: 'Total Active',
-        po: 'PO',
-        items: 'Items',
-        deadline: 'Deadline',
-        qty: 'Qty',
-        progress: 'Progress',
-        client: 'Client',
-        status: 'Status',
-        urgent: 'URGENT',
-        stage: 'Stage',
-        schedule_tab: 'Schedule',
-        load_tab: 'Load',
-        material_tab: 'Material',
-        bottlenecks_tab: 'Bottlenecks',
-        forecast_tab: 'Forecast',
-        capacity_tab: 'Capacity',
-        no_data: 'No data available.',
-        ready: 'Ready',
-        in_progress: 'In Progress',
-        pending: 'Pending',
-        work_center: 'Work Center',
-        active: 'Active',
-        completed: 'Completed',
-        total: 'Total',
-        overloaded: 'Overloaded',
-        reason: 'Reason',
-        date: 'Date',
-        archive: 'Archive',
-        trouble: 'Trouble',
-        profile: 'Profile',
-        no_alerts_found: 'No bottlenecks detected.',
-        all_good: 'All materials ready.',
-        on_track: 'On Track',
-        delayed: 'Delayed',
-        days: 'day(s)',
-        forecast: 'Delivery Forecast',
-        capacity: 'Capacity View',
-        schedule: 'Production Schedule',
-        po_status: 'PO Status',
-        item: 'Item',
-    },
-    id: {
-        ppic_dashboard: 'Dashboard PPIC',
-        production_planning: 'Tampilan Perencanaan Produksi',
-        exit_terminal: 'Keluar',
-        overdue_count: 'Terlambat',
-        stuck_total: 'Tersendat',
-        due_soon: 'Jatuh Tempo',
-        active_pos: 'PO Aktif',
-        total_active: 'Total Aktif',
-        po: 'PO',
-        items: 'Item',
-        deadline: 'Batas Waktu',
-        qty: 'Jml',
-        progress: 'Progres',
-        client: 'Klien',
-        status: 'Status',
-        urgent: 'URGEN',
-        stage: 'Tahap',
-        schedule_tab: 'Jadwal',
-        load_tab: 'Beban',
-        material_tab: 'Material',
-        bottlenecks_tab: 'Hambatan',
-        forecast_tab: 'Prakiraan',
-        capacity_tab: 'Kapasitas',
-        no_data: 'Tidak ada data.',
-        ready: 'Siap',
-        in_progress: 'Proses',
-        pending: 'Tertunda',
-        work_center: 'Pusat Kerja',
-        active: 'Aktif',
-        completed: 'Selesai',
-        total: 'Total',
-        overloaded: 'Kelebihan',
-        reason: 'Alasan',
-        date: 'Tanggal',
-        archive: 'Arsip',
-        trouble: 'Kendala',
-        profile: 'Profil',
-        no_alerts_found: 'Tidak ada hambatan terdeteksi.',
-        all_good: 'Semua material siap.',
-        on_track: 'Tepat Waktu',
-        delayed: 'Terlambat',
-        days: 'hari',
-        forecast: 'Prakiraan Pengiriman',
-        capacity: 'Tampilan Kapasitas',
-        schedule: 'Jadwal Produksi',
-        po_status: 'Status PO',
-        item: 'Item',
-    }
-};
-
 function getStageColor(stage: string | null): string {
     if (!stage) return '#71717a';
     const lower = stage.toLowerCase();
@@ -250,11 +150,10 @@ function getStageColor(stage: string | null): string {
 type TabKey = 'schedule' | 'load' | 'material' | 'bottlenecks' | 'forecast' | 'capacity';
 
 export default function PpicDashboard({ auth_user, tenant, schedule, work_center_load, material_readiness, bottlenecks, delivery_forecast, capacity_view }: Props) {
+    const { t, language, changeLanguage } = useTranslation('Ppic_Dashboard');
     const { props, url } = usePage();
     const pathParts = url.split('/');
     const slug = pathParts[2] || '';
-
-    const [language, setLanguage] = useState<'en' | 'id'>(getLanguage);
     const [currentTime, setCurrentTime] = useState(new Date());
     const [activeTab, setActiveTab] = useState<TabKey>('schedule');
 
@@ -263,9 +162,6 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
     const [isUrgentVal, setIsUrgentVal] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [toastQueue, setToastQueue] = useState<Array<{ message: string; severity: string; id: number; timestamp: number }>>([]);
-
-    const t = translations[language];
-
     const handleSavePo = (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingPo) return;
@@ -389,12 +285,6 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
             if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
         };
     }, [tenant?.id]);
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
     const totalActive = schedule.reduce((sum, po) => sum + po.active_items, 0);
     const totalPos = schedule.filter(po => po.status !== 'COMPLETED' && po.status !== 'CLOSED').length;
     const overdueTotal = delivery_forecast.overdue_count;

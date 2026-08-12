@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/react';
 import { AppLayout } from '../../Components/AppLayout';
 import { ChevronLeft, AlertTriangle } from '../../Components/Icons';
 import { formatDDMMYYYY } from '../../Utils/date';
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface Tenant {
     id: number;
@@ -17,65 +18,8 @@ interface Props {
     is_expired: boolean;
 }
 
-const translations = {
-    en: {
-        title: 'Subscription & Billing Control',
-        subtitle: 'Manage trial status, enterprise subscription, and manual bank transfer payments',
-        back: 'Back to Office Dashboard',
-        status: 'Subscription Status',
-        trial_end: 'Trial Expiration',
-        active_plan: 'Active Enterprise Subscription',
-        trial_plan: '14-Day Free Trial',
-        expired_plan: 'Trial Expired (ReadOnly PO Creation)',
-        expired_warning_title: 'PO Creation Locked due to Trial Expiration',
-        expired_warning_desc: 'Your free trial has concluded. To resume creating new Purchase Orders and broadcasting jobs to the factory floor, please activate an active subscription. Note: Ongoing item operations and worker progress reports on the floor remain fully functional.',
-        payment_instructions: 'Payment Instructions (Manual Bank Transfer)',
-        transfer_step_1: '1. Transfer the annual enterprise subscription fee of IDR 3,500,000 / year to one of our designated operational accounts:',
-        bca_account: 'Bank Central Asia (BCA) — Acc: 8829-1002-39 a/n PT POgrid Teknologi Indonesia',
-        mandiri_account: 'Bank Mandiri — Acc: 122-009-883-772 a/n PT POgrid Teknologi Indonesia',
-        transfer_step_2: '2. Include your unique Tenant ID / Slug in the bank transfer reference note:',
-        transfer_step_3: '3. After transferring, send your proof of payment via email to billing@pogrid.id or contact our finance confirmation hotline.',
-        confirm_btn: 'Confirm Payment via WhatsApp / Email',
-        lang_en: 'English',
-        lang_id: 'Bahasa Indonesia',
-    },
-    id: {
-        title: 'Kontrol Berlangganan & Tagihan',
-        subtitle: 'Kelola masa uji coba (trial), langganan perusahaan, dan pembayaran transfer bank',
-        back: 'Kembali ke Dasbor Kantor',
-        status: 'Status Berlangganan',
-        trial_end: 'Akhir Masa Uji Coba',
-        active_plan: 'Langganan Perusahaan Aktif',
-        trial_plan: 'Uji Coba Gratis 14 Hari',
-        expired_plan: 'Uji Coba Habis (Pembuatan PO Dikunci)',
-        expired_warning_title: 'Pembuatan PO Dikunci karena Masa Uji Coba Habis',
-        expired_warning_desc: 'Masa uji coba gratis Anda telah berakhir. Untuk melanjutkan pembuatan Purchase Order baru ke lantai produksi, silakan aktifkan langganan resmi. Catatan: Pekerjaan yang sedang berjalan dan update progres teknisi di bengkel tetap beroperasi penuh tanpa gangguan.',
-        payment_instructions: 'Instruksi Pembayaran (Transfer Bank Manual)',
-        transfer_step_1: '1. Lakukan transfer biaya langganan perusahaan sebesar Rp 3.500.000 / tahun ke salah satu rekening resmi kami:',
-        bca_account: 'Bank Central Asia (BCA) — Rek: 8829-1002-39 a.n. PT POgrid Teknologi Indonesia',
-        mandiri_account: 'Bank Mandiri — Rek: 122-009-883-772 a.n. PT POgrid Teknologi Indonesia',
-        transfer_step_2: '2. Wajib sertakan Kode Tenant / Slug berikut pada berita atau keterangan transfer:',
-        transfer_step_3: '3. Setelah melunasi pembayaran, kirimkan bukti transfer melalui email ke billing@pogrid.id atau WhatsApp tim admin finansial kami.',
-        confirm_btn: 'Konfirmasi Pembayaran via WhatsApp / Email',
-        lang_en: 'English',
-        lang_id: 'Bahasa Indonesia',
-    }
-};
-
 export default function Billing({ tenant, is_expired }: Props) {
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
-        }
-        return 'en';
-    });
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
-    const t = translations[language];
+    const { t, language, changeLanguage } = useTranslation('Owner_Billing');
     const statusStr = (tenant?.subscription_status || '').toUpperCase();
     const isPaid = statusStr === 'ACTIVE' || statusStr === 'PAID' || statusStr === 'SUBSCRIBED';
 

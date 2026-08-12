@@ -1,57 +1,19 @@
 import React, { useState } from 'react';
 import { useForm, Link } from '@inertiajs/react';
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface Props {
     token: string;
 }
 
-const translations = {
-    en: {
-        title: "POgrid.id",
-        subtitle: "Set a new password",
-        email_label: "Email Address",
-        email_placeholder: "Enter your email",
-        password_label: "New Password",
-        confirm_password_label: "Confirm New Password",
-        submit_btn: "Reset Password",
-        resetting: "Resetting...",
-        back_to_login: "Back to Login"
-    },
-    id: {
-        title: "POgrid.id",
-        subtitle: "Atur Password Baru",
-        email_label: "Email",
-        email_placeholder: "Masukkan email Anda",
-        password_label: "Password Baru",
-        confirm_password_label: "Konfirmasi Password Baru",
-        submit_btn: "Simpan Password Baru",
-        resetting: "Memproses...",
-        back_to_login: "Kembali ke Login"
-    }
-};
-
 export default function ResetPassword({ token }: Props) {
+    const { t, language, changeLanguage } = useTranslation('Auth_ResetPassword');
     const { data, setData, post, processing, errors } = useForm({
         token: token,
         email: '',
         password: '',
         password_confirmation: '',
     });
-
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
-        }
-        return 'en';
-    });
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
-    const t = translations[language];
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post('/reset-password');

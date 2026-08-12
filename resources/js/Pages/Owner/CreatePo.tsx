@@ -4,6 +4,7 @@ import { ChevronLeft, Plus, Close, Check, Broadcast } from '../../Components/Ico
 import { AppLayout } from '../../Components/AppLayout';
 import { useUnsavedChanges } from '../../Hooks/useUnsavedChanges';
 import { formatDDMMYYYY } from '../../Utils/date';
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface Props {
     tenant?: {
@@ -45,118 +46,6 @@ const TEMPLATES: { key: string; labelEn: string; labelId: string; stages: string
 ];
 
 const ALL_STAGES = ['Design', 'Material', 'Machining', 'Fabrication', 'Assembly', 'Surface Treatment', 'QC', 'Delivery', 'Vendor'];
-
-const translations = {
-    en: {
-        back: 'Back to Dashboard',
-        title: 'New Purchase Order',
-        subtitle: 'Create a purchase order with multiple line items and production stages.',
-        po_number: 'PO Number',
-        client_po_number: 'Client PO Number',
-        client_name: 'Client Name',
-        select_client: 'Select client...',
-        other_client: 'Other Client...',
-        add_client: 'Add Client',
-        enter_client_name: 'Enter client name',
-        delivery_date: 'Delivery Date',
-        urgent: 'Mark as urgent',
-        line_items: 'Line Items',
-        add_item: 'Add Item',
-        remove_item: 'Remove Item',
-        item_name: 'Item Name',
-        item_type: 'Item Type',
-        quantity: 'Quantity',
-        stage_templates: 'Stage Templates',
-        template_pick: 'Pick a template to auto-fill stages:',
-        custom_stage: 'Custom Stage',
-        add_stage: 'Add Stage',
-        stages: 'Production Stages',
-        design: 'Design (Drafter)',
-        material: 'Material (Purchasing)',
-        cnc: 'Machining',
-        fabrication: 'Fabrication',
-        assembly: 'Assembly',
-        surface: 'Surface Treatment',
-        qc: 'QC / Inspection',
-        delivery: 'Delivery',
-        vendor: 'Vendor',
-        vendor_name: 'Vendor Name',
-        vendor_phone: 'Vendor Phone',
-        cancel: 'Cancel',
-        submit: 'Submit PO',
-        save: 'Save',
-        type_manufacture: 'Manufacture',
-        type_buyout: 'Buy Out',
-        type_service: 'Service',
-        err_fill_header: 'Please fill out all PO header fields.',
-        err_item_name: 'Please enter a name for Item #{num}.',
-        err_select_stage: 'Please select at least one stage for Item "{name}".',
-        err_vendor_info: 'Item "{name}" has a Vendor stage. Please provide the vendor name and phone.',
-        draft_restored: 'Draft restored',
-        draft_dismiss: 'Dismiss',
-        access_restricted: 'Access Restricted',
-        owner_restrict_desc: 'Owners cannot create POs. Please assign an Admin user.',
-        repeat_order: 'Repeat Order',
-        repeat_order_desc: 'Clone items and stages from a previous PO.',
-        select_previous_po: 'Select a previous PO...',
-        repeat_applied: 'Items copied from {po}. Set a new PO number and deadline.',
-    },
-    id: {
-        back: 'Kembali ke Dasbor',
-        title: 'Buat PO Baru',
-        subtitle: 'Buat purchase order dengan beberapa barang dan tahapan produksi.',
-        po_number: 'Nomor PO',
-        client_po_number: 'No. PO Klien (Opsional)',
-        client_name: 'Nama Klien / Pelanggan',
-        select_client: 'Pilih Klien...',
-        other_client: 'Klien Lainnya...',
-        add_client: 'Tambah Klien Baru',
-        enter_client_name: 'Masukkan nama klien',
-        delivery_date: 'Tanggal Pengiriman / Deadline',
-        urgent: 'Tandai Prioritas Tinggi (Mendesak)',
-        line_items: 'Daftar Barang (Line Items)',
-        add_item: 'Tambah Barang',
-        remove_item: 'Hapus Barang',
-        item_name: 'Nama Barang',
-        item_type: 'Kategori / Tipe Barang',
-        quantity: 'Jumlah (Qty)',
-        stage_templates: 'Template Tahapan',
-        template_pick: 'Pilih template untuk isi tahapan secara otomatis:',
-        custom_stage: 'Tahapan Kustom',
-        add_stage: 'Tambah',
-        stages: 'Tahapan Produksi',
-        design: 'Desain Teknis (Drafter)',
-        material: 'Material (Purchasing)',
-        cnc: 'Machining (Bubut/CNC)',
-        fabrication: 'Fabrikasi (Fab)',
-        assembly: 'Perakitan (Assembly)',
-        surface: 'Surface Treatment',
-        qc: 'QC / Inspeksi',
-        delivery: 'Pengiriman (Delivery)',
-        vendor: 'Vendor',
-        vendor_name: 'Nama Vendor',
-        vendor_phone: 'No. Telepon Vendor',
-        cancel: 'Batal',
-        submit: 'Rilis PO Baru',
-        save: 'Simpan',
-        type_manufacture: 'Buat Sendiri (Manufacture)',
-        type_buyout: 'Beli Jadi (Buy Out)',
-        type_service: 'Jasa Maklon (Service)',
-        err_fill_header: 'Harap lengkapi semua kolom informasi utama PO.',
-        err_item_name: 'Harap isi nama untuk Item #{num}.',
-        err_select_stage: 'Harap pilih minimal satu tahapan untuk Item "{name}".',
-        err_vendor_info: 'Harap isi nama dan nomor telepon vendor.',
-        draft_restored: 'Draf dipulihkan',
-        draft_dismiss: 'Tutup',
-        access_restricted: 'Akses Dibatasi',
-        owner_restrict_desc: 'Owner tidak dapat membuat PO. Harap tugaskan akun Admin.',
-        repeat_order: 'Ulangi Order',
-        repeat_order_desc: 'Salin barang dan tahapan dari PO sebelumnya.',
-        select_previous_po: 'Pilih PO sebelumnya...',
-        repeat_applied: 'Barang disalin dari {po}. Isi nomor PO dan deadline baru.',
-    }
-};
-
 type ItemType = 'MANUFACTURE' | 'BUY_OUT' | 'SERVICE';
 
 interface PoItem {
@@ -292,20 +181,12 @@ function DateInputDDMMYYYY({ value, onChange, style }: { value: string; onChange
 }
 
 export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_templates = [] }: Props) {
+    const { t, language, changeLanguage } = useTranslation('Owner_CreatePo');
     const { errors } = usePage().props;
 
     const [localError, setLocalError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [repeatNotice, setRepeatNotice] = useState<string | null>(null);
-
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
-        }
-        return 'en';
-    });
-    const t = translations[language];
-
     const [clients, setClients] = useState<string[]>([
         'PT Astra Otoparts',
         'PT Epson Indonesia',  

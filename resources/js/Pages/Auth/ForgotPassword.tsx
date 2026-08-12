@@ -1,49 +1,12 @@
 import React, { useState } from 'react';
 import { useForm, usePage, Link } from '@inertiajs/react';
-
-const translations = {
-    en: {
-        title: "POgrid.id",
-        subtitle: "Reset your password",
-        dev_mode_msg: "In development mode, password reset links are logged. Check storage/logs/laravel.log for the reset URL.",
-        email_label: "Email Address",
-        email_placeholder: "Enter your email address",
-        submit_btn: "Send Reset Link",
-        sending: "Sending...",
-        remember_password: "Remember your password?",
-        sign_in: "Sign In"
-    },
-    id: {
-        title: "POgrid.id",
-        subtitle: "Atur Ulang Password",
-        dev_mode_msg: "Dalam mode pengembangan, link atur ulang password dicatat pada file log. Silakan periksa storage/logs/laravel.log untuk melihat URL.",
-        email_label: "Email",
-        email_placeholder: "Masukkan email Anda",
-        submit_btn: "Kirim Link Atur Ulang",
-        sending: "Mengirim...",
-        remember_password: "Sudah ingat password Anda?",
-        sign_in: "Masuk"
-    }
-};
+import { useTranslation } from "@/i18n/useTranslation";
 
 export default function ForgotPassword() {
+    const { t, language, changeLanguage } = useTranslation('Auth_ForgotPassword');
     const { data, setData, post, processing, errors } = useForm({
         email: '',
     });
-
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
-        }
-        return 'en';
-    });
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
-    const t = translations[language];
     const { props } = usePage();
     const flashSuccess = (props as any).flash?.success;
     const [submitted, setSubmitted] = useState(false);

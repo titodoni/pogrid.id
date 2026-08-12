@@ -4,6 +4,7 @@ import { ChevronLeft, AlertTriangle, DotGreen, Settings } from '../../Components
 import echo from '../../bootstrap';
 import { formatDateTimeDDMMYYYY } from '../../Utils/date';
 import { WorkerHeader } from '../../Components/WorkerHeader';
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface Alert {
     id: number;
@@ -35,57 +36,11 @@ interface Props {
     };
 }
 
-const translations = {
-    en: {
-        title: 'Trouble Reports',
-        subtitle: 'Log of active and resolved production issues',
-        severity: 'Severity',
-        message: 'Message / Description',
-        status: 'Status',
-        date: 'Date Reported',
-        back: 'Back to Dashboard',
-        no_reports: 'No trouble reports logged.',
-        active: 'Active',
-        resolved: 'Resolved',
-        resolve_action: 'Resolve',
-        action: 'Action',
-        resolve_confirm: 'Mark this trouble report as resolved / fixed?',
-        exit_terminal: 'Exit',
-        lang_en: 'English',
-        lang_id: 'Bahasa Indonesia',
-    },
-    id: {
-        title: 'Laporan Kendala',
-        subtitle: 'Daftar kendala produksi aktif dan selesai',
-        severity: 'Tingkat',
-        message: 'Pesan / Deskripsi Kendala',
-        status: 'Status',
-        date: 'Tanggal Dilaporkan',
-        back: 'Kembali ke Dasbor',
-        no_reports: 'Tidak ada laporan kendala.',
-        active: 'Aktif',
-        resolved: 'Selesai',
-        resolve_action: 'Selesaikan',
-        action: 'Aksi',
-        resolve_confirm: 'Tandai kendala ini sudah selesai / teratasi?',
-        exit_terminal: 'Keluar',
-        lang_en: 'English',
-        lang_id: 'Bahasa Indonesia',
-    }
-};
-
 export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
+    const { t, language, changeLanguage } = useTranslation('Worker_TroubleReports');
     const { url } = usePage();
     const pathParts = url.split('/');
     const slug = tenant?.slug || pathParts[2] || '';
-
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
-        }
-        return 'en';
-    });
-
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
@@ -115,14 +70,6 @@ export default function TroubleReports({ alerts, auth_user, tenant }: Props) {
             echo.leave(`tenant.${id}.workers`);
         };
     }, [(tenant as any)?.id]);
-
-    const changeLanguage = (lang: 'en' | 'id') => {
-        setLanguage(lang);
-        localStorage.setItem('pogrid_lang', lang);
-    };
-
-    const t = translations[language];
-
     const userRole = ((auth_user as any)?.role_name || (auth_user as any)?.role || '').toUpperCase();
     const userPost = ((auth_user as any)?.post_name || '').toUpperCase();
     const isOwner = (auth_user as any)?.is_owner;

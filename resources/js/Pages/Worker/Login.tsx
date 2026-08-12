@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
 import { ModalShell } from '../../Components/Modal/ModalShell';
 import { localizedDisplay } from '../../Utils/locale';
+import { useTranslation } from "@/i18n/useTranslation";
 
 interface Worker {
     id: number;
@@ -27,56 +28,8 @@ interface Props {
     workers: Worker[];
 }
 
-const translations = {
-    en: {
-        worker_entrance: "Worker Entrance",
-        select_name: "Select Your Name",
-        no_workers: "No workers registered.",
-        entering_pin: "Entering PIN for: {name}",
-        select_worker: "Select worker to enter PIN",
-        verify_btn: "VERIFY & ENTER",
-        verifying: "Verifying...",
-        forgot_pin: "Forgot PIN?",
-        forgot_pin_title: "Forgot PIN",
-        forgot_pin_desc: "Request a PIN reset for {name}? Admin will generate a new PIN.",
-        cancel: "Cancel",
-        request_reset: "Request Reset",
-        requesting: "Sending...",
-        clear_btn: "CLEAR",
-        select_worker_error: "Please select a worker first.",
-        pin_length_error: "PIN must be at least 4 digits.",
-        admin_must_use_password: "Administrative users must log in via password at /login.",
-        pin_incorrect: "Incorrect PIN. Please try again.",
-        user_not_found_worker: "Selected worker not found in this company.",
-        too_many_attempts: "Too many attempts. Please wait 1 minute before trying again.",
-        network_error: "Poor network connection. Please check your internet."
-    },
-    id: {
-        worker_entrance: "Akses Masuk Pekerja",
-        select_name: "Pilih Nama Anda",
-        no_workers: "Tidak ada pekerja yang terdaftar.",
-        entering_pin: "Masukkan PIN untuk: {name}",
-        select_worker: "Pilih nama Anda untuk memasukkan PIN",
-        verify_btn: "VERIFIKASI & MASUK",
-        verifying: "Memproses...",
-        forgot_pin: "Lupa PIN?",
-        forgot_pin_title: "Lupa PIN",
-        forgot_pin_desc: "Ajukan reset PIN untuk {name}? Admin akan membuatkan PIN baru.",
-        cancel: "Batal",
-        request_reset: "Ajukan Reset PIN",
-        requesting: "Memproses...",
-        clear_btn: "HAPUS",
-        select_worker_error: "Silakan pilih nama pekerja terlebih dahulu.",
-        pin_length_error: "PIN minimal harus 4 angka.",
-        admin_must_use_password: "Pengguna administratif harus masuk menggunakan password di halaman login.",
-        pin_incorrect: "PIN salah. Silakan coba lagi.",
-        user_not_found_worker: "Pekerja yang dipilih tidak ditemukan di perusahaan ini.",
-        too_many_attempts: "Terlalu banyak percobaan. Harap tunggu 1 menit sebelum mencoba lagi.",
-        network_error: "Koneksi buruk. Silakan periksa jaringan internet Anda."
-    }
-};
-
 export default function WorkerLogin({ tenant, workers }: Props) {
+    const { t, language, changeLanguage } = useTranslation('Worker_Login');
     useEffect(() => {
         if (typeof window !== 'undefined' && tenant.theme) {
             const classes = ['theme-default', 'theme-linear', 'theme-vercel', 'theme-stripe', 'theme-github', 'theme-nordic', 'theme-light', 'theme-brand'];
@@ -105,16 +58,6 @@ export default function WorkerLogin({ tenant, workers }: Props) {
     });
 
     const setSelectedWorkerId = (id: string) => setData('user_id', id);
-
-    const [language, setLanguage] = useState<'en' | 'id'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
-        }
-        return 'en';
-    });
-
-    const t = translations[language];
-
     const { props: pageProps } = usePage();
     const retryAfter = (pageProps as any).retry_after as number | undefined;
     const [countdown, setCountdown] = useState(0);
