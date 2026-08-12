@@ -33,11 +33,6 @@ jobs:
       - name: Generate Application Key
         run: php artisan key:generate
 
-      - name: Run Tests
-        run: |
-          touch database/database.sqlite
-          php artisan test
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -50,6 +45,11 @@ jobs:
         run: |
           chmod +x node_modules/.bin/* || true
           npm run build
+
+      - name: Run Tests
+        run: |
+          touch database/database.sqlite
+          php artisan test
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
