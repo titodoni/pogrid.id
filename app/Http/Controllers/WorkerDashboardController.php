@@ -712,67 +712,45 @@ class WorkerDashboardController extends Controller
         $prevOtdr = $this->calcOtdr($prevStartDate, $prevEndDate);
 
         // ── 2. Output Volumes ─────────────────────────────────────────────────
-        // Use real DoItem.delivered_qty for MANUFACTURE items in range.
-        // BUY_OUT and SERVICE still use progress-estimate (no DO flow for them).
-        $items = Item::where(function ($query) use ($startDate, $endDate) {
-            $query->whereBetween('created_at', [$startDate, $endDate])
-                ->orWhereHas('doItems', function ($q) use ($startDate, $endDate) {
-                    $q->whereBetween('updated_at', [$startDate, $endDate]);
-                });
-        })
-            ->with(['doItems'])
-            ->get();
+        // Migrated to native SQL to prevent OOM on large tenants.
+        $deliveredManufacture = (float) \DB::table('do_items')
+            ->join('items', 'do_items.item_id', '=', 'items.id')
+            ->where('items.item_type', 'MANUFACTURE')
+            ->whereNull('items.deleted_at')
+            ->whereBetween('do_items.updated_at', [$startDate, $endDate])
+            ->sum('do_items.delivered_qty');
 
-        $deliveredManufacture = 0;
-        $targetManufacture = 0;
-        $outputBuyout = 0.0;
-        $targetBuyout = 0;
-        $outputService = 0.0;
-        $targetService = 0;
+        $targetManufacture = (int) Item::where('item_type', 'MANUFACTURE')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('target_qty');
 
-        foreach ($items as $item) {
-            $prog = (float) $item->progress_percent;
-            if ($item->item_type === 'MANUFACTURE') {
-                $deliveredManufacture += $item->doItems
-                    ->filter(fn ($doItem) => $doItem->updated_at >= $startDate && $doItem->updated_at <= $endDate)
-                    ->sum('delivered_qty');
-                if ($item->created_at >= $startDate && $item->created_at <= $endDate) {
-                    $targetManufacture += $item->target_qty;
-                }
-            } elseif ($item->item_type === 'BUY_OUT') {
-                if ($item->created_at >= $startDate && $item->created_at <= $endDate) {
-                    $outputBuyout += $item->target_qty * ($prog / 100.0);
-                    $targetBuyout += $item->target_qty;
-                }
-            } elseif ($item->item_type === 'SERVICE') {
-                if ($item->created_at >= $startDate && $item->created_at <= $endDate) {
-                    $outputService += $item->target_qty * ($prog / 100.0);
-                    $targetService += $item->target_qty;
-                }
-            }
-        }
+        $outputBuyout = (float) Item::where('item_type', 'BUY_OUT')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum(\DB::raw('target_qty * (progress_percent / 100.0)'));
+        
+        $targetBuyout = (int) Item::where('item_type', 'BUY_OUT')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('target_qty');
+
+        $outputService = (float) Item::where('item_type', 'SERVICE')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum(\DB::raw('target_qty * (progress_percent / 100.0)'));
+
+        $targetService = (int) Item::where('item_type', 'SERVICE')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('target_qty');
 
         // Previous period manufacture for delta comparison
-        $prevItems = Item::where(function ($query) use ($prevStartDate, $prevEndDate) {
-            $query->whereBetween('created_at', [$prevStartDate, $prevEndDate])
-                ->orWhereHas('doItems', function ($q) use ($prevStartDate, $prevEndDate) {
-                    $q->whereBetween('updated_at', [$prevStartDate, $prevEndDate]);
-                });
-        })
-            ->where('item_type', 'MANUFACTURE')
-            ->with(['doItems'])
-            ->get();
+        $prevDeliveredManufacture = (float) \DB::table('do_items')
+            ->join('items', 'do_items.item_id', '=', 'items.id')
+            ->where('items.item_type', 'MANUFACTURE')
+            ->whereNull('items.deleted_at')
+            ->whereBetween('do_items.updated_at', [$prevStartDate, $prevEndDate])
+            ->sum('do_items.delivered_qty');
 
-        $prevDeliveredManufacture = 0;
-        $prevTargetManufacture = 0;
-        foreach ($prevItems as $item) {
-            $prevDeliveredManufacture += $item->doItems
-                ->filter(fn ($doItem) => $doItem->updated_at >= $prevStartDate && $doItem->updated_at <= $prevEndDate)
-                ->sum('delivered_qty');
-            if ($item->created_at >= $prevStartDate && $item->created_at <= $prevEndDate) {
-                $prevTargetManufacture += $item->target_qty;
-            }
-        }
+        $prevTargetManufacture = (int) Item::where('item_type', 'MANUFACTURE')
+            ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+            ->sum('target_qty');
 
         // ── 3. Active Risks ───────────────────────────────────────────────────
         $unresolvedAlerts = Alert::where('is_resolved', false)->get();
