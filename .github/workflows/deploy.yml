@@ -94,6 +94,7 @@ jobs:
             --exclude 'storage' --exclude 'bootstrap/cache/*.php' \
             --exclude '.env' --exclude 'node_modules' --exclude '.git' \
             --exclude 'deploy' --exclude 'database/*.sqlite' --exclude '.github' \
+            --exclude 'public/hot' \
             ./ $HOSTINGER_USERNAME@$HOSTINGER_IP:/home/$HOSTINGER_USERNAME/domains/pogrid.id/public_html/app/
 
       - name: Clear Server Cache
@@ -104,4 +105,4 @@ jobs:
           HOSTINGER_PORT: 65002
         run: |
           ssh -p $HOSTINGER_PORT -i ~/.ssh/id_ed25519 $HOSTINGER_USERNAME@$HOSTINGER_IP \
-            "cd domains/pogrid.id/public_html/app && /opt/alt/php83/usr/bin/php artisan optimize:clear && /opt/alt/php83/usr/bin/php artisan view:cache && /opt/alt/php83/usr/bin/php artisan config:cache && /opt/alt/php83/usr/bin/php artisan route:cache"
+            "cd domains/pogrid.id/public_html/app && rm -f public/hot && /opt/alt/php83/usr/bin/php artisan optimize:clear && /opt/alt/php83/usr/bin/php artisan view:cache && /opt/alt/php83/usr/bin/php artisan config:cache && /opt/alt/php83/usr/bin/php artisan route:cache"
