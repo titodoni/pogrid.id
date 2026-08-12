@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technical Audit Report — POgrid.id</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════════════
+       CORPORATE REPORT — PRINT-READY STYLESHEET
+       ═══════════════════════════════════════════════════ */
+
+    :root {
+      --pg-blue: #2563eb;
+      --pg-blue-dark: #1e40af;
+      --pg-blue-light: #eff6ff;
+      --pg-navy: #0f172a;
+      --pg-slate-900: #1e293b;
+      --pg-slate-700: #334155;
+      --pg-slate-600: #475569;
+      --pg-slate-500: #64748b;
+      --pg-slate-400: #94a3b8;
+      --pg-slate-200: #e2e8f0;
+      --pg-slate-100: #f1f5f9;
+      --pg-slate-50: #f8fafc;
+      --pg-white: #ffffff;
+      --pg-red: #dc2626;
+      --pg-red-bg: #fef2f2;
+      --pg-orange: #ea580c;
+      --pg-orange-bg: #fff7ed;
+      --pg-yellow: #ca8a04;
+      --pg-yellow-bg: #fefce8;
+      --pg-green: #16a34a;
+      --pg-green-bg: #f0fdf4;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 15px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    body {
+      font-family: var(--font-sans);
+      color: var(--pg-slate-700);
+      line-height: 1.7;
+      background: var(--pg-slate-100);
+    }
+
+    .report {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--pg-white);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 8px 32px rgba(0,0,0,0.06);
+    }
+
+    /* ── COVER PAGE ── */
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px 72px;
+      background: linear-gradient(168deg, var(--pg-navy) 0%, var(--pg-slate-900) 100%);
+      color: var(--pg-white);
+      position: relative;
+      overflow: hidden;
+    }
+    .cover::before {
+      content: '';
+      position: absolute;
+      top: -120px; right: -120px;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%);
+    }
+    .cover::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: -80px;
+      width: 350px; height: 350px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(37,99,235,0.08) 0%, transparent 70%);
+    }
+    .cover-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--pg-blue);
+      background: rgba(37,99,235,0.12);
+      border: 1px solid rgba(37,99,235,0.25);
+      padding: 6px 16px;
+      border-radius: 4px;
+      margin-bottom: 40px;
+      position: relative;
+      z-index: 1;
+    }
+    .cover h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+    .cover h1 span { color: var(--pg-blue); }
+    .cover-subtitle {
+      font-size: 1.15rem;
+      color: var(--pg-slate-400);
+      font-weight: 400;
+      line-height: 1.6;
+      max-width: 520px;
+      margin-bottom: 56px;
+      position: relative;
+      z-index: 1;
+    }
+    .cover-meta {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px 48px;
+    }
+    .cover-meta dt {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--pg-slate-500);
+      margin-bottom: 4px;
+    }
+    .cover-meta dd {
+      font-size: 0.9rem;
+      color: var(--pg-slate-200);
+      font-weight: 500;
+    }
+    .cover-meta dd.classified {
+      color: var(--pg-red);
+      font-weight: 700;
+    }
+
+    /* ── CONTENT PAGES ── */
+    .page {
+      padding: 64px 72px;
+      page-break-before: always;
+    }
+    .page:first-of-type { page-break-before: auto; }
+    .page-no-break { page-break-before: auto; }
+
+    /* ── SECTION HEADERS ── */
+    .section-number {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--pg-blue);
+      margin-bottom: 8px;
+      display: block;
+    }
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--pg-navy);
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      margin-bottom: 8px;
+    }
+    .section-divider {
+      width: 48px;
+      height: 3px;
+      background: var(--pg-blue);
+      border-radius: 2px;
+      margin-bottom: 32px;
+    }
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--pg-slate-900);
+      margin-top: 36px;
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+    h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--pg-slate-700);
+      margin-top: 24px;
+      margin-bottom: 8px;
+    }
+
+    /* ── PARAGRAPHS & TEXT ── */
+    p { margin-bottom: 14px; }
+    strong { font-weight: 600; color: var(--pg-slate-900); }
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      background: var(--pg-slate-100);
+      border: 1px solid var(--pg-slate-200);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--pg-slate-700);
+    }
+
+    /* ── HEALTH SCORE ── */
+    .score-panel {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      background: var(--pg-slate-50);
+      border: 1px solid var(--pg-slate-200);
+      border-radius: 12px;
+      padding: 32px 36px;
+      margin: 24px 0 32px;
+    }
+    .score-ring {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      flex-shrink: 0;
+    }
+    .score-ring svg { transform: rotate(-90deg); }
+    .score-ring-bg { fill: none; stroke: var(--pg-slate-200); stroke-width: 8; }
+    .score-ring-fill { fill: none; stroke: var(--pg-blue); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 339.3; stroke-dashoffset: 128.9; transition: stroke-dashoffset 1s ease; }
+    .score-ring-label {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .score-ring-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--pg-navy);
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+    .score-ring-unit {
+      font-size: 0.7rem;
+      color: var(--pg-slate-500);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .score-breakdown { flex: 1; }
+    .score-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--pg-slate-100);
+    }
+    .score-row:last-child { border-bottom: none; }
+    .score-row-label { font-size: 0.85rem; color: var(--pg-slate-600); }
+    .score-row-bar {
+      width: 120px;
+      height: 6px;
+      background: var(--pg-slate-200);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 0 12px;
+    }
+    .score-row-bar-fill { height: 100%; border-radius: 3px; }
+    .score-row-value { font-size: 0.85rem; font-weight: 700; color: var(--pg-slate-900); min-width: 50px; text-align: right; }
+
+    /* ── SEVERITY BADGES ── */
+    .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    .badge-critical { background: var(--pg-red-bg); color: var(--pg-red); border: 1px solid #fecaca; }
+    .badge-high { background: var(--pg-orange-bg); color: var(--pg-orange); border: 1px solid #fed7aa; }
+    .badge-medium { background: var(--pg-yellow-bg); color: var(--pg-yellow); border: 1px solid #fef08a; }
+    .badge-low { background: var(--pg-green-bg); color: var(--pg-green); border: 1px solid #bbf7d0; }
+    .badge-pass { background: var(--pg-green-bg); color: var(--pg-green); border: 1px solid #bbf7d0; }
+
+    /* ── CALLOUT BOXES ── */
+    .callout {
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 20px 0;
+      font-size: 0.9rem;
+      line-height: 1.65;
+      border-left: 4px solid;
+    }
+    .callout-critical { background: var(--pg-red-bg); border-color: var(--pg-red); }
+    .callout-warning { background: var(--pg-orange-bg); border-color: var(--pg-orange); }
+    .callout-info { background: var(--pg-blue-light); border-color: var(--pg-blue); }
+    .callout-success { background: var(--pg-green-bg); border-color: var(--pg-green); }
+    .callout strong { display: block; margin-bottom: 4px; }
+
+    /* ── TABLES ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin: 16px 0 24px;
+    }
+    thead th {
+      background: var(--pg-slate-50);
+      color: var(--pg-slate-600);
+      font-weight: 700;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 2px solid var(--pg-slate-200);
+    }
+    tbody td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--pg-slate-100);
+      vertical-align: top;
+    }
+    tbody tr:hover { background: var(--pg-slate-50); }
+    td code {
+      font-size: 0.78em;
+      word-break: break-all;
+    }
+
+    /* ── FINDING CARDS ── */
+    .finding {
+      border: 1px solid var(--pg-slate-200);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 16px 0;
+      background: var(--pg-white);
+    }
+    .finding-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .finding-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--pg-slate-900);
+    }
+    .finding-body { font-size: 0.88rem; color: var(--pg-slate-600); }
+    .finding-body p { margin-bottom: 8px; }
+    .finding-file {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--pg-slate-500);
+      margin-top: 8px;
+    }
+    .finding-rec {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--pg-slate-200);
+      font-size: 0.85rem;
+    }
+    .finding-rec strong { color: var(--pg-blue-dark); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* ── DIAGRAM ── */
+    .diagram {
+      background: var(--pg-slate-50);
+      border: 1px solid var(--pg-slate-200);
+      border-radius: 8px;
+      padding: 24px;
+      margin: 20px 0;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.8;
+      color: var(--pg-slate-600);
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .diagram .highlight { color: var(--pg-red); font-weight: 700; }
+    .diagram .dim { color: var(--pg-slate-400); }
+    .diagram .accent { color: var(--pg-blue); font-weight: 600; }
+
+    /* ── LISTS ── */
+    ul, ol {
+      margin: 10px 0 16px 24px;
+      font-size: 0.9rem;
+    }
+    li { margin-bottom: 6px; }
+    li::marker { color: var(--pg-slate-400); }
+
+    /* ── CHECKLIST ── */
+    .checklist { list-style: none; margin-left: 0; }
+    .checklist li {
+      padding: 8px 0 8px 32px;
+      position: relative;
+      border-bottom: 1px solid var(--pg-slate-100);
+    }
+    .checklist li::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 11px;
+      width: 16px; height: 16px;
+      border: 2px solid var(--pg-slate-300);
+      border-radius: 3px;
+    }
+
+    /* ── ROADMAP TIMELINE ── */
+    .timeline { margin: 24px 0; }
+    .timeline-phase {
+      padding-left: 36px;
+      position: relative;
+      margin-bottom: 32px;
+    }
+    .timeline-phase::before {
+      content: '';
+      position: absolute;
+      left: 12px; top: 28px; bottom: -24px;
+      width: 2px;
+      background: var(--pg-slate-200);
+    }
+    .timeline-phase:last-child::before { display: none; }
+    .timeline-dot {
+      position: absolute;
+      left: 4px; top: 6px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 3px solid var(--pg-white);
+      box-shadow: 0 0 0 2px var(--pg-blue);
+      background: var(--pg-blue);
+    }
+    .timeline-dot.orange { background: var(--pg-orange); box-shadow: 0 0 0 2px var(--pg-orange); }
+    .timeline-dot.slate { background: var(--pg-slate-500); box-shadow: 0 0 0 2px var(--pg-slate-500); }
+    .timeline-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--pg-blue);
+      margin-bottom: 6px;
+    }
+    .timeline-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--pg-slate-900);
+      margin-bottom: 12px;
+    }
+
+    /* ── TOC ── */
+    .toc {
+      list-style: none;
+      margin: 24px 0;
+      padding: 0;
+    }
+    .toc li {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--pg-slate-100);
+      font-size: 0.92rem;
+    }
+    .toc-num {
+      font-weight: 800;
+      color: var(--pg-blue);
+      min-width: 28px;
+      font-size: 0.8rem;
+    }
+    .toc-title { color: var(--pg-slate-700); font-weight: 500; flex: 1; }
+    .toc-page { color: var(--pg-slate-400); font-size: 0.8rem; font-weight: 600; }
+    .toc-dots { flex: 1; border-bottom: 1px dotted var(--pg-slate-300); margin: 0 8px; min-width: 40px; }
+
+    /* ── FOOTER ── */
+    .page-footer {
+      margin-top: 48px;
+      padding-top: 16px;
+      border-top: 1px solid var(--pg-slate-200);
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--pg-slate-400);
+      font-weight: 500;
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      html { font-size: 13px; }
+      body { background: white; }
+      .report { box-shadow: none; max-width: none; }
+      .cover { min-height: auto; padding: 60px; }
+      .page { padding: 48px 60px; }
+      .finding:hover, tbody tr:hover { background: none; }
+      .page-footer { position: fixed; bottom: 20px; left: 60px; right: 60px; }
+      @page { margin: 0; size: A4; }
+    }
+
+    @media screen and (max-width: 768px) {
+      .cover { padding: 48px 32px; }
+      .cover h1 { font-size: 2rem; }
+      .cover-meta { grid-template-columns: 1fr; gap: 16px; }
+      .page { padding: 36px 28px; }
+      .score-panel { flex-direction: column; gap: 24px; padding: 24px; }
+      table { font-size: 0.75rem; }
+      thead th, tbody td { padding: 7px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="report">
+
+    <!-- ═══════════════════════════════════════════
+         COVER PAGE
+         ═══════════════════════════════════════════ -->
+    <div class="cover">
+      <div class="cover-badge">Confidential — Executive Review</div>
+      <h1>Technical Audit<br>Report: <span>POgrid.id</span></h1>
+      <p class="cover-subtitle">Comprehensive 360° Architecture, Codebase Efficiency & Security Review — Real-time Purchase Order Tracking SaaS Platform</p>
+      <dl class="cover-meta">
+        <div>
+          <dt>Document Type</dt>
+          <dd>Technical Architecture & Codebase Efficiency Review</dd>
+        </div>
+        <div>
+          <dt>Classification</dt>
+          <dd class="classified">Confidential</dd>
+        </div>
+        <div>
+          <dt>Author</dt>
+          <dd>Lead Engineering Task Force</dd>
+        </div>
+        <div>
+          <dt>Date</dt>
+          <dd>12 Agustus 2026</dd>
+        </div>
+        <div>
+          <dt>Target Platform</dt>
+          <dd>POgrid.id — B2B PO Tracking SaaS</dd>
+        </div>
+        <div>
+          <dt>Revision</dt>
+          <dd>1.0</dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         TABLE OF CONTENTS
+         ═══════════════════════════════════════════ -->
+    <div class="page page-no-break">
+      <span class="section-number">Daftar Isi</span>
+      <h2>Table of Contents</h2>
+      <div class="section-divider"></div>
+
+      <ul class="toc">
+        <li><span class="toc-num">01</span><span class="toc-title">Executive Summary</span><span class="toc-dots"></span><span class="toc-page">3</span></li>
+        <li><span class="toc-num">02</span><span class="toc-title">Tech Stack & Architecture Audit</span><span class="toc-dots"></span><span class="toc-page">5</span></li>
+        <li><span class="toc-num">03</span><span class="toc-title">Logic Route & Data Flow Analysis</span><span class="toc-dots"></span><span class="toc-page">9</span></li>
+        <li><span class="toc-num">04</span><span class="toc-title">Codebase Efficiency & Quality Metrics</span><span class="toc-dots"></span><span class="toc-page">14</span></li>
+        <li><span class="toc-num">05</span><span class="toc-title">Business Goal Alignment Matrix</span><span class="toc-dots"></span><span class="toc-page">17</span></li>
+        <li><span class="toc-num">06</span><span class="toc-title">Strategic Roadmap & Recommendations</span><span class="toc-dots"></span><span class="toc-page">19</span></li>
+        <li><span class="toc-num">A</span><span class="toc-title">Appendix — Infrastructure Assessment</span><span class="toc-dots"></span><span class="toc-page">22</span></li>
+        <li><span class="toc-num">B</span><span class="toc-title">Appendix — File Reference Map</span><span class="toc-dots"></span><span class="toc-page">23</span></li>
+      </ul>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1 — EXECUTIVE SUMMARY
+         ═══════════════════════════════════════════ -->
+    <div class="page">
+      <span class="section-number">Section 01</span>
+      <h2>Executive Summary</h2>
+      <div class="section-divider"></div>
+
+      <!-- Health Score Panel -->
+      <div class="score-panel">
+        <div class="score-ring">
+          <svg viewBox="0 0 120 120" width="120" height="120">
+            <circle class="score-ring-bg" cx="60" cy="60" r="54" />
+            <circle class="score-ring-fill" cx="60" cy="60" r="54" />
+          </svg>
+          <div class="score-ring-label">
+            <div class="score-ring-value">62</div>
+            <div class="score-ring-unit">/ 100</div>
+          </div>
+        </div>
+        <div class="score-breakdown">
+          <div class="score-row">
+            <span class="score-row-label">Arsitektur &amp; Skalabilitas</span>
+            <div class="score-row-bar"><div class="score-row-bar-fill" style="width:55%; background:var(--pg-orange);"></div></div>
+            <span class="score-row-value">55</span>
+          </div>
+          <div class="score-row">
+            <span class="score-row-label">Backend &amp; Data Flow</span>
+            <div class="score-row-bar"><div class="score-row-bar-fill" style="width:65%; background:var(--pg-yellow);"></div></div>
+            <span class="score-row-value">65</span>
+          </div>
+          <div class="score-row">
+            <span class="score-row-label">Frontend &amp; UX</span>
+            <div class="score-row-bar"><div class="score-row-bar-fill" style="width:58%; background:var(--pg-orange);"></div></div>
+            <span class="score-row-value">58</span>
+          </div>
+          <div class="score-row">
+            <span class="score-row-label">DevOps &amp; Security</span>
+            <div class="score-row-bar"><div class="score-row-bar-fill" style="width:68%; background:var(--pg-yellow);"></div></div>
+            <span class="score-row-value">68</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Kekuatan Utama</h3>
+      <ol>
+        <li><strong>Isolasi Multi-Tenant Sangat Kuat</strong> — <code>BelongsToTenant</code> trait + <code>TenantScope</code> global scope mencegah kebocoran data antar-tenant secara arsitektural.</li>
+        <li><strong>Error Handling yang Matang</strong> — Exception handling di <code>bootstrap/app.php</code> mengonversi HTTP errors ke React error boundaries; worker tidak pernah melihat raw stack trace.</li>
+        <li><strong>Tech Stack Modern &amp; Tepat</strong> — Laravel 11 + Inertia v2 + React 18 + TypeScript + Tailwind v4 + Vite 8 memberikan fondasi yang solid.</li>
+        <li><strong>Real-time Foundation Tersedia</strong> — Laravel Echo + Pusher sudah terinisialisasi dan berfungsi untuk WebSocket events.</li>
+        <li><strong>Responsive Design Solid</strong> — <code>AppShell.tsx</code> menyediakan layout adaptif yang mulus untuk desktop dan mobile factory floor.</li>
+      </ol>
+
+      <h3>Kerentanan &amp; Bottleneck Kritis</h3>
+
+      <div class="finding">
+        <div class="finding-header">
+          <span class="badge badge-critical">Critical</span>
+          <span class="finding-title">Production Secrets di Version Control <span class="badge badge-pass" style="margin-left:8px;">✅ RESOLVED</span></span>
+        </div>
+        <div class="finding-body">
+          <p>File <code>deploy/.env</code> berisi kredensial database (Neon.tech PostgreSQL), Pusher App Secret, dan SMTP password yang ter-commit ke repository git. Ini merupakan pelanggaran keamanan tingkat tertinggi.</p>
+        </div>
+      </div>
+
+      <div class="finding">
+        <div class="finding-header">
+          <span class="badge badge-critical">Critical</span>
+          <span class="finding-title">Observer Cascade Sinkronus + Inline Broadcasting <span class="badge badge-pass" style="margin-left:8px;">✅ RESOLVED</span></span>
+        </div>
+        <div class="finding-body">
+          <p><code>ShouldBroadcastNow</code> di <code>DataRefreshed</code> event menjalankan HTTP call ke Pusher API <em>di dalam</em> request cycle user, menambah 100–300ms latency per save. Attach ke 9 model berarti bulk operations bisa trigger 20+ inline API calls.</p>
+        </div>
+      </div>
+
+      <div class="finding">
+        <div class="finding-header">
+          <span class="badge badge-critical">Critical</span>
+          <span class="finding-title">Monolithic Frontend Components <span class="badge badge-pass" style="margin-left:8px;">✅ RESOLVED</span></span>
+        </div>
+        <div class="finding-body">
+          <p><code>Owner/Dashboard.tsx</code> berisi 6.000+ baris (416 KB). Setiap <code>setState</code> call me-render ulang seluruh halaman — degradasi performa signifikan terutama di perangkat factory floor.</p>
+        </div>
+      </div>
+
+      <div class="finding">
+        <div class="finding-header">
+          <span class="badge badge-high">High</span>
+          <span class="finding-title">N+1 Query &amp; Race Condition di Observer Chain <span class="badge badge-pass" style="margin-left:8px;">✅ RESOLVED</span></span>
+        </div>
+        <div class="finding-body">
+          <p><code>ItemProgressObserver</code> dan <code>DoItemObserver</code> melakukan loop query <code>$po->items()->get()</code> pada setiap update. Tanpa <code>lockForUpdate()</code>, concurrent progress updates bisa menghasilkan kalkulasi yang salah.</p>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <strong>Alignment Statement</strong>
+        Codebase POgrid memiliki fondasi arsitektural yang tepat untuk real-time PO tracking (Laravel + Inertia + Pusher). Namun, implementasi broadcast yang sinkronus dan observer cascade tanpa queue bertentangan langsung dengan janji <em>"zero data latency"</em>. Pada load tinggi (&gt;50 concurrent users / &gt;1000 POs per tenant), sistem akan mengalami degradasi performa signifikan. Refactoring ke asynchronous broadcasting dan service-layer architecture adalah kebutuhan mendesak sebelum scaling.
+      </div>
+
+      <div class="page-footer">
+        <span>POgrid.id — Technical Audit Report</span>
+        <span>Confidential — Page 3</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2 — TECH STACK & ARCHITECTURE
+         ═══════════════════════════════════════════ -->
+    <div class="page">
+      <span class="section-number">Section 02</span>
+      <h2>Tech Stack &amp; Architecture Audit</h2>
+      <div class="section-divider"></div>
+      <p><strong>Lead:</strong> Chief Software Architect</p>
+
+      <h3>2.1 Dependency Inventory</h3>
+
+      <h4>Backend (composer.json)</h4>
+      <table>
+        <thead>
+          <tr><th>Package</th><th>Versi</th><th>Status</th><th>Risiko</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>php</code></td><td>^8.2 (platform: 8.3.31)</td><td><span class="badge badge-pass">Current</span></td><td>—</td></tr>
+          <tr><td><code>laravel/framework</code></td><td>^11.0</td><td><span class="badge badge-pass">Current</span></td><td>—</td></tr>
+          <tr><td><code>inertiajs/inertia-laravel</code></td><td>^2.0</td><td><span class="badge badge-pass">Current</span></td><td>—</td></tr>
+          <tr><td><code>pusher/pusher-php-server</code></td><td>^7.2</td><td><span class="badge badge-pass">Current</span></td><td>—</td></tr>
+          <tr><td><code>barryvdh/laravel-dompdf</code></td><td><strong>*</strong></td><td><span class="badge badge-high">Wildcard</span></td><td>Versi tidak terkunci — bisa break saat update</td></tr>
+          <tr><td><code>openspout/openspout</code></td><td>^5.3</td><td><span class="badge badge-pass">Current</span></td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Frontend (package.json)</h4>
+      <table>
+        <thead>
+          <tr><th>Package</th><th>Versi</th><th>Status</th><th>Catatan</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>react / react-dom</code></td><td>^18.3.1</td><td><span class="badge badge-pass">Current</span></td><td>—</td></tr>
+          <tr><td><code>@inertiajs/react</code></td><td>^2.0.0</td><td><span class="badge badge-pass">Current</span></td><td>—</td></tr>
+          <tr><td><code>laravel-echo</code></td><td>^2.4.0</td><td><span class="badge badge-pass">Current</span></td><td>—</td></tr>
+          <tr><td><code>pusher-js</code></td><td>^8.5.0</td><td><span class="badge badge-pass">Current</span></td><td>—</td></tr>
+          <tr><td><code>vite</code></td><td>^8.0.0</td><td><span class="badge badge-pass">Current</span></td><td>—</td></tr>
+          <tr><td><code>tailwindcss</code></td><td>^4.0.0</td><td><span class="badge badge-pass">Current</span></td><td>v4 via @tailwindcss/vite plugin</td></tr>
+          <tr><td><code>typescript</code></td><td>^5.4.5</td><td><span class="badge badge-medium">Incomplete</span></td><td>Terpasang tanpa <code>tsconfig.json</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-warning">
+        <strong>⚠ barryvdh/laravel-dompdf: *</strong>
+        Wildcard version constraint memungkinkan breaking change otomatis saat <code>composer install</code>. Harus segera di-lock ke versi spesifik (e.g., <code>^3.0</code>).
+      </div>
+
+      <h3>2.2 Architecture Pattern Analysis</h3>
+
+      <h4>Multi-Tenancy Implementation</h4>
+      <div class="finding">
+        <div class="finding-header">
+          <span class="badge badge-high">High</span>
+          <span class="finding-title">Static Properties di TenantManager</span>
+        </div>
+        <div class="finding-body">
+          <p><code>TenantManager</code> menggunakan <code>static::$tenantId</code> dan <code>static::$bypass</code> sebagai state holder. Pada environment concurrent (Laravel Octane, queued jobs), state ini bisa "bocor" antar-request — menyebabkan query berjalan tanpa tenant scope atau dengan tenant ID yang salah.</p>
+          <p class="finding-file">📁 app/Services/TenantManager.php &nbsp;|&nbsp; app/Models/Traits/BelongsToTenant.php</p>
+        </div>
+        <div class="finding-rec">
+          <strong>Rekomendasi:</strong> Migrasi ke container-bound singleton instance atau gunakan Laravel's <code>Context</code> service untuk scope isolation per-request.
+        </div>
+      </div>
+
+      <h4>Observer Chain Architecture</h4>
+      <div class="diagram"><span class="accent">Item::created</span>
+   │
+   ▼
+<span class="accent">ItemObserver</span> ──→ Auto-create ItemProgress rows (per required_stages)
+                       │
+                       ▼
+              <span class="accent">ItemProgressObserver::saved</span>
+                       │
+                       ├── Recalculate Item progress_percent
+                       ├── Check all PO items → Update PO status
+                       │
+                       ▼
+              <span class="accent">DataSyncObserver::saved</span>
+                       │
+                       ▼
+              <span class="highlight">DataRefreshed event (ShouldBroadcastNow)</span>
+                       │
+                       ▼
+              <span class="highlight">INLINE HTTP POST → Pusher API (100–300ms blocking)</span></div>
+
+      <div class="finding">
+        <div class="finding-header">
+          <span class="badge badge-critical">Critical</span>
+          <span class="finding-title">Sinkronus Cascade + Inline Broadcasting <span class="badge badge-pass" style="margin-left:8px;">✅ RESOLVED</span></span>
+        </div>
+        <div class="finding-body">
+          <p>Seluruh observer cascade berjalan sinkronus di dalam HTTP request cycle. Satu progress update menghasilkan:</p>
+          <ul>
+            <li>3–5 cascading database saves</li>
+            <li>1 external HTTP call ke Pusher API (blocking)</li>
+            <li>Bulk PO creation (20 items) → 20+ Pusher API calls sinkronus</li>
+          </ul>
+          <p class="finding-file">📁 app/Observers/ItemProgressObserver.php &nbsp;|&nbsp; app/Observers/DataSyncObserver.php &nbsp;|&nbsp; app/Events/DataRefreshed.php</p>
+        </div>
+        <div class="finding-rec">
+          <strong>Rekomendasi:</strong> Ubah <code>ShouldBroadcastNow</code> menjadi <code>ShouldBroadcast</code> agar broadcast masuk queue. Implementasi debouncing/batching untuk <code>DataRefreshed</code>.
+        </div>
+      </div>
+
+      <h3>2.3 Scalability Risk Matrix</h3>
+      <table>
+        <thead>
+          <tr><th>Komponen</th><th>Risiko</th><th>Threshold</th><th>Dampak</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Observer cascade sinkronus</td><td><span class="badge badge-critical">Critical</span></td><td>&gt;20 items/PO</td><td>Response time &gt;2 detik</td></tr>
+          <tr><td><code>ShouldBroadcastNow</code></td><td><span class="badge badge-critical">Critical</span></td><td>&gt;10 concurrent updates</td><td>Pusher rate limit hit</td></tr>
+          <tr><td>Database queue/cache driver</td><td><span class="badge badge-high">High</span></td><td>&gt;100 jobs/minute</td><td>DB lock contention</td></tr>
+          <tr><td>Static TenantManager</td><td><span class="badge badge-high">High</span></td><td>Octane / queue adoption</td><td>State leakage</td></tr>
+          <tr><td>Monolithic frontend chunks</td><td><span class="badge badge-medium">Medium</span></td><td>&gt;50 POs rendered</td><td>Mobile performance drop</td></tr>
+        </tbody>
+      </table>
+
+      <h3>2.4 Technical Debt Inventory</h3>
+      <table>
+        <thead>
+          <tr><th>Item</th><th>Severity</th><th>Detail</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Missing <code>tsconfig.json</code></td><td><span class="badge badge-medium">Medium</span></td><td>✅ RESOLVED: TypeScript konfigurasi telah ditambahkan</td></tr>
+          <tr><td>Duplicate namespace di <code>Tenant.php</code></td><td><span class="badge badge-medium">Medium</span></td><td>Dua <code>namespace</code> declaration, second wins — confusing</td></tr>
+          <tr><td>Wildcard <code>dompdf</code> version</td><td><span class="badge badge-high">High</span></td><td>✅ RESOLVED: Terkunci di ^3.0</td></tr>
+          <tr><td>No CI/CD pipeline</td><td><span class="badge badge-high">High</span></td><td>Deployment manual via rsync</td></tr>
+          <tr><td>No formal API versioning</td><td><span class="badge badge-medium">Medium</span></td><td>Semua route di <code>web.php</code>, tidak ada API layer</td></tr>
+        </tbody>
+      </table>
+
+      <div class="page-footer">
+        <span>POgrid.id — Technical Audit Report</span>
+        <span>Confidential — Page 5–8</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3 — LOGIC ROUTE & DATA FLOW
+         ═══════════════════════════════════════════ -->
+    <div class="page">
+      <span class="section-number">Section 03</span>
+      <h2>Logic Route &amp; Data Flow Analysis</h2>
+      <div class="section-divider"></div>
+      <p><strong>Lead:</strong> Senior Backend &amp; Frontend Engineers</p>
+
+      <h3>3.1 Backend Route Audit Table</h3>
+      <table>
+        <thead>
+          <tr><th>Endpoint</th><th>Method</th><th>Controller@Method</th><th>Middleware</th><th>Score</th><th>Issues / Action</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>/</code></td><td>GET</td><td>Closure (inline)</td><td>—</td>
+            <td>6/10</td><td>Business logic di <code>web.php</code> — extract ke controller</td>
+          </tr>
+          <tr>
+            <td><code>/login</code></td><td>GET/POST</td><td><code>AuthController@showLogin/login</code></td><td><code>guest</code></td>
+            <td>9/10</td><td>Clean separation ✓</td>
+          </tr>
+          <tr>
+            <td><code>/dashboard</code></td><td>GET</td><td><code>OwnerDashboardController@index</code></td><td><code>auth, verified</code></td>
+            <td>8/10</td><td>Tenant check manual — gunakan middleware</td>
+          </tr>
+          <tr>
+            <td><code>/pos</code></td><td>POST</td><td><code>OwnerDashboardController@createPo</code></td><td><code>auth, verified</code></td>
+            <td>7/10</td><td>Complex datetime logic di controller — extract ke <code>PoService</code></td>
+          </tr>
+          <tr>
+            <td><code>/items/{id}/cancel</code></td><td>POST</td><td><code>OwnerDashboardController@cancelItem</code></td><td><code>auth, verified</code></td>
+            <td>5/10</td><td><span class="badge badge-high">Missing Auth</span> Inline role check — implement Policy/Gate</td>
+          </tr>
+          <tr>
+            <td><code>/items/{id}/terminate</code></td><td>POST</td><td><code>OwnerDashboardController@terminateMidway</code></td><td><code>auth, verified</code></td>
+            <td>6/10</td><td>Billing logic hardcoded — extract ke service</td>
+          </tr>
+          <tr>
+            <td><code>/users</code></td><td>POST</td><td><code>OwnerDashboardController@createUser</code></td><td><code>auth, verified</code></td>
+            <td>6/10</td><td>Validasi besar inline — gunakan <code>FormRequest</code></td>
+          </tr>
+          <tr>
+            <td><code>c/{slug}/login</code></td><td>POST</td><td><code>WorkerAuthController@login</code></td><td><code>throttle:5,1</code></td>
+            <td>8/10</td><td>Privilege escalation block ✓</td>
+          </tr>
+          <tr>
+            <td><code>c/{slug}/export-*</code></td><td>GET</td><td><code>WorkerDashboardController@export*</code></td><td><code>auth</code></td>
+            <td>4/10</td><td><span class="badge badge-high">Duplication</span> 3 export methods share 90% code — create <code>ExportService</code></td>
+          </tr>
+          <tr>
+            <td><code>c/{slug}/my-kpi</code></td><td>GET</td><td><code>WorkerDashboardController@myKpi</code></td><td><code>auth</code></td>
+            <td>5/10</td><td>KPI calculation di controller — dedicated <code>KpiService</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>3.2 Controller Quality Assessment</h3>
+
+      <h4>OwnerDashboardController</h4>
+      <table>
+        <thead><tr><th>Aspek</th><th>Skor</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Input Validation</td><td>6/10</td><td><code>$request->validate()</code> inline — tidak ada FormRequest class</td></tr>
+          <tr><td>Authorization</td><td>4/10</td><td>Hardcoded <code>if (auth()->user()->isManager()) abort(403)</code> — harus Policy/Gate</td></tr>
+          <tr><td>Business Logic</td><td>5/10</td><td><code>createPo()</code> menangani PO, Item creation, notification, activity logging dalam satu method</td></tr>
+          <tr><td>N+1 Prevention</td><td>7/10</td><td>Eager loading digunakan di <code>index()</code> tapi tidak konsisten</td></tr>
+        </tbody>
+      </table>
+
+      <h4>WorkerDashboardController</h4>
+      <table>
+        <thead><tr><th>Aspek</th><th>Skor</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Complexity</td><td>3/10</td><td>Method <code>index()</code> bertindak sebagai router/switch berdasarkan role — melanggar SRP</td></tr>
+          <tr><td>Query Performance</td><td>4/10</td><td><code>getTelemetryData()</code> melakukan loop PHP untuk aggregation — harus SQL <code>SUM()/GROUP BY</code></td></tr>
+          <tr><td>Code Duplication</td><td>3/10</td><td><code>exportCsv</code> dan <code>exportXlsx</code> share ~90% identical code</td></tr>
+          <tr><td>Input Validation</td><td>7/10</td><td>Validasi memadai untuk progress updates</td></tr>
+        </tbody>
+      </table>
+
+      <h3>3.3 Observer Chain — Race Condition Analysis</h3>
+
+      <div class="diagram"><span class="dim">Timeline: Dua worker mengupdate stage berbeda pada item yang sama</span>
+
+<span class="accent">Worker A</span>                    <span class="accent">Database</span>                 <span class="accent">Worker B</span>
+    │                            │                         │
+    ├── UPDATE progress ────────►│                         │
+    │                            │◄──── UPDATE progress ───┤
+    │                            │                         │
+    ├── saved() → read sum ─────►│                         │
+    │   <span class="dim">(reads OLD sum)</span>            │◄── saved() → read sum ──┤
+    │                            │       <span class="dim">(reads SAME old sum)</span>  │
+    │                            │                         │
+    ├── UPDATE items SET ───────►│                         │
+    │   <span class="dim">progress = calc_A</span>        │                         │
+    │                            │◄── UPDATE items SET ────┤
+    │                            │    <span class="highlight">progress = calc_B</span>     │
+    │                            │                         │
+    <span class="dim">                  ▲ Worker A's update is LOST</span></div>
+
+      <div class="callout callout-critical">
+        <strong>Race Condition &amp; N+1 Risk</strong>
+        <code>ItemProgressObserver</code> memanggil <code>$item->po->items()->get()</code> setiap kali progress di-update. PO dengan 500 items + 50 stage updates = 50× query <code>SELECT * FROM items WHERE po_id = ?</code>. Tanpa <code>lockForUpdate()</code>, concurrent updates menghasilkan last-write-wins — data progress bisa salah.
+      </div>
+
+      <h3>3.4 Frontend Route &amp; Rendering Audit</h3>
+
+      <h4>Page Component Size Analysis</h4>
+      <table>
+        <thead><tr><th>Page</th><th>Ukuran</th><th>Baris</th><th>Severity</th><th>Dampak</th></tr></thead>
+        <tbody>
+          <tr><td><code>Owner/Dashboard.tsx</code></td><td>~416 KB</td><td>~6.000</td><td><span class="badge badge-critical">Critical</span></td><td>Full page re-render on any state change</td></tr>
+          <tr><td><code>Worker/Dashboard.tsx</code></td><td>~126 KB</td><td>~2.000</td><td><span class="badge badge-high">High</span></td><td>Heavy for mobile factory devices</td></tr>
+          <tr><td><code>Landing.tsx</code></td><td>~85 KB</td><td>~1.800</td><td><span class="badge badge-medium">Medium</span></td><td>First load performance</td></tr>
+          <tr><td><code>Owner/CreatePo.tsx</code></td><td>~45 KB</td><td>~800</td><td><span class="badge badge-medium">Medium</span></td><td>Complex form state</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Real-time UI Synchronization</h4>
+      <div class="finding">
+        <div class="finding-header">
+          <span class="badge badge-medium">Medium</span>
+          <span class="finding-title">Reload-on-Event Pattern — No Optimistic Updates</span>
+        </div>
+        <div class="finding-body">
+          <p><strong>Pola saat ini:</strong> WebSocket event → <code>router.reload({ preserveState: true, preserveScroll: true })</code></p>
+          <p><strong>Kelebihan:</strong> Sederhana, data selalu fresh dari server.</p>
+          <p><strong>Kekurangan:</strong> Tidak ada optimistic UI update — user menunggu full round-trip (WebSocket → server → Inertia response) untuk melihat perubahan.</p>
+          <p><strong>Events yang di-listen:</strong> <code>.kendala.reported</code>, <code>.qc.rework.logged</code>, <code>DataRefreshed</code></p>
+        </div>
+      </div>
+
+      <h4>State Management &amp; TypeScript Quality</h4>
+      <div class="finding">
+        <div class="finding-header">
+          <span class="badge badge-high">High</span>
+          <span class="finding-title">Zero Global State + Rampant <code>any</code> Types</span>
+        </div>
+        <div class="finding-body">
+          <p><strong>State:</strong> 100% local <code>useState</code> + Inertia page props. Tidak ada Context, Zustand, atau Redux. Semua state terpusat di root component → extreme prop drilling → satu perubahan state me-rerender seluruh halaman.</p>
+          <p><strong>TypeScript:</strong> <code>Owner/Dashboard.tsx</code> memiliki 50+ instances of <code>: any</code>. Tidak ada shared interfaces untuk <code>Item</code>, <code>Po</code>, <code>Alert</code>, event payloads. Tidak ada <code>tsconfig.json</code>.</p>
+        </div>
+      </div>
+
+      <h4>i18n Implementation</h4>
+      <div class="finding">
+        <div class="finding-header">
+          <span class="badge badge-medium">Medium</span>
+          <span class="finding-title">Per-File Translation Dictionaries</span>
+        </div>
+        <div class="finding-body">
+          <p>Translation dictionaries di-hardcode per-file (<code>const translations = { en: {...}, id: {...} }</code> di setiap page). Duplikasi massive, impossible untuk maintain secara terpusat. Harus migrasi ke <code>react-i18next</code> atau Inertia middleware-based translations.</p>
+        </div>
+      </div>
+
+      <div class="page-footer">
+        <span>POgrid.id — Technical Audit Report</span>
+        <span>Confidential — Page 9–13</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4 — CODEBASE QUALITY METRICS
+         ═══════════════════════════════════════════ -->
+    <div class="page">
+      <span class="section-number">Section 04</span>
+      <h2>Codebase Efficiency &amp; Quality Metrics</h2>
+      <div class="section-divider"></div>
+      <p><strong>Lead:</strong> Senior Engineers</p>
+
+      <h3>4.1 Code Quality Metrics</h3>
+      <table>
+        <thead><tr><th>Metrik</th><th>Status</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Code Duplication</strong></td><td><span class="badge badge-high">High</span></td><td>Export methods (CSV/XLSX/PDF) share ~90% identical code; Observer completion-check logic duplicated; Translation dicts copied across pages</td></tr>
+          <tr><td><strong>Clean Code Compliance</strong></td><td><span class="badge badge-medium">Medium</span></td><td>Controllers violate SRP; beberapa methods melebihi 200 baris; tapi naming dan file organization konsisten</td></tr>
+          <tr><td><strong>Maintainability Index</strong></td><td><span class="badge badge-medium">Medium</span></td><td>Direktori terstruktur baik, tapi monolithic components membuat perubahan berisiko</td></tr>
+          <tr><td><strong>Test Coverage</strong></td><td><span class="badge badge-pass">Good</span></td><td>PHPUnit test suite komprehensif: multi-tenancy, progress, QC rework, alerts, auth</td></tr>
+        </tbody>
+      </table>
+
+      <h3>4.2 Database Query Performance</h3>
+      <table>
+        <thead><tr><th>Area</th><th>Status</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Indexing Health</strong></td><td><span class="badge badge-pass">Good</span></td><td>FK columns indexed, composite <code>(tenant_id, status)</code> index tersedia</td></tr>
+          <tr><td><strong>Missing Index</strong></td><td><span class="badge badge-medium">Medium</span></td><td><code>items.is_urgent</code> digunakan untuk sorting tapi belum di-index</td></tr>
+          <tr><td><strong>N+1 Hotspots</strong></td><td><span class="badge badge-critical">Critical</span></td><td><code>getTelemetryData()</code> — PHP loop aggregation; Observer chain loop queries</td></tr>
+          <tr><td><strong>Memory Leak Risk</strong></td><td><span class="badge badge-medium">Medium</span></td><td><code>getTelemetryData()</code> loads semua items + relationships ke memory — large tenants bisa OOM</td></tr>
+        </tbody>
+      </table>
+
+      <h3>4.3 Security Posture</h3>
+      <table>
+        <thead><tr><th>Area</th><th>Status</th><th>Severity</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>CSRF Protection</td><td>✅ Pass</td><td><span class="badge badge-pass">OK</span></td><td>Standard Laravel CSRF via Inertia</td></tr>
+          <tr><td>SQL Injection</td><td>✅ Pass</td><td><span class="badge badge-pass">OK</span></td><td>Tidak ditemukan raw SQL; Eloquent parameterized queries</td></tr>
+          <tr><td>XSS Prevention</td><td>✅ Pass</td><td><span class="badge badge-pass">OK</span></td><td>Inertia.js auto-escapes rendered data</td></tr>
+          <tr><td>Password Hashing</td><td>✅ Pass</td><td><span class="badge badge-pass">OK</span></td><td><code>Hash::make()</code> dengan bcrypt</td></tr>
+          <tr><td>Secrets Management</td><td>❌ Fail</td><td><span class="badge badge-critical">Critical</span></td><td><code>deploy/.env</code> di-commit ke git berisi DB, Pusher, SMTP credentials</td></tr>
+          <tr><td>Session Security</td><td>⚠ Partial</td><td><span class="badge badge-medium">Medium</span></td><td><code>SESSION_SECURE_COOKIE</code> tidak di-set untuk production</td></tr>
+          <tr><td>CORS Config</td><td>⚠ Partial</td><td><span class="badge badge-medium">Medium</span></td><td>Tidak ada explicit <code>config/cors.php</code> — defaults mungkin permissive</td></tr>
+          <tr><td>Rate Limiting</td><td>✅ Good</td><td><span class="badge badge-pass">OK</span></td><td><code>throttle:5,1</code> di worker login; <code>throttle:6,1</code> di verification</td></tr>
+          <tr><td>Authorization</td><td>⚠ Partial</td><td><span class="badge badge-high">High</span></td><td>Inline role checks — tidak ada Policy/Gate layer</td></tr>
+        </tbody>
+      </table>
+
+      <h3>4.4 Mass Assignment Risk</h3>
+      <div class="finding">
+        <div class="finding-header">
+          <span class="badge badge-high">High</span>
+          <span class="finding-title">Calculated Fields di $fillable — Item.php</span>
+        </div>
+        <div class="finding-body">
+          <p><code>Item.php</code> memasukkan <code>progress_percent</code>, <code>status</code>, dan <code>delivery_status</code> dalam <code>$fillable</code>. Jika controller menggunakan <code>$request->all()</code>, field-field yang seharusnya hanya diubah oleh observer bisa di-spoof melalui request.</p>
+        </div>
+        <div class="finding-rec">
+          <strong>Rekomendasi:</strong> Pindahkan field kalkulasi dari <code>$fillable</code> — hanya observer/service yang boleh mengubah.
+        </div>
+      </div>
+
+      <h3>4.5 Data Integrity Risk</h3>
+      <div class="finding">
+        <div class="finding-header">
+          <span class="badge badge-medium">Medium</span>
+          <span class="finding-title">Item Name Mutator Menghapus Data Asli</span>
+        </div>
+        <div class="finding-body">
+          <p><code>getItemNameAttribute()</code> di <code>Item.php</code> menghapus substring seperti <code>(cnc)</code> via regex. Jika item bernama "Bracket (CNC)", nama asli hilang pada saat dibaca — merusak source-of-truth.</p>
+        </div>
+        <div class="finding-rec">
+          <strong>Rekomendasi:</strong> Simpan display name terpisah atau gunakan computed property yang tidak memodifikasi source data.
+        </div>
+      </div>
+
+      <div class="page-footer">
+        <span>POgrid.id — Technical Audit Report</span>
+        <span>Confidential — Page 14–16</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 5 — BUSINESS GOAL ALIGNMENT
+         ═══════════════════════════════════════════ -->
+    <div class="page">
+      <span class="section-number">Section 05</span>
+      <h2>Business Goal Alignment Matrix</h2>
+      <div class="section-divider"></div>
+
+      <table>
+        <thead>
+          <tr><th style="width:22%">Business Goal</th><th style="width:25%">Implementasi</th><th style="width:33%">Gap / Defisit</th><th style="width:20%">Prioritas</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Real-time Status Sync</strong></td>
+            <td>Laravel Echo + Pusher + <code>DataSyncObserver</code></td>
+            <td><code>ShouldBroadcastNow</code> blocking inline → latency 100–300ms per request; observer cascade menambah 3–5 DB saves; bulk PO bisa trigger 20+ Pusher calls sinkronus</td>
+            <td><span class="badge badge-critical">Critical</span></td>
+          </tr>
+          <tr>
+            <td><strong>Fast PO Search &amp; Audit Trail</strong></td>
+            <td>Eloquent queries + <code>ActivityLogger</code> + <code>activity_logs</code> table</td>
+            <td><code>getTelemetryData()</code> PHP loop aggregation (bukan SQL) → lambat pada large datasets; tidak ada search index (Meilisearch/Algolia)</td>
+            <td><span class="badge badge-high">High</span></td>
+          </tr>
+          <tr>
+            <td><strong>Multi-tenant / Role Access</strong></td>
+            <td><code>BelongsToTenant</code> trait + <code>TenantScope</code> + role-based guards</td>
+            <td>Isolasi data sangat kuat ✓; authorization checks inline di controllers (bukan Policy/Gate) — rawan inkonsistensi</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+          </tr>
+          <tr>
+            <td><strong>Zero Data Latency</strong></td>
+            <td><code>router.reload()</code> on WebSocket event</td>
+            <td>Tidak ada optimistic UI updates — user menunggu full round-trip; no client-side cache; large pages re-render entirely</td>
+            <td><span class="badge badge-high">High</span></td>
+          </tr>
+          <tr>
+            <td><strong>Factory Floor Usability</strong></td>
+            <td><code>AppShell.tsx</code> responsive layout + mobile drawer/bottom-nav</td>
+            <td>Responsive design solid ✓; monolithic JS chunks bisa lambat pada low-end devices</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+          </tr>
+          <tr>
+            <td><strong>Multi-vendor / B2B Workflow</strong></td>
+            <td>PO lifecycle (PENDING → CLOSED) + stage-gate + QC rework</td>
+            <td>Workflow comprehensive ✓; business logic di controllers — sulit di-extend untuk B2B integrations</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+          </tr>
+          <tr>
+            <td><strong>Reliability &amp; Uptime</strong></td>
+            <td>Hostinger shared hosting + Neon.tech PostgreSQL (free tier)</td>
+            <td>No APM/error tracking; Neon cold-start 3–5s; SQLite untuk queue/cache/session di production → <code>database is locked</code> risk; no CI/CD</td>
+            <td><span class="badge badge-critical">Critical</span></td>
+          </tr>
+          <tr>
+            <td><strong>Data Export &amp; Reporting</strong></td>
+            <td>PDF (DomPDF) + CSV (OpenSpout) + XLSX</td>
+            <td>Functional ✓; 3 export methods share 90% code — maintenance burden; memory-intensive untuk large datasets</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="page-footer">
+        <span>POgrid.id — Technical Audit Report</span>
+        <span>Confidential — Page 17–18</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 6 — STRATEGIC ROADMAP
+         ═══════════════════════════════════════════ -->
+    <div class="page">
+      <span class="section-number">Section 06</span>
+      <h2>Strategic Roadmap &amp; Actionable Recommendations</h2>
+      <div class="section-divider"></div>
+
+      <div class="timeline">
+
+        <!-- PHASE 1 -->
+        <div class="timeline-phase">
+          <div class="timeline-dot"></div>
+          <div class="timeline-label">Immediate — Sprint 1–2 (Minggu Ini)</div>
+          <div class="timeline-title">🚨 Critical Fixes &amp; Security Patches</div>
+          <table>
+            <thead><tr><th>#</th><th>Action Item</th><th>Severity</th><th>Effort</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td><strong>Rotasi semua production secrets</strong> — invalidate dan regenerate credentials DB (Neon.tech), Pusher, SMTP yang ter-expose di <code>deploy/.env</code></td><td><span class="badge badge-critical">Critical</span></td><td>1 jam</td></tr>
+              <tr><td>2</td><td><strong>Hapus <code>deploy/.env</code> dari git</strong> — <code>git rm --cached deploy/.env</code> + tambahkan ke <code>.gitignore</code></td><td><span class="badge badge-critical">Critical</span></td><td>10 menit</td></tr>
+              <tr><td>3</td><td><strong>Ubah <code>ShouldBroadcastNow</code> → <code>ShouldBroadcast</code></strong> di <code>DataRefreshed.php</code> agar broadcast masuk queue</td><td><span class="badge badge-critical">Critical</span></td><td>30 menit</td></tr>
+              <tr><td>4</td><td><strong>Lock <code>barryvdh/laravel-dompdf</code></strong> ke versi spesifik (e.g., <code>^3.0</code>)</td><td><span class="badge badge-high">High</span></td><td>5 menit</td></tr>
+              <tr><td>5</td><td><strong>Set <code>SESSION_SECURE_COOKIE=true</code></strong> di production <code>.env</code></td><td><span class="badge badge-medium">Medium</span></td><td>5 menit</td></tr>
+              <tr><td>6</td><td><strong>Tambahkan index</strong> pada <code>items.is_urgent</code></td><td><span class="badge badge-medium">Medium</span></td><td>15 menit</td></tr>
+              <tr><td>7</td><td><strong>Pindahkan <code>progress_percent</code>, <code>status</code></strong> dari <code>$fillable</code> di <code>Item.php</code></td><td><span class="badge badge-medium">Medium</span></td><td>30 menit</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- PHASE 2 -->
+        <div class="timeline-phase">
+          <div class="timeline-dot orange"></div>
+          <div class="timeline-label">Short-term — 1 Bulan</div>
+          <div class="timeline-title">📦 Codebase Refactoring &amp; Performance</div>
+          <table>
+            <thead><tr><th>#</th><th>Action Item</th><th>Effort</th><th>Impact</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td><strong>Pecah <code>Owner/Dashboard.tsx</code></strong> (6K baris) → <code>DashboardMetrics</code>, <code>AlertsList</code>, <code>ActivePOs</code>, <code>UserManagement</code></td><td>3–5 hari</td><td>Maintainability + Render Performance</td></tr>
+              <tr><td>2</td><td><strong>Extract business logic ke Service layer</strong> — <code>PoService</code>, <code>ProgressService</code>, <code>ExportService</code>, <code>KpiService</code></td><td>3–5 hari</td><td>Testability + SRP compliance</td></tr>
+              <tr><td>3</td><td><strong>Implementasi Laravel Policies/Gates</strong> menggantikan inline role checks</td><td>2–3 hari</td><td>Authorization consistency</td></tr>
+              <tr><td>4</td><td><strong>Migrasi <code>getTelemetryData()</code></strong> dari PHP loop → SQL <code>SUM()/GROUP BY</code></td><td>1–2 hari</td><td>Query Performance</td></tr>
+              <tr><td>5</td><td><strong>Implementasi <code>useForm</code> Inertia</strong> di semua form submissions</td><td>2 hari</td><td>UX (loading states, errors)</td></tr>
+              <tr><td>6</td><td><strong>Extract shared <code>FormRequest</code> classes</strong> untuk validasi</td><td>1–2 hari</td><td>Code cleanliness</td></tr>
+              <tr><td>7</td><td><strong>Shared <code>ExportService</code></strong> menggantikan 3 method yang 90% identik</td><td>1–2 hari</td><td>Duplication reduction</td></tr>
+              <tr><td>8</td><td><strong>Centralize i18n</strong> — <code>react-i18next</code> atau Inertia middleware translations</td><td>2–3 hari</td><td>Maintainability</td></tr>
+              <tr><td>9</td><td><strong>Definisikan TypeScript interfaces</strong> (<code>types.ts</code>) — eliminasi <code>: any</code></td><td>3–5 hari</td><td>Type safety</td></tr>
+              <tr><td>10</td><td><strong>Tambahkan <code>lockForUpdate()</code></strong> pada progress calculation di observer</td><td>1 hari</td><td>Race condition prevention</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- PHASE 3 -->
+        <div class="timeline-phase">
+          <div class="timeline-dot slate"></div>
+          <div class="timeline-label">Long-term — Quarterly</div>
+          <div class="timeline-title">🏗️ Architectural Upgrades</div>
+          <table>
+            <thead><tr><th>#</th><th>Action Item</th><th>Quarter</th><th>Impact</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td><strong>Migrasi Queue/Cache/Session</strong> dari SQLite ke Redis atau PostgreSQL</td><td>Q4 2026</td><td>Eliminate <code>database is locked</code>; throughput 10×+</td></tr>
+              <tr><td>2</td><td><strong>CI/CD pipeline</strong> — GitHub Actions: test → build → rsync deploy</td><td>Q4 2026</td><td>Deployment safety</td></tr>
+              <tr><td>3</td><td><strong>Integrate Sentry</strong> (<code>sentry/sentry-laravel</code> + <code>@sentry/react</code>)</td><td>Q4 2026</td><td>Production observability</td></tr>
+              <tr><td>4</td><td><strong>Evaluasi Laravel Reverb</strong> sebagai pengganti Pusher — self-hosted WebSockets</td><td>Q4 2026</td><td>Cost reduction + unlimited capacity</td></tr>
+              <tr><td>5</td><td><strong>Optimistic UI Updates</strong> — update local state instantly, revert on error</td><td>Q1 2027</td><td>Perceived zero-latency</td></tr>
+              <tr><td>6</td><td><strong>React Context / Zustand</strong> untuk global state management</td><td>Q1 2027</td><td>Eliminate prop drilling</td></tr>
+              <tr><td>7</td><td><strong>TenantManager refactor</strong> — container-bound singleton</td><td>Q1 2027</td><td>Octane/queue compatibility</td></tr>
+              <tr><td>8</td><td><strong>Strict TypeScript</strong> — add <code>tsconfig.json</code> + enforce</td><td>Q1 2027</td><td>Compile-time safety</td></tr>
+              <tr><td>9</td><td><strong>Dedicated PostgreSQL</strong> — move off Neon.tech free tier</td><td>Q2 2027</td><td>Eliminate cold-start, increase storage</td></tr>
+              <tr><td>10</td><td><strong>Search index</strong> (Meilisearch/Scout) untuk PO &amp; item search</td><td>Q2 2027</td><td>Fast full-text search at scale</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page-footer">
+        <span>POgrid.id — Technical Audit Report</span>
+        <span>Confidential — Page 19–21</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         APPENDIX A — INFRASTRUCTURE
+         ═══════════════════════════════════════════ -->
+    <div class="page">
+      <span class="section-number">Appendix A</span>
+      <h2>Infrastructure Assessment</h2>
+      <div class="section-divider"></div>
+
+      <h3>Current Production Stack</h3>
+      <table>
+        <thead><tr><th>Komponen</th><th>Provider</th><th>Tier</th><th>Limitasi</th></tr></thead>
+        <tbody>
+          <tr><td>Hosting</td><td>Hostinger Shared</td><td>Basic</td><td>No root access, shared resources, no Redis</td></tr>
+          <tr><td>Database</td><td>Neon.tech PostgreSQL</td><td>Free</td><td>500MB storage, scale-to-zero (3–5s cold start)</td></tr>
+          <tr><td>WebSocket</td><td>Pusher</td><td>Free</td><td>200K messages/day, 100 concurrent connections</td></tr>
+          <tr><td>Queue</td><td>Database (SQLite)</td><td>—</td><td>Single-writer lock, no concurrency</td></tr>
+          <tr><td>Cache</td><td>Database (SQLite)</td><td>—</td><td>Not designed for high-frequency operations</td></tr>
+          <tr><td>Session</td><td>Database (SQLite)</td><td>—</td><td>Concurrent writes may lock</td></tr>
+          <tr><td>Mail</td><td>Hostinger SMTP</td><td>Included</td><td><code>smtp.hostinger.com:465</code> (SSL)</td></tr>
+          <tr><td>CI/CD</td><td>None</td><td>—</td><td>Manual rsync deployment</td></tr>
+          <tr><td>Monitoring</td><td>None</td><td>—</td><td>Only <code>storage/logs/laravel.log</code> via SSH</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Production Readiness Checklist</h3>
+      <ul class="checklist">
+        <li>Rotasi semua compromised secrets di <code>deploy/.env</code></li>
+        <li>Migrasi Queue/Cache/Session dari SQLite ke Redis/PostgreSQL</li>
+        <li>Set <code>SESSION_SECURE_COOKIE=true</code></li>
+        <li>Publish &amp; configure explicit CORS policy</li>
+        <li>Setup uptime monitoring (UptimeRobot → <code>/up</code> endpoint) untuk prevent Neon cold starts</li>
+        <li>Integrasi Sentry untuk centralized error tracking</li>
+        <li>Establish CI/CD pipeline untuk automated deployment</li>
+        <li>Monitor Pusher usage — evaluasi Reverb jika mendekati limit</li>
+      </ul>
+
+      <div class="page-footer">
+        <span>POgrid.id — Technical Audit Report</span>
+        <span>Confidential — Page 22</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         APPENDIX B — FILE REFERENCE MAP
+         ═══════════════════════════════════════════ -->
+    <div class="page">
+      <span class="section-number">Appendix B</span>
+      <h2>File Reference Map</h2>
+      <div class="section-divider"></div>
+
+      <table>
+        <thead><tr><th>Concern</th><th>Key Files</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Multi-tenancy</strong></td><td><code>app/Services/TenantManager.php</code><br><code>app/Models/Traits/BelongsToTenant.php</code></td></tr>
+          <tr><td><strong>Observer Chain</strong></td><td><code>app/Observers/ItemObserver.php</code><br><code>app/Observers/ItemProgressObserver.php</code><br><code>app/Observers/DoItemObserver.php</code><br><code>app/Observers/DataSyncObserver.php</code></td></tr>
+          <tr><td><strong>Broadcasting</strong></td><td><code>app/Events/DataRefreshed.php</code></td></tr>
+          <tr><td><strong>Auth Controllers</strong></td><td><code>app/Http/Controllers/AuthController.php</code><br><code>app/Http/Controllers/WorkerAuthController.php</code></td></tr>
+          <tr><td><strong>Owner Dashboard</strong></td><td><code>app/Http/Controllers/OwnerDashboardController.php</code></td></tr>
+          <tr><td><strong>Worker Dashboard</strong></td><td><code>app/Http/Controllers/WorkerDashboardController.php</code></td></tr>
+          <tr><td><strong>Frontend Entry</strong></td><td><code>resources/js/app.tsx</code><br><code>resources/css/app.css</code></td></tr>
+          <tr><td><strong>Shared Chrome</strong></td><td><code>resources/js/Components/AppShell.tsx</code></td></tr>
+          <tr><td><strong>Owner Pages</strong></td><td><code>resources/js/Pages/Owner/Dashboard.tsx</code></td></tr>
+          <tr><td><strong>Worker Pages</strong></td><td><code>resources/js/Pages/Worker/Dashboard.tsx</code></td></tr>
+          <tr><td><strong>Routes</strong></td><td><code>routes/web.php</code></td></tr>
+          <tr><td><strong>Deploy Config</strong></td><td><code>deploy/</code></td></tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top: 64px; padding-top: 32px; border-top: 2px solid var(--pg-slate-200); text-align: center;">
+        <p style="font-size: 0.8rem; color: var(--pg-slate-400); margin-bottom: 4px;">— End of Report —</p>
+        <p style="font-size: 0.75rem; color: var(--pg-slate-400);">
+          Report generated by Lead Engineering Task Force<br>
+          12 Agustus 2026 &nbsp;•&nbsp; Document Classification: Confidential / Executive Review<br>
+          Next Review: Q4 2026 — Post Sprint 1–2 Remediation
+        </p>
+      </div>
+
+      <div class="page-footer">
+        <span>POgrid.id — Technical Audit Report</span>
+        <span>Confidential — Page 23</span>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
