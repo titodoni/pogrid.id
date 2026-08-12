@@ -25,9 +25,7 @@ class PpicDashboardController extends Controller
         TenantManager::setTenantId($tenant->id);
 
         $user = auth()->user()->load('roleRelation', 'postRelation');
-        if ($user->tenant_id !== $tenant->id) {
-            abort(403, 'Unauthorized tenant access.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('view-tenant', $tenant->id);
 
         $schedule = $this->getProductionSchedule();
         $workCenterLoad = $this->getWorkCenterLoad();

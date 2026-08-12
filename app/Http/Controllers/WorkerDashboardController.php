@@ -98,9 +98,7 @@ class WorkerDashboardController extends Controller
 
         // 3. Authenticated: verify tenant scope matching
         $user = auth()->user()->load('roleRelation', 'postRelation');
-        if ($user->tenant_id !== $tenant->id) {
-            abort(403, 'Unauthorized tenant access.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('view-tenant', $tenant->id);
 
         // 4. Determine dashboard views by office vs floor roles division
         if (strtoupper($user->role_name) === 'PPIC') {
@@ -197,9 +195,7 @@ class WorkerDashboardController extends Controller
         }
 
         $user = auth()->user()->load('roleRelation', 'postRelation');
-        if ($user->tenant_id !== $tenant->id) {
-            abort(403, 'Unauthorized tenant access.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('view-tenant', $tenant->id);
 
         $roleName = strtoupper($user->role_name);
 
@@ -293,9 +289,7 @@ class WorkerDashboardController extends Controller
         }
 
         $user = auth()->user()->load('roleRelation', 'postRelation');
-        if ($user->tenant_id !== $tenant->id) {
-            abort(403, 'Unauthorized tenant access.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('view-tenant', $tenant->id);
 
         $roleName = strtoupper($user->role_name);
 
@@ -410,15 +404,11 @@ class WorkerDashboardController extends Controller
 
         // 3. Tenant matching check
         $user = auth()->user();
-        if ($user->tenant_id !== $tenant->id) {
-            abort(403, 'Unauthorized tenant access.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('view-tenant', $tenant->id);
 
         // 4. Role check
         $user->load('roleRelation');
-        if ($user->role_level !== 'office') {
-            abort(403, 'Unauthorized role.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('access-office');
 
         $range = $request->input('range', 'month');
         if (! in_array($range, ['week', 'month', 'year'])) {
@@ -686,14 +676,10 @@ class WorkerDashboardController extends Controller
         }
 
         $user = auth()->user();
-        if ($user->tenant_id !== $tenant->id) {
-            abort(403, 'Unauthorized tenant access.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('view-tenant', $tenant->id);
 
         $user->load('roleRelation');
-        if ($user->role_level !== 'office') {
-            abort(403, 'Unauthorized role.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('access-office');
 
         return [$tenant];
     }
@@ -1672,9 +1658,7 @@ class WorkerDashboardController extends Controller
         $progress = ItemProgress::findOrFail($progressId);
 
         // Ensure item belongs to active tenant (all worker roles in tenant can report trouble)
-        if ($progress->item && $progress->item->tenant_id !== TenantManager::getTenantId()) {
-            abort(403, 'Unauthorized tenant access.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('view-tenant', $progress->item ? $progress->item->tenant_id : TenantManager::getTenantId());
 
         $progress->update(['status' => 'STUCK']);
 
@@ -1716,9 +1700,7 @@ class WorkerDashboardController extends Controller
         }
 
         $user = auth()->user();
-        if ($user->tenant_id !== $tenant->id) {
-            abort(403, 'Unauthorized tenant access.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('view-tenant', $tenant->id);
 
         // Fetch alerts for this tenant (hide admin BLUE severity alerts from standard floor operators)
         $query = Alert::with(['item.po'])->orderBy('created_at', 'desc');
@@ -1745,16 +1727,9 @@ class WorkerDashboardController extends Controller
         TenantManager::setTenantId($tenant->id);
 
         $user = auth()->user()->loadMissing('roleRelation', 'postRelation');
-        if ($user->tenant_id !== $tenant->id) {
-            abort(403, 'Unauthorized tenant access.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('view-tenant', $tenant->id);
 
-        $isPpic = strcasecmp($user->role_name ?? '', 'PPIC') === 0 || strcasecmp($user->post_name ?? '', 'PPIC') === 0;
-        $canResolve = $isPpic || $user->isOwner() || $user->isManager() || $user->isAdmin();
-
-        if (! $canResolve) {
-            abort(403, 'Only PPIC, Admin, Owner, or Manager can resolve trouble reports.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('resolve-trouble');
 
         $alert = Alert::where('tenant_id', $tenant->id)->findOrFail($alertId);
         $alert->update([
@@ -1767,9 +1742,7 @@ class WorkerDashboardController extends Controller
     public function logQcRework(Request $request, $slug, $progressId)
     {
         $user = auth()->user()->load('roleRelation');
-        if ($user->role_level !== 'office' && $user->role_name !== 'QC') {
-            abort(403, 'Forbidden: Only QC inspectors can log rework.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('log-rework');
 
         $request->validate([
             'reject_qty' => ['required', 'integer', 'min:1'],
@@ -1836,9 +1809,7 @@ class WorkerDashboardController extends Controller
         $user = auth()->user()->load('roleRelation');
         $userRoleName = $user->role_name;
 
-        if ($user->role_level !== 'office' && $userRoleName !== 'DRAFTER') {
-            abort(403, 'Forbidden: Only Drafters can update drafter status.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('update-drafter');
 
         $item = Item::findOrFail($itemId);
 
@@ -1894,9 +1865,7 @@ class WorkerDashboardController extends Controller
 
         $user = auth()->user()->load('roleRelation');
 
-        if ($user->role_level !== 'office' && $user->role_name !== 'PURCHASING') {
-            abort(403, 'Forbidden: Only Purchasing agents can update purchasing status.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('update-purchasing');
 
         $item = Item::findOrFail($itemId);
 
@@ -1969,9 +1938,7 @@ class WorkerDashboardController extends Controller
         ]);
 
         $user = auth()->user()->load('roleRelation');
-        if ($user->role_level !== 'office' && $user->role_name !== 'FINANCE') {
-            abort(403, 'Forbidden: Only Finance controllers can update finance status.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('update-finance');
 
         $item = Item::findOrFail($itemId);
 
@@ -1988,9 +1955,7 @@ class WorkerDashboardController extends Controller
         }
 
         if ($reqDeliveryForFinance) {
-            if ($item->delivery_status === 'PENDING') {
-                abort(403, 'Stage locked: Finance status cannot be updated until at least one item has been delivered.');
-            }
+            \Illuminate\Support\Facades\Gate::authorize('update-finance-status-lock', clone $item);
         }
 
         $invoicedQty = (int) $request->input('invoiced_qty', 0);
@@ -2051,17 +2016,13 @@ class WorkerDashboardController extends Controller
         TenantManager::setTenantId($tenant->id);
 
         $user = auth()->user()->loadMissing('roleRelation', 'postRelation');
-        if ($user->tenant_id !== $tenant->id) {
-            abort(403, 'Unauthorized tenant access.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('view-tenant', $tenant->id);
 
         $roleName = strtoupper($user->role_name ?? '');
         $postName = strtoupper($user->post_name ?? '');
         $isOffice = $user->role_level === 'office' || $user->isOwner();
 
-        if (! $isOffice && $roleName !== 'FINANCE' && $postName !== 'FINANCE') {
-            abort(403, 'Only Finance officers or Office managers can view the Finance Ledger.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('view-ledger');
 
         $pos = Po::with([
             'items' => function ($q) {
@@ -2090,7 +2051,7 @@ class WorkerDashboardController extends Controller
                 if (str_contains($stageLower, $keyword)) {
                     if (! in_array($roleName, $roles)) {
                         $rolesStr = implode('/', $roles);
-                        abort(403, "Stage locked: Only {$rolesStr} operators can update this stage.");
+                        \Illuminate\Auth\Access\Response::deny("Stage locked: Only {$rolesStr} operators can update this stage.")->authorize();
                     }
                     break;
                 }
@@ -2115,19 +2076,19 @@ class WorkerDashboardController extends Controller
                     str_contains($stageNameLower, 'fabrication') || str_contains($stageNameLower, 'fabrikasi') ||
                     str_contains($stageNameLower, 'qc') ||
                     str_contains($stageNameLower, 'delivery') || str_contains($stageNameLower, 'pengiriman')) {
-                    abort(403, 'Stage locked: This is a Vendor job, so other production stages are locked.');
+                    \Illuminate\Auth\Access\Response::deny('Stage locked: This is a Vendor job, so other production stages are locked.')->authorize();
                 }
             }
 
             if ($isMachiningChecked && ! $isFabricationChecked) {
                 if (str_contains($stageNameLower, 'fabrication') || str_contains($stageNameLower, 'fabrikasi')) {
-                    abort(403, 'Stage locked: Fabrication is not required/checked for this item.');
+                    \Illuminate\Auth\Access\Response::deny('Stage locked: Fabrication is not required/checked for this item.')->authorize();
                 }
             }
 
             if ($isFabricationChecked && ! $isMachiningChecked) {
                 if (str_contains($stageNameLower, 'machining')) {
-                    abort(403, 'Stage locked: Machining is not required/checked for this item.');
+                    \Illuminate\Auth\Access\Response::deny('Stage locked: Machining is not required/checked for this item.')->authorize();
                 }
             }
 
@@ -2163,7 +2124,7 @@ class WorkerDashboardController extends Controller
                     })
                     ->first();
                 if ($designProgress && $designProgress->status !== 'COMPLETED') {
-                    abort(403, 'Stage locked: Production requires Design/Drawing to be completed/approved.');
+                    \Illuminate\Auth\Access\Response::deny('Stage locked: Production requires Design/Drawing to be completed/approved.')->authorize();
                 }
             }
 
@@ -2178,7 +2139,7 @@ class WorkerDashboardController extends Controller
                     })
                     ->first();
                 if ($materialProgress && $materialProgress->status !== 'COMPLETED') {
-                    abort(403, 'Stage locked: Production requires Material/Bahan to be ready/completed.');
+                    \Illuminate\Auth\Access\Response::deny('Stage locked: Production requires Material/Bahan to be ready/completed.')->authorize();
                 }
             }
 
@@ -2201,7 +2162,7 @@ class WorkerDashboardController extends Controller
 
                     foreach ($precedingStages as $stage) {
                         if ($stage->status !== 'COMPLETED') {
-                            abort(403, "Stage locked: QC requires all preceding stages to be COMPLETED first. ({$stage->stage_name} is not done yet)");
+                            \Illuminate\Auth\Access\Response::deny("Stage locked: QC requires all preceding stages to be COMPLETED first. ({$stage->stage_name} is not done yet)")->authorize();
                         }
                     }
                 }
@@ -2213,7 +2174,7 @@ class WorkerDashboardController extends Controller
                     ->where('stage_name', 'QC')
                     ->first();
                 if (! $qcProgress || ($qcProgress->completed_qty <= 0 && $qcProgress->progress_percent <= 0)) {
-                    abort(403, 'Stage locked: Delivery cannot be updated until QC stage has completed quantities.');
+                    \Illuminate\Auth\Access\Response::deny('Stage locked: Delivery cannot be updated until QC stage has completed quantities.')->authorize();
                 }
             }
         }

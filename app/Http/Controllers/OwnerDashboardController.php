@@ -61,9 +61,7 @@ class OwnerDashboardController extends Controller
 
     public function updateCompany(Request $request)
     {
-        if (auth()->user()->isManager() || auth()->user()->isSales()) {
-            abort(403, 'Managers and Sales cannot modify company settings.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('manage-company-settings');
 
         $request->validate([
             'company_name' => ['required', 'string', 'max:255'],
@@ -94,9 +92,7 @@ class OwnerDashboardController extends Controller
 
     public function updateWorkflowSettings(Request $request)
     {
-        if (auth()->user()->isManager() || auth()->user()->isSales()) {
-            abort(403, 'Managers and Sales cannot modify workflow settings.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('manage-workflow-settings');
 
         $request->validate([
             'workflow_mode' => ['required', 'string', 'in:strict,loose,custom'],
@@ -129,9 +125,7 @@ class OwnerDashboardController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->isOwner() || $user->isManager() || $user->isSales()) {
-            abort(403, 'Owners, Managers, and Sales cannot create or broadcast POs. Please assign an Admin user.');
-        }
+        $this->authorize('create', \App\Models\Po::class);
 
         // Ensure tenant context is set for this request
         TenantManager::setTenantId($user->tenant_id);
@@ -183,17 +177,13 @@ class OwnerDashboardController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->isOwner() || $user->isManager() || $user->isSales()) {
-            abort(403, 'Owners, Managers, and Sales cannot create or broadcast POs. Please assign an Admin user.');
-        }
+        $this->authorize('create', \App\Models\Po::class);
 
         // Ensure tenant context for this request
         TenantManager::setTenantId($user->tenant_id);
 
         $tenant = Tenant::find($user->tenant_id);
-        if ($tenant && $tenant->isTrialExpired()) {
-            abort(403, 'Trial expired: Your trial period has ended and new PO creation is disabled. Please visit billing settings to activate a subscription.');
-        }
+        // Trial check is now in PoPolicy::create()
 
         $request->validate([
             'po_number' => [
@@ -274,9 +264,7 @@ class OwnerDashboardController extends Controller
     {
         $authUser = auth()->user()->loadMissing('roleRelation');
 
-        if ($authUser->isManager() || $authUser->isSales()) {
-            abort(403, 'Managers and Sales cannot manage users.');
-        }
+        $this->authorize('manage', \App\Models\User::class);
 
         // OWNER can only create ADMIN users
         if ($authUser->isOwner()) {
@@ -370,16 +358,12 @@ class OwnerDashboardController extends Controller
     {
         $actor = auth()->user();
 
-        if ($actor->isManager() || $actor->isSales()) {
-            abort(403, 'Managers and Sales cannot manage users.');
-        }
+        $this->authorize('manage', \App\Models\User::class);
 
         $user = User::findOrFail($userId);
 
         // Only owners may modify owner accounts.
-        if ($user->is_owner && ! $actor->isOwner()) {
-            abort(403, 'Only owners can modify owner accounts.');
-        }
+        $this->authorize('modifyOwner', $user);
 
         $loginMethod = $request->input('login_method');
         if (! $loginMethod) {
@@ -445,20 +429,14 @@ class OwnerDashboardController extends Controller
     {
         $actor = auth()->user();
 
-        if ($actor->isManager() || $actor->isSales()) {
-            abort(403, 'Managers and Sales cannot manage users.');
-        }
+        $this->authorize('manage', \App\Models\User::class);
 
         $user = User::findOrFail($userId);
 
         // Only owners may delete owner accounts.
-        if ($user->is_owner && ! $actor->isOwner()) {
-            abort(403, 'Only owners can delete owner accounts.');
-        }
+        $this->authorize('delete', $user);
 
-        if ($user->id === auth()->id()) {
-            abort(403, 'You cannot delete yourself.');
-        }
+
 
         $user->delete();
 
@@ -467,16 +445,12 @@ class OwnerDashboardController extends Controller
 
     public function cancelItem(Request $request, $itemId)
     {
-        if (auth()->user()->isSales()) {
-            abort(403, 'Sales accounts are strictly read-only and cannot cancel production items.');
-        }
-
         $item = Item::findOrFail($itemId);
 
+        $this->authorize('cancel', $item);
+
         // Business guard: IF Item Progress > 0% -> Returns HTTP 403 Forbidden
-        if ((float) $item->progress_percent > 0.00) {
-            abort(403, 'Sunk-Cost Cancel Protection: Items with progress > 0% cannot be cancelled. You must terminate midway instead.');
-        }
+        // Sunk-cost check is now in ItemPolicy::cancel()
 
         $item->update(['status' => 'CANCELLED']);
 
@@ -485,11 +459,8 @@ class OwnerDashboardController extends Controller
 
     public function terminateMidway(Request $request, $itemId)
     {
-        if (auth()->user()->isSales()) {
-            abort(403, 'Sales accounts are strictly read-only and cannot terminate production items.');
-        }
-
         $item = Item::findOrFail($itemId);
+        $this->authorize('terminate', $item);
         $item->update(['status' => 'TERMINATED']);
 
         // Freeze worker mobile screens via Pusher/Echo
@@ -509,9 +480,7 @@ class OwnerDashboardController extends Controller
 
     public function batchAction(Request $request)
     {
-        if (auth()->user()->isSales()) {
-            abort(403, 'Sales accounts are strictly read-only and cannot perform batch operations.');
-        }
+        $this->authorize('batchAction', \App\Models\Item::class);
 
         $request->validate([
             'action' => ['required', 'in:cancel,terminate'],
@@ -572,9 +541,7 @@ class OwnerDashboardController extends Controller
 
     public function createStageTemplate(Request $request)
     {
-        if (auth()->user()->isManager() || auth()->user()->isSales()) {
-            abort(403, 'Managers and Sales cannot manage stage templates.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('manage-stage-templates');
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -597,9 +564,7 @@ class OwnerDashboardController extends Controller
 
     public function updateStageTemplate(Request $request, $templateId)
     {
-        if (auth()->user()->isManager() || auth()->user()->isSales()) {
-            abort(403, 'Managers and Sales cannot manage stage templates.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('manage-stage-templates');
 
         $template = TenantStageTemplate::where('tenant_id', TenantManager::getTenantId())
             ->findOrFail($templateId);
@@ -624,9 +589,7 @@ class OwnerDashboardController extends Controller
 
     public function deleteStageTemplate(Request $request, $templateId)
     {
-        if (auth()->user()->isManager() || auth()->user()->isSales()) {
-            abort(403, 'Managers and Sales cannot manage stage templates.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('manage-stage-templates');
 
         $template = TenantStageTemplate::where('tenant_id', TenantManager::getTenantId())
             ->findOrFail($templateId);
@@ -812,9 +775,7 @@ class OwnerDashboardController extends Controller
     {
         $authUser = auth()->user();
 
-        if (! $authUser->isOwner()) {
-            abort(403, 'Only owners can create admin users during onboarding.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('create-admin');
 
         // Ensure tenant context is set
         TenantManager::setTenantId($authUser->tenant_id);

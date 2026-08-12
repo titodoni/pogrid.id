@@ -25,9 +25,7 @@ class ProfileController extends Controller
             TenantManager::enableScope();
             TenantManager::setTenantId($tenant->id);
 
-            if ($user->tenant_id !== $tenant->id) {
-                abort(403);
-            }
+            \Illuminate\Support\Facades\Gate::authorize('view-tenant', $tenant->id);
         } else {
             $tenant = Tenant::find($user->tenant_id);
             if (! $tenant) {
