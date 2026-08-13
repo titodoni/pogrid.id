@@ -54,7 +54,6 @@ export default function Logs({ logs, projects, selected_project }: Props) {
         router.reload({
             only: ['logs', 'selected_project'],
             data: { project_id: value },
-            preserveState: true,
         });
     };
 
@@ -77,7 +76,7 @@ export default function Logs({ logs, projects, selected_project }: Props) {
     };
 
     const actionStyle = (action: string) => {
-        const meta = ACTION_LABELS[action] || { label: action, id: action, tone: 'neutral' };
+        const meta = ACTION_LABELS[action] || { en: action, id: action, tone: 'neutral' };
         const label = language === 'en' ? meta.en : meta.id;
         return { label, toneClass: toneClass(meta.tone) };
     };
@@ -144,7 +143,7 @@ export default function Logs({ logs, projects, selected_project }: Props) {
                                                         {entry.user?.name || '—'}
                                                     </td>
                                                     <td className="px-4 py-3">
-                                                        <span className={`inline-block mono text-[10px] font-semibold uppercase tracking-[0.08em] px-2 py-1 rounded-md border ${style.tone}`}>
+                                                        <span className={`inline-block mono text-[10px] font-semibold uppercase tracking-[0.08em] px-2 py-1 rounded-md border ${style.toneClass}`}>
                                                             {style.label}
                                                         </span>
                                                     </td>

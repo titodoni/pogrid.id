@@ -4,6 +4,16 @@ import { ChevronDown, Settings, Lock, Plus, Palette, Stop, Broadcast, Globe, Cop
 import { AppLayout } from '../../Components/AppLayout';
 import { formatDeadline, calculateDeadlineDiff } from '../../Utils/deadline';
 import { formatDDMMYYYY } from '../../Utils/date';
+import { getWorkflowConfig } from '../../Utils/workflow';
+import { useEchoPresence } from '../../Hooks/useEchoPresence';
+import ProgressBar from '../../Components/ProgressBar';
+import PillFilter from '../../Components/PillFilter';
+import TeamTab from '../../features/owner/TeamTab';
+import MatrixTab from '../../features/owner/MatrixTab';
+import AlertsTab from '../../features/owner/AlertsTab';
+import PoGridSection from '../../features/owner/PoGridSection';
+import StageTemplateModal from '../../features/owner/StageTemplateModal';
+import type { Stage, Item, Po, Alert, DoItem, DeliveryOrder, Invoice, User } from '../../types';
 import { WarningPill } from '../../Components/WarningPill';
 import { localizedDisplay } from '../../Utils/locale';
 import { StatusBadge } from '../../Components/StatusBadge';
@@ -83,43 +93,8 @@ const formatReasonType = (reason: string, lang: 'en' | 'id') => {
 };
 
 
-interface Stage {
-    id: number;
-    stage_name: string;
-    completed_qty: number;
-    progress_percent: string;
-    status: string;
-}
 
-interface Item {
-    id: number;
-    item_name: string;
-    target_qty: number;
-    item_type: string;
-    progress_percent: string;
-    status: string;
-    purchasing_status?: string | null;
-    drafter_status?: string | null;
-    delivery_status?: string | null;
-    invoice_status?: string | null;
-    payment_status?: string | null;
-    invoiced_qty?: number;
-    item_progresses: Stage[];
-    delivered_qty: number;
-    vendor_name?: string | null;
-    vendor_phone?: string | null;
-}
 
-interface Po {
-    id: number;
-    po_number: string;
-    external_po_number?: string | null;
-    client_name: string;
-    global_deadline: string;
-    status: string;
-    items: Item[];
-    is_urgent?: boolean | null;
-}
 
 
 
@@ -150,67 +125,9 @@ const getItemStateColor = (deadlineDateStr: string | undefined, hasRework: boole
     return { bg: 'transparent', border: 'transparent', glow: 'transparent' };
 };
 
-interface Alert {
-    id: number;
-    item_id: number;
-    severity: string;
-    message: string;
-    is_resolved: boolean;
-    escalated_at?: string | null;
-    created_at?: string;
-    reason_type?: string | null;
-    item?: {
-        id: number;
-        po_id: number;
-        item_name?: string;
-        po?: {
-            po_number: string;
-            client_name: string;
-        };
-    };
-}
 
-interface DoItem {
-    id: number;
-    delivery_order_id: number;
-    item_id: number;
-    delivered_qty: number;
-    item?: Item;
-}
 
-interface DeliveryOrder {
-    id: number;
-    po_id: number;
-    do_number: string;
-    delivery_date: string;
-    po?: Po;
-    do_items: DoItem[];
-}
 
-interface Invoice {
-    id: number;
-    delivery_order_id: number | null;
-    invoice_number: string;
-    total_amount: string;
-    status: string;
-    due_date: string;
-    invoice_type: string;
-    delivery_order?: DeliveryOrder;
-}
-
-interface User {
-    id: number;
-    name: string;
-    username: string | null;
-    role_name: string;
-    role_level: string;
-    post_name: string | null;
-    role_display_name: string;
-    role_display_name_id?: string | null;
-    post_display_name?: string | null;
-    post_display_name_id?: string | null;
-    is_owner: boolean;
-}
 
 interface Props {
     pos: Po[];
@@ -240,6 +157,8 @@ interface Props {
 export default function OwnerDashboard({ pos, alerts, users, roles, posts, tenant, auth_user, telemetry, selected_range }: Props) {
     const { t, language, changeLanguage } = useTranslation('Owner_Dashboard');
     const { errors } = usePage().props;
+    // Server-owned business-rule configuration (config/workflow.php via Inertia)
+    const workflow = getWorkflowConfig();
 
     const renderStatusBadge = (text: string, dotColor: string) => (
         <span className="badge animate-fade" style={{
@@ -629,7 +548,6 @@ ${locationStr}
     const [isPresentationMode, setIsPresentationMode] = useState(false);
     const [presentationSlide, setPresentationSlide] = useState(0);
     const [presentationAutoPlay, setPresentationAutoPlay] = useState(false);
-    const getFilteredMatrix = () => [];
     const [matrixFilter, setMatrixFilter] = useState<{ type: string; value: string; label: string } | null>(null);
     const [exportOpen, setExportOpen] = useState(false);
     const [dirCollapsed, setDirCollapsed] = useState(false);
@@ -637,10 +555,7 @@ ${locationStr}
     const [activePoFilter, setActivePoFilter] = useState<'all' | 'marked' | 'delayed' | 'ontime' | 'close_due'>('all');
 
     const [currentTime, setCurrentTime] = useState(new Date());
-    const [toastQueue, setToastQueue] = useState<Array<{ message: string; severity: string; id: number; timestamp: number }>>([]);
-    const [onlineUsers, setOnlineUsers] = useState<Array<{ id: number; name: string; post_name?: string; role?: string }>>([]);
     const [showOnlineUsersPopover, setShowOnlineUsersPopover] = useState(false);
-    const [wsStatus, setWsStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
     const reloadTimeoutRef = useRef<any>(null);
 
     const triggerScopedReload = useCallback((onlyKeys: string[] = ['pos', 'alerts', 'telemetry']) => {
@@ -648,8 +563,6 @@ ${locationStr}
         reloadTimeoutRef.current = setTimeout(() => {
             router.reload({
                 only: onlyKeys as any,
-                preserveState: true,
-                preserveScroll: true,
             });
         }, 800);
     }, []);
@@ -663,97 +576,43 @@ ${locationStr}
         setMatrixFilter(null);
     }, [selected_range]);
 
-    useEffect(() => {
-        const tenantId = (tenant as any)?.id;
-        if (!tenantId) return;
+    const { toastQueue, setToastQueue, onlineUsers, wsStatus } = useEchoPresence({
+        tenantId: (tenant as any)?.id,
+        channel: 'dashboard',
+        onRefresh: () => router.reload({ only: ['pos', 'alerts', 'telemetry'] as any }),
+        registerListeners: (channel, pushToast) => {
+            channel.listen('.kendala.reported', (e: any) => {
+                const alert = e.alert;
+                pushToast({ message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() });
+                router.reload({ only: ['alerts', 'pos', 'telemetry'] as any });
+            });
+            channel.listen('.alert.escalated', (e: any) => {
+                const alert = e.alert;
+                pushToast({ message: alert?.message || '', severity: 'ALERT', id: alert?.id || Date.now(), timestamp: Date.now() }, 12000);
+                triggerScopedReload(['alerts', 'pos', 'telemetry']);
+            });
+            channel.listen('.production.terminated', () => {
+                router.reload({ only: ['pos', 'alerts', 'telemetry'] as any });
+            });
+            channel.listen('.task.updated', (e: any) => {
+                pushToast({ message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() });
+                triggerScopedReload(['pos', 'alerts', 'telemetry']);
+            });
+            channel.listen('.qc.rework.logged', (e: any) => {
+                const alert = e.alert;
+                pushToast({ message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() });
+                triggerScopedReload(['alerts', 'pos', 'telemetry']);
+            });
+            channel.listen('.data.refreshed', () => {
+                triggerScopedReload(['pos', 'alerts', 'telemetry']);
+            });
+        },
+    });
 
-        // Presence Channel
-        const presenceChannel = echo.join(`tenant.${tenantId}.presence`);
-        presenceChannel
-            .here((users: any[]) => setOnlineUsers(users))
-            .joining((user: any) => setOnlineUsers(prev => [...prev.filter(u => u.id !== user.id), user]))
-            .leaving((user: any) => setOnlineUsers(prev => prev.filter(u => u.id !== user.id)));
-
-        // Connection State
-        const pusherConn = (echo as any)?.connector?.pusher?.connection;
-        let fallbackInterval: any = null;
-
-        if (pusherConn) {
-            const handleStateChange = (states: any) => {
-                const current = states.current || pusherConn.state;
-                if (current === 'connected') {
-                    setWsStatus('connected');
-                    if (states.previous && states.previous !== 'connected') {
-                        router.reload({ preserveState: true, preserveScroll: true });
-                    }
-                } else if (current === 'connecting') {
-                    setWsStatus('connecting');
-                } else {
-                    setWsStatus('disconnected');
-                }
-            };
-            if (pusherConn.state) setWsStatus(pusherConn.state === 'connected' ? 'connected' : 'connecting');
-            pusherConn.bind('state_change', handleStateChange);
-        } else {
-            setWsStatus('disconnected');
-            fallbackInterval = setInterval(() => {
-                router.reload({ only: ['pos', 'alerts', 'telemetry'], preserveState: true, preserveScroll: true });
-            }, 30000);
-        }
-
-        const channel = echo.private(`tenant.${tenantId}.dashboard`);
-        channel.listen('.kendala.reported', (e: any) => {
-            const alert = e.alert;
-            const entry = { message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
-            setTimeout(() => {
-                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
-            }, 8000);
-            router.reload({ only: ['alerts', 'pos', 'telemetry'], preserveState: true, preserveScroll: true });
-        });
-        channel.listen('.alert.escalated', (e: any) => {
-            const alert = e.alert;
-            const entry = { message: alert?.message || '', severity: 'ALERT', id: alert?.id || Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
-            setTimeout(() => {
-                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
-            }, 12000);
-            triggerScopedReload(['alerts', 'pos', 'telemetry']);
-        });
-        channel.listen('.production.terminated', () => {
-            router.reload({ only: ['pos', 'alerts', 'telemetry'], preserveState: true, preserveScroll: true });
-        });
-        channel.listen('.task.updated', (e: any) => {
-            const entry = { message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
-            setTimeout(() => {
-                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
-            }, 8000);
-            triggerScopedReload(['pos', 'alerts', 'telemetry']);
-        });
-        channel.listen('.qc.rework.logged', (e: any) => {
-            const alert = e.alert;
-            const entry = { message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
-            setTimeout(() => {
-                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
-            }, 8000);
-            triggerScopedReload(['alerts', 'pos', 'telemetry']);
-        });
-        channel.listen('.data.refreshed', () => {
-            triggerScopedReload(['pos', 'alerts', 'telemetry']);
-        });
-
-        return () => {
-            echo.leave(`tenant.${tenantId}.dashboard`);
-            echo.leave(`tenant.${tenantId}.presence`);
-            if (pusherConn) {
-                pusherConn.unbind('state_change');
-            }
-            if (fallbackInterval) clearInterval(fallbackInterval);
-            if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
-        };
-    }, [(tenant as any)?.id]);
+    // Cleanup for the page-level debounced reload timer
+    useEffect(() => () => {
+        if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
+    }, []);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -842,8 +701,9 @@ ${locationStr}
                             : `Item "${item.item_name}" untuk klien "${po.client_name}" terlambat ${Math.abs(diffDays)} hari.`,
                     });
                 }
-                // B. Check Close Deadline (within 3 days)
-                else if (diffDays <= 3) {
+                // B. Check Close Deadline — server deadline-risk rule
+                // (config/workflow.php: days remaining <= risk_days AND progress < risk_progress)
+                else if (diffDays <= workflow.deadline.risk_days && parseFloat(item.progress_percent) < workflow.deadline.risk_progress) {
                     const daysText = diffDays === 0 
                         ? (language === 'en' ? 'Today' : 'Hari Ini') 
                         : (language === 'en' ? `${diffDays} more day(s)` : `${diffDays} hari lagi`);
@@ -2170,1568 +2030,117 @@ ${locationStr}
                     );
                 })()}
             {/* Alert Matrix Panel */}
-            {activeTab === 'alerts' && (() => {
-                const unifiedIssues = getUnifiedIssuesList();
-                return (
-                    <div style={{ marginBottom: '32px' }}>
-                        <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span>{t.unresolved_alerts}</span>
-                            <span style={{
-                                fontSize: '12px',
-                                backgroundColor: unifiedIssues.length > 0 ? '#ef4444' : 'var(--color-pg-success)',
-                                color: '#fff',
-                                padding: '2px 8px',
-                                borderRadius: '12px'
-                            }}>
-                                {unifiedIssues.length} Triggered
-                            </span>
-                        </h2>
-
-                        {unifiedIssues.length === 0 ? (
-                            <div style={{
-                                backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                                border: '1px solid rgba(16, 185, 129, 0.15)',
-                                borderRadius: '12px',
-                                padding: '16px',
-                                color: 'var(--color-pg-success)',
-                                fontSize: '14px',
-                                fontWeight: 500
-                            }}>
-                                <DotGreen size={10} /> All manufacturing timelines are healthy and no operational failures are reported.
-                            </div>
-                        ) : (
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
-                                {unifiedIssues.map((issue) => {
-                                    const isEscalated = !!issue.escalated_at;
-                                    const bgColor = issue.severity === 'RED' ? 'rgba(239, 68, 68, 0.08)' 
-                                        : issue.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.08)' 
-                                        : issue.severity === 'ORANGE' ? 'rgba(249, 115, 22, 0.08)'
-                                        : 'rgba(234, 179, 8, 0.08)';
-                                    const bdColor = issue.severity === 'RED' 
-                                        ? (isEscalated ? '#ef4444' : 'rgba(239, 68, 68, 0.2)')
-                                        : issue.severity === 'BLUE' ? 'rgba(59, 130, 246, 0.2)' 
-                                        : issue.severity === 'ORANGE' ? 'rgba(249, 115, 22, 0.2)'
-                                        : 'rgba(234, 179, 8, 0.2)';
-                                    const badgeBg = issue.severity === 'RED' ? '#ef4444' 
-                                        : issue.severity === 'BLUE' ? '#3b82f6' 
-                                        : issue.severity === 'ORANGE' ? 'var(--color-pg-orange)'
-                                        : 'var(--color-pg-warning)';
-                                    const badgeText = issue.title;
-
-                                    return (
-                                        <div
-                                            key={issue.id}
-                                            id={`alert-card-${issue.id}`}
-                                            onClick={() => {
-                                                if (issue.po_id) {
-                                                    changeTab('active');
-                                                    setExpandedPOs(prev => {
-                                                        const next = new Set(prev);
-                                                        next.add(issue.po_id);
-                                                        return next;
-                                                    });
-                                                    if (issue.item_id) {
-                                                        setExpandedItems(prev => {
-                                                            const next = new Set(prev);
-                                                            next.add(issue.item_id);
-                                                            return next;
-                                                        });
-                                                        setTimeout(() => {
-                                                            const el = document.getElementById(`item-card-${issue.item_id}`);
-                                                            if (el) {
-                                                                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                            }
-                                                        }, 120);
-                                                    }
-                                                }
-                                            }}
-                                            style={{
-                                                backgroundColor: bgColor,
-                                                border: '1px solid',
-                                                borderColor: bdColor,
-                                                borderRadius: '10px',
-                                                padding: '14px 18px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '12px',
-                                                flexWrap: 'wrap',
-                                                cursor: issue.po_id ? 'pointer' : 'default',
-                                                transition: 'all 0.2s',
-                                            }}
-                                            className={issue.po_id ? 'hover-grow' : ''}
-                                        >
-                                            <div style={{ flex: 1, minWidth: '200px' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                                        <span className="badge" style={{
-                                                            color: '#fff',
-                                                            backgroundColor: badgeBg,
-                                                            fontSize: '10px',
-                                                            fontWeight: 800,
-                                                            padding: '3px 8px',
-                                                            borderRadius: '4px',
-                                                            whiteSpace: 'nowrap'
-                                                        }}>
-                                                            {badgeText}
-                                                        </span>
-                                                        {isEscalated && (
-                                                            <span className="badge" style={{
-                                                                color: '#000',
-                                                                backgroundColor: 'var(--color-pg-warning)',
-                                                                fontSize: '10px',
-                                                                fontWeight: 800,
-                                                                padding: '3px 8px',
-                                                                borderRadius: '4px',
-                                                                whiteSpace: 'nowrap',
-                                                                animation: 'pulse 1.5s ease-in-out infinite',
-                                                            }}>
-                                                                ESCALATED
-                                                            </span>
-                                                        )}
-                                                        {issue.poNumber && (
-                                                            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-pg-text)' }}>
-                                                                {issue.poNumber} {issue.client_name ? `(${issue.client_name})` : ''}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {issue.created_at && (
-                                                        <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', fontWeight: 500 }}>
-                                                            {formatAlertTime(issue.created_at, language)}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                
-                                                {issue.itemName ? (
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                        <div style={{ fontSize: '14px', color: 'var(--color-pg-text)', fontWeight: 600 }}>
-                                                            {issue.itemName} &middot; <span style={{ color: 'var(--color-pg-orange)', fontWeight: 700 }}>Stage: {issue.stage}</span>
-                                                        </div>
-                                                        {issue.reason ? (
-                                                            <div style={{ fontSize: '13px', color: 'var(--color-pg-text-secondary)' }}>
-                                                                <strong style={{ color: 'var(--color-pg-danger)' }}>
-                                                                    {language === 'id' ? 'Penyebab: ' : 'Why: '}
-                                                                </strong>
-                                                                {formatReasonType(issue.reason, language)}
-                                                                {issue.note ? ` (${issue.note})` : ''}
-                                                            </div>
-                                                        ) : (
-                                                            <div style={{ fontSize: '13px', color: 'var(--color-pg-text-secondary)' }}>
-                                                                {issue.message}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <div style={{ fontSize: '14px', color: 'var(--color-pg-text)' }}>
-                                                        {issue.message}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {issue.action && (
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        issue.action?.();
-                                                    }}
-                                                    style={{
-                                                        padding: '6px 14px',
-                                                        backgroundColor: '#3b82f6',
-                                                        color: '#fff',
-                                                        border: 'none',
-                                                        borderRadius: '6px',
-                                                        fontWeight: 600,
-                                                        fontSize: '12px',
-                                                        cursor: 'pointer',
-                                                        whiteSpace: 'nowrap'
-                                                    }}
-                                                >
-                                                    {language === 'en' ? 'Approve & Generate PIN' : 'Setujui & Buat PIN'}
-                                                </button>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                );
-            })()}
-
-            {/* PO Grid Section */}
-            {(activeTab === 'active' || activeTab === 'completed') && (
-                <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{t.po_directory}</h2>
-                    </div>
-                    {activeTab === 'active' && (
-                        <div className="po-filter-row" style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap', marginBottom: '16px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
-                            <button
-                                onClick={() => setActivePoFilter('all')}
-                                style={{
-                                    padding: '6px 14px',
-                                    borderRadius: '9999px',
-                                    fontSize: '12px',
-                                    fontWeight: 600,
-                                    border: '1px solid var(--color-pg-border)',
-                                    backgroundColor: activePoFilter === 'all' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
-                                    color: activePoFilter === 'all' ? '#ffffff' : 'var(--color-pg-text-secondary)',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                }}
-                            >
-                                <span className="filter-label-full">{language === 'id' ? 'Semua PO (Default)' : 'All POs (Default)'}</span>
-                                <span className="filter-label-short">{language === 'id' ? 'Semua' : 'All'}</span>
-                            </button>
-                            <button
-                                onClick={() => setActivePoFilter('marked')}
-                                style={{
-                                    padding: '6px 14px',
-                                    borderRadius: '9999px',
-                                    fontSize: '12px',
-                                    fontWeight: 600,
-                                    border: '1px solid var(--color-pg-border)',
-                                    backgroundColor: activePoFilter === 'marked' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
-                                    color: activePoFilter === 'marked' ? '#ffffff' : 'var(--color-pg-text-secondary)',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                }}
-                            >
-                                <span className="filter-label-full">{language === 'id' ? 'Ditandai (Rework/Kendala)' : 'Marked (Rework / Trouble)'}</span>
-                                <span className="filter-label-short">{language === 'id' ? 'Ditandai' : 'Marked'}</span>
-                            </button>
-                            <button
-                                onClick={() => setActivePoFilter('delayed')}
-                                style={{
-                                    padding: '6px 14px',
-                                    borderRadius: '9999px',
-                                    fontSize: '12px',
-                                    fontWeight: 600,
-                                    border: '1px solid var(--color-pg-border)',
-                                    backgroundColor: activePoFilter === 'delayed' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
-                                    color: activePoFilter === 'delayed' ? '#ffffff' : 'var(--color-pg-text-secondary)',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                }}
-                            >
-                                <span className="filter-label-full">{language === 'id' ? 'Terlambat' : 'Delayed'}</span>
-                                <span className="filter-label-short">{language === 'id' ? 'Terlambat' : 'Delayed'}</span>
-                            </button>
-                            <button
-                                onClick={() => setActivePoFilter('ontime')}
-                                style={{
-                                    padding: '6px 14px',
-                                    borderRadius: '9999px',
-                                    fontSize: '12px',
-                                    fontWeight: 600,
-                                    border: '1px solid var(--color-pg-border)',
-                                    backgroundColor: activePoFilter === 'ontime' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
-                                    color: activePoFilter === 'ontime' ? '#ffffff' : 'var(--color-pg-text-secondary)',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                }}
-                            >
-                                <span className="filter-label-full">{language === 'id' ? 'Tepat Waktu' : 'On Time'}</span>
-                                <span className="filter-label-short">{language === 'id' ? 'Tepat Waktu' : 'On Time'}</span>
-                            </button>
-                            <button
-                                onClick={() => setActivePoFilter('close_due')}
-                                style={{
-                                    padding: '6px 14px',
-                                    borderRadius: '9999px',
-                                    fontSize: '12px',
-                                    fontWeight: 600,
-                                    border: '1px solid var(--color-pg-border)',
-                                    backgroundColor: activePoFilter === 'close_due' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
-                                    color: activePoFilter === 'close_due' ? '#ffffff' : 'var(--color-pg-text-secondary)',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                }}
-                            >
-                                <span className="filter-label-full">{language === 'id' ? 'Mendekati Deadline' : 'Close Due Date'}</span>
-                                <span className="filter-label-short">{language === 'id' ? 'Mendekati' : 'Near Due'}</span>
-                            </button>
-                        </div>
-                    )}
-                    {filteredPos.length === 0 ? (
-                        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-pg-text-muted)' }}>
-                            {activeTab === 'completed' ? 'No completed POs yet.' : t.no_pos}
-                        </div>
-                    ) : (
-                        <div>
-                            {/* Compact summary strip for mobile */}
-                            <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', marginBottom: '12px', padding: '0 4px' }}>
-                                {filteredPos.length} PO{filteredPos.length > 1 ? 's' : ''} &middot; {filteredPos.reduce((sum, po) => sum + po.items.length, 0)} items
-                            </div>
-                            {filteredPos.map((po) => {
-                                const isExpanded = expandedPOs.has(po.id);
-                                const poProgress = po.items.length > 0
-                                    ? Math.round(po.items.reduce((sum, item) => sum + parseFloat(item.progress_percent), 0) / po.items.length)
-                                    : 0;
-                                return (
-                                    <div key={po.id} id={`po-card-${po.id}`} className="po-accordion">
-                                        <button className="po-accordion-header" onClick={() => togglePO(po.id)}>
-                                            <ChevronDown size={16} expanded={isExpanded} />
-                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                                    <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{po.client_name}</span>
-                                                    <StatusBadge status={po.status} />
-                                                    {po.is_urgent && <StatusBadge status="URGENT" />}
-                                                    {(() => {
-                                                        const poItemIds = po.items.map(i => i.id);
-                                                        const poAlerts = alerts.filter(a => poItemIds.includes(a.item_id) && !a.is_resolved);
-                                                        const hasRework = poAlerts.some(a => a.severity === 'YELLOW');
-                                                        return <WarningPill deadlineDateStr={po.global_deadline} reworkMessage={hasRework} lang={language} />;
-                                                    })()}
-                                                </div>
-                                                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginTop: '3px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
-                                                    <span className="mono" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-pg-text-muted)' }}>{po.po_number}</span>
-                                                    <span style={{ color: 'var(--color-pg-border)' }}>&middot;</span>
-                                                    <span style={{ fontSize: '12px', fontWeight: 500 }}>{formatDeadline(po.global_deadline, language)}</span>
-                                                    {!isExpanded && po.items.length > 0 && (
-                                                        <>
-                                                            <span style={{ color: 'var(--color-pg-border)' }}>&middot;</span>
-                                                            <span style={{ color: '#3b82f6', fontWeight: 500 }}>
-                                                                {po.items.length} item{po.items.length > 1 ? 's' : ''} &middot; {poProgress}%
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </button>
-
-                                        {isExpanded && (
-                                            <div className="po-accordion-body">
-                                                {po.items.length === 0 ? (
-                                                    <div style={{ fontSize: '14px', color: 'var(--color-pg-text-muted)', padding: '12px 0' }}>No items in this PO.</div>
-                                                ) : (
-                                                    po.items.map((item) => {
-                                                        const progress = parseFloat(item.progress_percent);
-                                                        const hasProgress = progress > 0;
-                                                        const isCancelled = item.status === 'CANCELLED';
-                                                        const isTerminated = item.status === 'TERMINATED';
-                                                        const itemExpanded = expandedItems.has(item.id);
-
-                                                        const itemAlerts = alerts.filter(a => a.item_id === item.id && !a.is_resolved);
-                                                        const hasRework = itemAlerts.some(a => a.severity === 'YELLOW');
-                                                        const sc = getItemStateColor(po.global_deadline, hasRework, item.status);
-
-                                                        return (
-                                                            <div 
-                                                                key={item.id} 
-                                                                id={`item-card-${item.id}`} 
-                                                                className="item-compact" 
-                                                                style={{
-                                                                    opacity: (isCancelled || isTerminated) ? 0.6 : 1,
-                                                                    borderLeft: '3px solid ' + sc.border,
-                                                                    backgroundColor: sc.bg,
-                                                                    boxShadow: sc.glow !== 'transparent' ? '0 0 12px ' + sc.glow : 'none',
-                                                                    display: 'flex',
-                                                                    flexDirection: 'column',
-                                                                    marginBottom: '8px',
-                                                                    borderRadius: '12px',
-                                                                    border: '1px solid var(--color-pg-border)',
-                                                                    overflow: 'hidden'
-                                                                }}
-                                                            >
-                                                                {/* Summary row - Clickable to expand */}
-                                                                <button 
-                                                                    className="item-compact-summary" 
-                                                                    onClick={() => toggleItem(item.id)} 
-                                                                    style={{ 
-                                                                        display: 'flex',
-                                                                        alignItems: 'center',
-                                                                        gap: '12px',
-                                                                        width: '100%',
-                                                                        padding: '12px 16px',
-                                                                        background: 'transparent',
-                                                                        border: 'none',
-                                                                        color: 'var(--color-pg-text)',
-                                                                        cursor: 'pointer',
-                                                                        textAlign: 'left'
-                                                                    }}
-                                                                >
-                                                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                                                            <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{item.item_name}</span>
-                                                                            
-                                                                            {/* Clean, minimalist primary status badges only */}
-                                                                            {renderStatusBadge(
-                                                                                item.item_type === 'MANUFACTURE' 
-                                                                                    ? (language === 'id' ? 'Produksi' : 'Manufactured') 
-                                                                                    : (language === 'id' ? 'Beli Jadi' : 'Buyout'),
-                                                                                'var(--color-pg-text-muted)'
-                                                                            )}
-
-                                                                            {renderStatusBadge(
-                                                                                (() => {
-                                                                                    switch (item.status) {
-                                                                                        case 'IN_PROGRESS': return language === 'id' ? 'Proses Produksi' : 'In Production';
-                                                                                        case 'PENDING': return language === 'id' ? 'Belum Mulai' : 'Pending';
-                                                                                        case 'COMPLETED': return language === 'id' ? 'Selesai' : 'Completed';
-                                                                                        case 'CANCELLED': return language === 'id' ? 'Dibatalkan' : 'Cancelled';
-                                                                                        case 'TERMINATED': return language === 'id' ? 'Dihentikan' : 'Terminated';
-                                                                                        case 'DELIVERED': return language === 'id' ? 'Terkirim' : 'Delivered';
-                                                                                        case 'CLOSED': return language === 'id' ? 'Selesai & Lunas' : 'Closed';
-                                                                                        default: return item.status;
-                                                                                    }
-                                                                                })(),
-                                                                                isCancelled ? 'var(--color-pg-danger)'
-                                                                                    : isTerminated ? 'var(--color-pg-danger)'
-                                                                                    : progress >= 100 ? 'var(--color-pg-success)' : '#3b82f6'
-                                                                            )}
-
-                                                                            {(() => {
-                                                                                const reworkAlert = itemAlerts.find(a => a.severity === 'YELLOW');
-                                                                                const reworkVal = reworkAlert ? (reworkAlert.message || true) : null;
-                                                                                return <WarningPill deadlineDateStr={po.global_deadline} reworkMessage={reworkVal} lang={language} />;
-                                                                            })()}
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="progress-bar-mini" style={{ maxWidth: '100px', flexShrink: 0 }}>
-                                                                        <div className="progress-bar-mini-fill" style={{
-                                                                            width: `${progress}%`,
-                                                                            backgroundColor: isCancelled ? 'var(--color-pg-danger)' : 'var(--color-pg-primary)'
-                                                                        }} />
-                                                                    </div>
-
-                                                                    <span className="item-pct-label" style={{ 
-                                                                        fontSize: '12px', 
-                                                                        fontWeight: 700, 
-                                                                        color: 'var(--color-pg-primary-hover)',
-                                                                        display: 'flex',
-                                                                        flexDirection: 'column',
-                                                                        gap: '2px',
-                                                                        alignItems: 'flex-end',
-                                                                        flexShrink: 0
-                                                                    }}>
-                                                                        <span>{progress.toFixed(0)}%</span>
-                                                                        <span style={{ fontSize: '10px', color: 'var(--color-pg-text-muted)', fontWeight: 'normal' }}>
-                                                                            ({item.delivered_qty || 0} / {item.target_qty || 0} pcs)
-                                                                        </span>
-                                                                    </span>
-
-                                                                    <ChevronDown size={14} expanded={itemExpanded} style={{ flexShrink: 0 }} />
-                                                                </button>
-
-                                                                {/* Expanded detail section - placed directly inside the main card container, below the summary */}
-                                                                {itemExpanded && (
-                                                                    <div className="item-compact-detail" style={{ padding: '0 16px 16px' }}>
-                                                                        <div style={{
-                                                                            display: 'flex',
-                                                                            justifyContent: 'space-between',
-                                                                            alignItems: 'flex-start',
-                                                                            flexWrap: 'wrap',
-                                                                            gap: '12px',
-                                                                            marginBottom: '12px',
-                                                                            paddingBottom: '12px',
-                                                                            borderBottom: '1px solid var(--color-pg-border)'
-                                                                        }}>
-                                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                                                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-pg-primary-hover)' }}>
-                                                                                    Client: {po.client_name}
-                                                                                </div>
-                                                                                {(() => {
-                                                                                    const { diffDays } = calculateDeadlineDiff(po.global_deadline);
-                                                                                    let color = 'var(--color-pg-text-secondary)';
-                                                                                    let label = '';
-                                                                                    
-                                                                                    if (diffDays < 0) {
-                                                                                        color = '#ef4444'; // Delayed: Red
-                                                                                        label = language === 'id' ? 'Terlambat' : 'Delayed';
-                                                                                    } else if (diffDays <= 3) {
-                                                                                        color = 'var(--color-pg-warning)'; // Close: Yellow
-                                                                                        label = language === 'id' ? 'Mendekati Tenggat' : 'Closing In';
-                                                                                    }
-                                                                                    
-                                                                                    return (
-                                                                                        <div style={{ 
-                                                                                            fontSize: '13px', 
-                                                                                            fontWeight: 600, 
-                                                                                            color: 'var(--color-pg-text)',
-                                                                                            display: 'flex',
-                                                                                            alignItems: 'center',
-                                                                                            gap: '6px'
-                                                                                        }}>
-                                                                                            <span style={{ color: 'var(--color-pg-text-muted)', fontWeight: 'normal' }}>Deadline:</span>
-                                                                                            <span style={{ color }}>{formatDeadline(po.global_deadline, language)}</span>
-                                                                                            {label && (
-                                                                                                <span style={{ 
-                                                                                                    fontSize: '9px', 
-                                                                                                    padding: '2px 6px', 
-                                                                                                    borderRadius: '4px', 
-                                                                                                    backgroundColor: `${color}1a`,
-                                                                                                    color, 
-                                                                                                    border: `1px solid ${color}33`,
-                                                                                                    fontWeight: 800,
-                                                                                                    textTransform: 'uppercase'
-                                                                                                }}>
-                                                                                                    {label}
-                                                                                                </span>
-                                                                                            )}
-                                                                                        </div>
-                                                                                    );
-                                                                                })()}
-                                                                                <div style={{ fontSize: '12px', fontWeight: 500, color: '#a5b4fc', marginTop: '2px' }}>
-                                                                                    Qty: {item.target_qty} pcs {item.delivered_qty > 0 ? `| Delivered: ${item.delivered_qty} pcs` : ''}
-                                                                                </div>
-                                                                            </div>
-
-                                                                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                                                                <button
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        copyItemStatusToClipboard(item, po, language);
-                                                                                    }}
-                                                                                    className="btn-status-copy"
-                                                                                    style={{
-                                                                                        padding: '5px 10px',
-                                                                                        backgroundColor: 'var(--color-pg-surface)',
-                                                                                        color: '#fff',
-                                                                                        border: '1px solid var(--color-pg-border)',
-                                                                                        borderRadius: '6px',
-                                                                                        cursor: 'pointer',
-                                                                                        fontSize: '11px',
-                                                                                        fontWeight: 600,
-                                                                                        display: 'flex',
-                                                                                        alignItems: 'center',
-                                                                                        gap: '4px'
-                                                                                    }}
-                                                                                >
-                                                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                                                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                                                                    </svg>
-                                                                                    {copiedItemId === item.id 
-                                                                                        ? (language === 'id' ? 'Tersalin!' : 'Copied!') 
-                                                                                        : (language === 'id' ? 'Salin Status' : 'Copy Status')}
-                                                                                </button>
-
-                                                                                {!isOwner && !isCancelled && !isTerminated && (
-                                                                                    <div style={{ display: 'flex', gap: '6px' }}>
-                                                                                        <button
-                                                                                            onClick={(e) => { e.stopPropagation(); handleCancel(item.id); }}
-                                                                                            disabled={hasProgress}
-                                                                                            title={hasProgress ? "Cannot cancel. Progress has started." : ""}
-                                                                                            style={{
-                                                                                                padding: '5px 10px',
-                                                                                                backgroundColor: hasProgress ? 'var(--color-pg-border)' : 'rgba(239, 68, 68, 0.1)',
-                                                                                                color: hasProgress ? 'var(--color-pg-text-muted)' : '#ef4444',
-                                                                                                border: 'none',
-                                                                                                borderRadius: '6px',
-                                                                                                cursor: hasProgress ? 'not-allowed' : 'pointer',
-                                                                                                fontSize: '11px',
-                                                                                                fontWeight: 600,
-                                                                                            }}
-                                                                                        >
-                                                                                            Cancel
-                                                                                        </button>
-                                                                                        <button
-                                                                                            onClick={(e) => { e.stopPropagation(); handleTerminate(item.id); }}
-                                                                                            style={{
-                                                                                                padding: '5px 10px',
-                                                                                                backgroundColor: '#ef4444',
-                                                                                                color: '#fff',
-                                                                                                border: 'none',
-                                                                                                borderRadius: '6px',
-                                                                                                cursor: 'pointer',
-                                                                                                fontSize: '11px',
-                                                                                                fontWeight: 600,
-                                                                                                display: 'flex',
-                                                                                                alignItems: 'center',
-                                                                                                gap: '4px'
-                                                                                            }}
-                                                                                        >
-                                                                                            <Stop size={10} /> HALT
-                                                                                        </button>
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
-
-                                                                        {/* Secondary Statuses Micro-Dashboard Grid */}
-                                                                        <div style={{
-                                                                            display: 'grid',
-                                                                            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-                                                                            gap: '10px',
-                                                                            margin: '12px 0',
-                                                                            padding: '12px',
-                                                                            backgroundColor: 'var(--color-pg-surface)',
-                                                                            border: '1px solid var(--color-pg-border)',
-                                                                            borderRadius: '8px'
-                                                                        }}>
-                                                                            {/* Design / Draft */}
-                                                                            {item.drafter_status && (
-                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                                                                                    <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                                                        {language === 'id' ? 'Gambar/Draft' : 'Design/Draft'}
-                                                                                    </span>
-                                                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: item.drafter_status === 'APPROVED' ? 'var(--color-pg-success)' : 'var(--color-pg-primary-hover)' }}>
-                                                                                        {item.drafter_status === 'APPROVED' ? (language === 'id' ? 'Disetujui' : 'Approved') : item.drafter_status}
-                                                                                    </span>
-                                                                                </div>
-                                                                            )}
-                                                                            
-                                                                            {/* Material Readiness */}
-                                                                            {item.purchasing_status && (
-                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                                                                                    <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                                                        {language === 'id' ? 'Bahan Baku' : 'Material'}
-                                                                                    </span>
-                                                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: item.purchasing_status === 'READY' ? 'var(--color-pg-success)' : item.purchasing_status === 'PROSES' ? 'var(--color-pg-warning)' : 'var(--color-pg-primary-hover)' }}>
-                                                                                        {item.purchasing_status === 'READY' ? (language === 'id' ? 'Siap' : 'Ready') : item.purchasing_status === 'PROSES' ? (language === 'id' ? 'Dipesan' : 'Ordered') : item.purchasing_status}
-                                                                                    </span>
-                                                                                </div>
-                                                                            )}
-
-                                                                            {/* Delivery State */}
-                                                                            {item.delivery_status && (
-                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                                                                                    <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                                                        {language === 'id' ? 'Pengiriman' : 'Delivery'}
-                                                                                    </span>
-                                                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: item.delivery_status === 'DELIVERED' ? 'var(--color-pg-success)' : item.delivery_status === 'PARTIAL' ? 'var(--color-pg-warning)' : 'var(--color-pg-text-muted)' }}>
-                                                                                        {item.delivery_status === 'DELIVERED' ? (language === 'id' ? 'Terkirim' : 'Delivered') : item.delivery_status === 'PARTIAL' ? (language === 'id' ? 'Sebagian' : 'Partial') : (language === 'id' ? 'Belum Dikirim' : 'Pending')}
-                                                                                    </span>
-                                                                                </div>
-                                                                            )}
-
-                                                                            {/* Invoicing State */}
-                                                                            {item.invoice_status && (
-                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                                                                                    <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                                                        {language === 'id' ? 'Faktur' : 'Invoicing'}
-                                                                                    </span>
-                                                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: item.invoice_status === 'INVOICED' ? 'var(--color-pg-success)' : item.invoice_status === 'PARTIAL' ? 'var(--color-pg-orange)' : 'var(--color-pg-text-muted)' }}>
-                                                                                        {item.invoice_status === 'INVOICED' ? (language === 'id' ? 'Difakturkan' : 'Invoiced') : item.invoice_status === 'PARTIAL' ? (language === 'id' ? 'Sebagian' : 'Partial') : (language === 'id' ? 'Belum Difakturkan' : 'Pending')}
-                                                                                    </span>
-                                                                                </div>
-                                                                            )}
-
-                                                                            {/* Payment State */}
-                                                                            {item.payment_status && (
-                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                                                                                    <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                                                        {language === 'id' ? 'Pembayaran' : 'Payment'}
-                                                                                    </span>
-                                                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: item.payment_status === 'PAID' ? 'var(--color-pg-success)' : item.payment_status === 'PARTIAL_PAID' ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-muted)' }}>
-                                                                                        {item.payment_status === 'PAID' ? (language === 'id' ? 'Lunas' : 'Paid') : item.payment_status === 'PARTIAL_PAID' ? (language === 'id' ? 'Sebagian' : 'Partial') : (language === 'id' ? 'Belum Bayar' : 'Unpaid')}
-                                                                                    </span>
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-
-                                                                        {/* Piece Distribution & Forecast */}
-                                                                        {item.item_type === 'MANUFACTURE' && !isCancelled && !isTerminated && (
-                                                                            <div style={{
-                                                                                marginTop: '12px',
-                                                                                padding: '10px',
-                                                                                backgroundColor: 'var(--color-pg-surface)',
-                                                                                border: '1px solid var(--color-pg-border)',
-                                                                                borderRadius: '8px',
-                                                                            }}>
-                                                                                {/* Piece Locations Header */}
-                                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                                                                    <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                                                        {language === 'id' ? 'Distribusi Bagian' : 'Piece Distribution'}
-                                                                                    </span>
-                                                                                    {/* Dynamic Forecast (ETA) */}
-                                                                                    {(() => {
-                                                                                        const eta = calculateDynamicETA(item, telemetry, language);
-                                                                                        if (!eta) return null;
-                                                                                        return (
-                                                                                            <span style={{ fontSize: '11px', fontWeight: 600, color: eta.totalEstimatedDays <= 3 ? 'var(--color-pg-warning)' : '#818cf8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ width: '14px', height: '14px', display: 'inline-block' }}>
-                                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                                                                </svg>
-                                                                                                ETA: {eta.relativeText} ({eta.formattedDate.split(',')[0]})
-                                                                                            </span>
-                                                                                        );
-                                                                                    })()}
-                                                                                </div>
-                                                                                
-                                                                                {/* Pipeline Segment Bar */}
-                                                                                {(() => {
-                                                                                    const locations = getPieceLocations(item);
-                                                                                    if (locations.length === 0) return null;
-                                                                                    
-                                                                                    return (
-                                                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                                                                            {/* Segmented bar */}
-                                                                                            <div style={{
-                                                                                                display: 'flex',
-                                                                                                height: '10px',
-                                                                                                borderRadius: '5px',
-                                                                                                overflow: 'hidden',
-                                                                                                backgroundColor: 'var(--color-pg-surface)',
-                                                                                                width: '100%'
-                                                                                            }}>
-                                                                                                {locations.map((loc: any, lIdx: number) => {
-                                                                                                    const pct = (loc.qty / item.target_qty) * 100;
-                                                                                                    return (
-                                                                                                        <div 
-                                                                                                            key={`seg-${lIdx}`} 
-                                                                                                            style={{
-                                                                                                                width: `${pct}%`,
-                                                                                                                backgroundColor: loc.color === '#ef4444' ? '#ef4444' : loc.color === 'var(--color-pg-success)' ? 'var(--color-pg-success)' : '#3b82f6',
-                                                                                                                height: '100%',
-                                                                                                                transition: 'all 0.3s ease'
-                                                                                                            }}
-                                                                                                            title={`${loc.stage_name}: ${loc.qty} pcs`}
-                                                                                                        />
-                                                                                                    );
-                                                                                                })}
-                                                                                            </div>
-                                                                                            
-                                                                                            {/* Labels list */}
-                                                                                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                                                                                {locations.map((loc: any, lIdx: number) => (
-                                                                                                    <span 
-                                                                                                        key={`lbl-${lIdx}`} 
-                                                                                                        className="badge"
-                                                                                                        style={{
-                                                                                                            backgroundColor: loc.bg,
-                                                                                                            color: loc.color,
-                                                                                                            fontSize: '10px',
-                                                                                                            padding: '2px 6px',
-                                                                                                            borderRadius: '4px',
-                                                                                                            border: 'none',
-                                                                                                            fontWeight: 600
-                                                                                                        }}
-                                                                                                    >
-                                                                                                        {loc.stage_name}: {loc.qty} pcs
-                                                                                                    </span>
-                                                                                                ))}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    );
-                                                                                })()}
-                                                                            </div>
-                                                                        )}
-
-                                                                        {/* Alerts & Operational Troubles Section */}
-                                                                        {(() => {
-                                                                            if (itemAlerts.length === 0) return null;
-                                                                            
-                                                                            return (
-                                                                                <div style={{
-                                                                                    marginTop: '12px',
-                                                                                    padding: '10px',
-                                                                                    backgroundColor: 'rgba(239, 68, 68, 0.03)',
-                                                                                    border: '1px solid rgba(239, 68, 68, 0.1)',
-                                                                                    borderRadius: '8px',
-                                                                                }}>
-                                                                                    <div style={{ fontSize: '11px', fontWeight: 600, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ width: '14px', height: '14px', display: 'inline-block' }}>
-                                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                                                                        </svg>
-                                                                                        {language === 'id' ? 'Laporan Kendala & Rework' : 'Trouble Reports & Rework'}
-                                                                                    </div>
-                                                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                                                                        {itemAlerts.map((alert: any) => {
-                                                                                            const isRework = alert.severity === 'YELLOW' || alert.reason_type === 'QC Rework';
-                                                                                            const severityColor = isRework ? 'var(--color-pg-warning)' : '#ef4444';
-                                                                                            const badgeText = isRework 
-                                                                                                ? (language === 'id' ? 'Rework QC' : 'QC Rework')
-                                                                                                : (language === 'id' ? 'Kendala' : 'Trouble');
-                                                                                            
-                                                                                            return (
-                                                                                                <div 
-                                                                                                    key={alert.id}
-                                                                                                    style={{
-                                                                                                        fontSize: '12px',
-                                                                                                        color: 'var(--color-pg-text)',
-                                                                                                        display: 'flex',
-                                                                                                        flexDirection: 'column',
-                                                                                                        gap: '3px',
-                                                                                                        padding: '8px',
-                                                                                                        backgroundColor: 'var(--color-pg-surface)',
-                                                                                                        border: '1px solid var(--color-pg-border)',
-                                                                                                        borderRadius: '6px',
-                                                                                                        borderLeft: `3px solid ${severityColor}`,
-                                                                                                        textAlign: 'left'
-                                                                                                    }}
-                                                                                                >
-                                                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                                                                        <span className="badge" style={{ backgroundColor: `${severityColor}22`, color: severityColor, fontSize: '10px', padding: '1px 5px', border: 'none', fontWeight: 700 }}>
-                                                                                                            {badgeText}
-                                                                                                        </span>
-                                                                                                        <span style={{ fontSize: '10px', color: 'var(--color-pg-text-muted)' }}>
-                                                                                                            {formatAlertTime(alert.created_at, language)}
-                                                                                                        </span>
-                                                                                                    </div>
-                                                                                                    <div style={{ fontWeight: 500 }}>
-                                                                                                        {alert.message}
-                                                                                                    </div>
-                                                                                                    {alert.rework_reason && (
-                                                                                                        <div style={{ 
-                                                                                                            marginTop: '4px', 
-                                                                                                            padding: '6px', 
-                                                                                                            backgroundColor: 'rgba(251, 191, 36, 0.08)', 
-                                                                                                            border: '1px solid rgba(251, 191, 36, 0.15)',
-                                                                                                            borderRadius: '4px',
-                                                                                                            color: 'var(--color-pg-warning)',
-                                                                                                            fontSize: '11px',
-                                                                                                            fontWeight: 500,
-                                                                                                        }}>
-                                                                                                            <strong>{language === 'id' ? 'Alasan: ' : 'Reason: '}</strong>{alert.rework_reason}
-                                                                                                        </div>
-                                                                                                    )}
-                                                                                                    {alert.user?.name && (
-                                                                                                        <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                                                                                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ width: '12px', height: '12px', display: 'inline-block' }}>
-                                                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                                                                            </svg>
-                                                                                                            {language === 'id' ? 'Dilaporkan oleh' : 'Reported by'}: <span style={{ fontWeight: 600, color: 'var(--color-pg-text)' }}>{alert.user.name}</span>
-                                                                                                        </div>
-                                                                                                    )}
-                                                                                                </div>
-                                                                                            );
-                                                                                        })}
-                                                                                    </div>
-                                                                                </div>
-                                                                            );
-                                                                        })()}
-
-                                                                        {/* Stages display */}
-                                                                        {item.item_progresses && item.item_progresses.length > 0 && (
-                                                                            <div style={{ marginTop: '12px' }}>
-                                                                                <div style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)', marginBottom: '6px', fontWeight: 600 }}>
-                                                                                    Stages
-                                                                                </div>
-                                                                                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                                                                    {item.item_progresses.map((stage) => (
-                                                                                        <span key={stage.id} className="badge" style={{
-                                                                                            backgroundColor: stage.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.1)'
-                                                                                                : stage.status === 'STUCK' ? 'rgba(239, 68, 68, 0.1)' : 'var(--color-pg-border-subtle)',
-                                                                                            color: stage.status === 'COMPLETED' ? 'var(--color-pg-success)'
-                                                                                                : stage.status === 'STUCK' ? '#ef4444' : 'var(--color-pg-text-secondary)',
-                                                                                            border: '1px solid var(--color-pg-border)',
-                                                                                            fontSize: '11px',
-                                                                                            padding: '3px 8px'
-                                                                                        }}>
-                                                                                            {(() => {
-                                                                                                const nameLower = stage.stage_name.toLowerCase();
-                                                                                                const isDesign = nameLower.includes('design') || nameLower.includes('gambar') || nameLower.includes('draft');
-                                                                                                const isMaterial = nameLower.includes('material') || nameLower.includes('bahan') || nameLower.includes('vendor') || nameLower.includes('purchasing');
-
-                                                                                                let progressText = '';
-                                                                                                if (isDesign) {
-                                                                                                    const pct = parseFloat(stage.progress_percent);
-                                                                                                    if (stage.status === 'COMPLETED' || pct >= 100) {
-                                                                                                        progressText = language === 'id' ? 'Approved' : 'Approved';
-                                                                                                    } else if (pct > 0) {
-                                                                                                        progressText = language === 'id' ? 'Digambar' : 'Drawing';
-                                                                                                    } else {
-                                                                                                        progressText = 'Pending';
-                                                                                                    }
-                                                                                                } else if (isMaterial) {
-                                                                                                    const pct = parseFloat(stage.progress_percent);
-                                                                                                    if (stage.status === 'COMPLETED' || pct >= 100) {
-                                                                                                        progressText = language === 'id' ? 'Ready' : 'Ready';
-                                                                                                    } else if (pct >= 60) {
-                                                                                                        progressText = language === 'id' ? 'Terkirim' : 'Process';
-                                                                                                    } else if (pct >= 30) {
-                                                                                                        progressText = language === 'id' ? 'Dipesan' : 'Ordered';
-                                                                                                    } else {
-                                                                                                        progressText = 'Pending';
-                                                                                                    }
-                                                                                                } else {
-                                                                                                    progressText = item.target_qty > 1
-                                                                                                        ? `${stage.completed_qty}/${item.target_qty} pcs`
-                                                                                                        : (stage.completed_qty > 0 ? `${stage.completed_qty} pcs` : `${parseFloat(stage.progress_percent).toFixed(0)}%`);
-                                                                                                }
-
-                                                                                                return `${stage.stage_name}: ${progressText}`;
-                                                                                            })()}
-                                                                                        </span>
-                                                                                    ))}
-                                                                                </div>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                )}
-                                                             </div>
-                                                         );
-                                                     })
-                                                 )
-                                             }
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
+            {/* ── Alerts Tab (extracted: features/owner/AlertsTab) ── */}
+            {activeTab === 'alerts' && (
+                <AlertsTab
+                    language={language}
+                    t={t}
+                    alerts={alerts}
+                    getUnifiedIssuesList={getUnifiedIssuesList}
+                    formatAlertTime={formatAlertTime}
+                    formatReasonType={formatReasonType}
+                    changeTab={changeTab}
+                    setExpandedPOs={setExpandedPOs}
+                    setExpandedItems={setExpandedItems}
+                />
             )}
 
-            {activeTab === 'matrix' && telemetry && (() => {
-                // ── Per-render helpers ──────────────────────────────────────────
-                const prev = (telemetry.previous || {}) as any;
-                const rangeLabel = selected_range === 'week' ? t.this_week : selected_range === 'year' ? t.this_year : t.this_month;
+            {/* ── PO Grid Section (extracted: features/owner/PoGridSection) ── */}
+            {(activeTab === 'active' || activeTab === 'completed') && (
+                <PoGridSection
+                    activeTab={activeTab}
+                    filteredPos={filteredPos}
+                    activePoFilter={activePoFilter}
+                    setActivePoFilter={setActivePoFilter}
+                    expandedPOs={expandedPOs}
+                    expandedItems={expandedItems}
+                    togglePO={togglePO}
+                    toggleItem={toggleItem}
+                    language={language}
+                    t={t}
+                    alerts={alerts}
+                    telemetry={telemetry}
+                    workflow={workflow}
+                    isOwner={isOwner}
+                    handleCancel={handleCancel}
+                    handleTerminate={handleTerminate}
+                    renderStatusBadge={renderStatusBadge}
+                    getItemStateColor={getItemStateColor}
+                    getPieceLocations={getPieceLocations}
+                    calculateDynamicETA={calculateDynamicETA}
+                    formatAlertTime={formatAlertTime}
+                    copyItemStatusToClipboard={copyItemStatusToClipboard}
+                    copiedItemId={copiedItemId}
+                />
+            )}
 
-                const otdrDelta: number | null = (telemetry.otdr != null && prev.otdr != null)
-                    ? Math.round((telemetry.otdr - prev.otdr) * 10) / 10
-                    : null;
-
-                const deliveredCurr: number = telemetry.manufacture?.delivered ?? telemetry.manufacture?.completed ?? 0;
-                const deliveredPrev: number = prev.manufacture?.delivered ?? 0;
-                const deliveredDelta: number | null = deliveredPrev > 0
-                    ? Math.round(((deliveredCurr - deliveredPrev) / deliveredPrev) * 100)
-                    : null;
-
-                const delayDelta: number | null = prev.avg_delay_days != null
-                    ? Math.round((telemetry.avg_delay_days - prev.avg_delay_days) * 10) / 10
-                    : null;
-
-                // Top stuck stage for narrative
-                const topStuck = [...(telemetry.stage_metrics || [])]
-                    .sort((a: any, b: any) => b.stuck_count - a.stuck_count)
-                    .find((m: any) => m.stuck_count > 0);
-
-                const delayedPosCount: number = telemetry.delayed_pos_count ?? 0;
-                const delayedItemsCount: number = telemetry.delayed_items?.length ?? 0;
-                const avgDelay: number = telemetry.avg_delay_days ?? 0;
-                const redAlerts: number = telemetry.risks?.red ?? 0;
-                const yellowAlerts: number = telemetry.risks?.yellow ?? 0;
-                const isAllNormal = !topStuck && delayedPosCount === 0 && delayedItemsCount === 0 && redAlerts === 0 && yellowAlerts === 0;
-
-                // Auto-narrative (Bahasa Indonesia primary)
-                let narrative = '';
-                if (language === 'id') {
-                    narrative = telemetry.otdr != null
-                        ? `Periode ini, pabrik menyelesaikan ${telemetry.otdr}% pesanan tepat waktu`
-                        : `Periode ini, belum ada pesanan yang selesai untuk dihitung ketepatan waktunya`;
-                    if (otdrDelta != null && otdrDelta !== 0) {
-                        narrative += otdrDelta > 0
-                            ? ` — naik ${Math.abs(otdrDelta)}% dari periode lalu`
-                            : ` — turun ${Math.abs(otdrDelta)}% dari periode lalu`;
-                    }
-                    narrative += '. ';
-                    if (delayedPosCount > 0 || delayedItemsCount > 0 || avgDelay > 0) {
-                        if (delayedPosCount > 0) {
-                            narrative += `Terdapat ${delayedPosCount} PO aktif yang terlambat dari jadwal (rata-rata keterlambatan ${avgDelay} hari). `;
-                        } else {
-                            narrative += `Terdapat item produksi yang mengalami keterlambatan (rata-rata ${avgDelay} hari). `;
-                        }
-                    }
-                    if (topStuck) {
-                        narrative += `Bottleneck utama ada di tahap ${topStuck.stage} (${topStuck.stuck_count} item macet, rata-rata ${topStuck.avg_cycle_time} hari/item). `;
-                    } else if (redAlerts > 0) {
-                        narrative += `Terdapat ${redAlerts} kendala kritis (RED) yang aktif di lantai produksi. `;
-                    } else if (isAllNormal) {
-                        narrative += 'Semua tahap produksi dan waktu pengiriman berjalan normal sesuai jadwal. ';
-                    }
-                    if ((telemetry.urgent_active || 0) > 0) {
-                        narrative += `Terdapat ${telemetry.urgent_active} PO mendesak (Urgent) yang sedang diproduksi. `;
-                    }
-                    if ((telemetry.finance_health?.uninvoiced_count || 0) > 0) {
-                        narrative += `Perhatian keuangan: ${telemetry.finance_health.uninvoiced_count} item selesai belum dibuatkan faktur.`;
-                    }
-                } else {
-                    narrative = telemetry.otdr != null
-                        ? `This period, the factory completed ${telemetry.otdr}% of orders on time`
-                        : `This period, no completed orders yet to evaluate on-time rate`;
-                    if (otdrDelta != null && otdrDelta !== 0) {
-                        narrative += otdrDelta > 0
-                            ? ` — up ${Math.abs(otdrDelta)}% vs last period`
-                            : ` — down ${Math.abs(otdrDelta)}% vs last period`;
-                    }
-                    narrative += '. ';
-                    if (delayedPosCount > 0 || delayedItemsCount > 0 || avgDelay > 0) {
-                        if (delayedPosCount > 0) {
-                            narrative += `${delayedPosCount} active order(s) are delayed past deadline (avg delay ${avgDelay} days). `;
-                        } else {
-                            narrative += `Production items are behind schedule (avg delay ${avgDelay} days). `;
-                        }
-                    }
-                    if (topStuck) {
-                        narrative += `Top bottleneck: ${topStuck.stage} stage (${topStuck.stuck_count} stuck, avg ${topStuck.avg_cycle_time} days/item). `;
-                    } else if (redAlerts > 0) {
-                        narrative += `There are ${redAlerts} active critical (RED) alerts on the production floor. `;
-                    } else if (isAllNormal) {
-                        narrative += 'All production stages and delivery timelines running normally on schedule. ';
-                    }
-                    if ((telemetry.urgent_active || 0) > 0) {
-                        narrative += `${telemetry.urgent_active} urgent order(s) currently in production. `;
-                    }
-                    if ((telemetry.finance_health?.uninvoiced_count || 0) > 0) {
-                        narrative += `Finance alert: ${telemetry.finance_health.uninvoiced_count} completed item(s) pending invoice.`;
-                    }
-                }
-
-                // Pipeline stage health color
-                const getStageHealth = (metric: any) => {
-                    if (metric.stuck_count > 0) return { border: 'rgba(239,68,68,0.6)', bg: 'rgba(239,68,68,0.08)', label: '#ef4444' };
-                    if (metric.avg_cycle_time > 3) return { border: 'rgba(249,115,22,0.5)', bg: 'rgba(249,115,22,0.07)', label: 'var(--color-pg-orange)' };
-                    if (metric.avg_cycle_time > 1) return { border: 'rgba(234,179,8,0.4)', bg: 'rgba(234,179,8,0.05)', label: 'var(--color-pg-warning)' };
-                    return { border: 'rgba(16,185,129,0.35)', bg: 'rgba(16,185,129,0.05)', label: 'var(--color-pg-success)' };
-                };
-
-                const pipelineStages = (telemetry.stage_metrics || [])
-                    .filter((m: any) => !m.stage.toLowerCase().includes('rework'));
-
-                // ── Delay display fix (negative = ahead of schedule) ──
-                const delayDays = telemetry.avg_delay_days;
-                const delayColor = delayDays <= 0 ? 'var(--color-pg-success)'
-                    : delayDays <= 3 ? 'var(--color-pg-warning)'
-                    : '#ef4444';
-                const delayDisplay = delayDays < 0
-                    ? `${Math.abs(delayDays)} ${language === 'id' ? 'Hari Lebih Cepat' : 'Days Early'}`
-                    : delayDays === 0
-                    ? (language === 'id' ? 'Tepat Waktu' : 'On Time')
-                    : `${delayDays} ${language === 'id' ? 'Hari' : 'Days'}`;
-
-                // ── Status badge helper (dedup from table+mobile) ────
-                const getStatusBadge = (item: any) => {
-                    if (['COMPLETED', 'DELIVERED', 'CLOSED'].includes(item.po_status)) {
-                        if (item.invoice_status === 'UNINVOICED')
-                            return { label: language === 'id' ? 'Belum Difakturkan' : 'Finance: Uninvoiced', color: 'var(--color-pg-warning)', bg: 'rgba(234,179,8,0.1)' };
-                        if (item.invoice_status === 'PARTIAL')
-                            return { label: (language === 'id' ? 'Faktur Sebagian' : 'Finance: Partial Invoice') + ` (${item.invoiced_qty}/${item.target_qty})`, color: '#a855f7', bg: 'rgba(168,85,247,0.1)' };
-                        if (item.payment_status === 'UNPAID')
-                            return { label: language === 'id' ? 'Belum Dibayar' : 'Finance: Unpaid', color: 'var(--color-pg-orange)', bg: 'rgba(249,115,22,0.1)' };
-                        if (item.payment_status === 'PARTIAL_PAID')
-                            return { label: language === 'id' ? 'Dibayar Sebagian' : 'Finance: Partial Paid', color: 'var(--color-pg-primary)', bg: 'rgba(99,102,241,0.1)' };
-                        return { label: language === 'id' ? 'Selesai & Lunas' : 'Closed / Settled', color: 'var(--color-pg-success)', bg: 'rgba(16,185,129,0.1)' };
-                    }
-                    return { label: item.current_stage || '-', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' };
-                };
-
-                // ── Pipeline health key ──────────────────────────────
-                const getHealthKey = (metric: any): string => {
-                    if (metric.stuck_count > 0) return 'stuck';
-                    if (metric.avg_cycle_time > 3) return 'slow';
-                    if (metric.avg_cycle_time > 1) return 'watch';
-                    return 'normal';
-                };
-                
-                return (
-                    <div className="performance-matrix-container" style={{ marginBottom: '40px' }}>
-
-                        {/* ── Control Row ──────────────────────────────────── */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-                            <div style={{ display: 'flex', gap: '8px', backgroundColor: 'var(--color-pg-surface)', padding: '4px', borderRadius: '8px', border: '1px solid var(--color-pg-border)' }}>
-                                {['week', 'month', 'year'].map(r => (
-                                    <button
-                                        key={r}
-                                        onClick={() => handleRangeChange(r)}
-                                        style={{
-                                            padding: '6px 12px',
-                                            backgroundColor: selected_range === r ? 'var(--color-pg-primary)' : 'transparent',
-                                            color: selected_range === r ? 'var(--color-pg-primary-ink)' : 'var(--color-pg-text-secondary)',
-                                            border: 'none',
-                                            borderRadius: '6px',
-                                            fontWeight: 600,
-                                            fontSize: '12px',
-                                            cursor: 'pointer',
-                                        }}
-                                    >
-                                        {r === 'week' ? t.this_week : r === 'month' ? t.this_month : t.this_year}
-                                    </button>
-                                ))}
-                            </div>
-                            <div className="export-dropdown-wrap">
-                                <button
-                                    onClick={() => setExportOpen(v => !v)}
-                                    style={{
-                                        padding: '8px 16px',
-                                        backgroundColor: 'var(--color-pg-surface)',
-                                        color: 'var(--color-pg-text)',
-                                        border: '1px solid var(--color-pg-border)',
-                                        borderRadius: '8px',
-                                        fontWeight: 600,
-                                        fontSize: '12px',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                    }}
-                                >
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                    {language === 'id' ? 'Ekspor' : 'Export'} ▾
-                                </button>
-                                {exportOpen && (
-                                    <>
-                                        <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setExportOpen(false)} />
-                                        <div className="export-dropdown-menu">
-                                            <a href={`/c/${tenant?.slug}/export-csv?range=${selected_range || 'month'}`} onClick={() => setExportOpen(false)}>
-                                                📄 CSV
-                                            </a>
-                                            <a href={`/c/${tenant?.slug}/export-xlsx?range=${selected_range || 'month'}`} onClick={() => setExportOpen(false)}>
-                                                📊 Excel
-                                            </a>
-                                            <a href={`/c/${tenant?.slug}/export-pdf?range=${selected_range || 'month'}`} target="_blank" onClick={() => setExportOpen(false)}>
-                                                📑 PDF
-                                            </a>
-                                            <hr />
-                                            <button onClick={() => { togglePresentationMode(); setExportOpen(false); }}>
-                                                🖥️ {isPresentationMode ? t.exit_presentation : t.presentation_mode}
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-
-                        <DashboardMetrics
-                            language={language}
-                            t={t}
-                            rangeLabel={rangeLabel}
-                            narrative={narrative}
-                            telemetry={telemetry}
-                            setMatrixFilter={setMatrixFilter}
-                            matrixFilter={matrixFilter}
-                            otdrDelta={otdrDelta}
-                            deliveredCurr={deliveredCurr}
-                            deliveredDelta={deliveredDelta}
-                            delayDays={delayDays}
-                            delayColor={delayColor}
-                            delayDisplay={delayDisplay}
-                            delayDelta={delayDelta}
-                        />
-
-                        
-                        <ProductionPipeline
-                            language={language}
-                            pipelineStages={pipelineStages}
-                            getStageHealth={getStageHealth}
-                            getHealthKey={getHealthKey}
-                            matrixFilter={matrixFilter}
-                            setMatrixFilter={setMatrixFilter}
-                        />
-
-                        <ActiveDelayDirectory
-                            matrixFilter={matrixFilter}
-                            setMatrixFilter={setMatrixFilter}
-                            language={language}
-                            t={t}
-                            getFilteredMatrix={getFilteredMatrix}
-                            changeTab={changeTab}
-                            togglePO={togglePO}
-                            getStatusBadge={getStatusBadge}
-                        />
-
-                        {/* ── Section 5: Finance Health Strip ──────────────────── */}
-                        <FinanceHealthStrip
-                            telemetry={telemetry}
-                            language={language}
-                            matrixFilter={matrixFilter}
-                            setMatrixFilter={setMatrixFilter}
-                        />
-
-                        {/* ── Chart Row ─────────────────────────────────────────── */}
-                        <ChartRow
-                            t={t}
-                            language={language}
-                            telemetry={telemetry}
-                            matrixFilter={matrixFilter}
-                            setMatrixFilter={setMatrixFilter}
-                        />
-
-                        {/* ── Bottleneck Detail Table ───────────────────────────── */}
-                        <BottleneckDetailTable
-                            t={t}
-                            language={language}
-                            telemetry={telemetry}
-                            matrixFilter={matrixFilter}
-                            setMatrixFilter={setMatrixFilter}
-                        />
-
-                        {/* ── Section 4: Papan Kinerja Klien ───────────────────── */}
-                        <ClientPerformanceBoard
-                            language={language}
-                            telemetry={telemetry}
-                            matrixFilter={matrixFilter}
-                            setMatrixFilter={setMatrixFilter}
-                        />
-                    </div>
-                );
-            })()}
+            {/* ── Matrix Tab (extracted: features/owner/MatrixTab) ── */}
+            {activeTab === 'matrix' && (
+                <MatrixTab
+                    telemetry={telemetry}
+                    selected_range={selected_range}
+                    handleRangeChange={handleRangeChange}
+                    matrixFilter={matrixFilter}
+                    setMatrixFilter={setMatrixFilter}
+                    language={language}
+                    t={t}
+                    tenant={tenant}
+                    togglePO={togglePO}
+                    changeTab={changeTab}
+                    isPresentationMode={isPresentationMode}
+                    togglePresentationMode={togglePresentationMode}
+                    exportOpen={exportOpen}
+                    setExportOpen={setExportOpen}
+                    alerts={alerts}
+                    setExpandedPOs={setExpandedPOs}
+                    setExpandedItems={setExpandedItems}
+                    dirCollapsed={dirCollapsed}
+                    setDirCollapsed={setDirCollapsed}
+                    directoryFilter={directoryFilter}
+                    setDirectoryFilter={setDirectoryFilter}
+                />
+            )}
 
 
             </div>
 
-            {/* ── Team / User Management Tab ─────────────────────────────── */}
-            {activeTab === 'team' && (() => {
-                const ALL_ROLES = (roles ?? []).map(r => r.name);
-                const filteredUsers = userRoleFilter === 'ALL'
-                    ? [...users]
-                    : users.filter(u => u.role_name === userRoleFilter);
-
-                const roleColorMap: Record<string, { bg: string; color: string }> = {
-                    DRAFTER:      { bg: 'rgba(168,85,247,0.12)',   color: '#a855f7' },
-                    PURCHASING:   { bg: 'rgba(249,115,22,0.12)',   color: 'var(--color-pg-orange)' },
-                    MACHINING:    { bg: 'rgba(20,184,166,0.12)',   color: '#14b8a6' },
-                    FABRICATION:  { bg: 'rgba(99,102,241,0.12)',   color: 'var(--color-pg-primary)' },
-                    PRODUCTION:   { bg: 'rgba(100,116,139,0.12)',  color: 'var(--color-pg-text-muted)' },
-                    QC:           { bg: 'rgba(248,113,113,0.12)',    color: 'var(--color-pg-danger)' },
-                    DELIVERY:     { bg: 'rgba(16,185,129,0.12)',   color: 'var(--color-pg-success)' },
-                    STAFF:        { bg: 'rgba(99,102,241,0.12)',   color: 'var(--color-pg-primary-hover)' },
-                    FINANCE:      { bg: 'rgba(236,72,153,0.12)',   color: '#ec4899' },
-                };
-
-                return (
-                <div>
-                        {/* Header */}
-                        <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-                            <div>
-                                <h2 className="text-lg font-bold m-0 mb-0.5">{t.team_title}</h2>
-                                <p className="text-xs text-pg-text-muted m-0">{t.team_subtitle}</p>
-                            </div>
-                            <button
-                                onClick={isOwner ? openAddAdmin : openAddUser}
-                                className="px-3.5 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-pg-success text-xs font-bold cursor-pointer flex items-center gap-1.5 shrink-0"
-                            >
-                                <Plus size={14} /> {t.add_user}
-                            </button>
-                        </div>
-
-                        {/* Role Filters: Dropdown for Mobile, Pills for Desktop (Rule: No side scrolling on mobile) */}
-                        <div style={{ marginBottom: '16px' }}>
-                            {/* Mobile Dropdown View */}
-                            <div className="show-mobile-only">
-                                <label className="block text-[11px] text-pg-text-muted mb-1.5 font-semibold uppercase">
-                                    {language === 'en' ? 'Filter by Role' : 'Saring berdasarkan Role'}
-                                </label>
-                                <select
-                                    value={userRoleFilter}
-                                    onChange={e => setUserRoleFilter(e.target.value)}
-                                    className="w-full p-2.5 px-3.5 bg-pg-surface border border-pg-border rounded-lg text-pg-text text-sm font-semibold outline-none"
-                                >
-                                    <option value="ALL">{t.filter_all_roles}</option>
-                                    {ALL_ROLES.map(role => (
-                                        users.some(u => u.role_name === role) ? (
-                                            <option key={role} value={role}>{role}</option>
-                                        ) : null
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Desktop Pills View */}
-                            <div className="hide-mobile-only flex gap-1.5 flex-wrap items-center">
-                                <button
-                                    onClick={() => setUserRoleFilter('ALL')}
-                                    style={{
-                                        padding: '6px 14px',
-                                        borderRadius: '9999px',
-                                        fontSize: '12px',
-                                        fontWeight: 600,
-                                        border: '1px solid',
-                                        borderColor: userRoleFilter === 'ALL' ? 'var(--color-pg-primary)' : 'var(--color-pg-border)',
-                                        backgroundColor: userRoleFilter === 'ALL' ? 'var(--color-pg-primary-glow)' : 'var(--color-pg-border-subtle)',
-                                        color: userRoleFilter === 'ALL' ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
-                                        flexShrink: 0,
-                                    }}
-                                >
-                                    {t.filter_all_roles}
-                                </button>
-                                {ALL_ROLES.map(role => (
-                                    users.some(u => u.role_name === role) ? (
-                                        <button
-                                            key={role}
-                                            onClick={() => setUserRoleFilter(role)}
-                                            style={{
-                                                padding: '6px 14px',
-                                                borderRadius: '9999px',
-                                                fontSize: '12px',
-                                                fontWeight: 600,
-                                                border: '1px solid',
-                                                borderColor: userRoleFilter === role
-                                                    ? (roleColorMap[role]?.color || 'var(--color-pg-text-muted)')
-                                                    : 'var(--color-pg-border)',
-                                                backgroundColor: userRoleFilter === role
-                                                    ? (roleColorMap[role]?.bg || 'var(--color-pg-surface)')
-                                                    : 'var(--color-pg-border-subtle)',
-                                                color: userRoleFilter === role
-                                                    ? (roleColorMap[role]?.color || 'var(--color-pg-text-muted)')
-                                                    : 'var(--color-pg-text-secondary)',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s ease',
-                                                flexShrink: 0,
-                                            }}
-                                        >
-                                            {role}
-                                        </button>
-                                    ) : null
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* User cards grid */}
-                        {filteredUsers.length === 0 ? (
-                            <div className="text-center p-10 text-pg-text-muted text-sm">
-                                {t.no_users}
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3">
-                                    {filteredUsers.map(user => {
-                                        const isSelf = user.id === auth_user?.id;
-                                        const loginMethod = user.username ? 'PASSWORD' : 'PIN';
-                                        const roleStyle = roleColorMap[user.role_name] || { bg: 'rgba(100,116,139,0.12)', color: 'var(--color-pg-text-muted)' };
-                                        return (
-                                            <div
-                                                key={user.id}
-                                                className="user-card bg-pg-surface border border-pg-border rounded-xl p-4 flex flex-col gap-2.5"
-                                            >
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-extrabold shrink-0"
-                                                        style={{
-                                                            backgroundColor: roleStyle.bg,
-                                                            border: `1px solid ${roleStyle.color}30`,
-                                                            color: roleStyle.color,
-                                                        }}>
-                                                        {user.name.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                                            <span className="text-sm font-bold text-pg-text">
-                                                                {user.name}
-                                                            </span>
-                                                            {isSelf && (
-                                                                <span className="text-[10px] bg-blue-500/15 text-blue-500 px-1.5 py-px rounded font-bold">
-                                                                    {t.user_self_badge}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        {user.username && (
-                                                            <div className="text-[11px] text-pg-text-muted mt-px">@{user.username}</div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="flex gap-1.5 flex-wrap">
-                                                    <span className="text-[10px] font-bold px-2 py-[3px] rounded-md"
-                                                        style={{ backgroundColor: roleStyle.bg, color: roleStyle.color }}>
-                                                        {localizedDisplay({ display_name: user.role_display_name, display_name_id: user.role_display_name_id }, language)}
-                                                    </span>
-                                                    <span className="text-[10px] font-bold px-2 py-[3px] rounded-md"
-                                                        style={{
-                                                            backgroundColor: loginMethod === 'PASSWORD'
-                                                                ? 'rgba(99,102,241,0.12)'
-                                                                : 'rgba(16,185,129,0.1)',
-                                                            color: loginMethod === 'PASSWORD' ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-success)',
-                                                        }}>
-                                                        {loginMethod === 'PASSWORD' ? '🔑 ' + t.login_method_password : '🔢 ' + t.login_method_pin}
-                                                    </span>
-                                                </div>
-
-                                                {!(isOwner && user.is_owner && !isSelf) && (
-                                                    <button
-                                                        id={`edit-user-${user.id}`}
-                                                        onClick={() => openEditUser(user)}
-                                                        className="py-2 bg-white/4 border border-white/8 rounded-lg text-pg-text-secondary text-xs font-semibold cursor-pointer w-full text-center"
-                                                    >
-                                                        ✏️ {t.edit_user}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-
-                        {/* ── Workflow & Validation Settings ────────────────────── */}
-                        <div className="mt-8 bg-pg-surface border border-pg-border rounded-2xl p-6">
-                            <div className="mb-4">
-                                <h3 className="text-base font-extrabold text-pg-text m-0 mb-1">
-                                    {language === 'en' ? 'Workflow & Validation Rules' : 'Aturan Alur Kerja & Validasi'}
-                                </h3>
-                                <p className="text-xs text-pg-text-muted m-0">
-                                    {language === 'en' 
-                                        ? 'Define rules and locks between design, material purchasing, production, QC, and delivery stages.' 
-                                        : 'Tentukan aturan dan kuncian antara tahap desain, pembelian bahan, produksi, QC, dan pengiriman.'}
-                                </p>
-                            </div>
-
-                            <form onSubmit={saveWorkflowSettings}>
-                                {/* Mode Selection Group */}
-                                <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3 mb-5">
-                                    {[
-                                        { value: 'loose', label: language === 'en' ? 'Loose Mode' : 'Mode Longgar', desc: language === 'en' ? 'Production is not blocked by design/material readiness.' : 'Produksi tidak dikunci oleh kesiapan desain/bahan.' },
-                                        { value: 'strict', label: language === 'en' ? 'Strict Mode' : 'Mode Ketat', desc: language === 'en' ? 'Design and material must be 100% ready to start production.' : 'Desain dan bahan harus 100% siap untuk mulai produksi.' },
-                                        { value: 'custom', label: language === 'en' ? 'Custom Mode' : 'Mode Kustom', desc: language === 'en' ? 'Configure individual gate locks manually.' : 'Atur kuncian gerbang secara manual.' }
-                                    ].map(mode => {
-                                        const isSelected = workflowMode === mode.value;
-                                        return (
-                                            <div
-                                                key={mode.value}
-                                                onClick={() => {
-                                                    setWorkflowMode(mode.value as any);
-                                                    if (mode.value === 'strict') {
-                                                        setReqDesign(true);
-                                                        setReqMaterial(true);
-                                                        setReqProductionForQc(true);
-                                                        setReqQcForDelivery(true);
-                                                        setReqDeliveryForFinance(true);
-                                                    } else if (mode.value === 'loose') {
-                                                        setReqDesign(false);
-                                                        setReqMaterial(false);
-                                                        setReqProductionForQc(true);
-                                                        setReqQcForDelivery(true);
-                                                        setReqDeliveryForFinance(true);
-                                                    }
-                                                }}
-                                                className="rounded-xl p-4 cursor-pointer transition-all duration-200"
-                                                style={{
-                                                    backgroundColor: isSelected ? 'var(--color-pg-primary-glow)' : 'var(--color-pg-border-subtle)',
-                                                    border: '1px solid',
-                                                    borderColor: isSelected ? 'var(--color-pg-primary)' : 'var(--color-pg-border)',
-                                                }}
-                                            >
-                                                <div className="flex items-center gap-2 mb-1.5">
-                                                    <div className="w-4 h-4 rounded-full box-border"
-                                                        style={{
-                                                            border: isSelected ? '5px solid var(--color-pg-primary)' : '2px solid var(--color-pg-border)',
-                                                            backgroundColor: isSelected ? '#fff' : 'transparent',
-                                                        }} />
-                                                    <span className="text-sm font-bold" style={{ color: isSelected ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text)' }}>
-                                                        {mode.label}
-                                                    </span>
-                                                </div>
-                                                <p className="text-[11px] text-pg-text-secondary m-0">{mode.desc}</p>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* Custom Toggles Box */}
-                                {workflowMode === 'custom' && (
-                                    <div className="bg-black/20 rounded-xl p-4 mb-5 flex flex-col gap-3 border border-white/4">
-                                        {[
-                                            { state: reqDesign, setter: setReqDesign, label: language === 'en' ? 'Require Design Approved (APPROVED) to start Production' : 'Wajib Desain Disetujui (APPROVED) untuk memulai Produksi' },
-                                            { state: reqMaterial, setter: setReqMaterial, label: language === 'en' ? 'Require Material Ready (READY) to start Production' : 'Wajib Bahan Siap (READY) untuk memulai Produksi' },
-                                            { state: reqProductionForQc, setter: setReqProductionForQc, label: language === 'en' ? 'Require Production Completed to start QC' : 'Wajib Produksi Selesai untuk memulai QC' },
-                                            { state: reqQcForDelivery, setter: setReqQcForDelivery, label: language === 'en' ? 'Require QC Completed to start Delivery' : 'Wajib QC Selesai untuk memulai Pengiriman' },
-                                            { state: reqDeliveryForFinance, setter: setReqDeliveryForFinance, label: language === 'en' ? 'Require Delivery Completed to start Finance stage' : 'Wajib Pengiriman Selesai untuk memulai Keuangan' }
-                                        ].map((rule, idx) => (
-                                            <label key={idx} className="flex items-center gap-2.5 cursor-pointer text-sm text-pg-text">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={rule.state}
-                                                    onChange={e => rule.setter(e.target.checked)}
-                                                    style={{
-                                                        width: '16px', height: '16px', borderRadius: '4px',
-                                                        accentColor: 'var(--color-pg-primary)', cursor: 'pointer'
-                                                    }}
-                                                />
-                                                {rule.label}
-                                            </label>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* Submit Button */}
-                                <div className="flex justify-end">
-                                    <button
-                                        type="submit"
-                                        disabled={isSavingSettings}
-                                        className="px-4.5 py-2 rounded-lg text-white text-sm font-bold border-none transition-all duration-200"
-                                        style={{
-                                            backgroundColor: isSavingSettings ? 'rgba(99,102,241,0.5)' : 'var(--color-pg-primary)',
-                                            cursor: isSavingSettings ? 'not-allowed' : 'pointer',
-                                        }}
-                                    >
-                                        {isSavingSettings 
-                                            ? (language === 'en' ? 'Saving...' : 'Menyimpan...') 
-                                            : (language === 'en' ? 'Save Settings' : 'Simpan Pengaturan')}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-
-                        {/* ── Stage Templates Section ───────────────────────── */}
-                        <div className="mt-8 bg-pg-surface border border-pg-border rounded-2xl p-6">
-                            <div className="mb-4 flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-base font-extrabold text-pg-text m-0 mb-1">{t.stage_templates}</h3>
-                                    <p className="text-xs text-pg-text-muted m-0">{t.stage_templates_subtitle}</p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setEditingTemplate(null);
-                                        setTemplateFormName('');
-                                        setTemplateFormDesc('');
-                                        setTemplateFormStages([]);
-                                        setShowTemplateModal(true);
-                                    }}
-                                    className="px-3 py-1.5 rounded-lg text-white text-xs font-bold border-none transition-all duration-200 cursor-pointer"
-                                    style={{ backgroundColor: 'var(--color-pg-primary)' }}
-                                >
-                                    + {t.add_template}
-                                </button>
-                            </div>
-
-                            {stageTemplates.length === 0 ? (
-                                <div className="text-center py-8">
-                                    <p className="text-sm text-pg-text-muted m-0">{t.no_templates}</p>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col gap-2">
-                                    {stageTemplates.map(tmpl => (
-                                        <div key={tmpl.id} className="flex items-center justify-between bg-black/20 rounded-xl p-3 border border-white/4">
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="text-sm font-bold text-pg-text">{tmpl.name}</span>
-                                                    {tmpl.description && (
-                                                        <span className="text-xs text-pg-text-muted truncate">{tmpl.description}</span>
-                                                    )}
-                                                </div>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {tmpl.stages.map(s => (
-                                                        <span key={s} className="text-[10px] px-1.5 py-0.5 rounded"
-                                                            style={{ backgroundColor: 'var(--color-pg-primary-glow)', color: 'var(--color-pg-primary-hover)' }}>
-                                                            {s}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2 ml-3 shrink-0">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setEditingTemplate(tmpl);
-                                                        setTemplateFormName(tmpl.name);
-                                                        setTemplateFormDesc(tmpl.description || '');
-                                                        setTemplateFormStages([...tmpl.stages]);
-                                                        setShowTemplateModal(true);
-                                                    }}
-                                                    className="px-2.5 py-1 rounded-lg text-xs font-bold border border-white/8 cursor-pointer transition-all duration-200"
-                                                    style={{ color: 'var(--color-pg-text)', backgroundColor: 'var(--color-pg-border-subtle)' }}
-                                                >
-                                                    {t.edit_template}
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (confirm(` ${t.delete_template_confirm}`)) {
-                                                            router.post(`/stage-templates/${tmpl.id}/delete`, {}, {
-                                                                preserveState: true,
-                                                                preserveScroll: true,
-                                                                onSuccess: () => {
-                                                                    setStageTemplates(prev => prev.filter(st => st.id !== tmpl.id));
-                                                                },
-                                                            });
-                                                        }
-                                                    }}
-                                                    className="px-2.5 py-1 rounded-lg text-xs font-bold border-none cursor-pointer transition-all duration-200"
-                                                    style={{ color: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)' }}
-                                                >
-                                                    {t.delete_template}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                );
-            })()}
+            {/* ── Team / User Management Tab (extracted: features/owner/TeamTab) ── */}
+            {activeTab === 'team' && (
+                <TeamTab
+                    users={users}
+                    roles={roles}
+                    auth_user={auth_user}
+                    isOwner={isOwner}
+                    language={language}
+                    t={t}
+                    userRoleFilter={userRoleFilter}
+                    setUserRoleFilter={setUserRoleFilter}
+                    openAddUser={openAddUser}
+                    openAddAdmin={openAddAdmin}
+                    openEditUser={openEditUser}
+                    workflowMode={workflowMode}
+                    setWorkflowMode={setWorkflowMode}
+                    saveWorkflowSettings={saveWorkflowSettings}
+                    isSavingSettings={isSavingSettings}
+                    reqDesign={reqDesign}
+                    setReqDesign={setReqDesign}
+                    reqMaterial={reqMaterial}
+                    setReqMaterial={setReqMaterial}
+                    reqProductionForQc={reqProductionForQc}
+                    setReqProductionForQc={setReqProductionForQc}
+                    reqQcForDelivery={reqQcForDelivery}
+                    setReqQcForDelivery={setReqQcForDelivery}
+                    reqDeliveryForFinance={reqDeliveryForFinance}
+                    setReqDeliveryForFinance={setReqDeliveryForFinance}
+                    stageTemplates={stageTemplates}
+                    setStageTemplates={setStageTemplates}
+                    setEditingTemplate={setEditingTemplate}
+                    setShowTemplateModal={setShowTemplateModal}
+                    setTemplateFormName={setTemplateFormName}
+                    setTemplateFormDesc={setTemplateFormDesc}
+                    setTemplateFormStages={setTemplateFormStages}
+                />
+            )}
 
             {activeTab === 'branding' && (
                 <div style={{ paddingTop: '20px' }}>
@@ -3805,230 +2214,19 @@ ${locationStr}
             />
 
             {/* ── Search Modal ────────────────────────────────────────── */}
-            {showSearchModal && (() => {
-                const results = getSearchResults();
-                const totalResults = results.pos.length + results.items.length + results.clients.length + results.alerts.length;
+            <SearchModal
+                showSearchModal={showSearchModal}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                setShowSearchModal={setShowSearchModal}
+                getSearchResults={getSearchResults}
+                handleSearchItemClick={handleSearchItemClick}
+                handleSearchAlertClick={handleSearchAlertClick}
+                language={language}
+                t={t}
+                pos={pos ?? []}
+            />
 
-                return (
-                    <div
-                        id="search-modal"
-                        className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start justify-center z-[100] p-10 px-5"
-                        onClick={e => { if (e.target === e.currentTarget) setShowSearchModal(false); }}
-                    >
-                        <div className="bg-pg-card border border-white/8 rounded-2xl p-6 shadow-2xl w-full max-w-[640px] max-h-[80vh] flex flex-col">
-                            {/* Header */}
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-extrabold m-0">
-                                    {language === 'en' ? 'Search Directory' : 'Cari Data'}
-                                </h3>
-                                <button
-                                    onClick={() => setShowSearchModal(false)}
-                                    className="bg-transparent border-none text-pg-text-muted text-xl cursor-pointer leading-none px-1"
-                                >×</button>
-                            </div>
-                            
-                            {/* Search Input */}
-                            <div className="relative mb-4 shrink-0">
-                                <Search size={18} className="absolute left-3.5 top-3.5 text-pg-text-muted" />
-                                <input
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={e => setSearchQuery(e.target.value)}
-                                    placeholder={language === 'en' ? "Search POs, items, clients, or issues..." : "Cari nomor PO, barang, klien, atau kendala..."}
-                                    autoFocus
-                                    className="w-full py-3 px-4 pl-[42px] bg-pg-bg border border-white/8 rounded-xl text-white text-sm outline-none box-border"
-                                />
-                            </div>
-
-                            {/* Results list */}
-                            <div className="flex-1 overflow-y-auto pr-1">
-                                {!searchQuery.trim() ? (
-                                    <div className="text-center p-10 px-5 text-pg-text-muted">
-                                        <div className="text-2xl mb-3">🔍</div>
-                                        <p className="text-sm font-semibold m-0 mb-1">
-                                            {language === 'en' ? 'Search POs, Items, Clients & Issues' : 'Cari PO, Barang, Klien & Kendala'}
-                                        </p>
-                                        <p className="text-xs m-0">
-                                            {language === 'en' ? 'Type above to query client names, PO numbers, item statuses, and logged trouble reports.' : 'Ketik di atas untuk mencari nama klien, nomor PO, status barang, dan laporan kendala.'}
-                                        </p>
-                                    </div>
-                                ) : totalResults === 0 ? (
-                                    <div className="text-center p-10 px-5 text-pg-text-muted">
-                                        <div className="text-2xl mb-3">📭</div>
-                                        <p className="text-sm font-semibold m-0 mb-1">
-                                            {language === 'en' ? 'No results found' : 'Tidak ada hasil'}
-                                        </p>
-                                        <p className="text-xs m-0">
-                                            {language === 'en' ? `No matches found for "${searchQuery}"` : `Tidak ada hasil pencarian untuk "${searchQuery}"`}
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col gap-5">
-                                        {/* 1. Alerts / Issues Section */}
-                                        {results.alerts.length > 0 && (
-                                            <div>
-                                                <h4 className="text-[11px] text-pg-primary-hover font-bold uppercase mb-2 tracking-wider">
-                                                    {language === 'en' ? 'Alerts & Operational Issues' : 'Kendala & Masalah Operasional'}
-                                                </h4>
-                                                <div className="flex flex-col gap-2">
-                                                    {results.alerts.map((issue: any) => {
-                                                        const badgeColor = issue.severity === 'RED' ? '#ef4444' 
-                                                            : issue.severity === 'BLUE' ? '#3b82f6' 
-                                                            : issue.severity === 'ORANGE' ? 'var(--color-pg-orange)'
-                                                            : 'var(--color-pg-warning)';
-
-                                                        return (
-                                                            <div
-                                                                key={issue.id}
-                                                                onClick={() => handleSearchAlertClick(issue.id.replace('alert-db-', '').replace('alert-pin-', ''))}
-                                                                className="bg-white/3 border border-white/6 rounded-lg p-3 cursor-pointer transition-all duration-150 hover-grow"
-                                                            >
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded text-white"
-                                                                        style={{ backgroundColor: badgeColor }}>
-                                                                        {issue.title}
-                                                                    </span>
-                                                                </div>
-                                                                <p className="text-sm m-0 text-pg-text">{issue.message}</p>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* 2. Purchase Orders Section */}
-                                        {results.pos.length > 0 && (
-                                            <div>
-                                                <h4 className="text-[11px] text-pg-primary-hover font-bold uppercase mb-2 tracking-wider">
-                                                    {language === 'en' ? 'Purchase Orders (POs)' : 'Daftar PO'}
-                                                </h4>
-                                                <div className="flex flex-col gap-2">
-                                                    {results.pos.map((po: any) => {
-                                                        const itemsProgress = po.items.length > 0
-                                                            ? Math.round(po.items.reduce((sum: number, item: any) => sum + parseFloat(item.progress_percent), 0) / po.items.length)
-                                                            : 0;
-
-                                                        return (
-                                                            <div
-                                                                key={po.id}
-                                                                onClick={() => handleSearchItemClick(po.id)}
-                                                                className="bg-white/3 border border-white/6 rounded-lg p-3 cursor-pointer hover-grow"
-                                                            >
-                                                                <div className="flex justify-between items-center mb-1.5">
-                                                                    <span className="mono text-sm font-extrabold text-pg-text">{po.po_number}</span>
-                                                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded"
-                                                                        style={{
-                                                                            color: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? 'var(--color-pg-success)' : 'var(--color-pg-warning)',
-                                                                            backgroundColor: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? 'rgba(16,185,129,0.12)' : 'rgba(234,179,8,0.12)',
-                                                                        }}>
-                                                                        {po.status}
-                                                                    </span>
-                                                                </div>
-                                                                <div className="flex justify-between text-xs text-pg-text-secondary mb-1.5">
-                                                                    <span>{po.client_name}</span>
-                                                                    <span>{language === 'en' ? 'Deadline: ' : 'Tenggat: '} {formatDDMMYYYY(po.global_deadline)}</span>
-                                                                </div>
-                                                                {/* Progress Bar */}
-                                                                <div className="flex items-center gap-2">
-                                                                    <div className="flex-1 h-1.5 bg-white/8 rounded-sm overflow-hidden">
-                                                                        <div style={{ width: `${itemsProgress}%`, height: '100%', backgroundColor: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? '#10b981' : 'var(--color-pg-primary)', borderRadius: '3px' }} />
-                                                                    </div>
-                                                                    <span className="text-[11px] font-bold text-pg-text">{itemsProgress}%</span>
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* 3. Items Section */}
-                                        {results.items.length > 0 && (
-                                            <div>
-                                                <h4 className="text-[11px] text-pg-primary-hover font-bold uppercase mb-2 tracking-wider">
-                                                    {language === 'en' ? 'Items & Components' : 'Barang & Komponen'}
-                                                </h4>
-                                                <div className="flex flex-col gap-2">
-                                                    {results.items.map((item: any) => {
-                                                        const progress = Math.round(parseFloat(item.progress_percent));
-
-                                                        return (
-                                                            <div
-                                                                key={`${item.po_id}-${item.id}`}
-                                                                onClick={() => handleSearchItemClick(item.po_id, item.id)}
-                                                                className="bg-white/3 border border-white/6 rounded-lg p-3 cursor-pointer hover-grow"
-                                                            >
-                                                                <div className="flex justify-between items-center mb-1">
-                                                                    <span className="text-sm font-bold text-pg-text">{item.item_name}</span>
-                                                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded"
-                                                                        style={{
-                                                                            color: item.status === 'COMPLETED' ? 'var(--color-pg-success)' : '#a855f7',
-                                                                            backgroundColor: item.status === 'COMPLETED' ? 'rgba(16,185,129,0.12)' : 'rgba(168,85,247,0.12)',
-                                                                        }}>
-                                                                        {item.status}
-                                                                    </span>
-                                                                </div>
-                                                                <div className="text-[11px] text-pg-text-secondary mb-2">
-                                                                    {item.client_name} &middot; PO {item.po_number}
-                                                                </div>
-                                                                {/* Progress Bar */}
-                                                                <div className="flex items-center gap-2">
-                                                                    <div className="flex-1 h-1 bg-white/8 rounded-sm overflow-hidden">
-                                                                        <div style={{ width: `${progress}%`, height: '100%', backgroundColor: item.status === 'COMPLETED' ? '#10b981' : '#a855f7', borderRadius: '2px' }} />
-                                                                    </div>
-                                                                    <span className="text-[10px] font-bold text-pg-text">{progress}%</span>
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-                                        
-                                        {/* 4. Clients Section */}
-                                        {results.clients.length > 0 && (
-                                            <div>
-                                                <h4 className="text-[11px] text-pg-primary-hover font-bold uppercase mb-2 tracking-wider">
-                                                    {language === 'en' ? 'Clients' : 'Klien'}
-                                                </h4>
-                                                <div className="grid grid-cols-1 gap-2">
-                                                    {results.clients.map((clientName: string) => {
-                                                        const clientPos = pos.filter(p => p.client_name === clientName);
-                                                        const activeCount = clientPos.filter(p => p.status !== 'COMPLETED').length;
-                                                        const doneCount = clientPos.filter(p => p.status === 'COMPLETED').length;
-
-                                                        return (
-                                                            <div
-                                                                key={clientName}
-                                                                onClick={() => {
-                                                                    const firstPo = clientPos[0];
-                                                                    if (firstPo) handleSearchItemClick(firstPo.id);
-                                                                }}
-                                                                className="bg-white/3 border border-white/6 rounded-lg p-3 cursor-pointer flex justify-between items-center hover-grow"
-                                                            >
-                                                                <span className="text-sm font-bold text-pg-text">{clientName}</span>
-                                                                <div className="flex gap-2">
-                                                                    <span className="text-[10px] text-pg-warning bg-amber-500/12 px-1.5 py-0.5 rounded font-semibold">
-                                                                        {activeCount} {language === 'en' ? 'Active' : 'Aktif'}
-                                                                    </span>
-                                                                    <span className="text-[10px] text-pg-success bg-emerald-500/12 px-1.5 py-0.5 rounded font-semibold">
-                                                                        {doneCount} {language === 'en' ? 'Done' : 'Selesai'}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                );
-            })()}
 
             {/* Version Footer */}
             <div style={{
@@ -4045,108 +2243,21 @@ ${locationStr}
 
             {/* ── Template Create/Edit Modal ─────────────────────────────── */}
             {showTemplateModal && (
-                <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[60]"
-                    onClick={e => { if (e.target === e.currentTarget) setShowTemplateModal(false); }}>
-                    <div className="bg-pg-card border border-white/8 rounded-2xl p-6 shadow-2xl w-full max-w-[480px] max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-5">
-                            <h3 className="text-base font-extrabold text-pg-text m-0">
-                                {editingTemplate ? t.edit_template : t.add_template}
-                            </h3>
-                            <button onClick={() => setShowTemplateModal(false)}
-                                className="bg-transparent border-none text-pg-text-muted text-xl cursor-pointer leading-none px-1">&times;</button>
-                        </div>
-
-                        <form onSubmit={(e) => {
-                            e.preventDefault();
-                            if (!templateFormName.trim() || templateFormStages.length === 0) return;
-                            setIsSavingTemplate(true);
-                            const url = editingTemplate
-                                ? `/stage-templates/${editingTemplate.id}/update`
-                                : '/stage-templates';
-                            router.post(url, {
-                                name: templateFormName.trim(),
-                                description: templateFormDesc.trim() || '',
-                                stages: templateFormStages,
-                            }, {
-                                preserveState: true,
-                                preserveScroll: true,
-                                onSuccess: () => {
-                                    setShowTemplateModal(false);
-                                    setTemplateFormName('');
-                                    setTemplateFormDesc('');
-                                    setTemplateFormStages([]);
-                                    setIsSavingTemplate(false);
-                                    fetch('/stage-templates')
-                                        .then(res => res.json())
-                                        .then(data => {
-                                            if (data.templates) setStageTemplates(data.templates);
-                                        })
-                                        .catch(() => {});
-                                },
-                                onError: () => setIsSavingTemplate(false),
-                                onFinish: () => setIsSavingTemplate(false),
-                            });
-                        }}>
-                            <div className="flex flex-col gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-pg-text-muted mb-1.5">{t.template_name}</label>
-                                    <input type="text" value={templateFormName}
-                                        onChange={e => setTemplateFormName(e.target.value)}
-                                        placeholder={t.template_name_placeholder}
-                                        className="w-full px-3 py-2.5 bg-pg-bg border border-white/8 rounded-xl text-white text-sm outline-none box-border"
-                                        required />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-pg-text-muted mb-1.5">{t.template_description}</label>
-                                    <input type="text" value={templateFormDesc}
-                                        onChange={e => setTemplateFormDesc(e.target.value)}
-                                        placeholder={t.template_desc_placeholder}
-                                        className="w-full px-3 py-2.5 bg-pg-bg border border-white/8 rounded-xl text-white text-sm outline-none box-border" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-pg-text-muted mb-2">{t.select_stages_hint}</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {ALL_STAGES_TEMPLATE.map(stage => {
-                                            const isSelected = templateFormStages.includes(stage);
-                                            return (
-                                                <button key={stage} type="button"
-                                                    onClick={() => {
-                                                        setTemplateFormStages(prev =>
-                                                            prev.includes(stage)
-                                                                ? prev.filter(s => s !== stage)
-                                                                : [...prev, stage]
-                                                        );
-                                                    }}
-                                                    className="px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-all duration-150 cursor-pointer"
-                                                    style={{
-                                                        borderColor: isSelected ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-border)',
-                                                        backgroundColor: isSelected ? 'rgba(99,102,241,0.2)' : 'transparent',
-                                                        color: isSelected ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
-                                                    }}>
-                                                    {stage}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex gap-3 justify-end mt-6">
-                                <button type="button" onClick={() => setShowTemplateModal(false)}
-                                    className="px-4 py-2.5 bg-pg-surface border border-pg-border text-pg-text rounded-lg font-semibold cursor-pointer">
-                                    {t.cancel}
-                                </button>
-                                <button type="submit" disabled={isSavingTemplate || !templateFormName.trim() || templateFormStages.length === 0}
-                                    className="px-5 py-2.5 border-none text-white rounded-xl font-semibold cursor-pointer"
-                                    style={{
-                                        background: isSavingTemplate ? '#4f46e5' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                                        opacity: (isSavingTemplate || !templateFormName.trim() || templateFormStages.length === 0) ? 0.6 : 1,
-                                    }}>
-                                    {isSavingTemplate ? '...' : t.save_template}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <StageTemplateModal
+                    editingTemplate={editingTemplate}
+                    templateFormName={templateFormName}
+                    setTemplateFormName={setTemplateFormName}
+                    templateFormDesc={templateFormDesc}
+                    setTemplateFormDesc={setTemplateFormDesc}
+                    templateFormStages={templateFormStages}
+                    setTemplateFormStages={setTemplateFormStages}
+                    isSavingTemplate={isSavingTemplate}
+                    setIsSavingTemplate={setIsSavingTemplate}
+                    allStages={ALL_STAGES_TEMPLATE}
+                    onClose={() => setShowTemplateModal(false)}
+                    onSaved={setStageTemplates}
+                    t={t}
+                />
             )}
 
             {selectedItemIds.size > 0 && (

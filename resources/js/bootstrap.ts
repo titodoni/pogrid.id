@@ -1,16 +1,19 @@
+/// <reference types="vite/client" />
 import Pusher from 'pusher-js';
 import Echo from 'laravel-echo';
+
+type PusherEcho = Echo<'pusher'>;
 
 declare global {
     interface Window {
         Pusher: typeof Pusher;
-        LaravelEchoInstance?: Echo;
+        LaravelEchoInstance?: PusherEcho;
     }
 }
 
 window.Pusher = Pusher;
 
-let actualEcho: Echo | null = null;
+let actualEcho: PusherEcho | null = null;
 
 export function initializeEcho(key: string, cluster: string) {
     if (actualEcho) {
@@ -36,7 +39,7 @@ export function initializeEcho(key: string, cluster: string) {
 // Initial fallback initialization
 initializeEcho('', '');
 
-const echo = new Proxy({} as Echo, {
+const echo = new Proxy({} as PusherEcho, {
     get(target, prop, receiver) {
         if (!actualEcho) {
             initializeEcho('', '');

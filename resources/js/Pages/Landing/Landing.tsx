@@ -9,16 +9,14 @@ import { useTranslation } from "@/i18n/useTranslation";
 type Lang = 'en' | 'id';
 
 function detectLang(): Lang {
-    if (typeof window === 'undefined') return 'en';
+    if (typeof window === 'undefined') return 'id';
     try {
         const saved = window.localStorage.getItem('pogrid_landing_lang');
         if (saved === 'en' || saved === 'id') return saved;
-        const nav = (window.navigator.language || '').toLowerCase();
-        if (nav.startsWith('id')) return 'id';
     } catch {
         /* localStorage unavailable — fall through to default */
     }
-    return 'en';
+    return 'id';
 }
 
 function appUrl(path: string): string {
@@ -37,8 +35,6 @@ function waUrl(lang: Lang): string {
             : 'Hello, I am interested in POgrid. I would like to request a demo.';
     return `https://wa.me/628151678101?text=${encodeURIComponent(text)}`;
 }
-
-type Dict = (typeof translations)['en'];
 
 /* ============================================================
    Motion primitives

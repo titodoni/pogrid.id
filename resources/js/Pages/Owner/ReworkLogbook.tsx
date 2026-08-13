@@ -61,6 +61,9 @@ interface Props {
         item_breakdown: ItemBreakdown[];
     };
     selected_range: string;
+    tenant?: {
+        logo_path?: string | null;
+    };
 }
 
 const Bar: React.FC<{ value: number; max: number; color: string; height?: number }> = ({ value, max, color, height = 48 }) => {
@@ -133,8 +136,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range, 
                         <button
                             onClick={() => {
                                 const lang = language === 'en' ? 'id' : 'en';
-                                setLanguage(lang);
-                                localStorage.setItem('pogrid_lang', lang);
+                                changeLanguage(lang);
                             }}
                             style={{
                                 padding: '6px 10px',
@@ -388,7 +390,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range, 
                 {/* ── Table View ────────────────────────────────── */}
                 {view === 'table' && (
                     <>
-                        {filtered.length === 0 ? (
+                        {filteredEvents.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--color-pg-text-secondary)' }}>
                         <div style={{ fontSize: '40px', marginBottom: '12px', opacity: 0.3 }}>📋</div>
                                 <div style={{ fontWeight: 600 }}>{t.no_rework}</div>
@@ -410,7 +412,7 @@ export default function ReworkLogbook({ rework_events, summary, selected_range, 
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filtered.map(event => (
+                                        {filteredEvents.map(event => (
                                             <tr key={event.id} style={{ borderBottom: '1px solid var(--color-pg-border)', transition: 'background-color 0.15s' }}
                                                 onMouseOver={e => e.currentTarget.style.backgroundColor = 'var(--color-pg-card-hover)'}
                                                 onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}

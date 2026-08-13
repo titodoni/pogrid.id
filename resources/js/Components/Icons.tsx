@@ -3,12 +3,13 @@ import React from 'react';
 interface IconProps {
     size?: number;
     className?: string;
+    style?: React.CSSProperties;
 }
 
-export const ChevronDown: React.FC<IconProps & { expanded?: boolean }> = ({ size = 16, expanded, className }) => (
+export const ChevronDown: React.FC<IconProps & { expanded?: boolean }> = ({ size = 16, expanded, className, style }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
         className={className}
-        style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+        style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', ...style }}>
         <polyline points="6 9 12 15 18 9" />
     </svg>
 );
@@ -84,8 +85,8 @@ export const DotGreen: React.FC<IconProps> = ({ size = 10, className }) => (
     </svg>
 );
 
-export const AlertTriangle: React.FC<IconProps> = ({ size = 16, className }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+export const AlertTriangle: React.FC<IconProps> = ({ size = 16, className, style }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
         <line x1="12" y1="9" x2="12" y2="13" />
         <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -105,8 +106,8 @@ export const Close: React.FC<IconProps> = ({ size = 14, className }) => (
     </svg>
 );
 
-export const Search: React.FC<IconProps> = ({ size = 18, className }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+export const Search: React.FC<IconProps> = ({ size = 18, className, style }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
         <circle cx="11" cy="11" r="8" />
         <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>

@@ -3,12 +3,17 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { AlertTriangle, Settings, Palette } from '../../Components/Icons';
 import { formatDeadline } from '../../Utils/deadline';
 import { localizedDisplay } from '../../Utils/locale';
-import { isStageLocked, getStageLockReason, getMatchingStages, getMatchingStageOrMock, getAllStages } from '../../Utils/permissions';
+import { isStageLocked, getStageLockReason, getMatchingStages, getMatchingStageOrMock, getAllStages, getFinanceStage } from '../../Utils/permissions';
 import { WarningPill } from '../../Components/WarningPill';
 import { WorkerHeader } from '../../Components/WorkerHeader';
 import BroadcastToasts from '../../Components/BroadcastToasts';
 import echo from '../../bootstrap';
 import { useTranslation } from "@/i18n/useTranslation";
+import { useEchoPresence } from '../../Hooks/useEchoPresence';
+import FinancePanel from '../../features/worker/FinancePanel';
+import KendalaForm from '../../features/worker/KendalaForm';
+import ProgressControls from '../../features/worker/ProgressControls';
+import QcReworkForm from '../../features/worker/QcReworkForm';
 
 interface Stage {
     id: number;
@@ -82,7 +87,6 @@ interface ItemCardProps {
     userRole: string;
     slug: string;
     language: 'en' | 'id';
-    translations: any;
 }
 
 function ItemCard({
@@ -90,138 +94,11 @@ function ItemCard({
     userRole,
     slug,
     language,
-    translations,
 }: ItemCardProps) {
-    const t = translations[language];
+    const { t } = useTranslation('Worker_Dashboard');
     const [isHovered, setIsHovered] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const getAllStages = (item: Item): Stage[] => {
-        const isVendor = item.item_progresses.some(s => s.stage_name === 'Vendor');
-        const isManufacture = !isVendor;
-
-        const displayStages = [...item.item_progresses];
-        if (isManufacture) {
-            const isPaid = item.payment_status === 'PAID';
-            const isInvoiced = item.invoice_status === 'INVOICED';
-            const financeStatus = (isPaid && isInvoiced) ? 'COMPLETED' : 'PENDING';
-            const financePercent = (isPaid && isInvoiced) ? '100' : '0';
-
-            displayStages.push({
-                id: -item.id,
-                stage_name: 'Finance',
-                completed_qty: 0,
-                progress_percent: financePercent,
-                status: financeStatus,
-            });
-        }
-        return displayStages;
-    };
-
-    const getStageLockReason = (item: Item, stageName: string, userRole: string, lang: 'en' | 'id') => {
-        const t = translations[lang];
-        const stageLower = stageName.toLowerCase();
-
-        // First check role permission
-        if (isStageLocked(item, stageName, userRole)) {
-            // Find if it's role mismatch
-            const role = userRole.toUpperCase();
-            const officeRoles = ['OWNER', 'ADMIN', 'SALES', 'MANAGER'];
-            if (!officeRoles.includes(role)) {
-                if ((stageLower.includes('design') || stageLower.includes('gambar') || stageLower.includes('draft')) && role !== 'DRAFTER') return t.role_mismatch;
-                if ((stageLower.includes('material') || stageLower.includes('bahan')) && role !== 'PURCHASING') return t.role_mismatch;
-                if ((stageLower.includes('machining') || stageLower.includes('cnc')) && (role !== 'MACHINING' && role !== 'CNC' && role !== 'PRODUCTION')) return t.role_mismatch;
-                if ((stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) && (role !== 'FABRICATION' && role !== 'PRODUCTION')) return t.role_mismatch;
-                if ((stageLower.includes('vendor') || stageLower.includes('purchasing')) && role !== 'PURCHASING') return t.role_mismatch;
-                if (stageLower === 'qc' && role !== 'QC') return t.role_mismatch;
-                if ((stageLower === 'delivery' || stageLower === 'pengiriman') && role !== 'DELIVERY') return t.role_mismatch;
-                if (stageLower === 'finance' && role !== 'FINANCE') return t.role_mismatch;
-            }
-
-            // Off-state locks
-            const originalStages = item.item_progresses
-                .map(s => s.stage_name)
-                .filter(name => !['QC', 'Delivery', 'Finance', 'Pengiriman'].includes(name) && !name.endsWith('REWORK'));
-            const isVendorJob = originalStages.some(name => name.toLowerCase().includes('vendor'));
-
-            if (isVendorJob) {
-                if (['machining', 'fabrication', 'fabrikasi', 'cnc', 'qc', 'delivery', 'pengiriman', 'finance'].some(v => stageLower.includes(v))) {
-                    return t.off_state;
-                }
-            } else {
-                if ((stageLower.includes('machining') || stageLower.includes('cnc')) && !originalStages.some(name => name.toLowerCase().includes('machining') || name.toLowerCase().includes('cnc'))) return t.off_state;
-                if ((stageLower.includes('fabrication') || stageLower.includes('fabrikasi')) && !originalStages.some(name => name.toLowerCase().includes('fabrication') || name.toLowerCase().includes('fabrikasi'))) return t.off_state;
-                if (stageLower.includes('vendor')) return t.off_state;
-
-
-
-                if (stageLower === 'qc') {
-                    const prodStages = item.item_progresses.filter(s => 
-                        (s.stage_name.toLowerCase().includes('machining') || 
-                         s.stage_name.toLowerCase().includes('cnc') || 
-                         s.stage_name.toLowerCase().includes('fabrication') || 
-                         s.stage_name.toLowerCase().includes('fabrikasi')) &&
-                        !s.stage_name.toLowerCase().includes('rework')
-                    );
-                    if (prodStages.some(s => s.status !== 'COMPLETED')) return t.locked_qc;
-                }
-
-                if (stageLower === 'delivery' || stageLower === 'pengiriman') {
-                    const qcStage = item.item_progresses.find(s => s.stage_name === 'QC');
-                    if (!qcStage || (item.target_qty > 1 ? qcStage.completed_qty === 0 : parseFloat(qcStage.progress_percent) < 100)) {
-                        return t.locked_delivery;
-                    }
-                }
-
-                if (stageLower === 'finance') {
-                    const deliveryStage = item.item_progresses.find(s => s.stage_name === 'Delivery' || s.stage_name === 'Pengiriman');
-                    if (!deliveryStage || (item.target_qty > 1 ? deliveryStage.completed_qty === 0 : parseFloat(deliveryStage.progress_percent) < 100)) {
-                        return t.locked_finance;
-                    }
-                }
-            }
-        }
-        return null;
-    };
-
-    const getMatchingStages = (item: Item, role: string): Stage[] => {
-        const roleUpper = role.toUpperCase();
-        const isVendor = item.item_progresses.some(s => s.stage_name === 'Vendor');
-        const isManufacture = !isVendor;
-
-        const displayStages = [...item.item_progresses];
-        if (isManufacture) {
-            const isPaid = item.payment_status === 'PAID';
-            const isInvoiced = item.invoice_status === 'INVOICED';
-            const financeStatus = (isPaid && isInvoiced) ? 'COMPLETED' : 'PENDING';
-            const financePercent = (isPaid && isInvoiced) ? '100' : '0';
-
-            displayStages.push({
-                id: -item.id,
-                stage_name: 'Finance',
-                completed_qty: 0,
-                progress_percent: financePercent,
-                status: financeStatus,
-            });
-        }
-
-        return displayStages.filter(stage => {
-            const nameLower = stage.stage_name.toLowerCase();
-            if ((roleUpper === 'CNC' || roleUpper === 'MACHINING' || roleUpper === 'PRODUCTION') && (nameLower.includes('machining') || nameLower.includes('cnc'))) return true;
-            if ((roleUpper === 'FABRICATION' || roleUpper === 'PRODUCTION') && (nameLower.includes('fabrication') || nameLower.includes('fabrikasi'))) return true;
-            if (roleUpper === 'QC' && nameLower === 'qc') return true;
-            if (roleUpper === 'DELIVERY' && (nameLower === 'delivery' || nameLower === 'pengiriman')) return true;
-            if (roleUpper === 'FINANCE' && nameLower === 'finance') return true;
-            if (roleUpper === 'DRAFTER' && (nameLower.includes('design') || nameLower.includes('gambar') || nameLower.includes('draft'))) return true;
-            if (roleUpper === 'PURCHASING' && (nameLower.includes('vendor') || nameLower.includes('purchasing') || nameLower.includes('material') || nameLower.includes('bahan'))) return true;
-            return false;
-        });
-    };
-
-    const getMatchingStageOrMock = (item: Item, role: string) => {
-        const stages = getMatchingStages(item, role);
-        return stages.length > 0 ? stages[0] : null;
-    };
 
     const [activeStage, setActiveStage] = useState<{ stage: Stage; item: Item } | null>(() => {
         const matched = getMatchingStageOrMock(item, userRole);
@@ -260,21 +137,8 @@ function ItemCard({
             if (updatedStage) {
                 setActiveStage({ stage: updatedStage, item });
             } else if (activeStage.stage.id === -item.id) {
-                // Virtual finance stage
-                const isPaid = item.payment_status === 'PAID';
-                const isInvoiced = item.invoice_status === 'INVOICED';
-                const financeStatus = (isPaid && isInvoiced) ? 'COMPLETED' : 'PENDING';
-                const financePercent = (isPaid && isInvoiced) ? '100' : '0';
-                setActiveStage({
-                    stage: {
-                        id: -item.id,
-                        stage_name: 'Finance',
-                        completed_qty: 0,
-                        progress_percent: financePercent,
-                        status: financeStatus,
-                    },
-                    item
-                });
+                // Virtual finance stage (single derivation: getFinanceStage)
+                setActiveStage({ stage: getFinanceStage(item), item });
             }
         } else {
             const matched = getMatchingStageOrMock(item, userRole);
@@ -328,18 +192,7 @@ function ItemCard({
             onSuccess: (page) => {
                 const updatedItem = (page.props.items as Item[]).find(i => i.id === currentItem.id);
                 if (updatedItem) {
-                    const finPercent = updatedItem.invoice_status === 'INVOICED' && updatedItem.payment_status === 'PAID' ? '100' : '0';
-                    const finStatus = updatedItem.invoice_status === 'INVOICED' && updatedItem.payment_status === 'PAID' ? 'COMPLETED' : 'PENDING';
-                    setActiveStage({
-                        stage: {
-                            id: -updatedItem.id,
-                            stage_name: 'Finance',
-                            completed_qty: 0,
-                            progress_percent: finPercent,
-                            status: finStatus,
-                        },
-                        item: updatedItem,
-                    });
+                    setActiveStage({ stage: getFinanceStage(updatedItem), item: updatedItem });
                 }
             }
         });
@@ -844,198 +697,22 @@ function ItemCard({
                                 }
 
                                 if (activeStage.stage.stage_name === 'Finance') {
-
                                     return (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            {/* Delivery Status & Delivered Qty Display for Finance */}
-                                            <div style={{
-                                                padding: '12px',
-                                                backgroundColor: 'var(--color-pg-border-subtle)',
-                                                border: '1px solid var(--color-pg-border)',
-                                                borderRadius: '8px',
-                                                marginBottom: '8px',
-                                            }}>
-                                                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', marginBottom: '2px' }}>
-                                                    {language === 'en' ? 'Item Delivery Status' : 'Status Pengiriman Barang'}
-                                                </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                    <span style={{
-                                                        fontSize: '13px',
-                                                        fontWeight: 700,
-                                                        color: item.delivery_status === 'DELIVERED' ? 'var(--color-pg-success)' :
-                                                            item.delivery_status === 'PARTIAL' ? 'var(--color-pg-warning)' : '#3b82f6'
-                                                    }}>
-                                                        {item.delivery_status === 'DELIVERED'
-                                                            ? (language === 'id' ? 'Terkirim' : 'Delivered')
-                                                            : item.delivery_status === 'PARTIAL'
-                                                            ? (language === 'id' ? 'Terkirim Sebagian' : 'Partially Delivered')
-                                                            : (language === 'id' ? 'Belum Dikirim' : 'Pending Delivery')}
-                                                    </span>
-                                                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-pg-text)' }}>
-                                                        {item.delivered_qty ?? 0} / {item.target_qty} pcs
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                <span style={{
-                                                    fontSize: '12px',
-                                                    fontWeight: 700,
-                                                    padding: '2px 8px',
-                                                    borderRadius: '6px',
-                                                    backgroundColor: invoiceStatus === 'INVOICED' ? 'rgba(52, 211, 153, 0.12)' :
-                                                        invoiceStatus === 'PARTIAL' ? 'rgba(168, 85, 247, 0.12)' : 'var(--color-pg-surface)',
-                                                    color: invoiceStatus === 'INVOICED' ? 'var(--color-pg-success)' :
-                                                        invoiceStatus === 'PARTIAL' ? '#c084fc' : 'var(--color-pg-text-secondary)',
-                                                    border: '1px solid ' + (invoiceStatus === 'INVOICED' ? 'rgba(52, 211, 153, 0.2)' :
-                                                        invoiceStatus === 'PARTIAL' ? 'rgba(168, 85, 247, 0.2)' : 'var(--color-pg-surface)'),
-                                                }}>
-                                                    {t.invoice_label}: {invoiceStatus === 'INVOICED' ? t.invoiced : invoiceStatus === 'PARTIAL' ? `${t.partially_invoiced} (${invoicedQty}/${item.target_qty})` : t.uninvoiced}
-                                                </span>
-                                                <span style={{
-                                                    fontSize: '12px',
-                                                    fontWeight: 700,
-                                                    padding: '2px 8px',
-                                                    borderRadius: '6px',
-                                                    backgroundColor: paymentStatus === 'PAID' ? 'rgba(52, 211, 153, 0.12)' :
-                                                        paymentStatus === 'PARTIAL_PAID' ? 'rgba(99, 102, 241, 0.12)' : 'var(--color-pg-surface)',
-                                                    color: paymentStatus === 'PAID' ? 'var(--color-pg-success)' :
-                                                        paymentStatus === 'PARTIAL_PAID' ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
-                                                    border: '1px solid ' + (paymentStatus === 'PAID' ? 'rgba(52, 211, 153, 0.2)' :
-                                                        paymentStatus === 'PARTIAL_PAID' ? 'rgba(99, 102, 241, 0.2)' : 'var(--color-pg-surface)'),
-                                                }}>
-                                                    {t.payment_label}: {paymentStatus === 'PAID' ? t.paid : paymentStatus === 'PARTIAL_PAID' ? t.partially_paid : t.unpaid}
-                                                </span>
-                                            </div>
-
-                                            {/* Status selectors and qty input */}
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', marginTop: '12px' }}>
-                                                {/* Invoiced Status Selection */}
-                                                <div>
-                                                <                                                label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--color-pg-text-secondary)', marginBottom: '6px', textTransform: 'uppercase' }}>
-                                                    {language === 'en' ? 'Invoice Status' : 'Status Invoice'}
-                                                </label>
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                                                        {(['UNINVOICED', 'PARTIAL', 'INVOICED'] as const).map(status => {
-                                                            const isSel = invoiceStatus === status;
-                                                            return (
-                                                                <button
-                                                                    key={status}
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        setInvoiceStatus(status);
-                                                                        if (status === 'INVOICED') setInvoicedQty(item.delivered_qty ?? 0);
-                                                                        if (status === 'UNINVOICED') setInvoicedQty(0);
-                                                                    }}
-                                                                    className="focus:outline-none transition-all duration-150"
-                                                                    style={{
-                                                                        padding: '10px 8px',
-                                                                        fontSize: '12px',
-                                                                        fontWeight: 700,
-                                                                        borderRadius: '8px',
-                                                                    border: '1px solid ' + (isSel ? 'var(--color-pg-primary)' : 'var(--color-pg-border)'),
-                                                                    backgroundColor: isSel ? 'var(--color-pg-primary-glow)' : 'var(--color-pg-bg)',
-                                                                    color: isSel ? 'var(--color-pg-primary-hover)' : 'var(--color-pg-text-secondary)',
-                                                                        cursor: 'pointer',
-                                                                    }}
-                                                                >
-                                                                    {status === 'PARTIAL' ? (language === 'en' ? 'PARTIAL' : 'SEBAGIAN') : status}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-
-                                                {/* Invoiced Qty (Shown when PARTIAL) */}
-                                                {invoiceStatus === 'PARTIAL' && (
-                                                    <div style={{ animation: 'fadeIn 0.2s ease-in-out' }}>
-                                                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--color-pg-text-secondary)', marginBottom: '6px', textTransform: 'uppercase' }}>
-                                                            {language === 'en' ? 'Invoiced Quantity' : 'Jumlah Diinvoice'}
-                                                        </label>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                            <input
-                                                                type="number"
-                                                                min="0"
-                                                                max={item.delivered_qty ?? 0}
-                                                                value={invoicedQty}
-                                                                onChange={e => {
-                                                                    const val = Math.min(item.delivered_qty ?? 0, Math.max(0, parseInt(e.target.value) || 0));
-                                                                    setInvoicedQty(val);
-                                                                }}
-                                                                style={{
-                                                                    flex: 1,
-                                                                    padding: '10px 12px',
-                                                                    fontSize: '14px',
-                                                                    backgroundColor: 'var(--color-pg-bg)',
-                                                                    border: '1px solid var(--color-pg-border)',
-                                                                    borderRadius: '8px',
-                                                                    color: 'var(--color-pg-text)',
-                                                                    outline: 'none',
-                                                                }}
-                                                            />
-                                                            <span style={{ fontSize: '13px', color: 'var(--color-pg-text-muted)' }}>
-                                                                / {item.delivered_qty ?? 0}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Payment Status Selection */}
-                                                <div>
-                                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--color-pg-text-secondary)', marginBottom: '6px', textTransform: 'uppercase' }}>
-                                                    {language === 'en' ? 'Payment Status' : 'Status Pembayaran'}
-                                                </label>
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                                                        {(['UNPAID', 'PARTIAL_PAID', 'PAID'] as const).map(status => {
-                                                            const isSel = paymentStatus === status;
-                                                            return (
-                                                                <button
-                                                                    key={status}
-                                                                    type="button"
-                                                                    onClick={() => setPaymentStatus(status)}
-                                                                    className="focus:outline-none transition-all duration-150"
-                                                                    style={{
-                                                                        padding: '10px 8px',
-                                                                        fontSize: '12px',
-                                                                        fontWeight: 700,
-                                                                        borderRadius: '8px',
-                                                                        border: '1px solid ' + (isSel ? '#10b981' : 'var(--color-pg-border)'),
-                                                                        backgroundColor: isSel ? 'rgba(16, 185, 129, 0.15)' : 'var(--color-pg-bg)',
-                                                                        color: isSel ? 'var(--color-pg-success)' : 'var(--color-pg-text-secondary)',
-                                                                        cursor: 'pointer',
-                                                                    }}
-                                                                >
-                                                                    {status === 'PARTIAL_PAID' ? (language === 'en' ? 'PARTIAL' : 'SEBAGIAN') : status}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-
-                                                {/* Submit Button */}
-                                                <button
-                                                    type="button"
-                                                    disabled={loading}
-                                                    onClick={handleFinanceSubmit}
-                                                    className="focus:outline-none focus:ring-2 focus:ring-emerald-500/50 hover:brightness-105 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none transition-all duration-200"
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '14px',
-                                                        backgroundColor: '#10b981',
-                                                        color: 'var(--color-pg-text)',
-                                                        fontWeight: 700,
-                                                        border: 'none',
-                                                        borderRadius: '10px',
-                                                        fontSize: '14px',
-                                                        cursor: 'pointer',
-                                                        textAlign: 'center',
-                                                        marginTop: '8px',
-                                                    }}
-                                                >
-                                                    {language === 'en' ? 'Save Status' : 'Simpan Status'}
-                                                </button>
-                                            </div>
-                                        </div>
+                                        <FinancePanel
+                                            deliveryStatus={item.delivery_status}
+                                            deliveredQty={item.delivered_qty ?? 0}
+                                            targetQty={item.target_qty}
+                                            invoiceStatus={invoiceStatus}
+                                            setInvoiceStatus={setInvoiceStatus}
+                                            invoicedQty={invoicedQty}
+                                            setInvoicedQty={setInvoicedQty}
+                                            paymentStatus={paymentStatus}
+                                            setPaymentStatus={setPaymentStatus}
+                                            onSubmit={handleFinanceSubmit}
+                                            loading={loading}
+                                            language={language}
+                                            t={t}
+                                        />
                                     );
                                 }
 
@@ -1054,478 +731,58 @@ function ItemCard({
 
                                 return (
                                     <>
-                                        {item.target_qty > 1 && (
-                                            <div style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '12px',
-                                                marginBottom: '12px',
-                                                padding: '8px 12px',
-                                                backgroundColor: 'var(--color-pg-border-subtle)',
-                                                borderRadius: '12px',
-                                                border: '1px solid var(--color-pg-border)',
-                                            }}>
-                                                <div style={{ marginRight: 'auto', paddingLeft: '4px' }}>
-                                                <div style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                                                    {language === 'en' ? 'Completed' : 'Selesai'}
-                                                </div>
-                                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '2px' }}>
-                                                        <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-pg-text)', lineHeight: '1' }}>
-                                                            {localCompletedQty}
-                                                        </span>
-                                                        <span style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)' }}>
-                                                            / {maxQty}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <select
-                                                        value={localCompletedQty}
-                                                        disabled={loading || activeStage.stage.completed_qty >= maxQty}
-                                                        onChange={(e) => setLocalCompletedQty(parseInt(e.target.value, 10))}
-                                                        className="focus:outline-none focus:ring-2 focus:ring-indigo-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 appearance-none text-center"
-                                                        style={{
-                                                            width: '70px',
-                                                            height: '56px',
-                                                            borderRadius: '14px',
-                                                            border: '1px solid var(--color-pg-border)',
-                                                            backgroundColor: 'var(--color-pg-input)',
-                                                            color: 'var(--color-pg-text)',
-                                                            fontSize: '16px',
-                                                            fontWeight: 700,
-                                                            outline: 'none',
-                                                            boxSizing: 'border-box',
-                                                            cursor: 'pointer',
-                                                            textAlignLast: 'center',
-                                                            padding: '0 8px',
-                                                        }}
-                                                    >
-                                                        {Array.from(
-                                                            { length: maxQty - activeStage.stage.completed_qty + 1 },
-                                                            (_, i) => activeStage.stage.completed_qty + i
-                                                        ).map((val) => (
-                                                            <option key={val} value={val} style={{ backgroundColor: 'var(--color-pg-input)', color: 'var(--color-pg-text)' }}>
-                                                                {val}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setLocalCompletedQty(prev => Math.min(maxQty, prev + 1))}
-                                                        disabled={loading || localCompletedQty >= maxQty || activeStage.stage.completed_qty >= maxQty}
-                                                        className="focus:outline-none focus:ring-2 focus:ring-emerald-500/50 hover:brightness-105 active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none transition-all duration-150"
-                                                        style={{
-                                                            width: '56px',
-                                                            height: '56px',
-                                                            borderRadius: '14px',
-                                                            border: 'none',
-                                                            backgroundColor: 'var(--color-pg-success)',
-                                                            color: 'var(--color-pg-surface)',
-                                                            fontSize: '24px',
-                                                            fontWeight: 700,
-                                                            cursor: 'pointer',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            boxShadow: '0 4px 12px rgba(52, 211, 153, 0.3)',
-                                                        }}
-                                                        title="Increase"
-                                                    >
-                                                        +
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {item.target_qty === 1 && isQcStage && (
-                                            <div style={{
-                                                display: 'grid',
-                                                gridTemplateColumns: '1fr 1fr',
-                                                gap: '8px',
-                                                marginBottom: '8px',
-                                            }}>
-                                                <button
-                                                    disabled={loading}
-                                                    onClick={() => {
-                                                        setRejectQty('1');
-                                                        setShowQc(prev => !prev);
-                                                    }}
-                                                    className="focus:outline-none focus:ring-2 focus:ring-red-500/50 hover:brightness-105 active:scale-[0.98] disabled:opacity-50 transition-all duration-150"
-                                                    style={{
-                                                        padding: '16px 8px',
-                                                        borderRadius: '8px',
-                                                        border: 'none',
-                                                        backgroundColor: 'var(--color-pg-danger)',
-                                                        color: '#ffffff',
-                                                        fontSize: '14px',
-                                                        fontWeight: 800,
-                                                        cursor: 'pointer',
-                                                    }}
-                                                >
-                                                    NG
-                                                </button>
-                                                <button
-                                                    disabled={loading || activeStage.stage.completed_qty >= item.target_qty}
-                                                    onClick={() => {
-                                                        if (!loading) {
-                                                            setLocalProgressPercent('100');
-                                                            setLocalCompletedQty(1);
-                                                        }
-                                                    }}
-                                                    className="focus:outline-none focus:ring-2 focus:ring-emerald-500/50 hover:brightness-105 active:scale-[0.98] disabled:opacity-50 transition-all duration-150"
-                                                    style={{
-                                                        padding: '16px 8px',
-                                                        borderRadius: '8px',
-                                                        border: localProgressPercent === '100' ? '2px solid #ffffff' : 'none',
-                                                        backgroundColor: localProgressPercent === '100' ? '#10b981' : 'var(--color-pg-success)',
-                                                        color: '#ffffff',
-                                                        fontSize: '14px',
-                                                        fontWeight: 800,
-                                                        cursor: (loading || activeStage.stage.completed_qty >= item.target_qty) ? 'not-allowed' : 'pointer',
-                                                        boxShadow: localProgressPercent === '100' ? '0 0 12px rgba(16, 185, 129, 0.5)' : 'none',
-                                                    }}
-                                                >
-                                                    OK
-                                                </button>
-                                            </div>
-                                        )}
-
-                                        {item.target_qty === 1 && isDeliveryStage && (
-                                            <div style={{ marginBottom: '8px' }}>
-                                                <button
-                                                    disabled={loading || activeStage.stage.completed_qty >= item.target_qty}
-                                                    onClick={() => {
-                                                        if (!loading) {
-                                                            setLocalProgressPercent('100');
-                                                            setLocalCompletedQty(1);
-                                                        }
-                                                    }}
-                                                    className="focus:outline-none focus:ring-2 focus:ring-emerald-500/50 hover:brightness-105 active:scale-[0.98] disabled:opacity-50 transition-all duration-150"
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '16px 8px',
-                                                        borderRadius: '8px',
-                                                        border: localProgressPercent === '100' ? '2px solid #ffffff' : 'none',
-                                                        backgroundColor: localProgressPercent === '100' ? '#10b981' : 'var(--color-pg-success)',
-                                                        color: '#ffffff',
-                                                        fontSize: '14px',
-                                                        fontWeight: 800,
-                                                        cursor: (loading || activeStage.stage.completed_qty >= item.target_qty) ? 'not-allowed' : 'pointer',
-                                                        boxShadow: localProgressPercent === '100' ? '0 0 12px rgba(16, 185, 129, 0.5)' : 'none',
-                                                    }}
-                                                >
-                                                    {language === 'en' ? 'Delivered' : 'Terkirim'}
-                                                </button>
-                                            </div>
-                                        )}
-
-                                        {item.target_qty === 1 && !isQcStage && !isDeliveryStage && (
-                                            <div style={{
-                                                display: 'grid',
-                                                gridTemplateColumns: 'repeat(5, 1fr)',
-                                                gap: '6px',
-                                                marginBottom: '8px',
-                                            }}>
-                                                {[0, 25, 50, 75, 100].map((pct) => {
-                                                    const currentPct = parseFloat(localProgressPercent || '0');
-                                                    const savedPct = parseFloat(activeStage.stage.progress_percent || '0');
-                                                    const isDisabled = pct < savedPct;
-                                                    return (
-                                                        <button
-                                                            key={pct}
-                                                            onClick={() => {
-                                                                if (!isDisabled && !loading) {
-                                                                    setLocalProgressPercent(pct.toString());
-                                                                    setLocalCompletedQty(pct === 100 ? 1 : 0);
-                                                                }
-                                                            }}
-                                                            disabled={isDisabled || loading}
-                                                            className="focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:brightness-110 active:scale-[0.95] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
-                                                            style={{
-                                                                padding: '14px 4px',
-                                                                borderRadius: '6px',
-                                                                border: 'none',
-                                                                backgroundColor: currentPct === pct
-                                                                    ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
-                                                                color: 'var(--color-pg-text)',
-                                                                fontSize: '12px',
-                                                                fontWeight: 700,
-                                                                cursor: (isDisabled || loading) ? 'not-allowed' : 'pointer',
-                                                            }}
-                                                        >
-                                                            {pct}%
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-
-                                        {/* Revert Last Update Button */}
-                                        {((activeStage.stage.previous_completed_qty !== null && activeStage.stage.previous_completed_qty !== undefined) || 
-                                          (activeStage.stage.previous_progress_percent !== null && activeStage.stage.previous_progress_percent !== undefined)) && (
-                                            <div style={{ marginBottom: '8px' }}>
-                                                <button
-                                                    disabled={loading}
-                                                    onClick={revertLastUpdate}
-                                                    className="focus:outline-none focus:ring-1 focus:ring-red-500/50 hover:bg-red-500/20 active:scale-[0.98] disabled:opacity-50 transition-all duration-150"
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '12px 16px',
-                                                        backgroundColor: 'rgba(248, 113, 113, 0.12)',
-                                                        color: 'var(--color-pg-danger)',
-                                                        border: '1px solid rgba(248, 113, 113, 0.2)',
-                                                        borderRadius: '8px',
-                                                        fontSize: '12px',
-                                                        fontWeight: 700,
-                                                        cursor: 'pointer',
-                                                        textAlign: 'center',
-                                                    }}
-                                                >
-                                                    {language === 'en' ? 'Revert Last Update' : 'Batal / Revert Update Terakhir'}
-                                                </button>
-                                            </div>
-                                        )}
-                                        <div style={{ display: 'flex', gap: '6px' }}>
-                                            <button
-                                                disabled={loading}
-                                                onClick={() => !loading && setShowKendala(prev => !prev)}
-                                                className="focus:outline-none focus:ring-1 focus:ring-red-500/50 active:scale-[0.98] disabled:opacity-50 transition-all duration-150"
-                                                style={{
-                                                    flex: 1,
-                                                    padding: '12px 10px',
-                                                    backgroundColor: showKendala ? 'rgba(248, 113, 113, 0.22)' : 'rgba(248, 113, 113, 0.1)',
-                                                    color: 'var(--color-pg-danger)',
-                                                    border: '1px solid rgba(248, 113, 113, 0.2)',
-                                                    borderRadius: '8px',
-                                                    fontSize: '12px',
-                                                    fontWeight: 700,
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    gap: '4px',
-                                                }}
-                                            >
-                                                <AlertTriangle size={14} /> {t.report_failure}
-                                            </button>
-                                            {(!isQcStage || item.target_qty > 1) && (
-                                                <button
-                                                    disabled={loading}
-                                                    onClick={() => !loading && setShowQc(prev => !prev)}
-                                                    className="focus:outline-none focus:ring-1 focus:ring-amber-500/50 active:scale-[0.98] disabled:opacity-50 transition-all duration-150"
-                                                    style={{
-                                                        flex: 1,
-                                                        padding: '12px 10px',
-                                                        backgroundColor: showQc ? 'rgba(251, 191, 36, 0.22)' : 'rgba(251, 191, 36, 0.1)',
-                                                        color: 'var(--color-pg-warning)',
-                                                        border: '1px solid rgba(251, 191, 36, 0.2)',
-                                                        borderRadius: '8px',
-                                                        fontSize: '12px',
-                                                        fontWeight: 700,
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        gap: '4px',
-                                                    }}
-                                                >
-                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <circle cx="11" cy="11" r="8" />
-                                                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                                                        <line x1="8" y1="11" x2="14" y2="11" />
-                                                    </svg> {t.log_rework}
-                                                </button>
-                                            )}
-                                        </div>
+                                        <ProgressControls
+                                            targetQty={item.target_qty}
+                                            maxQty={maxQty}
+                                            savedCompletedQty={activeStage.stage.completed_qty}
+                                            savedProgressPercent={activeStage.stage.progress_percent}
+                                            hasPreviousUpdate={((activeStage.stage.previous_completed_qty !== null && activeStage.stage.previous_completed_qty !== undefined) || (activeStage.stage.previous_progress_percent !== null && activeStage.stage.previous_progress_percent !== undefined))}
+                                            localCompletedQty={localCompletedQty}
+                                            setLocalCompletedQty={setLocalCompletedQty}
+                                            localProgressPercent={localProgressPercent}
+                                            setLocalProgressPercent={setLocalProgressPercent}
+                                            isQcStage={isQcStage}
+                                            isDeliveryStage={isDeliveryStage}
+                                            showKendala={showKendala}
+                                            setShowKendala={setShowKendala}
+                                            showQc={showQc}
+                                            setShowQc={setShowQc}
+                                            onShowQcForSinglePiece={() => {
+                                                setRejectQty('1');
+                                                setShowQc(prev => !prev);
+                                            }}
+                                            onRevert={revertLastUpdate}
+                                            loading={loading}
+                                            language={language}
+                                            t={t}
+                                        />
 
                                         {showKendala && (
-                                            <form onSubmit={submitKendala} style={{
-                                                marginTop: '8px',
-                                                padding: '10px',
-                                                backgroundColor: 'var(--color-pg-border-subtle)',
-                                                borderRadius: '10px',
-                                            }}>
-                                                <label style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px', display: 'block', fontWeight: 600 }}>
-                                                    {t.failure_type_label}
-                                                </label>
-                                                <select
-                                                    value={kendalaType}
-                                                    onChange={(e) => setKendalaType(e.target.value)}
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '8px 10px',
-                                                        backgroundColor: 'var(--color-pg-input)',
-                                                        color: 'var(--color-pg-text)',
-                                                        border: '1px solid var(--color-pg-border)',
-                                                        borderRadius: '8px',
-                                                        fontSize: '12px',
-                                                        outline: 'none',
-                                                        marginBottom: '8px',
-                                                    }}
-                                                >
-                                                    <option value="Machine Broken">{t.machine_broken}</option>
-                                                    <option value="Material Delay">{t.material_delay}</option>
-                                                    <option value="Operator Sick">{t.operator_sick}</option>
-                                                    <option value="Power Outage">{t.power_outage}</option>
-                                                </select>
-                                                <label style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginTop: '8px', marginBottom: '4px', display: 'block', fontWeight: 600 }}>
-                                                    {language === 'en' ? 'Note / Description' : 'Catatan / Deskripsi'}
-                                                </label>
-                                                <textarea
-                                                    value={kendalaNote}
-                                                    onChange={(e) => setKendalaNote(e.target.value)}
-                                                    placeholder={language === 'en' ? 'Provide details about the issue...' : 'Berikan detail mengenai kendala...'}
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '8px 10px',
-                                                        backgroundColor: 'var(--color-pg-input)',
-                                                        color: 'var(--color-pg-text)',
-                                                        border: '1px solid var(--color-pg-border)',
-                                                        borderRadius: '8px',
-                                                        fontSize: '12px',
-                                                        outline: 'none',
-                                                        marginBottom: '8px',
-                                                        resize: 'vertical',
-                                                        minHeight: '60px',
-                                                        boxSizing: 'border-box',
-                                                    }}
-                                                />
-                                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowKendala(false)}
-                                                        disabled={loading}
-                                                        className="focus:outline-none focus:ring-1 focus:ring-white/25 hover:bg-white/5 active:scale-95 disabled:opacity-50 transition-all duration-150"
-                                                        style={{
-                                                            padding: '10px 16px',
-                                                            backgroundColor: 'transparent',
-                                                            color: 'var(--color-pg-text-secondary)',
-                                                            border: '1px solid var(--color-pg-border)',
-                                                            borderRadius: '8px',
-                                                            fontSize: '12px',
-                                                            cursor: 'pointer',
-                                                        }}
-                                                    >
-                                                        {t.cancel}
-                                                    </button>
-                                                    <button
-                                                        type="submit"
-                                                        disabled={loading}
-                                                        className="focus:outline-none focus:ring-2 focus:ring-red-500/50 hover:brightness-105 active:scale-95 disabled:opacity-50 transition-all duration-150"
-                                                        style={{
-                                                            padding: '10px 18px',
-                                                            backgroundColor: 'var(--color-pg-danger)',
-                                                            color: 'var(--color-pg-text)',
-                                                            borderRadius: '8px',
-                                                            border: 'none',
-                                                            fontWeight: 700,
-                                                            fontSize: '12px',
-                                                            cursor: 'pointer',
-                                                        }}
-                                                    >
-                                                        {t.submit}
-                                                    </button>
-                                                </div>
-                                            </form>
+                                            <KendalaForm
+                                                kendalaType={kendalaType}
+                                                setKendalaType={setKendalaType}
+                                                kendalaNote={kendalaNote}
+                                                setKendalaNote={setKendalaNote}
+                                                onCancel={() => setShowKendala(false)}
+                                                onSubmit={submitKendala}
+                                                loading={loading}
+                                                language={language}
+                                                t={t}
+                                            />
                                         )}
 
                                         {showQc && (
-                                            <form onSubmit={submitQcRework} style={{
-                                                marginTop: '8px',
-                                                padding: '10px',
-                                                backgroundColor: 'var(--color-pg-border-subtle)',
-                                                borderRadius: '10px',
-                                            }}>
-                                                {item.target_qty > 1 && (
-                                                    <>
-                                                        <label style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px', display: 'block', fontWeight: 600 }}>
-                                                            {t.reject_qty_label}
-                                                        </label>
-                                                        <input
-                                                            type="number"
-                                                            min="1"
-                                                            value={rejectQty}
-                                                            disabled={loading}
-                                                            onChange={(e) => setRejectQty(e.target.value)}
-                                                            className="focus:outline-none focus:ring-2 focus:ring-amber-500/50 disabled:opacity-50 transition-all duration-150"
-                                                            style={{
-                                                                width: '100%',
-                                                                padding: '10px 12px',
-                                                                backgroundColor: 'var(--color-pg-input)',
-                                                                color: 'var(--color-pg-text)',
-                                                                border: '1px solid var(--color-pg-border)',
-                                                                borderRadius: '8px',
-                                                                fontSize: '14px',
-                                                                outline: 'none',
-                                                                marginBottom: '8px',
-                                                            }}
-                                                        />
-                                                    </>
-                                                )}
-
-                                                <label style={{ fontSize: '12px', color: 'var(--color-pg-text-secondary)', marginBottom: '4px', display: 'block', fontWeight: 600 }}>
-                                                    {t.rework_reason_label}
-                                                </label>
-                                                <textarea
-                                                    required
-                                                    value={reworkReason}
-                                                    disabled={loading}
-                                                    onChange={(e) => setReworkReason(e.target.value)}
-                                                    placeholder={t.rework_reason_placeholder}
-                                                    className="focus:outline-none focus:ring-2 focus:ring-amber-500/50 disabled:opacity-50 transition-all duration-150"
-                                                    style={{
-                                                        width: '100%',
-                                                        minHeight: '60px',
-                                                        padding: '10px 12px',
-                                                        backgroundColor: 'var(--color-pg-input)',
-                                                        color: 'var(--color-pg-text)',
-                                                        border: '1px solid var(--color-pg-border)',
-                                                        borderRadius: '8px',
-                                                        fontSize: '14px',
-                                                        outline: 'none',
-                                                        marginBottom: '8px',
-                                                        resize: 'vertical',
-                                                    }}
-                                                />
-                                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowQc(false)}
-                                                        disabled={loading}
-                                                        className="focus:outline-none focus:ring-1 focus:ring-white/25 hover:bg-white/5 active:scale-95 disabled:opacity-50 transition-all duration-150"
-                                                        style={{
-                                                            padding: '10px 16px',
-                                                            backgroundColor: 'transparent',
-                                                            color: 'var(--color-pg-text-secondary)',
-                                                            border: '1px solid var(--color-pg-border)',
-                                                            borderRadius: '8px',
-                                                            fontSize: '12px',
-                                                            cursor: 'pointer',
-                                                        }}
-                                                    >
-                                                        {t.cancel}
-                                                    </button>
-                                                    <button
-                                                        type="submit"
-                                                        disabled={loading}
-                                                        className="focus:outline-none focus:ring-2 focus:ring-amber-500/50 hover:brightness-105 active:scale-95 disabled:opacity-50 transition-all duration-150"
-                                                        style={{
-                                                            padding: '10px 18px',
-                                                            backgroundColor: 'var(--color-pg-warning)',
-                                                            color: 'var(--color-pg-surface)',
-                                                            borderRadius: '8px',
-                                                            border: 'none',
-                                                            fontWeight: 700,
-                                                            fontSize: '12px',
-                                                            cursor: 'pointer',
-                                                        }}
-                                                    >
-                                                        {t.submit}
-                                                    </button>
-                                                </div>
-                                            </form>
+                                            <QcReworkForm
+                                                targetQty={item.target_qty}
+                                                rejectQty={rejectQty}
+                                                setRejectQty={setRejectQty}
+                                                reworkReason={reworkReason}
+                                                setReworkReason={setReworkReason}
+                                                onCancel={() => setShowQc(false)}
+                                                onSubmit={submitQcRework}
+                                                loading={loading}
+                                                t={t}
+                                            />
                                         )}
                                     </>
                                 );
@@ -1603,7 +860,7 @@ function ItemCard({
                             ) : (() => {
                                 // Locked warning banner
                                 const matched = getMatchingStageOrMock(item, userRole);
-                                const lockReason = matched ? getStageLockReason(item, matched.stage_name, userRole, language) : null;
+                                const lockReason = matched ? getStageLockReason(item, matched.stage_name, userRole, t) : null;
                                 return lockReason ? (
                                     <div style={{
                                         display: 'flex',
@@ -1647,9 +904,6 @@ export default function WorkerDashboard({ items, auth_user, tenant_id, tenant }:
     const [currentTime, setCurrentTime] = useState(new Date());
     const [frozen, setFrozen] = useState<{ itemName: string } | null>(null);
     const [showThemeDropdown, setShowThemeDropdown] = useState(false);
-    const [toastQueue, setToastQueue] = useState<Array<{ message: string; severity: string; id: number; timestamp: number }>>([]);
-    const [onlineUsers, setOnlineUsers] = useState<Array<{ id: number; name: string; post_name?: string; role?: string }>>([]);
-    const [wsStatus, setWsStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
     const reloadTimeoutRef = useRef<any>(null);
 
     const triggerScopedReload = useCallback((onlyKeys: string[] = ['items']) => {
@@ -1657,8 +911,6 @@ export default function WorkerDashboard({ items, auth_user, tenant_id, tenant }:
         reloadTimeoutRef.current = setTimeout(() => {
             router.reload({
                 only: onlyKeys as any,
-                preserveState: true,
-                preserveScroll: true,
             });
         }, 800);
     }, []);
@@ -1676,91 +928,41 @@ export default function WorkerDashboard({ items, auth_user, tenant_id, tenant }:
         return () => clearInterval(timer);
     }, []);
 
-    useEffect(() => {
-        const id = tenant_id ?? (props as any).tenant_id;
-        if (!id) return;
+    const { toastQueue, setToastQueue, onlineUsers, wsStatus } = useEchoPresence({
+        tenantId: tenant_id ?? (props as any).tenant_id,
+        channel: 'workers',
+        onRefresh: () => router.reload({ only: ['items'] as any }),
+        registerListeners: (channel, pushToast) => {
+            channel.listen('.production.terminated', (e: any) => {
+                setFrozen({ itemName: e.item?.item_name || '' });
+                setTimeout(() => {
+                    router.visit(`/c/${slug}`);
+                }, 10000);
+            });
+            channel.listen('.task.updated', (e: any) => {
+                pushToast({ message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() });
+                triggerScopedReload(['items']);
+            });
+            channel.listen('.kendala.reported', (e: any) => {
+                const alert = e.alert;
+                pushToast({ message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() });
+                router.reload({ only: ['items'] as any });
+            });
+            channel.listen('.qc.rework.logged', (e: any) => {
+                const alert = e.alert;
+                pushToast({ message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() });
+                triggerScopedReload(['items']);
+            });
+            channel.listen('.data.refreshed', () => {
+                triggerScopedReload(['items']);
+            });
+        },
+    });
 
-        // Presence Channel
-        const presenceChannel = echo.join(`tenant.${id}.presence`);
-        presenceChannel
-            .here((users: any[]) => setOnlineUsers(users))
-            .joining((user: any) => setOnlineUsers(prev => [...prev.filter(u => u.id !== user.id), user]))
-            .leaving((user: any) => setOnlineUsers(prev => prev.filter(u => u.id !== user.id)));
-
-        // Connection State
-        const pusherConn = (echo as any)?.connector?.pusher?.connection;
-        let fallbackInterval: any = null;
-
-        if (pusherConn) {
-            const handleStateChange = (states: any) => {
-                const current = states.current || pusherConn.state;
-                if (current === 'connected') {
-                    setWsStatus('connected');
-                    if (states.previous && states.previous !== 'connected') {
-                        router.reload({ preserveState: true, preserveScroll: true });
-                    }
-                } else if (current === 'connecting') {
-                    setWsStatus('connecting');
-                } else {
-                    setWsStatus('disconnected');
-                }
-            };
-            if (pusherConn.state) setWsStatus(pusherConn.state === 'connected' ? 'connected' : 'connecting');
-            pusherConn.bind('state_change', handleStateChange);
-        } else {
-            setWsStatus('disconnected');
-            fallbackInterval = setInterval(() => {
-                router.reload({ only: ['items'], preserveState: true, preserveScroll: true });
-            }, 30000);
-        }
-
-        const channel = echo.private(`tenant.${id}.workers`);
-        channel.listen('.production.terminated', (e: any) => {
-            setFrozen({ itemName: e.item?.item_name || '' });
-            setTimeout(() => {
-                router.visit(`/c/${slug}`);
-            }, 10000);
-        });
-        channel.listen('.task.updated', (e: any) => {
-            const entry = { message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
-            setTimeout(() => {
-                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
-            }, 8000);
-            triggerScopedReload(['items']);
-        });
-        channel.listen('.kendala.reported', (e: any) => {
-            const alert = e.alert;
-            const entry = { message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
-            setTimeout(() => {
-                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
-            }, 8000);
-            router.reload({ only: ['items'], preserveState: true, preserveScroll: true });
-        });
-        channel.listen('.qc.rework.logged', (e: any) => {
-            const alert = e.alert;
-            const entry = { message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
-            setTimeout(() => {
-                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
-            }, 8000);
-            triggerScopedReload(['items']);
-        });
-        channel.listen('.data.refreshed', () => {
-            triggerScopedReload(['items']);
-        });
-
-        return () => {
-            echo.leave(`tenant.${id}.workers`);
-            echo.leave(`tenant.${id}.presence`);
-            if (pusherConn) {
-                pusherConn.unbind('state_change');
-            }
-            if (fallbackInterval) clearInterval(fallbackInterval);
-            if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
-        };
-    }, [tenant_id, (props as any).tenant_id, language]);
+    // Cleanup for the page-level debounced reload timer
+    useEffect(() => () => {
+        if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
+    }, []);
     if (frozen) {
         return (
             <div style={{
@@ -1855,7 +1057,6 @@ export default function WorkerDashboard({ items, auth_user, tenant_id, tenant }:
                                 userRole={userRole}
                                 slug={slug}
                                 language={language}
-                                translations={translations}
                             />
                         ))}
                     </div>

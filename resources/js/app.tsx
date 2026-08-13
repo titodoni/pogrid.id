@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import "@astryxdesign/core/reset.css";
 import "@astryxdesign/core/astryx.css";
 import React from 'react';

@@ -5,25 +5,24 @@ namespace App\Http\Controllers;
 use App\Events\ProductionTerminated;
 use App\Events\TaskUpdated;
 use App\Jobs\GenerateSunkCostInvoiceJob;
-use App\Models\ActivityLog;
-use App\Models\Alert;
 use App\Models\Item;
-use App\Models\ItemProgress;
 use App\Models\Po;
 use App\Models\Post;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\TenantStageTemplate;
 use App\Models\User;
-use App\Notifications\TemporaryPasswordNotification;
 use App\Services\ActivityLogger;
+use App\Services\ReportingService;
+use App\Services\StageTemplateService;
 use App\Services\TenantManager;
+use App\Services\TenantSettingsService;
+use App\Services\UserManagementService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -59,9 +58,9 @@ class OwnerDashboardController extends Controller
         ]);
     }
 
-    public function updateCompany(Request $request)
+    public function updateCompany(Request $request, TenantSettingsService $settings)
     {
-        \Illuminate\Support\Facades\Gate::authorize('manage-company-settings');
+        Gate::authorize('manage-company-settings');
 
         $request->validate([
             'company_name' => ['required', 'string', 'max:255'],
@@ -69,32 +68,16 @@ class OwnerDashboardController extends Controller
             'logo' => ['nullable', 'image', 'max:2048'],
         ]);
 
-        $tenant = Tenant::find(TenantManager::getTenantId());
-        $data = [
-            'company_name' => $request->company_name,
-        ];
-
-        if ($request->has('theme') && ! empty($request->theme)) {
-            $data['theme'] = $request->theme;
-        }
-
-        if ($request->hasFile('logo')) {
-            $file = $request->file('logo');
-            $filename = 'logo_'.$tenant->id.'_'.time().'.'.$file->getClientOriginalExtension();
-            $file->move(public_path('uploads/logos'), $filename);
-            $data['logo_path'] = '/uploads/logos/'.$filename;
-        }
-
-        $tenant->update($data);
+        $settings->updateCompany($request->company_name, $request->theme, $request->file('logo'));
 
         return back()->with('success', 'Company settings updated successfully.');
     }
 
-    public function updateWorkflowSettings(Request $request)
+    public function updateWorkflowSettings(Request $request, TenantSettingsService $settings)
     {
-        \Illuminate\Support\Facades\Gate::authorize('manage-workflow-settings');
+        Gate::authorize('manage-workflow-settings');
 
-        $request->validate([
+        $data = $request->validate([
             'workflow_mode' => ['required', 'string', 'in:strict,loose,custom'],
             'require_design_approved_for_production' => ['nullable', 'boolean'],
             'require_material_ready_for_production' => ['nullable', 'boolean'],
@@ -103,20 +86,7 @@ class OwnerDashboardController extends Controller
             'require_delivery_for_finance' => ['nullable', 'boolean'],
         ]);
 
-        $tenant = Tenant::find(TenantManager::getTenantId());
-
-        $settings = [
-            'workflow_mode' => $request->workflow_mode,
-            'require_design_approved_for_production' => (bool) $request->input('require_design_approved_for_production', false),
-            'require_material_ready_for_production' => (bool) $request->input('require_material_ready_for_production', false),
-            'require_production_completed_for_qc' => (bool) $request->input('require_production_completed_for_qc', true),
-            'require_qc_completed_for_delivery' => (bool) $request->input('require_qc_completed_for_delivery', true),
-            'require_delivery_for_finance' => (bool) $request->input('require_delivery_for_finance', true),
-        ];
-
-        $tenant->update([
-            'workflow_settings' => $settings,
-        ]);
+        $settings->updateWorkflowSettings($data);
 
         return back()->with('success', 'Workflow settings updated successfully.');
     }
@@ -125,7 +95,7 @@ class OwnerDashboardController extends Controller
     {
         $user = auth()->user();
 
-        $this->authorize('create', \App\Models\Po::class);
+        $this->authorize('create', Po::class);
 
         // Ensure tenant context is set for this request
         TenantManager::setTenantId($user->tenant_id);
@@ -177,7 +147,7 @@ class OwnerDashboardController extends Controller
     {
         $user = auth()->user();
 
-        $this->authorize('create', \App\Models\Po::class);
+        $this->authorize('create', Po::class);
 
         // Ensure tenant context for this request
         TenantManager::setTenantId($user->tenant_id);
@@ -260,11 +230,11 @@ class OwnerDashboardController extends Controller
         return redirect("/c/{$tenantSlug}")->with('success', 'Purchase Order broadcasted successfully.');
     }
 
-    public function createUser(Request $request)
+    public function createUser(Request $request, UserManagementService $users)
     {
         $authUser = auth()->user()->loadMissing('roleRelation');
 
-        $this->authorize('manage', \App\Models\User::class);
+        $this->authorize('manage', User::class);
 
         // OWNER can only create ADMIN users
         if ($authUser->isOwner()) {
@@ -324,41 +294,22 @@ class OwnerDashboardController extends Controller
             })];
         }
 
-        $request->validate($rules, [
+        $data = $request->validate($rules, [
             'password.min' => 'The password must be at least 8 characters.',
             'password.regex' => 'The password must contain at least one number.',
             'password.confirmed' => 'The password confirmation does not match.',
         ]);
 
-        $userData = [
-            'tenant_id' => TenantManager::getTenantId(),
-            'name' => $request->name,
-            'role_id' => $request->role_id,
-            'post_id' => $request->post_id,
-        ];
-
-        if ($request->login_method === 'PASSWORD') {
-            $userData['username'] = $request->username;
-            $userData['password'] = bcrypt($request->password);
-            $userData['pin'] = null;
-        } else {
-            $userData['pin'] = bcrypt($request->pin);
-            $userData['username'] = null;
-            $userData['password'] = null;
-        }
-
-        $user = User::create($userData);
-
-        ActivityLogger::logUserCreated($user);
+        $users->create($data);
 
         return back()->with('success', 'User created successfully.');
     }
 
-    public function updateUser(Request $request, $userId)
+    public function updateUser(Request $request, $userId, UserManagementService $users)
     {
         $actor = auth()->user();
 
-        $this->authorize('manage', \App\Models\User::class);
+        $this->authorize('manage', User::class);
 
         $user = User::findOrFail($userId);
 
@@ -375,7 +326,7 @@ class OwnerDashboardController extends Controller
         }
         $request->merge(['login_method' => $loginMethod]);
 
-        $request->validate([
+        $data = $request->validate([
             'login_method' => ['required', 'in:PASSWORD,PIN'],
             'name' => ['required', 'string', 'max:255'],
             'role_id' => ['required', 'exists:roles,id'],
@@ -402,43 +353,23 @@ class OwnerDashboardController extends Controller
             ],
         ]);
 
-        $user->name = $request->name;
-        $user->role_id = $request->role_id;
-        $user->post_id = $request->post_id;
-
-        if ($request->login_method === 'PASSWORD') {
-            $user->username = $request->username;
-            if ($request->filled('password')) {
-                $user->password = bcrypt($request->password);
-            }
-            $user->pin = null;
-        } else {
-            if ($request->filled('pin')) {
-                $user->pin = bcrypt($request->pin);
-            }
-            $user->username = null;
-            $user->password = null;
-        }
-
-        $user->save();
+        $users->update($user, $data);
 
         return back()->with('success', 'User updated successfully.');
     }
 
-    public function deleteUser(Request $request, $userId)
+    public function deleteUser(Request $request, $userId, UserManagementService $users)
     {
         $actor = auth()->user();
 
-        $this->authorize('manage', \App\Models\User::class);
+        $this->authorize('manage', User::class);
 
         $user = User::findOrFail($userId);
 
         // Only owners may delete owner accounts.
         $this->authorize('delete', $user);
 
-
-
-        $user->delete();
+        $users->delete($user);
 
         return back()->with('success', 'User deleted successfully.');
     }
@@ -480,7 +411,7 @@ class OwnerDashboardController extends Controller
 
     public function batchAction(Request $request)
     {
-        $this->authorize('batchAction', \App\Models\Item::class);
+        $this->authorize('batchAction', Item::class);
 
         $request->validate([
             'action' => ['required', 'in:cancel,terminate'],
@@ -522,28 +453,16 @@ class OwnerDashboardController extends Controller
         return back()->with('success', $message);
     }
 
-    public function listStageTemplates()
+    public function listStageTemplates(StageTemplateService $stageTemplates)
     {
-        $templates = TenantStageTemplate::where('tenant_id', TenantManager::getTenantId())
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get()
-            ->map(fn ($t) => [
-                'id' => $t->id,
-                'name' => $t->name,
-                'description' => $t->description,
-                'stages' => $t->stages,
-                'sort_order' => $t->sort_order,
-            ]);
-
-        return response()->json(['templates' => $templates]);
+        return response()->json(['templates' => $stageTemplates->listForTenant()]);
     }
 
-    public function createStageTemplate(Request $request)
+    public function createStageTemplate(Request $request, StageTemplateService $stageTemplates)
     {
-        \Illuminate\Support\Facades\Gate::authorize('manage-stage-templates');
+        Gate::authorize('manage-stage-templates');
 
-        $request->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:500'],
             'stages' => ['required', 'array', 'min:1'],
@@ -551,25 +470,16 @@ class OwnerDashboardController extends Controller
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $template = TenantStageTemplate::create([
-            'tenant_id' => TenantManager::getTenantId(),
-            'name' => $request->name,
-            'description' => $request->description,
-            'stages' => $request->stages,
-            'sort_order' => $request->sort_order ?? 0,
-        ]);
+        $stageTemplates->create($data);
 
         return back()->with('success', 'Stage template created successfully.');
     }
 
-    public function updateStageTemplate(Request $request, $templateId)
+    public function updateStageTemplate(Request $request, $templateId, StageTemplateService $stageTemplates)
     {
-        \Illuminate\Support\Facades\Gate::authorize('manage-stage-templates');
+        Gate::authorize('manage-stage-templates');
 
-        $template = TenantStageTemplate::where('tenant_id', TenantManager::getTenantId())
-            ->findOrFail($templateId);
-
-        $request->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:500'],
             'stages' => ['required', 'array', 'min:1'],
@@ -577,29 +487,21 @@ class OwnerDashboardController extends Controller
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $template->update([
-            'name' => $request->name,
-            'description' => $request->description,
-            'stages' => $request->stages,
-            'sort_order' => $request->sort_order ?? 0,
-        ]);
+        $stageTemplates->update($templateId, $data);
 
         return back()->with('success', 'Stage template updated successfully.');
     }
 
-    public function deleteStageTemplate(Request $request, $templateId)
+    public function deleteStageTemplate(Request $request, $templateId, StageTemplateService $stageTemplates)
     {
-        \Illuminate\Support\Facades\Gate::authorize('manage-stage-templates');
+        Gate::authorize('manage-stage-templates');
 
-        $template = TenantStageTemplate::where('tenant_id', TenantManager::getTenantId())
-            ->findOrFail($templateId);
-
-        $template->delete();
+        $stageTemplates->delete($templateId);
 
         return back()->with('success', 'Stage template deleted successfully.');
     }
 
-    public function changePassword(Request $request)
+    public function changePassword(Request $request, UserManagementService $users)
     {
         $request->validate([
             'current_password' => ['required', 'string'],
@@ -614,168 +516,33 @@ class OwnerDashboardController extends Controller
             ]);
         }
 
-        $user->password = bcrypt($request->new_password);
-        $user->save();
+        $users->changePassword($user, $request->new_password);
 
         return back()->with('success', 'Password changed successfully.');
     }
 
-    public function reworkLogbook(Request $request)
+    public function reworkLogbook(Request $request, ReportingService $reporting)
     {
         $range = $request->input('range', 'month');
         if (! in_array($range, ['week', 'month', 'year', 'all'])) {
             $range = 'month';
         }
 
-        $allRework = Alert::where('reason_type', 'QC Rework')
-            ->with([
-                'item:id,item_name,target_qty,status,po_id,progress_percent',
-                'item.po:id,po_number,client_name,global_deadline',
-                'user:id,name',
-            ]);
-
-        if ($range !== 'all') {
-            [$startDate, $endDate] = match ($range) {
-                'week' => [now()->subDays(6)->startOfDay(), now()->endOfDay()],
-                'year' => [now()->subDays(364)->startOfDay(), now()->endOfDay()],
-                default => [now()->subDays(29)->startOfDay(), now()->endOfDay()],
-            };
-            $allRework->whereBetween('created_at', [$startDate, $endDate]);
-        }
-
-        $reworkEvents = $allRework->latest()->get();
-
-        $totalReworkQty = 0;
-        $resolvedCount = 0;
-        $clientRework = [];
-        $itemRework = [];
-        $trendBuckets = [];
-
-        foreach ($reworkEvents as $event) {
-            preg_match('/QC Rework: (\d+)/', $event->message, $m);
-            $qty = (int) ($m[1] ?? 1);
-            $totalReworkQty += $qty;
-            if ($event->is_resolved) {
-                $resolvedCount++;
-            }
-
-            $cn = $event->item?->po?->client_name ?? 'Unknown';
-            $clientRework[$cn] = ($clientRework[$cn] ?? ['events' => 0, 'qty' => 0]);
-            $clientRework[$cn]['events']++;
-            $clientRework[$cn]['qty'] += $qty;
-
-            $in = $event->item?->item_name ?? 'Unknown';
-            $itemRework[$in] = ($itemRework[$in] ?? ['events' => 0, 'qty' => 0]);
-            $itemRework[$in]['events']++;
-            $itemRework[$in]['qty'] += $qty;
-
-            $monthKey = $event->created_at?->format('Y-m') ?? 'unknown';
-            $trendBuckets[$monthKey] = ($trendBuckets[$monthKey] ?? ['events' => 0, 'qty' => 0]);
-            $trendBuckets[$monthKey]['events']++;
-            $trendBuckets[$monthKey]['qty'] += $qty;
-        }
-
-        $stages = ItemProgress::where('stage_name', 'like', '%REWORK%')
-            ->with('item:id,item_name,po_id')
-            ->get();
-
-        $stageReworkCounts = [];
-        foreach ($stages as $s) {
-            $baseStage = preg_replace('/\s*-\s*REWORK/i', '', $s->stage_name);
-            $stageReworkCounts[$baseStage] = ($stageReworkCounts[$baseStage] ?? 0) + 1;
-        }
-        arsort($stageReworkCounts);
-        $topReworkedStages = array_slice($stageReworkCounts, 0, 5, true);
-
-        $monthlyTrend = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $m = now()->subMonths($i);
-            $key = $m->format('Y-m');
-            $label = $m->format('M Y');
-            $bucket = $trendBuckets[$key] ?? ['events' => 0, 'qty' => 0];
-            $monthlyTrend[] = [
-                'label' => $label,
-                'month' => $key,
-                'events' => $bucket['events'],
-                'qty' => $bucket['qty'],
-            ];
-        }
-
-        $inspectedItems = Item::whereHas('itemProgresses', fn ($q) => $q
-            ->where('stage_name', 'QC')
-            ->where('status', 'COMPLETED')
-        )->count();
-        $inspectedItems = max($inspectedItems, 1);
-        $reworkRatePct = round(($reworkEvents->count() / $inspectedItems) * 100, 1);
-
-        uasort($clientRework, fn ($a, $b) => $b['events'] <=> $a['events']);
-        uasort($itemRework, fn ($a, $b) => $b['events'] <=> $a['events']);
+        $data = $reporting->reworkLogbook($range);
 
         return Inertia::render('Owner/ReworkLogbook', [
-            'rework_events' => $reworkEvents->map(function ($alert) {
-                preg_match('/QC Rework: (\d+)/', $alert->message, $m);
-                $rejectQty = (int) ($m[1] ?? 1);
-
-                preg_match("/stage '([^']+)'/", $alert->message, $sm);
-                $stage = $sm[1] ?? 'QC';
-
-                return [
-                    'id' => $alert->id,
-                    'reject_qty' => $rejectQty,
-                    'stage' => $stage,
-                    'is_resolved' => $alert->is_resolved,
-                    'created_at' => $alert->created_at?->toISOString(),
-                    'rework_reason' => $alert->rework_reason,
-                    'item' => $alert->item ? [
-                        'id' => $alert->item->id,
-                        'item_name' => $alert->item->item_name,
-                        'target_qty' => $alert->item->target_qty,
-                        'status' => $alert->item->status,
-                        'progress_percent' => (float) $alert->item->progress_percent,
-                        'po' => $alert->item->po ? [
-                            'po_number' => $alert->item->po->po_number,
-                            'client_name' => $alert->item->po->client_name,
-                            'global_deadline' => $alert->item->po->global_deadline?->toDateString(),
-                        ] : null,
-                    ] : null,
-                    'user' => $alert->user ? [
-                        'name' => $alert->user->name,
-                    ] : null,
-                ];
-            }),
-            'summary' => [
-                'total_events' => $reworkEvents->count(),
-                'total_rework_qty' => $totalReworkQty,
-                'resolved_count' => $resolvedCount,
-                'unresolved_count' => $reworkEvents->count() - $resolvedCount,
-                'rework_rate_pct' => $reworkRatePct,
-                'inspected_items' => $inspectedItems,
-                'top_stages' => collect($topReworkedStages)->map(fn ($count, $stage) => [
-                    'stage' => $stage,
-                    'count' => $count,
-                ])->values(),
-                'monthly_trend' => $monthlyTrend,
-                'client_breakdown' => collect($clientRework)->map(fn ($d, $name) => [
-                    'client_name' => $name,
-                    'events' => $d['events'],
-                    'qty' => $d['qty'],
-                ])->values(),
-                'item_breakdown' => collect($itemRework)->map(fn ($d, $name) => [
-                    'item_name' => $name,
-                    'events' => $d['events'],
-                    'qty' => $d['qty'],
-                ])->values(),
-            ],
+            'rework_events' => $data['rework_events'],
+            'summary' => $data['summary'],
             'selected_range' => $range,
             'tenant' => Tenant::find(TenantManager::getTenantId()),
         ]);
     }
 
-    public function createOnboardingAdmin(Request $request)
+    public function createOnboardingAdmin(Request $request, UserManagementService $users)
     {
         $authUser = auth()->user();
 
-        \Illuminate\Support\Facades\Gate::authorize('create-admin');
+        Gate::authorize('create-admin');
 
         // Ensure tenant context is set
         TenantManager::setTenantId($authUser->tenant_id);
@@ -792,47 +559,9 @@ class OwnerDashboardController extends Controller
             return back()->withErrors(['email' => 'System roles/posts are not seeded correctly. Please run db seed.']);
         }
 
-        // Generate temporary password (at least 8 chars, containing a number)
-        $tempPassword = Str::random(10).'1';
+        $result = $users->createOnboardingAdmin($request->name, $request->email, $adminRoleId, $adminPostId);
 
-        // Generate a unique username from name
-        $nameWithoutSpaces = str_replace(' ', '.', strtolower(trim($request->name)));
-        $usernamePrefix = preg_replace('/[^a-z0-9\._]/', '', $nameWithoutSpaces);
-        if (empty($usernamePrefix)) {
-            $usernamePrefix = 'admin';
-        }
-        $username = $usernamePrefix;
-        if (User::where('username', $username)->exists()) {
-            $username = $usernamePrefix.'_'.Str::random(4);
-            while (User::where('username', $username)->exists()) {
-                $username = $usernamePrefix.'_'.Str::random(4);
-            }
-        }
-
-        $adminUser = User::create([
-            'tenant_id' => TenantManager::getTenantId(),
-            'name' => $request->name,
-            'email' => $request->email,
-            'username' => $username,
-            'password' => Hash::make($tempPassword),
-            'role_id' => $adminRoleId,
-            'post_id' => $adminPostId,
-            'is_owner' => false,
-        ]);
-
-        ActivityLogger::logUserCreated($adminUser);
-
-        // Send email with temporary password
-        try {
-            $adminUser->notify(new TemporaryPasswordNotification($tempPassword, $adminUser->email));
-        } catch (\Throwable $e) {
-            Log::error('Failed to send TemporaryPasswordNotification during onboarding: '.$e->getMessage(), [
-                'user_id' => $adminUser->id,
-                'email' => $adminUser->email,
-            ]);
-        }
-
-        return back()->with('success', "Admin user {$adminUser->name} created successfully. Temporary password '{$tempPassword}' has been sent to their email.");
+        return back()->with('success', "Admin user {$result['user']->name} created successfully. Temporary password '{$result['temporary_password']}' has been sent to their email.");
     }
 
     public function billing(Request $request)
@@ -848,30 +577,18 @@ class OwnerDashboardController extends Controller
         ]);
     }
 
-    public function logs(Request $request)
+    public function logs(Request $request, ReportingService $reporting)
     {
         $user = auth()->user();
         TenantManager::setTenantId($user->tenant_id);
 
         $projectFilter = $request->integer('project_id') ?: null;
 
-        $query = ActivityLog::query()
-            ->with(['project:id,po_number,client_name', 'item:id,item_name', 'user:id,name'])
-            ->latest('created_at');
-
-        if ($projectFilter) {
-            $query->where('project_id', $projectFilter);
-        }
-
-        $logs = $query->paginate(50)->withQueryString();
-
-        $projects = Po::query()
-            ->orderBy('po_number')
-            ->get(['id', 'po_number', 'client_name']);
+        $data = $reporting->activityLogs($projectFilter);
 
         return Inertia::render('Owner/Logs', [
-            'logs' => $logs,
-            'projects' => $projects,
+            'logs' => $data['logs'],
+            'projects' => $data['projects'],
             'selected_project' => $projectFilter,
         ]);
     }

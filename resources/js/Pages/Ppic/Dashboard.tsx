@@ -6,7 +6,8 @@ import { localizedDisplay, getLanguage } from '../../Utils/locale';
 import { WarningPill } from '../../Components/WarningPill';
 import { StatusBadge } from '../../Components/StatusBadge';
 import BroadcastToasts from '../../Components/BroadcastToasts';
-import echo from '../../bootstrap';
+import { useEchoPresence } from '../../Hooks/useEchoPresence';
+import ProgressBar from '../../Components/ProgressBar';
 import { useTranslation } from "@/i18n/useTranslation";
 
 interface ScheduleItem {
@@ -22,6 +23,7 @@ interface ScheduleItem {
     delivered_qty: number;
     has_alert: boolean;
     severity: string | null;
+    is_urgent?: boolean;
 }
 
 interface ScheduleEntry {
@@ -161,7 +163,6 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
     const [deadlineVal, setDeadlineVal] = useState<string>('');
     const [isUrgentVal, setIsUrgentVal] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
-    const [toastQueue, setToastQueue] = useState<Array<{ message: string; severity: string; id: number; timestamp: number }>>([]);
     const handleSavePo = (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingPo) return;
@@ -188,8 +189,6 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
         return () => clearInterval(timer);
     }, []);
 
-    const [onlineUsers, setOnlineUsers] = useState<Array<{ id: number; name: string; post_name?: string; role?: string }>>([]);
-    const [wsStatus, setWsStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
     const reloadTimeoutRef = useRef<any>(null);
 
     const triggerScopedReload = useCallback(() => {
@@ -197,94 +196,42 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
         reloadTimeoutRef.current = setTimeout(() => {
             router.reload({
                 only: ['schedule', 'telemetry', 'delivery_forecast'],
-                preserveState: true,
-                preserveScroll: true,
             });
         }, 800);
     }, []);
 
-    useEffect(() => {
-        const id = tenant?.id ?? (props as any).tenant_id;
-        if (!id) return;
-
-        // Presence Channel
-        const presenceChannel = echo.join(`tenant.${id}.presence`);
-        presenceChannel
-            .here((users: any[]) => setOnlineUsers(users))
-            .joining((user: any) => setOnlineUsers(prev => [...prev.filter(u => u.id !== user.id), user]))
-            .leaving((user: any) => setOnlineUsers(prev => prev.filter(u => u.id !== user.id)));
-
-        // Connection State
-        const pusherConn = (echo as any)?.connector?.pusher?.connection;
-        let fallbackInterval: any = null;
-
-        if (pusherConn) {
-            const handleStateChange = (states: any) => {
-                const current = states.current || pusherConn.state;
-                if (current === 'connected') {
-                    setWsStatus('connected');
-                    if (states.previous && states.previous !== 'connected') {
-                        router.reload({ preserveState: true, preserveScroll: true });
-                    }
-                } else if (current === 'connecting') {
-                    setWsStatus('connecting');
-                } else {
-                    setWsStatus('disconnected');
-                }
-            };
-            if (pusherConn.state) setWsStatus(pusherConn.state === 'connected' ? 'connected' : 'connecting');
-            pusherConn.bind('state_change', handleStateChange);
-        } else {
-            setWsStatus('disconnected');
-            fallbackInterval = setInterval(() => {
+    const { toastQueue, setToastQueue, onlineUsers, wsStatus } = useEchoPresence({
+        tenantId: tenant?.id ?? (props as any).tenant_id,
+        channel: 'dashboard',
+        onRefresh: () => triggerScopedReload(),
+        registerListeners: (channel, pushToast) => {
+            channel.listen('.production.terminated', () => {
+                router.visit(`/c/${slug}`);
+            });
+            channel.listen('.task.updated', (e: any) => {
+                pushToast({ message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() });
                 triggerScopedReload();
-            }, 30000);
-        }
+            });
+            channel.listen('.kendala.reported', (e: any) => {
+                const alert = e.alert;
+                pushToast({ message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() });
+                triggerScopedReload();
+            });
+            channel.listen('.qc.rework.logged', (e: any) => {
+                const alert = e.alert;
+                pushToast({ message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() });
+                triggerScopedReload();
+            });
+            channel.listen('.data.refreshed', () => {
+                triggerScopedReload();
+            });
+        },
+    });
 
-        const channel = echo.private(`tenant.${id}.dashboard`);
-        channel.listen('.production.terminated', () => {
-            router.visit(`/c/${slug}`);
-        });
-        channel.listen('.task.updated', (e: any) => {
-            const entry = { message: e.message || '', severity: 'INFO', id: Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
-            setTimeout(() => {
-                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
-            }, 8000);
-            triggerScopedReload();
-        });
-        channel.listen('.kendala.reported', (e: any) => {
-            const alert = e.alert;
-            const entry = { message: alert?.message || '', severity: alert?.severity || 'RED', id: alert?.id || Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
-            setTimeout(() => {
-                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
-            }, 8000);
-            triggerScopedReload();
-        });
-        channel.listen('.qc.rework.logged', (e: any) => {
-            const alert = e.alert;
-            const entry = { message: alert?.message || '', severity: 'REWORK', id: alert?.id || Date.now(), timestamp: Date.now() };
-            setToastQueue(prev => prev.some(t => t.message === entry.message) ? prev : [...prev, entry]);
-            setTimeout(() => {
-                setToastQueue(prev => prev.filter(t => t.timestamp !== entry.timestamp));
-            }, 8000);
-            triggerScopedReload();
-        });
-        channel.listen('.data.refreshed', () => {
-            triggerScopedReload();
-        });
-
-        return () => {
-            echo.leave(`tenant.${id}.dashboard`);
-            echo.leave(`tenant.${id}.presence`);
-            if (pusherConn) {
-                pusherConn.unbind('state_change');
-            }
-            if (fallbackInterval) clearInterval(fallbackInterval);
-            if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
-        };
-    }, [tenant?.id]);
+    // Cleanup for the page-level debounced reload timer
+    useEffect(() => () => {
+        if (reloadTimeoutRef.current) clearTimeout(reloadTimeoutRef.current);
+    }, []);
     const totalActive = schedule.reduce((sum, po) => sum + po.active_items, 0);
     const totalPos = schedule.filter(po => po.status !== 'COMPLETED' && po.status !== 'CLOSED').length;
     const overdueTotal = delivery_forecast.overdue_count;
@@ -638,9 +585,7 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                                     </div>
                                     <span style={{ fontSize: '13px', fontWeight: 800, color: barColor }}>{avgProgress}%</span>
                                 </div>
-                                <div style={{ height: '12px', backgroundColor: 'var(--color-pg-surface)', borderRadius: '6px', overflow: 'hidden' }}>
-                                    <div style={{ height: '100%', width: `${avgProgress}%`, backgroundColor: barColor, borderRadius: '6px', transition: 'width 0.4s ease' }} />
-                                </div>
+                                <ProgressBar percent={avgProgress} color={barColor} trackStyle={{ height: '12px', backgroundColor: 'var(--color-pg-surface)', borderRadius: '6px', overflow: 'hidden' }} fillStyle={{ borderRadius: '6px', transition: 'width 0.4s ease' }} />
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '11px', color: 'var(--color-pg-text-muted)' }}>
                                     <span>📅 Deadline: {po.global_deadline}</span>
                                     <span>{po.completed_items}/{po.total_items} {t.items.toLowerCase()}</span>
@@ -702,12 +647,7 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                         height: '6px', borderRadius: '3px', overflow: 'hidden',
                         backgroundColor: 'var(--color-pg-surface)',
                     }}>
-                        <div style={{
-                            height: '100%', borderRadius: '3px',
-                            backgroundColor: po.completed_items === po.total_items ? '#34d399' : '#818cf8',
-                            width: `${(po.completed_items / Math.max(1, po.total_items)) * 100}%`,
-                            transition: 'width 0.3s',
-                        }} />
+                        <ProgressBar percent={(po.completed_items / Math.max(1, po.total_items)) * 100} color={po.completed_items === po.total_items ? '#34d399' : '#818cf8'} trackStyle={{ height: '100%' }} fillStyle={{ borderRadius: '3px', transition: 'width 0.3s' }} />
                     </div>
                     {po.items.map(item => (
                         <div key={item.id} style={{
@@ -797,14 +737,7 @@ function LoadTab({ workCenterLoad, language, t }: { workCenterLoad: WorkCenterLo
                                 {wc.active} {t.active.toLowerCase()} / {wc.completed} {t.completed.toLowerCase()}
                             </span>
                         </div>
-                        <div style={{ height: '8px', borderRadius: '4px', backgroundColor: 'var(--color-pg-surface)', overflow: 'hidden' }}>
-                            <div style={{
-                                height: '100%', borderRadius: '4px',
-                                width: `${pct}%`,
-                                backgroundColor: wc.active > wc.completed ? '#fbbf24' : '#34d399',
-                                transition: 'width 0.3s',
-                            }} />
-                        </div>
+                        <ProgressBar percent={pct} color={wc.active > wc.completed ? '#fbbf24' : '#34d399'} trackStyle={{ height: '8px', borderRadius: '4px', backgroundColor: 'var(--color-pg-surface)', overflow: 'hidden' }} fillStyle={{ borderRadius: '4px', transition: 'width 0.3s' }} />
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '10px', color: 'var(--color-pg-text-muted)', fontWeight: 600 }}>
                             <span>{t.total}: {wc.total}</span>
                             <span>{wc.active > 0 ? `${Math.round((wc.active / Math.max(1, wc.total)) * 100)}% ${t.active.toLowerCase()}` : t.completed}</span>
@@ -982,14 +915,7 @@ function CapacityTab({ capacities, language, t }: { capacities: CapacityEntry[];
                                 {cap.active_item_count} {t.active.toLowerCase()} · {cap.total_target_qty} pcs
                             </span>
                         </div>
-                        <div style={{ height: '8px', borderRadius: '4px', backgroundColor: 'var(--color-pg-surface)', overflow: 'hidden' }}>
-                            <div style={{
-                                height: '100%', borderRadius: '4px',
-                                width: `${Math.min(100, cap.load_percent)}%`,
-                                backgroundColor: cap.load_percent >= 80 ? '#f87171' : cap.load_percent >= 50 ? '#fbbf24' : '#34d399',
-                                transition: 'width 0.3s',
-                            }} />
-                        </div>
+                        <ProgressBar percent={cap.load_percent} color={cap.load_percent >= 80 ? '#f87171' : cap.load_percent >= 50 ? '#fbbf24' : '#34d399'} trackStyle={{ height: '8px', borderRadius: '4px', backgroundColor: 'var(--color-pg-surface)', overflow: 'hidden' }} fillStyle={{ borderRadius: '4px', transition: 'width 0.3s' }} />
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '10px', color: 'var(--color-pg-text-muted)', fontWeight: 600 }}>
                             <span>{cap.total_completed_qty}/{cap.total_target_qty} pcs</span>
                             <span>{cap.load_percent.toFixed(0)}%</span>
