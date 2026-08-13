@@ -123,20 +123,6 @@ export default function VerifyEmail({ status }: VerifyEmailProps) {
                     </p>
                 </div>
 
-                <div style={{
-                    fontSize: '12px',
-                    backgroundColor: 'var(--color-pg-surface)',
-                    border: '1px dashed var(--color-pg-border)',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    color: 'var(--color-pg-text-muted)',
-                    marginBottom: '24px',
-                    textAlign: 'center',
-                    lineHeight: '1.4'
-                }}>
-                    {t.dev_mode_msg}
-                </div>
-
                 {status === 'verification-link-sent' && (
                     <div style={{
                         fontSize: '13px',
