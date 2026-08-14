@@ -169,12 +169,16 @@ Did this change: add business logic to a controller? grow a hotspot? duplicate a
 - `tsconfig.json` exists (`strict:false`, noEmit) — Vite does NOT type-check; `npm run typecheck` does.
 - Dual language (EN/ID): `i18n/locales/{en,id}.json` namespaces + `useTranslation('Namespace')` hook + `localStorage` `pogrid_lang`. Some legacy inline `language === 'en' ?` ternaries remain — prefer the JSON namespaces for new code.
 - Theme System: `pogrid_theme` in `localStorage` toggles theme classes on `html` (`theme-default`, `theme-linear`, `theme-vercel`, `theme-stripe`, `theme-github`, `theme-nordic`, `theme-light` [Mint Cream], `theme-brand`). All components use semantic CSS custom properties (`--color-pg-surface`, `--color-pg-border`, `--color-pg-text`, `--color-pg-text-muted`).
-- **Shared app chrome** — `resources/js/Components/AppShell.tsx` renders the sidebar + header + mobile drawer/bottom-nav for BOTH office and worker views. Thin wrappers: `AppLayout.tsx` (office pages, variant="office", chrome at `md+`) and `WorkerHeader.tsx` (worker pages, variant="worker", chrome at `lg+`; worker pages offset content with `dashboard-root lg:ml-64`). Breakpoint classes inside AppShell are written as **string literals** (`sidebarVisibility`, `mobileOnly`) — never interpolated — or Tailwind's scanner drops them and the sidebar/mobile chrome break. Keep `lg:ml-64` / `md:ml-64`/`lg:ml-72` content offsets in sync with `w-64` / `w-64 lg:w-72` sidebar widths.
+- **Shared app chrome & Single Header Architecture** — `resources/js/Components/AppShell.tsx` renders the sidebar + header + mobile drawer/bottom-nav for BOTH office and worker views. `AppLayout.tsx` wraps office pages, forwarding header props (`showClock`, `onlineUsersCount`, `wsStatus`, `onSearchClick`, `actionButton`, `backUrl`, `subtitle`) directly into `AppShell`. **Rule:** Never create duplicate inner `<header>` rows in pages; slot titles and CTAs into `AppLayout`. `effectiveUser` in `AppShell` automatically resolves from the globally shared `auth.user` prop (shared via `AppServiceProvider.php`). Breakpoint classes inside AppShell are written as **string literals** (`sidebarVisibility`, `mobileOnly`) — never interpolated — or Tailwind's scanner drops them and the sidebar/mobile chrome break. Keep `lg:ml-64` / `md:ml-64`/`lg:ml-72` content offsets in sync with `w-64` / `w-64 lg:w-72` sidebar widths.
 - **Design system**: `app.css` declares `@layer reset, astryx, theme, base, components, utilities;` so Tailwind utilities outrank Astryx's `@layer reset` (fixes heading font-size inheritance). Landing shares `.mono`, `.line-grad`, `.line-grad-fade` (defined globally in `app.css`); Landing-only primitives (`hero-grid`, `line-grid`, `cell-hover`, `btn-dark`, `btn-white`, `grad-text`, etc.) live in the page's inline `<style>`. Primary brand color is blue (`#2563eb`, was indigo `#6366f1`).
 - `e2e-tests/check-hero.js` — standalone Puppeteer probe that verifies the cascade-layer fix (h1 font-size on the Landing hero).
 - Date Formatting: Standardized UI date representations to `dd/mm/yyyy` via `resources/js/Utils/date.ts`.
 
-## Deployment (Production)
+## CI/CD & Deployment (Production)
+
+**Automated Pipeline**: Pushing to `main` automatically triggers GitHub Actions (`.github/workflows/deploy.yml`), which validates `npm run typecheck:ci`, builds Vite assets, runs `php artisan test`, and deploys via RSYNC + clears/rebuilds remote cache on Hostinger.
+
+**Manual Deploy Command**: `npm run deploy` (build + rsync + remote `rm public/hot` + cache rebuild, all in one).
 
 **Host**: Hostinger shared hosting at `153.92.8.145`, port `65002`.
 
