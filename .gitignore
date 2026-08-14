@@ -61,3 +61,6 @@ testacc.txt
 /scratch/
 /reports/
 /.hermes/
+
+# User-uploaded files
+/public/uploads/
