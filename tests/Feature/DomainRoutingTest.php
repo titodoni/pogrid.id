@@ -44,4 +44,11 @@ class DomainRoutingTest extends TestCase
         $response = $this->get('https://pogrid.id/privacy');
         $response->assertOk();
     }
+
+    public function test_landing_page_renders_landing_component(): void
+    {
+        $this->get('https://pogrid.id/')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->component('Landing/Landing'));
+    }
 }

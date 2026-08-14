@@ -1,0 +1,259 @@
+/* ============================================================
+   POgrid.id landing — Clean SaaS visual system
+   Light/airy B2B SaaS: soft surfaces, rounded cards, deep blue
+   primary (#2563eb), restrained motion.
+   ============================================================ */
+
+.landing-root {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #ffffff;
+    color: #334155;
+}
+.landing-display {
+    font-family: 'Oswald', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+}
+.mono {
+    font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ---------- Color tokens ---------- */
+.bg-surface { background-color: #f8fafc; }
+.bg-surface-2 { background-color: #f1f5f9; }
+.border-soft { border-color: #e2e8f0; }
+.text-ink { color: #0f172a; }
+.text-mute { color: #64748b; }
+
+/* ---------- Buttons ---------- */
+.btn-primary {
+    background: #2563eb;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 0.625rem;
+    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-ghost {
+    background: transparent;
+    color: #334155;
+    font-weight: 600;
+    border-radius: 0.625rem;
+    border: 1px solid #e2e8f0;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.btn-ghost:hover {
+    border-color: #94a3b8;
+    background: #f8fafc;
+}
+
+/* ---------- Cards (soft, rounded) ---------- */
+.card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.card-hover {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.card-hover:hover {
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+    transform: translateY(-2px);
+}
+
+/* ---------- Section rhythm ---------- */
+.section-pad { padding-top: 5rem; padding-bottom: 5rem; }
+@media (min-width: 768px) {
+    .section-pad { padding-top: 7rem; padding-bottom: 7rem; }
+}
+
+/* ---------- Headline grid eyebrow ---------- */
+.lg-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.lg-eyebrow .tag {
+    font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #1d4ed8;
+}
+.lg-eyebrow .bar {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, #cbd5e1, transparent);
+}
+
+/* ---------- Hairline grid (lighter) ---------- */
+.line-grid > * {
+    border: 0 solid #e2e8f0;
+    border-top-width: 1px;
+    border-left-width: 1px;
+    margin-left: -1px;
+    margin-top: -1px;
+}
+.cell-hover {
+    transition: box-shadow 0.18s ease, background 0.18s ease;
+}
+.cell-hover:hover {
+    box-shadow: inset 0 2px 0 #2563eb;
+    background: #f8fafc;
+}
+
+/* ---------- Reveal on scroll ---------- */
+.reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+.reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .marquee-track { animation: none !important; }
+}
+
+/* ---------- Marquee ---------- */
+.marquee-mask {
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+}
+@keyframes marqueeScroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+.marquee-track {
+    animation: marqueeScroll 32s linear infinite;
+}
+.marquee-mask:hover .marquee-track { animation-play-state: paused; }
+
+/* ---------- Final CTA dark panel ---------- */
+.cta-grid {
+    background-image:
+        linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: linear-gradient(to bottom, transparent, black 60%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 60%);
+}
+
+/* ---------- Hero ---------- */
+.hero {
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 60%);
+    border-bottom: 1px solid #e2e8f0;
+}
+.hero-h1 {
+    font-size: clamp(2.6rem, 5vw + 1rem, 4.5rem);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+    color: #0f172a;
+}
+.hero-h1 .accent {
+    background: linear-gradient(94deg, #2563eb 0%, #0ea5e9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.hero-sub {
+    color: #64748b;
+}
+
+/* ---------- Product visual mockup ---------- */
+.mock-frame {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+}
+.mock-bar {
+    height: 2.25rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0 0.75rem;
+}
+.mock-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: #cbd5e1;
+}
+.mock-url {
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.55rem;
+    color: #94a3b8;
+}
+
+.hero-visual-mobile { display: block; }
+@media (min-width: 1024px) {
+    .hero-visual-mobile { display: none; }
+}
+.dashboard-mockup { display: none; }
+@media (min-width: 1024px) {
+    .dashboard-mockup { display: block; }
+}
+
+/* ---------- Pricing ---------- */
+.price-card {
+    background: #fff;
+    border: 2px solid #2563eb;
+    border-radius: 1.25rem;
+    box-shadow: 0 20px 50px rgba(37, 99, 235, 0.12);
+}
+.price-amt {
+    font-family: 'Oswald', 'Inter', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+}
+
+/* ---------- Comparison ---------- */
+.compare-table {
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+/* ---------- Trust band ---------- */
+.trust-row {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 1024px) {
+    .trust-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* ---------- FAQ ---------- */
+.faq-item + .faq-item { border-top: 1px solid #e2e8f0; }
+
+/* Legacy alias (still used by Landing.tsx / SectionHead) */
+.line-grad-fade {
+    background: linear-gradient(90deg, rgba(29, 78, 216, 0.45), rgba(148, 163, 184, 0.28) 50%, transparent);
+}
+
+html { scroll-behavior: smooth; }
+section[id] { scroll-margin-top: 5rem; }
+html, body { overflow-x: clip !important; }
