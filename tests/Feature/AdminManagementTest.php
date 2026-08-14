@@ -53,6 +53,7 @@ class AdminManagementTest extends TestCase
         ]);
 
         $user = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'Eko Prasetyo',
             'username' => 'eko_gamma',
@@ -79,6 +80,7 @@ class AdminManagementTest extends TestCase
         ]);
 
         $admin = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'Admin User',
             'username' => 'admin_beta',
@@ -132,6 +134,7 @@ class AdminManagementTest extends TestCase
         ]);
 
         $admin = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'Admin Alpha',
             'username' => 'admin_alpha',
@@ -192,6 +195,7 @@ class AdminManagementTest extends TestCase
         ]);
 
         $admin = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'Admin Repeat',
             'username' => 'admin_repeat',
@@ -241,6 +245,7 @@ class AdminManagementTest extends TestCase
         ]);
 
         $admin = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'Admin Pin',
             'role_id' => 8,
@@ -277,6 +282,7 @@ class AdminManagementTest extends TestCase
         ]);
 
         $user = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'Eko Prasetyo',
             'username' => 'eko_gamma',
@@ -302,6 +308,7 @@ class AdminManagementTest extends TestCase
         ]);
 
         $admin = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'Admin New Roles',
             'username' => 'admin_newroles',
@@ -387,6 +394,7 @@ class AdminManagementTest extends TestCase
         ]);
 
         $admin = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'Admin Archive',
             'username' => 'admin_archive',
@@ -440,6 +448,7 @@ class AdminManagementTest extends TestCase
         $assemblyRole = DB::table('roles')->where('name', 'ASSEMBLY')->first();
         $assemblyPost = DB::table('posts')->where('name', 'ASSEMBLY')->first();
         $assemblyWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'Assembly Worker Archive',
             'role_id' => $assemblyRole->id,
@@ -460,6 +469,7 @@ class AdminManagementTest extends TestCase
         $surfaceRole = DB::table('roles')->where('name', 'SURFACE')->first();
         $surfacePost = DB::table('posts')->where('name', 'HEAT_TREATMENT')->first();
         $surfaceWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'Surface Worker Archive',
             'role_id' => $surfaceRole->id,
@@ -480,6 +490,7 @@ class AdminManagementTest extends TestCase
         $ppicRole = DB::table('roles')->where('name', 'PPIC')->first();
         $ppicPost = DB::table('posts')->where('name', 'PPIC')->first();
         $ppicWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'PPIC Worker Archive',
             'role_id' => $ppicRole->id,
@@ -498,6 +509,7 @@ class AdminManagementTest extends TestCase
         $maintenanceRole = DB::table('roles')->where('name', 'MAINTENANCE')->first();
         $maintenancePost = DB::table('posts')->where('name', 'MAINTENANCE')->first();
         $maintenanceWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'Maintenance Worker Archive',
             'role_id' => $maintenanceRole->id,
@@ -521,6 +533,7 @@ class AdminManagementTest extends TestCase
         ]);
 
         $worker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'Worker Pin Limit',
             'role_id' => 3, // Machining
@@ -560,6 +573,7 @@ class AdminManagementTest extends TestCase
         ]);
 
         $owner = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant->id,
             'name' => 'Owner Name',
             'email' => 'owner@alpha.com',

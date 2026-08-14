@@ -99,6 +99,43 @@ describe('Worker Authentication (Guard B)', () => {
         url.includes('/dashboard') || url.includes(`/c/${TENANT_SLUG}`);
       expect(isOnWorkerPage).toBe(true);
     });
+
+    it('should render the worker dashboard without runtime errors (translations regression)', async () => {
+      const pageErrors = [];
+      page.on('pageerror', (err) => pageErrors.push(err.message));
+
+      await page.goto(URLS.workerLogin, { waitUntil: 'networkidle0' });
+
+      const workerCard = await page.evaluateHandle((names) => {
+        const els = document.querySelectorAll('[data-worker-id], button, div');
+        for (const el of els) {
+          for (const name of names) {
+            if (el.textContent?.includes(name)) return el;
+          }
+        }
+        return null;
+      }, WORKER_NAMES);
+
+      expect(workerCard).toBeTruthy();
+      await workerCard.click();
+      await sleep(500);
+      await page.keyboard.type(WORKER_PIN);
+      await sleep(200);
+      await page.keyboard.press('Enter');
+      await waitForInertia(page);
+      await sleep(1000);
+
+      // Regression: ItemCard crashed with "ReferenceError: translations is not
+      // defined" whenever the floor had items. The dashboard must render real
+      // content and produce no page errors.
+      expect(pageErrors).toEqual([]);
+
+      const bodyText = await page.evaluate(() => document.body.innerText);
+      const rendersDashboard =
+        bodyText.includes('Active') || bodyText.includes('Aktif') ||
+        bodyText.includes('item') || bodyText.includes('PO');
+      expect(rendersDashboard).toBe(true);
+    });
   });
 
   describe('Failed Worker Login', () => {

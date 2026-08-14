@@ -1,14 +1,22 @@
 import React from 'react';
+import PillFilter from '../PillFilter';
 
 export default function ActiveDelayDirectory({
     matrixFilter,
     setMatrixFilter,
     language,
     t,
-    getFilteredMatrix,
     changeTab,
     togglePO,
-    getStatusBadge
+    getStatusBadge,
+    telemetry,
+    alerts,
+    setExpandedPOs,
+    setExpandedItems,
+    dirCollapsed,
+    setDirCollapsed,
+    directoryFilter,
+    setDirectoryFilter,
 }: any) {
     return (
         <>
@@ -45,83 +53,18 @@ export default function ActiveDelayDirectory({
                                 <div className="mt-4">
                             
                             {/* Pill Filters */}
-                            <div className="flex gap-2 flex-wrap mb-4">
-                                <button
-                                    onClick={() => setDirectoryFilter('client')}
-                                    className="cursor-pointer transition-all duration-200"
-                                    style={{
-                                        padding: '6px 14px',
-                                        borderRadius: '9999px',
-                                        fontSize: '12px',
-                                        fontWeight: 600,
-                                        border: '1px solid var(--color-pg-border)',
-                                        backgroundColor: directoryFilter === 'client' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
-                                        color: directoryFilter === 'client' ? '#ffffff' : 'var(--color-pg-text-secondary)',
-                                    }}
-                                >
-                                    {language === 'id' ? 'Per Klien (Default)' : 'Per Client (Default)'}
-                                </button>
-                                <button
-                                    onClick={() => setDirectoryFilter('marked')}
-                                    className="cursor-pointer transition-all duration-200"
-                                    style={{
-                                        padding: '6px 14px',
-                                        borderRadius: '9999px',
-                                        fontSize: '12px',
-                                        fontWeight: 600,
-                                        border: '1px solid var(--color-pg-border)',
-                                        backgroundColor: directoryFilter === 'marked' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
-                                        color: directoryFilter === 'marked' ? '#ffffff' : 'var(--color-pg-text-secondary)',
-                                    }}
-                                >
-                                    {language === 'id' ? 'Ditandai (Rework/Kendala)' : 'Marked (Rework / Trouble)'}
-                                </button>
-                                <button
-                                    onClick={() => setDirectoryFilter('delayed')}
-                                    className="cursor-pointer transition-all duration-200"
-                                    style={{
-                                        padding: '6px 14px',
-                                        borderRadius: '9999px',
-                                        fontSize: '12px',
-                                        fontWeight: 600,
-                                        border: '1px solid var(--color-pg-border)',
-                                        backgroundColor: directoryFilter === 'delayed' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
-                                        color: directoryFilter === 'delayed' ? '#ffffff' : 'var(--color-pg-text-secondary)',
-                                    }}
-                                >
-                                    {language === 'id' ? 'Terlambat' : 'Delayed'}
-                                </button>
-                                <button
-                                    onClick={() => setDirectoryFilter('ontime')}
-                                    className="cursor-pointer transition-all duration-200"
-                                    style={{
-                                        padding: '6px 14px',
-                                        borderRadius: '9999px',
-                                        fontSize: '12px',
-                                        fontWeight: 600,
-                                        border: '1px solid var(--color-pg-border)',
-                                        backgroundColor: directoryFilter === 'ontime' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
-                                        color: directoryFilter === 'ontime' ? '#ffffff' : 'var(--color-pg-text-secondary)',
-                                    }}
-                                >
-                                    {language === 'id' ? 'Tepat Waktu' : 'On Time'}
-                                </button>
-                                <button
-                                    onClick={() => setDirectoryFilter('close_due')}
-                                    className="cursor-pointer transition-all duration-200"
-                                    style={{
-                                        padding: '6px 14px',
-                                        borderRadius: '9999px',
-                                        fontSize: '12px',
-                                        fontWeight: 600,
-                                        border: '1px solid var(--color-pg-border)',
-                                        backgroundColor: directoryFilter === 'close_due' ? 'var(--color-pg-primary)' : 'var(--color-pg-border-subtle)',
-                                        color: directoryFilter === 'close_due' ? '#ffffff' : 'var(--color-pg-text-secondary)',
-                                    }}
-                                >
-                                    {language === 'id' ? 'Mendekati Deadline' : 'Close Due Date'}
-                                </button>
-                            </div>
+                            <PillFilter
+                                    options={[
+                                        { value: 'client', label: language === 'id' ? 'Per Klien (Default)' : 'Per Client (Default)' },
+                                        { value: 'marked', label: language === 'id' ? 'Ditandai (Rework/Kendala)' : 'Marked (Rework / Trouble)' },
+                                        { value: 'delayed', label: language === 'id' ? 'Terlambat' : 'Delayed' },
+                                        { value: 'ontime', label: language === 'id' ? 'Tepat Waktu' : 'On Time' },
+                                        { value: 'close_due', label: language === 'id' ? 'Mendekati Deadline' : 'Close Due Date' },
+                                    ]}
+                                    value={directoryFilter}
+                                    onChange={setDirectoryFilter}
+                                    className="flex gap-2 flex-wrap mb-4"
+                                />
 
                             <div style={{ width: '100%', overflowX: 'auto' }}>
                                 {(() => {

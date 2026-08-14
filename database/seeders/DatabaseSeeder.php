@@ -112,6 +112,7 @@ class DatabaseSeeder extends Seeder
             'username' => 'sari',
             'email' => 'owner@teknikmandiri.com',
             'password' => Hash::make('poiuy'),
+            'email_verified_at' => now(),  // demo office accounts are pre-verified
             'role_id' => $roles['STAFF']->id,
             'post_id' => $posts['Manager']->id,
             'is_owner' => true,
@@ -123,6 +124,7 @@ class DatabaseSeeder extends Seeder
             'username' => 'budi',
             'email' => 'admin@teknikmandiri.com',
             'password' => Hash::make('poiuy'),
+            'email_verified_at' => now(),  // demo office accounts are pre-verified
             'role_id' => $roles['STAFF']->id,
             'post_id' => $posts['Admin']->id,
         ]);
@@ -133,6 +135,7 @@ class DatabaseSeeder extends Seeder
             'username' => 'fitri',
             'email' => 'sales@teknikmandiri.com',
             'password' => Hash::make('poiuy'),
+            'email_verified_at' => now(),  // demo office accounts are pre-verified
             'role_id' => $roles['STAFF']->id,
             'post_id' => $posts['Sales']->id,
         ]);
@@ -143,6 +146,7 @@ class DatabaseSeeder extends Seeder
             'username' => 'dimas',
             'email' => 'manager@teknikmandiri.com',
             'password' => Hash::make('poiuy'),
+            'email_verified_at' => now(),  // demo office accounts are pre-verified
             'role_id' => $roles['STAFF']->id,
             'post_id' => $posts['Manager']->id,
         ]);

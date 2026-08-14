@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Notifications\ResetPasswordNotification;
+use App\Services\TenantManager;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -23,12 +24,14 @@ class ForgotPasswordController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'exists:users,email'],
         ]);
 
-        $status = Password::sendResetLink(
+        // The password broker resolves users by email across tenants by design
+        // (Guard A emails are globally unique) — explicit scoped bypass.
+        $status = TenantManager::runWithoutScope(fn () => Password::sendResetLink(
             $request->only('email'),
             function ($user, $token) {
                 $user->notify(new ResetPasswordNotification($token));
             }
-        );
+        ));
 
         if ($status === Password::RESET_LINK_SENT) {
             return back()->with('success', 'Password reset link has been sent to your email. Check your inbox (or server log in dev mode).');
@@ -52,7 +55,7 @@ class ForgotPasswordController extends Controller
             'password' => ['required', 'string', 'min:6', 'confirmed'],
         ]);
 
-        $status = Password::reset(
+        $status = TenantManager::runWithoutScope(fn () => Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
                 $user->forceFill([
@@ -61,7 +64,7 @@ class ForgotPasswordController extends Controller
                 $user->save();
                 event(new PasswordReset($user));
             }
-        );
+        ));
 
         if ($status === Password::PASSWORD_RESET) {
             return redirect('/login')->with('success', 'Your password has been reset. Please sign in with your new password.');

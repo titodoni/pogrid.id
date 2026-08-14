@@ -71,6 +71,7 @@ class PusherRealtimeE2ETest extends TestCase
     private function makeWorker(): User
     {
         return User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'RT Machining Worker',
             'role_id' => 3,
@@ -82,6 +83,7 @@ class PusherRealtimeE2ETest extends TestCase
     private function makeOwner(): User
     {
         return User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'RT Owner',
             'role_id' => 8,
@@ -95,6 +97,7 @@ class PusherRealtimeE2ETest extends TestCase
     private function makeDrafter(): User
     {
         return User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'RT Drafter Worker',
             'role_id' => 1,

@@ -119,25 +119,25 @@ class CoreLogicTest extends TestCase
         $machiningStage = $item->itemProgresses()->where('stage_name', 'Machining')->first();
         $machiningStage->update([
             'completed_qty' => 5,
-            'status' => 'IN_PROGRESS',
+            'status' => 'IN_PRODUCTION',
         ]);
 
         // Recalculate should trigger via observer.
-        // Formula (Qty > 1): Completed Qty Sum (20 + 20 + 5 = 45) / (Target (20) * Total Stages (6)) * 100 = 45 / 120 * 100 = 37.5%
+        // Formula (Qty > 1): Completed Qty Sum (5) / (Target (20) * Production Stages (4)) * 100 = 5 / 80 * 100 = 6.25%
         $item->refresh();
-        $this->assertEquals(37.5, (float) $item->progress_percent);
-        $this->assertEquals('IN_PROGRESS', $item->status);
+        $this->assertEquals(6.25, (float) $item->progress_percent);
+        $this->assertEquals('IN_PRODUCTION', $item->status);
 
         // Update progress of Fabrication stage (15 out of 20 pieces)
         $fabStage = $item->itemProgresses()->where('stage_name', 'Fabrication')->first();
         $fabStage->update([
             'completed_qty' => 15,
-            'status' => 'IN_PROGRESS',
+            'status' => 'IN_PRODUCTION',
         ]);
 
-        // Formula: Completed Qty Sum (20 + 20 + 5 + 15 = 60) / (20 * 6 = 120) * 100 = 50%
+        // Formula: Completed Qty Sum (5 + 15 = 20) / (20 * 4 = 80) * 100 = 25%
         $item->refresh();
-        $this->assertEquals(50.00, (float) $item->progress_percent);
+        $this->assertEquals(25.00, (float) $item->progress_percent);
 
         // Finish all
         $machiningStage->update(['completed_qty' => 20, 'status' => 'COMPLETED']);
@@ -182,19 +182,19 @@ class CoreLogicTest extends TestCase
             'status' => 'COMPLETED',
         ]);
 
-        // Formula: (100 + 0 + 0 + 0 + 0) / 5 = 20.00%
+        // Formula: Production stages (Machining, QC, Delivery) are at 0%. Design doesn't count.
         $item->refresh();
-        $this->assertEquals(20.00, round((float) $item->progress_percent, 2));
+        $this->assertEquals(0.00, round((float) $item->progress_percent, 2));
 
         $machiningStage = $item->itemProgresses()->where('stage_name', 'Machining')->first();
         $machiningStage->update([
             'progress_percent' => 50.00,
-            'status' => 'IN_PROGRESS',
+            'status' => 'IN_PRODUCTION',
         ]);
 
-        // Formula: (100 + 50 + 0 + 0 + 0) / 5 = 30.00%
+        // Formula: (50 + 0 + 0) / 3 = 16.67%
         $item->refresh();
-        $this->assertEquals(30.00, (float) $item->progress_percent);
+        $this->assertEquals(16.67, round((float) $item->progress_percent, 2));
 
         $qcStage = $item->itemProgresses()->where('stage_name', 'QC')->first();
         $qcStage->update([
@@ -320,6 +320,7 @@ class CoreLogicTest extends TestCase
 
         // Mock QC login
         $worker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'QC Worker',
             'role_id' => 6,
@@ -382,6 +383,7 @@ class CoreLogicTest extends TestCase
         $item->itemProgresses()->whereIn('stage_name', ['Design', 'Material'])->update(['status' => 'COMPLETED', 'completed_qty' => 10]);
 
         $worker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker',
             'role_id' => 3,
@@ -502,14 +504,15 @@ class CoreLogicTest extends TestCase
         ]);
 
         // Make progress of 50% item > 0% (Machining 5 out of 10)
-        // With Design, Material, QC and Delivery appended, total stages is 5. Progress is 5 / (10 * 5) = 10%
+        // With Design, Material ignored, total production stages is 3. Progress is 5 / (10 * 3) = 16.67%
         $machiningStage = $item50Percent->itemProgresses()->where('stage_name', 'Machining')->first();
         $machiningStage->update(['completed_qty' => 5]);
         $item50Percent->refresh();
-        $this->assertEquals(10.00, round((float) $item50Percent->progress_percent, 2));
+        $this->assertEquals(16.67, round((float) $item50Percent->progress_percent, 2));
 
         // Login as Owner
         $owner = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Owner',
             'role_id' => 8,
@@ -576,6 +579,7 @@ class CoreLogicTest extends TestCase
 
         // QC logs reject_qty = 2 on Machining
         $worker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'QC Worker',
             'role_id' => 6,
@@ -594,13 +598,14 @@ class CoreLogicTest extends TestCase
         $machiningStage->refresh();
         $this->assertEquals(8, $machiningStage->completed_qty);
 
-        // Item progress should drop to 96.67% (10 Design + 10 Material + 8 Machining + 10 Fabrication + 10 QC + 10 Delivery) / 60 * 100 = 96.67%
+        // Item progress should drop to 95% (8 Machining + 10 Fabrication + 10 QC + 10 Delivery) / 40 * 100 = 95.00%
         $item->refresh();
-        $this->assertEquals(96.67, round((float) $item->progress_percent, 2));
-        $this->assertEquals('IN_PROGRESS', $item->status);
+        $this->assertEquals(95.00, round((float) $item->progress_percent, 2));
+        $this->assertEquals('IN_PRODUCTION', $item->status);
 
         // Machining worker completes 2 reworked items
         $machiningWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker Rework',
             'role_id' => 3,
@@ -801,6 +806,7 @@ class CoreLogicTest extends TestCase
 
         // 1. Create MACHINING worker
         $machiningWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker',
             'role_id' => 3,
@@ -810,6 +816,7 @@ class CoreLogicTest extends TestCase
 
         // 2. Create FABRICATION worker
         $fabWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Fabrication Worker',
             'role_id' => 4,
@@ -819,6 +826,7 @@ class CoreLogicTest extends TestCase
 
         // 3. Create QC worker
         $qcWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'QC Worker',
             'role_id' => 6,
@@ -828,6 +836,7 @@ class CoreLogicTest extends TestCase
 
         // 4. Create FINANCE worker
         $financeWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Finance Worker',
             'role_id' => 9,
@@ -869,6 +878,7 @@ class CoreLogicTest extends TestCase
         // Delivery stage locked until QC completed_qty > 0.
         // Let's test a Delivery worker trying to update Delivery stage.
         $deliveryWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Delivery Worker',
             'role_id' => 7,
@@ -958,6 +968,7 @@ class CoreLogicTest extends TestCase
         $machiningStage = $itemVendor->itemProgresses()->where('stage_name', 'Machining')->first();
 
         $machiningWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker 2',
             'role_id' => 3,
@@ -1038,6 +1049,7 @@ class CoreLogicTest extends TestCase
 
         // 1. Create FINANCE worker
         $financeWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Finance Worker Queue',
             'role_id' => 9,
@@ -1047,6 +1059,7 @@ class CoreLogicTest extends TestCase
 
         // 2. Create MACHINING worker
         $machiningWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker Queue',
             'role_id' => 3,
@@ -1113,6 +1126,7 @@ class CoreLogicTest extends TestCase
         $item->itemProgresses()->whereIn('stage_name', ['Design', 'Material'])->update(['status' => 'COMPLETED', 'completed_qty' => 10]);
 
         $worker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker',
             'role_id' => 3,
@@ -1174,6 +1188,7 @@ class CoreLogicTest extends TestCase
         $item->itemProgresses()->whereIn('stage_name', ['Design', 'Material'])->update(['status' => 'COMPLETED', 'completed_qty' => 10]);
 
         $worker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'CNC Worker',
             'role_id' => 3,
@@ -1220,6 +1235,7 @@ class CoreLogicTest extends TestCase
         ]);
 
         $financeWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Finance Worker',
             'role_id' => 9,
@@ -1258,6 +1274,7 @@ class CoreLogicTest extends TestCase
         ]);
 
         $drafter = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Drafter Worker',
             'role_id' => 1,
@@ -1266,6 +1283,7 @@ class CoreLogicTest extends TestCase
         ]);
 
         $purchasing = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Purchasing Worker',
             'role_id' => 2,
@@ -1350,6 +1368,7 @@ class CoreLogicTest extends TestCase
         ]);
 
         $drafter = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Drafter Worker Revert',
             'role_id' => 1,
@@ -1358,6 +1377,7 @@ class CoreLogicTest extends TestCase
         ]);
 
         $purchasing = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Purchasing Worker Revert',
             'role_id' => 2,
@@ -1438,6 +1458,7 @@ class CoreLogicTest extends TestCase
         // 1. By default, workflow mode is Loose (null/loose settings).
         // Let's create a machining operator.
         $operator = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Operator',
             'role_id' => 3,
@@ -1458,6 +1479,7 @@ class CoreLogicTest extends TestCase
 
         // 2. Change workflow settings to Strict
         $owner = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Owner Admin',
             'role_id' => 8,
@@ -1517,6 +1539,7 @@ class CoreLogicTest extends TestCase
 
         // 1. Create Finance operator
         $financeOperator = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Finance Operator',
             'role_id' => $financeRole->id,
@@ -1588,6 +1611,7 @@ class CoreLogicTest extends TestCase
 
         // CNC worker (role 3) updates to 5
         $cncWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'CNC Worker',
             'role_id' => 3,
@@ -1603,6 +1627,7 @@ class CoreLogicTest extends TestCase
 
         // Milling worker (also role 3 but different post 3 for Milling) updates same stage
         $millingWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Milling Worker',
             'role_id' => 3,
@@ -1642,6 +1667,7 @@ class CoreLogicTest extends TestCase
         $qcStage = $item->itemProgresses()->where('stage_name', 'QC')->first();
 
         $qcWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'QC Worker Surface',
             'role_id' => 6,
@@ -1688,6 +1714,7 @@ class CoreLogicTest extends TestCase
         $deliveryStage = $item->itemProgresses()->where('stage_name', 'Delivery')->first();
 
         $deliveryWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Delivery Worker Add',
             'role_id' => 7,
@@ -1756,6 +1783,7 @@ class CoreLogicTest extends TestCase
         $financeRole = DB::table('roles')->where('name', 'FINANCE')->first();
         $financePost = DB::table('posts')->where('name', 'Finance')->first();
         $financeWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Finance Lifecycle',
             'role_id' => $financeRole->id,
@@ -1835,6 +1863,7 @@ class CoreLogicTest extends TestCase
         $surfacePost = DB::table('posts')->where('name', 'HEAT_TREATMENT')->first();
 
         $surfaceWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Surface Worker',
             'role_id' => $surfaceRole->id,
@@ -1852,6 +1881,7 @@ class CoreLogicTest extends TestCase
 
         // MACHINING role cannot update Surface Treatment
         $machiningWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Machining Worker Surface',
             'role_id' => 3,
@@ -1889,6 +1919,7 @@ class CoreLogicTest extends TestCase
         $assemblyPost = DB::table('posts')->where('name', 'ASSEMBLY')->first();
 
         $assemblyWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Assembly Worker',
             'role_id' => $assemblyRole->id,
@@ -1905,6 +1936,7 @@ class CoreLogicTest extends TestCase
 
         // QC role cannot update Assembly stage
         $qcWorker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'QC Worker Assembly',
             'role_id' => 6,
@@ -1963,6 +1995,7 @@ class CoreLogicTest extends TestCase
         ]);
 
         $user = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'QC Tester',
             'role_id' => 6,
@@ -1993,9 +2026,10 @@ class CoreLogicTest extends TestCase
 
         // Authenticate as owner/admin to access the logbook
         $admin = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Admin',
-            'role_id' => 1,
+            'role_id' => DB::table('roles')->where('name', 'STAFF')->value('id'),
             'post_id' => 11,
             'username' => 'admin_rl',
             'password' => bcrypt('password'),
@@ -2028,6 +2062,7 @@ class CoreLogicTest extends TestCase
         TenantManager::setTenantId($this->tenant1->id);
 
         $worker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant1->id,
             'name' => 'Floor Operator',
             'role_id' => 3, // Machining

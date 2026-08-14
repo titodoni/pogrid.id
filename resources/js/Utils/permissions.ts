@@ -1,3 +1,16 @@
+/**
+ * Client-side stage permission helpers.
+ *
+ * These mirror server enforcement (WorkerDashboardController::validateStageAccess)
+ * purely for UI affordance (locking buttons). All rule inputs — the stage-role
+ * map and office-role list — come from the server via the Inertia `workflow`
+ * prop (see Utils/workflow.ts). Never hardcode stage→role mappings here.
+ *
+ * Matching semantics intentionally mirror the server: case-insensitive
+ * substring, first matching entry wins.
+ */
+import { getWorkflowConfig } from './workflow';
+
 interface Stage {
     id: number;
     stage_name: string;
@@ -41,49 +54,36 @@ interface Item {
     item_progresses: Stage[];
 }
 
-interface StageRoleEntry {
-    keywords: string[];
-    allowedRoles: string[];
-    exact?: boolean;
+function stageRoleMap() {
+    return getWorkflowConfig().stage_role_map;
 }
 
-export const STAGE_ROLE_MAP: StageRoleEntry[] = [
-    { keywords: ['design', 'gambar', 'draft'], allowedRoles: ['DRAFTER'] },
-    { keywords: ['material', 'bahan'], allowedRoles: ['PURCHASING'] },
-    { keywords: ['machining', 'cnc'], allowedRoles: ['MACHINING', 'CNC', 'PRODUCTION'] },
-    { keywords: ['fabrication', 'fabrikasi'], allowedRoles: ['FABRICATION', 'PRODUCTION'] },
-    { keywords: ['assembly', 'perakitan', 'rakit', 'fitting', 'fitter', 'erection'], allowedRoles: ['ASSEMBLY'] },
-    { keywords: ['surface', 'heat treatment', 'powder coating', 'painting', 'cat', 'galvanizing', 'galvanis', 'plating', 'anodizing', 'sandblasting', 'electroplating', 'finishing', 'coating'], allowedRoles: ['SURFACE'] },
-    { keywords: ['maintenance', 'perawatan', 'repair', 'perbaikan'], allowedRoles: ['MAINTENANCE'] },
-    { keywords: ['vendor', 'purchasing'], allowedRoles: ['PURCHASING'] },
-    { keywords: ['qc'], allowedRoles: ['QC'], exact: true },
-    { keywords: ['delivery', 'pengiriman'], allowedRoles: ['DELIVERY'], exact: true },
-    { keywords: ['finance'], allowedRoles: ['FINANCE'], exact: true },
-];
+function officeRoles(): string[] {
+    return getWorkflowConfig().office_roles;
+}
 
-export const OFFICE_ROLES = ['OWNER', 'ADMIN', 'SALES', 'MANAGER', 'STAFF'];
-
-function matchesStage(stageName: string, entry: StageRoleEntry): boolean {
-    const lower = stageName.toLowerCase();
-    if (entry.exact) {
-        return entry.keywords.some(kw => lower === kw);
+/** Server semantics: case-insensitive substring match, first entry wins. */
+function matchEntry(stageNameLower: string) {
+    for (const entry of stageRoleMap()) {
+        if (entry.keywords.some(kw => stageNameLower.includes(kw))) {
+            return entry;
+        }
     }
-    return entry.keywords.some(kw => lower.includes(kw));
+    return null;
 }
 
 export function isStageLocked(item: Item, stageName: string, userRole: string): boolean {
     const role = userRole.toUpperCase();
-    if (OFFICE_ROLES.includes(role)) {
+    if (officeRoles().includes(role)) {
         return false;
     }
 
     const stageLower = stageName.toLowerCase();
 
-    // Role-based permission mapping
-    for (const entry of STAGE_ROLE_MAP) {
-        if (matchesStage(stageLower, entry) && !entry.allowedRoles.includes(role)) {
-            return true;
-        }
+    // Role-based permission mapping (server-owned config)
+    const entry = matchEntry(stageLower);
+    if (entry && !entry.roles.includes(role)) {
+        return true;
     }
 
     // Check off-state configuration
@@ -104,10 +104,10 @@ export function isStageLocked(item: Item, stageName: string, userRole: string): 
 
         // QC requires Machining & Fabrication COMPLETED first
         if (stageLower === 'qc' && !stageLower.includes('rework')) {
-            const prodStages = item.item_progresses.filter(s => 
-                (s.stage_name.toLowerCase().includes('machining') || 
-                 s.stage_name.toLowerCase().includes('cnc') || 
-                 s.stage_name.toLowerCase().includes('fabrication') || 
+            const prodStages = item.item_progresses.filter(s =>
+                (s.stage_name.toLowerCase().includes('machining') ||
+                 s.stage_name.toLowerCase().includes('cnc') ||
+                 s.stage_name.toLowerCase().includes('fabrication') ||
                  s.stage_name.toLowerCase().includes('fabrikasi')) &&
                 !s.stage_name.toLowerCase().includes('rework')
             );
@@ -128,25 +128,24 @@ export function isStageLocked(item: Item, stageName: string, userRole: string): 
     return false;
 }
 
+/**
+ * @param t  Translation map for the current language (from useTranslation).
+ */
 export function getStageLockReason(
     item: Item,
     stageName: string,
     userRole: string,
-    translations: Record<string, any>,
-    lang: 'en' | 'id'
+    t: Record<string, any>
 ): string | null {
-    const t = translations[lang];
     const stageLower = stageName.toLowerCase();
 
     // First check role permission
     if (isStageLocked(item, stageName, userRole)) {
-        // Find if it's role mismatch
         const role = userRole.toUpperCase();
-        if (!OFFICE_ROLES.includes(role)) {
-            for (const entry of STAGE_ROLE_MAP) {
-                if (matchesStage(stageLower, entry) && !entry.allowedRoles.includes(role)) {
-                    return t.role_mismatch;
-                }
+        if (!officeRoles().includes(role)) {
+            const entry = matchEntry(stageLower);
+            if (entry && !entry.roles.includes(role)) {
+                return t.role_mismatch;
             }
         }
 
@@ -166,10 +165,10 @@ export function getStageLockReason(
             if (stageLower.includes('vendor')) return t.off_state;
 
             if (stageLower === 'qc') {
-                const prodStages = item.item_progresses.filter(s => 
-                    (s.stage_name.toLowerCase().includes('machining') || 
-                     s.stage_name.toLowerCase().includes('cnc') || 
-                     s.stage_name.toLowerCase().includes('fabrication') || 
+                const prodStages = item.item_progresses.filter(s =>
+                    (s.stage_name.toLowerCase().includes('machining') ||
+                     s.stage_name.toLowerCase().includes('cnc') ||
+                     s.stage_name.toLowerCase().includes('fabrication') ||
                      s.stage_name.toLowerCase().includes('fabrikasi')) &&
                     !s.stage_name.toLowerCase().includes('rework')
                 );
@@ -194,24 +193,29 @@ export function getStageLockReason(
     return null;
 }
 
+/**
+ * The single finance-stage derivation. Finance is a virtual stage computed
+ * from server-owned item fields (payment_status + invoice_status).
+ * Previously copy-pasted in 4 places across Worker/Dashboard.tsx + here.
+ */
+export function getFinanceStage(item: Item): Stage {
+    const isComplete = item.payment_status === 'PAID' && item.invoice_status === 'INVOICED';
+
+    return {
+        id: -item.id,
+        stage_name: 'Finance',
+        completed_qty: 0,
+        progress_percent: isComplete ? '100' : '0',
+        status: isComplete ? 'COMPLETED' : 'PENDING',
+    };
+}
+
 export function getAllStages(item: Item): Stage[] {
     const isVendor = item.item_progresses.some(s => s.stage_name === 'Vendor');
-    const isManufacture = !isVendor;
 
     const displayStages = [...item.item_progresses];
-    if (isManufacture) {
-        const isPaid = item.payment_status === 'PAID';
-        const isInvoiced = item.invoice_status === 'INVOICED';
-        const financeStatus = (isPaid && isInvoiced) ? 'COMPLETED' : 'PENDING';
-        const financePercent = (isPaid && isInvoiced) ? '100' : '0';
-
-        displayStages.push({
-            id: -item.id,
-            stage_name: 'Finance',
-            completed_qty: 0,
-            progress_percent: financePercent,
-            status: financeStatus,
-        });
+    if (!isVendor) {
+        displayStages.push(getFinanceStage(item));
     }
     return displayStages;
 }
@@ -220,12 +224,8 @@ export function getMatchingStages(item: Item, role: string): Stage[] {
     const roleUpper = role.toUpperCase();
     return getAllStages(item).filter(stage => {
         const nameLower = stage.stage_name.toLowerCase();
-        for (const entry of STAGE_ROLE_MAP) {
-            if (entry.allowedRoles.includes(roleUpper) && matchesStage(nameLower, entry)) {
-                return true;
-            }
-        }
-        return false;
+        const entry = matchEntry(nameLower);
+        return entry !== null && entry.roles.includes(roleUpper);
     });
 }
 

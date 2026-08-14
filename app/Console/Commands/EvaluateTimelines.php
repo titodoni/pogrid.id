@@ -19,7 +19,22 @@ class EvaluateTimelines extends Command
 
     public function handle(): void
     {
-        TenantManager::bypass();
+        // Explicit cross-tenant run, nest-safe: prior state is restored on
+        // completion or failure, so no tenant context leaks out of the cron.
+        TenantManager::runWithoutScope(function () {
+            $this->evaluateAllTenants();
+        });
+
+        $this->info('Timelines evaluated successfully.');
+    }
+
+    private function evaluateAllTenants(): void
+    {
+        // Authoritative deadline-risk thresholds (shared with the client
+        // via the Inertia `workflow` prop — do not hardcode here).
+        $riskDays = (int) config('workflow.deadline.risk_days');
+        $riskProgress = (float) config('workflow.deadline.risk_progress');
+        $escalationHours = (int) config('workflow.deadline.escalation_hours');
 
         $tenants = Tenant::all();
 
@@ -53,13 +68,13 @@ class EvaluateTimelines extends Command
                     if ($alert->wasRecentlyCreated) {
                         broadcast(new TimelineAlertCreated($alert))->toOthers();
                     }
-                } elseif ($daysRemaining <= 3 && (float) $item->progress_percent < 70.00) {
+                } elseif ($daysRemaining <= $riskDays && (float) $item->progress_percent < $riskProgress) {
                     $alert = Alert::updateOrCreate(
                         [
                             'tenant_id' => $tenant->id,
                             'item_id' => $item->id,
                             'severity' => 'YELLOW',
-                            'message' => "Approaching Risk: Item '{$item->item_name}' under {$po->po_number} has {$daysRemaining} days remaining and is under 70% progress.",
+                            'message' => "Approaching Risk: Item '{$item->item_name}' under {$po->po_number} has {$daysRemaining} days remaining and is under {$riskProgress}% progress.",
                         ],
                         ['is_resolved' => false]
                     );
@@ -77,8 +92,8 @@ class EvaluateTimelines extends Command
                 }
             }
 
-            // Escalate RED alerts unresolved >24h
-            $cutoff = Carbon::now()->subHours(24);
+            // Escalate RED alerts unresolved beyond the escalation window
+            $cutoff = Carbon::now()->subHours($escalationHours);
             $staleRedAlerts = Alert::where('tenant_id', $tenant->id)
                 ->where('severity', 'RED')
                 ->where('is_resolved', false)
@@ -91,8 +106,5 @@ class EvaluateTimelines extends Command
                 broadcast(new AlertEscalated($alert))->toOthers();
             }
         }
-
-        TenantManager::enableScope();
-        $this->info('Timelines evaluated successfully.');
     }
 }

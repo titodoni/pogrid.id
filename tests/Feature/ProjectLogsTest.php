@@ -37,6 +37,7 @@ class ProjectLogsTest extends TestCase
         $post = Post::firstOrCreate(['name' => 'Admin'], ['display_name' => 'System Administrator']);
 
         $this->office = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Log Officer',
             'username' => 'log_officer',

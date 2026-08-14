@@ -28,9 +28,9 @@ class GenerateSunkCostInvoiceJob implements ShouldQueue
 
     public function handle(): void
     {
-        try {
-            // Temporarily bypass to find item
-            TenantManager::bypass();
+        // Nest-safe: restores the caller's prior tenant state even on failure
+        // (the old finally-enableScope() destroyed a pre-existing bypass).
+        TenantManager::runWithoutScope(function () {
             $item = Item::find($this->itemId);
             if (! $item) {
                 return;
@@ -42,6 +42,9 @@ class GenerateSunkCostInvoiceJob implements ShouldQueue
             // Simple heuristic: completed quantity * 150,000 IDR base cost
             $totalAmount = max(150000.00, $this->completedQty * 150000.00);
 
+            // Re-enable the scope for the actual write so the insert is scoped.
+            TenantManager::enableScope();
+
             Invoice::create([
                 'tenant_id' => $item->tenant_id,
                 'delivery_order_id' => null,
@@ -51,8 +54,6 @@ class GenerateSunkCostInvoiceJob implements ShouldQueue
                 'due_date' => Carbon::today()->addDays(7),
                 'invoice_type' => 'SUNK_COST',
             ]);
-        } finally {
-            TenantManager::enableScope();
-        }
+        });
     }
 }

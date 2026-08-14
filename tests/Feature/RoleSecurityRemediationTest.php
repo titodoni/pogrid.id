@@ -50,6 +50,7 @@ class RoleSecurityRemediationTest extends TestCase
     public function test_sales_user_is_blocked_from_creating_pos_and_managing_users(): void
     {
         $salesUser = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Sarah Sales',
             'username' => 'sarah_sales',
@@ -85,6 +86,7 @@ class RoleSecurityRemediationTest extends TestCase
     public function test_manager_cannot_create_pos_but_can_terminate_production_item(): void
     {
         $managerUser = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Mike Manager',
             'username' => 'mike_manager',
@@ -131,7 +133,10 @@ class RoleSecurityRemediationTest extends TestCase
 
     public function test_floor_worker_cannot_see_admin_blue_alerts_in_trouble_reports(): void
     {
+        TenantManager::setTenantId($this->tenant->id);
+
         $worker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Willy Worker',
             'pin' => Hash::make('1234'),
@@ -190,7 +195,10 @@ class RoleSecurityRemediationTest extends TestCase
 
     public function test_alert_resolution_permissions(): void
     {
+        TenantManager::setTenantId($this->tenant->id);
+
         $worker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Ordinary Worker',
             'pin' => Hash::make('5555'),
@@ -200,6 +208,7 @@ class RoleSecurityRemediationTest extends TestCase
 
         $ppicRole = Role::firstOrCreate(['name' => 'PPIC'], ['level' => 'production', 'display_name' => 'PPIC Control']);
         $ppicUser = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Paul PPIC',
             'pin' => Hash::make('6666'),
@@ -248,8 +257,11 @@ class RoleSecurityRemediationTest extends TestCase
 
     public function test_finance_ledger_access_and_purchasing_vendor_monitoring(): void
     {
+        TenantManager::setTenantId($this->tenant->id);
+
         $financeRole = Role::firstOrCreate(['name' => 'FINANCE'], ['level' => 'production', 'display_name' => 'Finance Control']);
         $financeUser = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Fiona Finance',
             'pin' => Hash::make('7777'),
@@ -259,6 +271,7 @@ class RoleSecurityRemediationTest extends TestCase
 
         $purchasingRole = Role::firstOrCreate(['name' => 'PURCHASING'], ['level' => 'production', 'display_name' => 'Purchasing Agent']);
         $purchasingUser = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Peter Purchasing',
             'pin' => Hash::make('8888'),
@@ -312,6 +325,7 @@ class RoleSecurityRemediationTest extends TestCase
     {
         $adminRole = Role::firstOrCreate(['name' => 'ADMIN'], ['level' => 'office', 'display_name' => 'Admin']);
         $adminUser = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Alice Admin',
             'email' => 'alice@mandiri.co',
@@ -371,6 +385,7 @@ class RoleSecurityRemediationTest extends TestCase
     public function test_non_owner_cannot_update_or_delete_owner_account(): void
     {
         $owner = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Boss Owner',
             'username' => 'boss_owner',
@@ -381,6 +396,7 @@ class RoleSecurityRemediationTest extends TestCase
         ]);
 
         $adminUser = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Alice Admin',
             'username' => 'alice_admin',
@@ -416,6 +432,7 @@ class RoleSecurityRemediationTest extends TestCase
     public function test_owner_can_update_non_owner_admin(): void
     {
         $owner = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Boss Owner',
             'username' => 'boss_owner',
@@ -426,6 +443,7 @@ class RoleSecurityRemediationTest extends TestCase
         ]);
 
         $adminUser = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Alice Admin',
             'username' => 'alice_admin',

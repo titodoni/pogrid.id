@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RedirectToAppDomain;
 use App\Http\Middleware\SetTenant;
+use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -37,8 +37,12 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->header('X-Inertia') || $request->wantsJson()) {
                 $retryAfter = $e->getHeaders()['Retry-After'] ?? 60;
 
+                // Worker PIN login displays the error under the 'pin' field;
+                // all other forms surface errors via flash toasts (key-agnostic).
+                $errorKey = $request->is('c/*/login') ? 'pin' : 'username';
+
                 return back()->withErrors([
-                    'pin' => 'too_many_attempts',
+                    $errorKey => 'too_many_attempts',
                 ])->with('retry_after', $retryAfter);
             }
         });

@@ -63,6 +63,7 @@ class TenantScopeAuditTest extends TestCase
         // 3. Create users in Tenant A and Tenant B
         TenantManager::setTenantId($this->tenantA->id);
         $this->userA = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenantA->id,
             'name' => 'Alice Admin (Tenant A)',
             'email' => 'alice@alpha.com',
@@ -74,6 +75,7 @@ class TenantScopeAuditTest extends TestCase
 
         TenantManager::setTenantId($this->tenantB->id);
         $this->userB = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenantB->id,
             'name' => 'Bob Admin (Tenant B)',
             'email' => 'bob@beta.com',
@@ -251,6 +253,7 @@ class TenantScopeAuditTest extends TestCase
         TenantManager::setTenantId($this->tenantA->id);
 
         $userA = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenantA->id,
             'name' => 'Alice Test User A',
             'email' => 'alice_channel_test@alpha.com',

@@ -32,4 +32,25 @@ class TenantManager
     {
         return static::$bypass;
     }
+
+    /**
+     * Nest-safe explicit cross-tenant escape hatch. Saves and restores BOTH
+     * state fields (bypass flag + tenant id), so nested or exceptional exits
+     * cannot corrupt the surrounding context. Prefer this over manual
+     * bypass()/enableScope() pairs.
+     */
+    public static function runWithoutScope(callable $callback): mixed
+    {
+        $previousBypass = static::$bypass;
+        $previousTenantId = static::$tenantId;
+
+        static::$bypass = true;
+
+        try {
+            return $callback();
+        } finally {
+            static::$bypass = $previousBypass;
+            static::$tenantId = $previousTenantId;
+        }
+    }
 }

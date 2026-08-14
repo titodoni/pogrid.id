@@ -63,7 +63,9 @@ return [
 
     'providers' => [
         'users' => [
-            'driver' => 'eloquent',
+            // Custom driver: resolves users outside the tenant scope because
+            // session user resolution happens before tenant context exists.
+            'driver' => 'tenant-safe-eloquent',
             'model' => env('AUTH_MODEL', User::class),
         ],
 

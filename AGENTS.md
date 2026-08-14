@@ -18,7 +18,7 @@ Design system: [Astryx](https://astryx.design) (`@astryxdesign/core` provides CS
 - `composer test` — `config:clear` then `php artisan test` (PHPUnit 10.5). Args are NOT forwarded (`@no_additional_args`), so for single tests use `php artisan test --filter=MethodName` or `php artisan test tests/Feature/CoreLogicTest.php` directly.
 - `npm run dev` / `npm run build` — Vite HMR / production build.
 - `npm run test:e2e` / `npm run test:e2e:debug` — Puppeteer+Jest E2E suite in `e2e-tests/` (see `e2e-tests/README.md`). Needs Laravel server on `http://localhost:8000` + seeded DB.
-- `vendor/bin/pint` — formatting (no npm lint/typecheck, no `tsconfig.json`).
+- `vendor/bin/pint` — formatting. `npm run typecheck` — `tsc --noEmit` (tsconfig exists, `strict:false`). `npm run typecheck:ci` — baseline gate (errors must not exceed `scripts/typecheck-baseline.txt`; lower it when fixing). CI enforces the gate before build.
 - `php artisan pogrid:evaluate-timelines` — cron for timeline alerts.
 - `php artisan queue:work --stop-when-empty` — cron task (1-min interval, no daemon).
 - `git config core.hooksPath .githooks` — enable post-commit graphify auto-update (run once per clone).
@@ -56,7 +56,9 @@ Routes in `routes/web.php` (no API). Controllers return Inertia.
 
 ## Pages
 
-Three groups in `resources/js/Pages/`: `Auth/`, `Owner/`, `Worker/`. `FlashMessages.tsx` wraps pages via `app.tsx` `resolve` function. Flash shared via `Inertia::share('flash', ...)` in `AppServiceProvider`.
+`resources/js/Pages/` groups: `Auth/`, `Owner/`, `Worker/`, `Ppic/`, `Landing/`, `Legal/`. `FlashMessages.tsx` wraps pages via `app.tsx` `resolve` function. Flash shared via `Inertia::share('flash', ...)` in `AppServiceProvider`.
+
+Owner Dashboard tabs live in `resources/js/features/owner/` (`AlertsTab`, `PoGridSection`, `MatrixTab`, `TeamTab`) — prop-fed, state stays in the page. Shared UI: `Components/ProgressBar.tsx`, `Components/PillFilter.tsx`. Realtime: `Hooks/useEchoPresence.ts` (presence + ws status + toast queue + fallback polling) shared by Owner/Worker/PPIC dashboards.
 
 ## Error Handling
 
@@ -77,10 +79,12 @@ Controller error flow: `AuthController::login()` checks user existence first (by
 ## Architecture
 
 - **Multi-tenancy**: row-level `TenantScope` + `TenantManager` singleton. Models use `BelongsToTenant`. `TenantManager::bypass()`/`enableScope()` for tests and admin contexts.
-- **Observer chain** (registered in `AppServiceProvider::boot()`): `Item::created` auto-creates `ItemProgress` rows per `required_stages`. `ItemProgress::saved` recalculates weighted progress, cascades PO status. `DoItem::saved` marks PO DELIVERED when all non-cancelled items delivered. Business logic lives in observers, NOT controllers.
+- **Observer chain** (registered in `AppServiceProvider::boot()`): `Item::created` auto-creates `ItemProgress` rows per `required_stages`. `ItemProgress::saved` recalculates weighted progress, cascades PO status. `DoItem::saved` marks PO DELIVERED when all non-cancelled items delivered. Business logic lives in observers and services (`ProgressService`, `StageGate`, `TelemetryService`), NOT controllers.
+- **Security architecture**: `User` implements `MustVerifyEmail` (framework `verified` middleware — do not re-add a custom one). Office route group requires `can:access-office` + `verified`. Session user resolution uses the `tenant-safe-eloquent` auth provider (`app/Auth/TenantSafeEloquentUserProvider`) because identity lookup runs before `SetTenant`. TenantScope is FAIL-CLOSED (`TenantContextMissingException`); cross-tenant reads only via `TenantManager::runWithoutScope()`. Throttles: `login-office` (5/min per username+IP), PIN login 5/min, register 5/min, password reset 6/min.
 - **Progress system**: workers log *additive deltas* (+3 pcs), not absolute totals. Multi-piece (`target_qty > 1`): `Item % = Σ(completed_qty all stages) / (target_qty × stage_count) × 100`. Single-piece (`target_qty == 1`): `Item % = Σ(stage progress%) / stage_count`.
 - **Status transitions**: item `PENDING → IN_PROGRESS → COMPLETED → DELIVERED/PAID` (CANCELLED at 0% only; >0% becomes TERMINATED — sunk-cost protection). PO: `PENDING → IN_PROGRESS → COMPLETED → DELIVERED → CLOSED` (CLOSED when all invoiced/paid, set manually by Finance).
-- **Stage access gate** (`WorkerDashboardController::validateStageAccess()`): `STAGE_ROLE_MAP` config maps role keywords → stage names; all preceding stages must be COMPLETED before QC can update; unmatched stages fall to PRODUCTION role.
+- **Stage access gate** (`WorkerDashboardController::validateStageAccess()`): `config('workflow.stage_role_map')` (config/workflow.php) maps role keywords → stage names; all preceding stages must be COMPLETED before QC can update; unmatched stages fall to PRODUCTION role.
+- **Business-rule single source of truth**: `config/workflow.php` owns the stage-role map, pre-production keywords, office-role list, and deadline-risk thresholds (3 days / 70% / 24h escalation). Shared to React via the Inertia `workflow` prop (AppServiceProvider) and bridged into `resources/js/Utils/workflow.ts` by `FlashMessages.tsx` (render-phase assignment — FlashMessages mounts before the page). Never hardcode these rules in JS or controllers. Status vocabulary lives in `app/Enums/ItemStatus.php` + `app/Enums/PoStatus.php` (`IN_PRODUCTION` = production progress >0; `IN_PROGRESS` = pre-production progress only).
 - **QC rework**: logging `reject_qty` spawns a `"{stage} - REWORK"` sub-stage, decrements original stage `completed_qty`, creates YELLOW alert, reverts COMPLETED item to IN_PROGRESS. REWORK stage counts toward numerator but NOT denominator. UI: `target_qty === 1` shows NG (auto-submits rework qty=1) + OK (marks 100%) buttons; `target_qty > 1` uses percentage buttons + rework form with qty input.
 - **Alerts**: RED — Stuck (worker clicks Lapor Kendala, auto-resolves on resume) / Overdue (past deadline, auto-resolves at 100%). YELLOW — Risk (≤3 days left AND progress < 70%) / Rework (QC reject, manual resolve). BLUE — PIN reset requested (resolves on admin approve). Timeline evaluation via cron `pogrid:evaluate-timelines` (1-min).
 - **Session, cache, queue**: database driver (SQLite dev, PostgreSQL prod). **Broadcast**: Pusher, defaults to `log` in dev. No Redis.
@@ -90,7 +94,7 @@ Controller error flow: `AuthController::login()` checks user existence first (by
 
 | Concern | Location |
 |---------|----------|
-| Progress update / QC rework / stage gate / finance | `app/Http/Controllers/WorkerDashboardController.php` (`updateProgress`, `logQcRework`, `validateStageAccess`, `updateFinanceStatus`) |
+| Progress update / QC rework / stage gate / finance | `app/Http/Controllers/WorkerDashboardController.php` (thin) + `app/Services/ProgressService.php` (`applyUpdate`, `revertLast`), `app/Services/StageGate.php` (`assertCanUpdate`), `app/Services/TelemetryService.php` (`forRange` — dashboard KPIs/exports) |
 | Tenant context | `app/Services/TenantManager.php` |
 | Observers | `app/Observers/{ItemObserver,ItemProgressObserver,DoItemObserver,AlertObserver}.php` |
 | Activity/audit log | `app/Services/ActivityLogger.php` + `app/Models/ActivityLog.php` (`activity_logs` table) |
@@ -98,6 +102,57 @@ Controller error flow: `AuthController::login()` checks user existence first (by
 | Auth | `app/Http/Controllers/{AuthController,WorkerAuthController,PinResetController}.php` |
 | Owner dashboard | `app/Http/Controllers/OwnerDashboardController.php` |
 | Routes | `routes/web.php` |
+
+## Architecture Guardrails (mandatory)
+
+Decisions are recorded in `docs/adr/` (ADR-001…005). When a change seems to contradict an ADR, stop and escalate instead of drifting.
+
+**Backend shape:** Route → Middleware → Controller → FormRequest/Policy → Service/Action → Model/DB. Controllers accept requests, authorize, call an operation, return a response. They do NOT calculate KPIs, render exports, run workflows, or decide permissions inline.
+
+**Frontend shape:** Page → Feature component (`features/<domain>/`) → Shared component (`Components/`) → Hook/utility. Pages compose; features implement.
+
+**Controller rule:** never add substantial business logic to a controller with multiple unrelated responsibilities. Prefer an existing service (`ProgressService`, `StageGate`, `TelemetryService`, `ExportService`, `PoCompletionChecker`, `ActivityLogger`, `TenantManager`) or create a narrowly scoped one when the responsibility is real.
+
+**Frontend page rule:** never add new feature implementations to `Pages/Owner/Dashboard.tsx`, `Pages/Worker/Dashboard.tsx`, or `Pages/Ppic/Dashboard.tsx`. New tabs/sections go into `features/`.
+
+**Single source of truth:** the server owns business rules. React consumes them via the Inertia `workflow` prop / page props. Never duplicate status vocabularies, role maps, thresholds, permission rules, financial rules, or progress math in TS.
+
+**Tenant safety:** TenantScope is fail-closed. Cross-tenant reads only via `TenantManager::runWithoutScope()` with a stated reason. New query paths must not silently bypass tenancy.
+
+**Authorization:** enforced structurally (route-group middleware + gates/policies). Every new mutating route must state its gate. No authz-by-memory.
+
+**Type safety:** `npm run typecheck:ci` must pass and the baseline (`scripts/typecheck-baseline.txt`) may only go DOWN. No new `any`, `@ts-ignore`, or locally redefined domain interfaces (use `resources/js/types/`).
+
+**Database integrity:** uniqueness/invariants belong in the database (tenant-scoped uniques, CHECK constraints), not only in controller validation.
+
+**Scope lock:** a task changes only its feature + directly related tests + directly necessary extraction. No drive-by refactors, dependency swaps, or neighboring-module rewrites.
+
+**No architectural drift:** no microservices, repositories, GraphQL, API layer, Redis, Redux/Zustand, or speculative abstractions without an ADR.
+
+## Feature Gate (run BEFORE writing code)
+
+1. **Domain:** which domain owns this? Find the existing controller/services/models/policies/feature components/tests.
+2. **Owner:** is this HTTP, authz, business logic, persistence, UI state, reusable UI, or cross-cutting? Extend the existing owner when one exists.
+3. **Duplication:** grep for similar rules/calculations/queries/UI/permission checks. Extend the source of truth; never create a second implementation.
+4. **File responsibility:** don't add substantial logic to hotspot files (see budgets).
+5. **Plan, then implement:** list files involved, where logic lives, what is reused, files created/modified, tests to add — then proceed.
+6. **After:** run relevant tests + `typecheck:ci` + build; report files changed/created, responsibility of each, tests, architecture impact, risks.
+
+## Hotspot Budgets (watched files)
+
+| File | Current | Rule |
+|---|---:|---|
+| `WorkerDashboardController.php` | 841 LOC | target: decreasing — no new business features; orchestration edits only |
+| `OwnerDashboardController.php` | 878 LOC | target: decreasing (extraction scheduled) — no new features |
+| `Pages/Owner/Dashboard.tsx` | 2,610 LOC | target: decreasing — new tabs/features go to `features/owner/` |
+| `Pages/Worker/Dashboard.tsx` | ~1,750 LOC | target: decreasing |
+| `Pages/Ppic/Dashboard.tsx` | ~950 LOC | target: decreasing |
+
+Small orchestration edits are fine; adding a feature-sized block is not. When a hotspot must gain responsibility, extract first.
+
+## Post-Implementation Architecture Check (answer for every feature)
+
+Did this change: add business logic to a controller? grow a hotspot? duplicate a rule/type/permission? add a tenant bypass? add client-side business truth? add `any`? add a dependency? bypass an existing service? create a generic `Utils` dumping-ground function? Each "yes" needs explicit justification or the change is wrong.
 
 ## Testing
 
@@ -110,10 +165,9 @@ Controller error flow: `AuthController::login()` checks user existence first (by
 ## Quirks
 
 - `.npmrc` has `ignore-scripts=true` — no postinstall hooks.
-- `app/Models/Tenant.php` has duplicate namespaces (`namespace App\Models\Tenant; namespace App\Models;`). Second wins.
 - Tailwind v4 via `@tailwindcss/vite` (no PostCSS, no `tailwind.config.js`). Config in `app.css` via `@import "tailwindcss"`.
-- No `tsconfig.json` — Vite compiles TS.
-- Dual language (EN/ID): `translations` per component + `localStorage` `pogrid_lang`. No i18n framework.
+- `tsconfig.json` exists (`strict:false`, noEmit) — Vite does NOT type-check; `npm run typecheck` does.
+- Dual language (EN/ID): `i18n/locales/{en,id}.json` namespaces + `useTranslation('Namespace')` hook + `localStorage` `pogrid_lang`. Some legacy inline `language === 'en' ?` ternaries remain — prefer the JSON namespaces for new code.
 - Theme System: `pogrid_theme` in `localStorage` toggles theme classes on `html` (`theme-default`, `theme-linear`, `theme-vercel`, `theme-stripe`, `theme-github`, `theme-nordic`, `theme-light` [Mint Cream], `theme-brand`). All components use semantic CSS custom properties (`--color-pg-surface`, `--color-pg-border`, `--color-pg-text`, `--color-pg-text-muted`).
 - **Shared app chrome** — `resources/js/Components/AppShell.tsx` renders the sidebar + header + mobile drawer/bottom-nav for BOTH office and worker views. Thin wrappers: `AppLayout.tsx` (office pages, variant="office", chrome at `md+`) and `WorkerHeader.tsx` (worker pages, variant="worker", chrome at `lg+`; worker pages offset content with `dashboard-root lg:ml-64`). Breakpoint classes inside AppShell are written as **string literals** (`sidebarVisibility`, `mobileOnly`) — never interpolated — or Tailwind's scanner drops them and the sidebar/mobile chrome break. Keep `lg:ml-64` / `md:ml-64`/`lg:ml-72` content offsets in sync with `w-64` / `w-64 lg:w-72` sidebar widths.
 - **Design system**: `app.css` declares `@layer reset, astryx, theme, base, components, utilities;` so Tailwind utilities outrank Astryx's `@layer reset` (fixes heading font-size inheritance). Landing shares `.mono`, `.line-grad`, `.line-grad-fade` (defined globally in `app.css`); Landing-only primitives (`hero-grid`, `line-grid`, `cell-hover`, `btn-dark`, `btn-white`, `grad-text`, etc.) live in the page's inline `<style>`. Primary brand color is blue (`#2563eb`, was indigo `#6366f1`).
@@ -136,11 +190,14 @@ Script shortcut: `deploy/ssh_connect.sh`.
 - Artisan: `cd domains/pogrid.id/public_html/app && /opt/alt/php83/usr/bin/php artisan ...`
 
 **Deploy files** (rsync from local):
+
+⚠️ CRITICAL: NEVER sync `public/hot` (created by `npm run dev`). If it lands on prod, Blade serves `localhost:5173` Vite dev URLs → blank page. Always use `npm run deploy` (build + rsync + remote `rm public/hot` + cache rebuild, all in one) or the command below (includes the exclusion). Fix if it happens: `rm public/hot` on server + `optimize:clear`.
 ```bash
 npm run build && \
 rsync -avz -e 'ssh -p 65002 -i ~/.ssh/id_ed25519' \
   --exclude 'storage' --exclude 'bootstrap/cache/*.php' \
   --exclude '.env' --exclude 'node_modules' --exclude '.git' \
+  --exclude 'public/hot' \
   --exclude 'deploy' --exclude 'database/*.sqlite' \
   /home/tito/pogrid/ \
   u173210759@153.92.8.145:/home/u173210759/domains/pogrid.id/public_html/app/

@@ -42,6 +42,7 @@ class BacklogFeatureRegressionTest extends TestCase
         ]);
 
         $this->owner = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Owner Sari',
             'role_id' => 8,
@@ -52,6 +53,7 @@ class BacklogFeatureRegressionTest extends TestCase
         ]);
 
         $this->worker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Worker Joko',
             'role_id' => 5,
@@ -178,6 +180,7 @@ class BacklogFeatureRegressionTest extends TestCase
             'slug' => 'other-co',
         ]);
         $owner2 = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $tenant2->id,
             'name' => 'Owner Lain',
             'role_id' => 8,
@@ -362,6 +365,7 @@ class BacklogFeatureRegressionTest extends TestCase
         $drafterRole = Role::where('name', 'DRAFTER')->firstOrFail();
 
         $drafter = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Drafter Ari',
             'role_id' => $drafterRole->id,
@@ -443,6 +447,7 @@ class BacklogFeatureRegressionTest extends TestCase
             'slug' => 'rival-co',
         ]);
         $intruder = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $otherTenant->id,
             'name' => 'Intruder',
             'role_id' => 5,

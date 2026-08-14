@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ProgressBar from '../../Components/ProgressBar';
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, AlertTriangle, Settings } from '../../Components/Icons';
 import { formatDDMMYYYY } from '../../Utils/date';
@@ -167,9 +168,7 @@ export default function MyKpi({ completed_stages, summary, stage_breakdown, mont
                                         return (
                                             <div key={s.stage} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                                 <span style={{ fontSize: '11px', fontWeight: 600, minWidth: '80px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.stage}</span>
-                                                <div style={{ flex: 1, height: '16px', borderRadius: '4px', backgroundColor: 'var(--color-pg-surface)', overflow: 'hidden' }}>
-                                                    <div style={{ width: `${pct}%`, height: '100%', borderRadius: '4px', backgroundColor: 'rgba(99, 102, 241, 0.6)', transition: 'width 0.3s ease' }} />
-                                                </div>
+                                                <ProgressBar percent={pct} color="rgba(99, 102, 241, 0.6)" trackStyle={{ flex: 1, height: '16px', borderRadius: '4px', backgroundColor: 'var(--color-pg-surface)', overflow: 'hidden' }} fillStyle={{ borderRadius: '4px', transition: 'width 0.3s ease' }} />
                                                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-pg-primary-hover)', minWidth: '20px', textAlign: 'right' }}>{s.count}x</span>
                                                 <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', minWidth: '50px', textAlign: 'right' }}>
                                                     {s.avg_cycle_days}d

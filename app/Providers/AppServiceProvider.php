@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Enums\ItemStatus;
+use App\Enums\PoStatus;
 use App\Models\Alert;
 use App\Models\DeliveryOrder;
 use App\Models\DoItem;
@@ -17,9 +19,8 @@ use App\Observers\DoItemObserver;
 use App\Observers\ItemObserver;
 use App\Observers\ItemProgressObserver;
 use App\Services\TenantManager;
-use Illuminate\Mail\Events\MessageSending;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\File;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 
@@ -32,82 +33,111 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        \Illuminate\Support\Facades\Gate::define('update-finance-status-lock', function ($user, $item) {
+        // Identity resolution is pre-tenant (session layer runs before
+        // SetTenant): use the tenant-safe provider for user retrieval.
+        \Illuminate\Support\Facades\Auth::provider('tenant-safe-eloquent', function ($app, array $config) {
+            return new \App\Auth\TenantSafeEloquentUserProvider($app['hash'], $config['model']);
+        });
+
+        // Office login throttling keyed by credential+IP (not bare IP), so
+        // office staff behind a shared NAT don't lock each other out.
+        \Illuminate\Support\Facades\RateLimiter::for('login-office', function ($request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(5)
+                ->by(strtolower((string) $request->input('username')).'|'.$request->ip());
+        });
+
+        Gate::define('update-finance-status-lock', function ($user, $item) {
             return $item->delivery_status !== 'PENDING'
-                ? \Illuminate\Auth\Access\Response::allow()
-                : \Illuminate\Auth\Access\Response::deny('Stage locked: Finance status cannot be updated until at least one item has been delivered.');
+                ? Response::allow()
+                : Response::deny('Stage locked: Finance status cannot be updated until at least one item has been delivered.');
         });
-        \Illuminate\Support\Facades\Gate::define('manage-company-settings', function ($user) {
-            return !($user->isManager() || $user->isSales())
-                ? \Illuminate\Auth\Access\Response::allow()
-                : \Illuminate\Auth\Access\Response::deny('Managers and Sales cannot modify company settings.');
-        });
-
-        \Illuminate\Support\Facades\Gate::define('manage-workflow-settings', function ($user) {
-            return !($user->isManager() || $user->isSales())
-                ? \Illuminate\Auth\Access\Response::allow()
-                : \Illuminate\Auth\Access\Response::deny('Managers and Sales cannot modify workflow settings.');
+        Gate::define('manage-company-settings', function ($user) {
+            return ! ($user->isManager() || $user->isSales())
+                ? Response::allow()
+                : Response::deny('Managers and Sales cannot modify company settings.');
         });
 
-        \Illuminate\Support\Facades\Gate::define('manage-stage-templates', function ($user) {
-            return !($user->isManager() || $user->isSales())
-                ? \Illuminate\Auth\Access\Response::allow()
-                : \Illuminate\Auth\Access\Response::deny('Managers and Sales cannot manage stage templates.');
+        Gate::define('manage-workflow-settings', function ($user) {
+            return ! ($user->isManager() || $user->isSales())
+                ? Response::allow()
+                : Response::deny('Managers and Sales cannot modify workflow settings.');
         });
 
-        \Illuminate\Support\Facades\Gate::define('create-admin', function ($user) {
+        Gate::define('manage-stage-templates', function ($user) {
+            return ! ($user->isManager() || $user->isSales())
+                ? Response::allow()
+                : Response::deny('Managers and Sales cannot manage stage templates.');
+        });
+
+        Gate::define('create-admin', function ($user) {
             return $user->isOwner()
-                ? \Illuminate\Auth\Access\Response::allow()
-                : \Illuminate\Auth\Access\Response::deny('Only owners can create admin users during onboarding.');
+                ? Response::allow()
+                : Response::deny('Only owners can create admin users during onboarding.');
         });
 
-        \Illuminate\Support\Facades\Gate::define('view-tenant', function ($user, $tenantId) {
+        Gate::define('view-tenant', function ($user, $tenantId) {
             return $user->tenant_id === $tenantId
-                ? \Illuminate\Auth\Access\Response::allow()
-                : \Illuminate\Auth\Access\Response::deny('Unauthorized tenant access.');
+                ? Response::allow()
+                : Response::deny('Unauthorized tenant access.');
         });
 
-        \Illuminate\Support\Facades\Gate::define('access-office', function ($user) {
+        Gate::define('access-office', function ($user) {
             $user->load('roleRelation');
+
             return $user->role_level === 'office'
-                ? \Illuminate\Auth\Access\Response::allow()
-                : \Illuminate\Auth\Access\Response::deny('Unauthorized role.');
+                ? Response::allow()
+                : Response::deny('Unauthorized role.');
         });
-        
-        \Illuminate\Support\Facades\Gate::define('resolve-trouble', function ($user) {
+
+        Gate::define('resolve-trouble', function ($user) {
             return in_array(strtoupper($user->role_name ?? ''), ['PPIC', 'ADMIN', 'OWNER', 'MANAGER'])
-                ? \Illuminate\Auth\Access\Response::allow()
-                : \Illuminate\Auth\Access\Response::deny('Only PPIC, Admin, Owner, or Manager can resolve trouble reports.');
+                ? Response::allow()
+                : Response::deny('Only PPIC, Admin, Owner, or Manager can resolve trouble reports.');
         });
 
-        \Illuminate\Support\Facades\Gate::define('log-rework', function ($user) {
+        Gate::define('log-rework', function ($user) {
             return strtoupper($user->role_name ?? '') === 'QC'
-                ? \Illuminate\Auth\Access\Response::allow()
-                : \Illuminate\Auth\Access\Response::deny('Forbidden: Only QC inspectors can log rework.');
+                ? Response::allow()
+                : Response::deny('Forbidden: Only QC inspectors can log rework.');
         });
 
-        \Illuminate\Support\Facades\Gate::define('update-drafter', function ($user) {
+        Gate::define('update-drafter', function ($user) {
             return strtoupper($user->role_name ?? '') === 'DRAFTER'
-                ? \Illuminate\Auth\Access\Response::allow()
-                : \Illuminate\Auth\Access\Response::deny('Forbidden: Only Drafters can update drafter status.');
+                ? Response::allow()
+                : Response::deny('Forbidden: Only Drafters can update drafter status.');
         });
 
-        \Illuminate\Support\Facades\Gate::define('update-purchasing', function ($user) {
+        Gate::define('update-purchasing', function ($user) {
             return strtoupper($user->role_name ?? '') === 'PURCHASING'
-                ? \Illuminate\Auth\Access\Response::allow()
-                : \Illuminate\Auth\Access\Response::deny('Forbidden: Only Purchasing agents can update purchasing status.');
+                ? Response::allow()
+                : Response::deny('Forbidden: Only Purchasing agents can update purchasing status.');
         });
 
-        \Illuminate\Support\Facades\Gate::define('update-finance', function ($user) {
+        Gate::define('update-finance', function ($user) {
             return in_array(strtoupper($user->role_name ?? ''), ['FINANCE', 'MANAGER', 'OWNER'])
-                ? \Illuminate\Auth\Access\Response::allow()
-                : \Illuminate\Auth\Access\Response::deny('Forbidden: Only Finance controllers can update finance status.');
+                ? Response::allow()
+                : Response::deny('Forbidden: Only Finance controllers can update finance status.');
         });
 
-        \Illuminate\Support\Facades\Gate::define('view-ledger', function ($user) {
+        Gate::define('view-ledger', function ($user) {
             return in_array(strtoupper($user->role_name ?? ''), ['FINANCE', 'MANAGER', 'OWNER', 'ADMIN'])
-                ? \Illuminate\Auth\Access\Response::allow()
-                : \Illuminate\Auth\Access\Response::deny('Only Finance officers or Office managers can view the Finance Ledger.');
+                ? Response::allow()
+                : Response::deny('Only Finance officers or Office managers can view the Finance Ledger.');
+        });
+
+        Gate::define('approve-pin-reset', function ($user) {
+            return ($user->isOwner() || $user->isAdmin())
+                ? Response::allow()
+                : Response::deny('Only owners or admins can approve PIN resets.');
+        });
+
+        Gate::define('manage-ppic', function ($user) {
+            $allowed = $user->isOwner() || $user->isAdmin() || $user->isManager()
+                || strtoupper($user->role_name ?? '') === 'PPIC';
+
+            return $allowed
+                ? Response::allow()
+                : Response::deny('Only PPIC, Admin, Owner, or Manager can modify production planning.');
         });
         Item::observe(ItemObserver::class);
         ItemProgress::observe(ItemProgressObserver::class);
@@ -130,38 +160,6 @@ class AppServiceProvider extends ServiceProvider
             $modelClass::observe(DataSyncObserver::class);
         }
 
-        Event::listen(
-            MessageSending::class,
-            function (MessageSending $event) {
-                $email = $event->message;
-
-                $toAddresses = [];
-                foreach (($email->getTo() ?: []) as $address) {
-                    $toAddresses[] = $address->getAddress();
-                }
-                $to = implode(', ', $toAddresses);
-
-                $subject = $email->getSubject();
-                $body = $email->getHtmlBody() ?: $email->getTextBody();
-
-                $cleanBody = strip_tags($body);
-                $cleanBody = html_entity_decode($cleanBody, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-
-                $logContent = "=========================================\n";
-                $logContent .= 'Date: '.now()->toDateTimeString()."\n";
-                $logContent .= 'To: '.$to."\n";
-                $logContent .= 'Subject: '.$subject."\n";
-                $logContent .= "Body:\n".trim($cleanBody)."\n";
-                $logContent .= "=========================================\n\n";
-
-                $logsDir = base_path('logs');
-                if (! File::exists($logsDir)) {
-                    File::makeDirectory($logsDir, 0755, true);
-                }
-                File::append($logsDir.'/verification-emails.log', $logContent);
-            }
-        );
-
         Inertia::share('flash', function () {
             return [
                 'success' => session('success'),
@@ -172,6 +170,17 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Inertia::share('retry_after', fn () => session('retry_after'));
+
+        // Server-owned business-rule configuration consumed by React.
+        // Single source of truth: config/workflow.php. Never duplicate in JS.
+        Inertia::share('workflow', fn () => [
+            'stage_role_map' => config('workflow.stage_role_map'),
+            'office_roles' => config('workflow.office_roles'),
+            'pre_production_keywords' => config('workflow.pre_production_keywords'),
+            'deadline' => config('workflow.deadline'),
+            'item_statuses' => array_column(ItemStatus::cases(), 'value'),
+            'po_statuses' => array_column(PoStatus::cases(), 'value'),
+        ]);
 
         Inertia::share('pusher', function () {
             return [
@@ -186,9 +195,7 @@ class AppServiceProvider extends ServiceProvider
                 $tenantId = auth()->user()->tenant_id;
             }
             if ($tenantId) {
-                TenantManager::bypass();
-                $tenant = Tenant::find($tenantId);
-                TenantManager::enableScope();
+                $tenant = TenantManager::runWithoutScope(fn () => Tenant::find($tenantId));
                 if ($tenant) {
                     return [
                         'id' => $tenant->id,

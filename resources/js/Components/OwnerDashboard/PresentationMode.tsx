@@ -30,6 +30,8 @@ interface Telemetry {
         reason: string;
     }>;
     finance_health?: { uninvoiced_count?: number };
+    delayed_pos_count?: number;
+    risks?: { red?: number; yellow?: number };
     all_items?: any[];
 }
 

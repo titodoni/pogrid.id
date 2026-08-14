@@ -1,4 +1,5 @@
 import React from 'react';
+import ProgressBar from '../ProgressBar';
 import { Search } from '../Icons';
 import { formatDDMMYYYY } from '../../Utils/date';
 
@@ -207,9 +208,7 @@ export default function SearchModal({
                                                         <span>{language === 'en' ? 'Deadline: ' : 'Tenggat: '} {formatDDMMYYYY(po.global_deadline)}</span>
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <div style={{ flex: 1, height: '6px', backgroundColor: 'var(--color-pg-border)', borderRadius: '3px', overflow: 'hidden' }}>
-                                                            <div style={{ width: `${itemsProgress}%`, height: '100%', backgroundColor: po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? '#10b981' : '#6366f1', borderRadius: '3px' }} />
-                                                        </div>
+                                                        <ProgressBar percent={itemsProgress} color={po.status === 'COMPLETED' || po.status === 'DELIVERED' || po.status === 'CLOSED' ? '#10b981' : '#6366f1'} trackStyle={{ flex: 1, height: '6px', backgroundColor: 'var(--color-pg-border)', borderRadius: '3px', overflow: 'hidden' }} fillStyle={{ borderRadius: '3px' }} />
                                                         <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{itemsProgress}%</span>
                                                     </div>
                                                 </div>
@@ -257,9 +256,7 @@ export default function SearchModal({
                                                         {item.client_name} &middot; PO {item.po_number}
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <div style={{ flex: 1, height: '4px', backgroundColor: 'var(--color-pg-border)', borderRadius: '2px', overflow: 'hidden' }}>
-                                                            <div style={{ width: `${progress}%`, height: '100%', backgroundColor: item.status === 'COMPLETED' ? '#10b981' : '#a855f7', borderRadius: '2px' }} />
-                                                        </div>
+                                                        <ProgressBar percent={progress} color={item.status === 'COMPLETED' ? '#10b981' : '#a855f7'} trackStyle={{ flex: 1, height: '4px', backgroundColor: 'var(--color-pg-border)', borderRadius: '2px', overflow: 'hidden' }} fillStyle={{ borderRadius: '2px' }} />
                                                         <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-pg-text)' }}>{progress}%</span>
                                                     </div>
                                                 </div>

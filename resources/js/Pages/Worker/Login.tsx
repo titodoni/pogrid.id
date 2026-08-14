@@ -143,14 +143,6 @@ export default function WorkerLogin({ tenant, workers }: Props) {
         setData('pin', '');
     };
 
-    const handleWorkerSelect = (worker: Worker) => {
-        setSelectedWorker(worker);
-        setData('user_id', worker.id.toString());
-        setPin('');
-        setData('pin', '');
-        clearErrors();
-    };
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (countdown > 0) return;
@@ -493,7 +485,7 @@ export default function WorkerLogin({ tenant, workers }: Props) {
                             setShowPinResetModal(false);
                             setPin('');
                             setData('pin', '');
-                            setSelectedWorker(null);
+                            setSelectedWorkerId('');
                         }
                     });
                 }}>

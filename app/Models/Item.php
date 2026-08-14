@@ -57,7 +57,7 @@ class Item extends Model
 
     public function po(): BelongsTo
     {
-        return $this->belongsTo(Po::class, 'po_id');
+        return $this->belongsTo(Po::class)->withoutGlobalScopes();
     }
 
     public function itemProgresses(): HasMany

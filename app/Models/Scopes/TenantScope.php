@@ -2,6 +2,7 @@
 
 namespace App\Models\Scopes;
 
+use App\Exceptions\TenantContextMissingException;
 use App\Services\TenantManager;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -16,8 +17,12 @@ class TenantScope implements Scope
         }
 
         $tenantId = TenantManager::getTenantId();
-        if ($tenantId !== null) {
-            $builder->where($model->getTable().'.tenant_id', '=', $tenantId);
+
+        // Fail-closed: no tenant context must never become an unscoped query.
+        if ($tenantId === null) {
+            throw TenantContextMissingException::forModel(get_class($model));
         }
+
+        $builder->where($model->getTable().'.tenant_id', '=', $tenantId);
     }
 }

@@ -225,6 +225,7 @@ class BroadcastTest extends TestCase
         $machiningStage = $item->itemProgresses()->where('stage_name', 'Machining')->first();
 
         $worker = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Machining Worker',
             'role_id' => 3,
@@ -264,6 +265,7 @@ class BroadcastTest extends TestCase
         $item->itemProgresses()->update(['completed_qty' => 2, 'status' => 'IN_PROGRESS']);
 
         $user = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Staff',
             'role_id' => 8,
@@ -457,6 +459,7 @@ class BroadcastTest extends TestCase
         require base_path('routes/channels.php');
 
         $user = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'John Operator',
             'role_id' => 3,
@@ -491,6 +494,7 @@ class BroadcastTest extends TestCase
         ]);
 
         $user = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'John Operator',
             'role_id' => 3,
@@ -566,6 +570,7 @@ class BroadcastTest extends TestCase
         ]);
 
         $admin = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Admin User',
             'role_id' => $adminRole->id,
@@ -620,6 +625,7 @@ class BroadcastTest extends TestCase
         ]);
 
         $officeUser = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Office Staff',
             'role_id' => $officeRole->id,
@@ -628,6 +634,7 @@ class BroadcastTest extends TestCase
         ]);
 
         $workerUser = User::create([
+            'email_verified_at' => now(),
             'tenant_id' => $this->tenant->id,
             'name' => 'Floor Worker',
             'role_id' => $workerRole->id,

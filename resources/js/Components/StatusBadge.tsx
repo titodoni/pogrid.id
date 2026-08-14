@@ -12,6 +12,7 @@ const COLOR_MAPS: Record<string, BadgeColor> = {
     // PO and Item General Statuses
     COMPLETED: { bg: 'rgba(52, 211, 153, 0.15)', text: 'var(--color-pg-success, #10b981)', border: '1px solid var(--color-pg-success, #10b981)', dot: 'var(--color-pg-success, #10b981)' },
     IN_PROGRESS: { bg: 'rgba(251, 191, 36, 0.15)', text: 'var(--color-pg-warning, #f59e0b)', border: '1px solid var(--color-pg-warning, #f59e0b)', dot: 'var(--color-pg-warning, #f59e0b)' },
+    IN_PRODUCTION: { bg: 'rgba(249, 115, 22, 0.15)', text: '#f97316', border: '1px solid #f97316', dot: '#f97316' },
     CANCELLED: { bg: 'rgba(248, 113, 113, 0.15)', text: 'var(--color-pg-danger, #ef4444)', border: '1px solid var(--color-pg-danger, #ef4444)', dot: 'var(--color-pg-danger, #ef4444)' },
     TERMINATED: { bg: 'var(--color-pg-surface)', text: 'var(--color-pg-text-muted, #71717a)', border: '1px solid var(--color-pg-border)', dot: 'var(--color-pg-text-muted)' },
     PENDING: { bg: 'var(--color-pg-primary-glow, rgba(99, 102, 241, 0.15))', text: 'var(--color-pg-primary, #6366f1)', border: '1px solid var(--color-pg-primary, #6366f1)', dot: 'var(--color-pg-primary, #6366f1)' },

@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Models\Traits\BelongsToTenant;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use BelongsToTenant, HasFactory, Notifiable;
 
@@ -22,6 +23,8 @@ class User extends Authenticatable
         'role_id',
         'post_id',
         'is_owner',
+        'pin_reset_requested',
+        'email_verified_at',
     ];
 
     protected $hidden = [
@@ -44,6 +47,7 @@ class User extends Authenticatable
     {
         return [
             'tenant_id' => 'integer',
+            'pin_reset_requested' => 'boolean',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'pin' => 'hashed',

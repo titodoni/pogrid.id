@@ -7,7 +7,7 @@ interface LocalizedItem {
 
 export function getLanguage(): Language {
     if (typeof window !== 'undefined') {
-        return (localStorage.getItem('pogrid_lang') as Language) || 'en';
+        return (localStorage.getItem('pogrid_lang') as Language) || 'id';
     }
     return 'en';
 }
@@ -24,6 +24,7 @@ export function localizedDisplay(item: LocalizedItem | undefined | null, lang: L
 
 const STATUS_TRANSLATIONS: Record<string, { en: string; id: string }> = {
     COMPLETED: { en: 'Completed', id: 'Selesai Diproduksi' },
+    IN_PRODUCTION: { en: 'In Production', id: 'Sedang Produksi' },
     IN_PROGRESS: { en: 'In Progress', id: 'Sedang Diproses' },
     CANCELLED: { en: 'Cancelled', id: 'Dibatalkan' },
     TERMINATED: { en: 'Terminated', id: 'Dihentikan Owner' },

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
+import type { FormDataConvertible } from '@inertiajs/core';
 import { ChevronLeft, Plus, Close, Check, Broadcast } from '../../Components/Icons';
 import { AppLayout } from '../../Components/AppLayout';
 import { useUnsavedChanges } from '../../Hooks/useUnsavedChanges';
@@ -10,6 +11,7 @@ interface Props {
     tenant?: {
         company_name: string;
         slug: string;
+        logo_path?: string | null;
     };
     auth_user?: {
         id: number;
@@ -32,13 +34,14 @@ interface RecentPo {
     items: PoItem[];
 }
 
-const TEMPLATES: { key: string; labelEn: string; labelId: string; stages: string[] }[] = [
+const FULL_PRODUCTION_STAGES = ['Design', 'Material', 'Machining', 'Fabrication', 'Assembly', 'QC', 'Delivery'];
+
+const TEMPLATES: { key: string; labelEn: string; labelId: string; stages: string[]; isDefault?: boolean }[] = [
+    { key: 'full-prod', labelEn: 'Full Production', labelId: 'Teknik Lengkap', stages: FULL_PRODUCTION_STAGES, isDefault: true },
     { key: 'cnc', labelEn: 'CNC Workshop', labelId: 'Bubut/CNC', stages: ['Machining'] },
     { key: 'fab', labelEn: 'Fabrication Workshop', labelId: 'Fabrikasi', stages: ['Fabrication'] },
     { key: 'eng', labelEn: 'Engineering Workshop', labelId: 'Teknik', stages: ['Design', 'Machining'] },
-    { key: 'cnc-design', labelEn: 'CNC + Design', labelId: 'CNC + Desain', stages: ['Design', 'Machining'] },
     { key: 'assembly', labelEn: 'Assembly Workshop', labelId: 'Perakitan', stages: ['Machining', 'Fabrication', 'Assembly'] },
-    { key: 'full-eng', labelEn: 'Full Engineering', labelId: 'Teknik Lengkap', stages: ['Design', 'Material', 'Machining', 'Fabrication', 'Assembly', 'QC', 'Delivery'] },
     { key: 'finishing', labelEn: 'With Finishing', labelId: '+ Finishing', stages: ['Design', 'Material', 'Machining', 'Fabrication', 'Surface Treatment', 'QC', 'Delivery'] },
     { key: 'procure', labelEn: 'Procurement Only', labelId: 'Pembelian Saja', stages: ['Material', 'Vendor'] },
     { key: 'service', labelEn: 'Service / Design Only', labelId: 'Jasa / Desain Saja', stages: ['Design'] },
@@ -79,6 +82,18 @@ const labelStyle: React.CSSProperties = {
 };
 
 const DRAFT_KEY = 'pogrid_po_draft';
+
+const createDefaultItem = (): PoItem => ({
+    item_name: '',
+    item_type: 'MANUFACTURE',
+    target_qty: 1,
+    required_stages: [...FULL_PRODUCTION_STAGES],
+    vendor_name: '',
+    vendor_phone: '',
+});
+
+const sameStages = (a: string[], b: string[]) =>
+    a.length === b.length && b.every(s => a.includes(s));
 
 const toDDMMYYYY = (isoStr: string) => {
     if (!isoStr || !/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) return '';
@@ -203,9 +218,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
     const [isCustomClient, setIsCustomClient] = useState(false);
     const [deliveryDate, setDeliveryDate] = useState('');
     const [isUrgent, setIsUrgent] = useState(false);
-    const [items, setItems] = useState<PoItem[]>([
-        { item_name: '', item_type: 'MANUFACTURE', target_qty: 1, required_stages: [], vendor_name: '', vendor_phone: '' }
-    ]);
+    const [items, setItems] = useState<PoItem[]>(() => [createDefaultItem()]);
     const [draftRestored, setDraftRestored] = useState(false);
 
     const hasUnsavedData =
@@ -216,7 +229,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
         isUrgent ||
         items.some(item =>
             item.item_name.trim() !== '' ||
-            item.required_stages.length > 0 ||
+            !sameStages(item.required_stages, FULL_PRODUCTION_STAGES) ||
             item.target_qty !== 1 ||
             (item.vendor_name?.trim() ?? '') !== '' ||
             (item.vendor_phone?.trim() ?? '') !== ''
@@ -280,7 +293,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
     };
 
     const addItem = () => {
-        setItems(prev => [...prev, { item_name: '', item_type: 'MANUFACTURE', target_qty: 1, required_stages: [], vendor_name: '', vendor_phone: '' }]);
+        setItems(prev => [...prev, createDefaultItem()]);
     };
 
     const removeItem = (index: number) => {
@@ -348,7 +361,9 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
             client_name: clientName,
             global_deadline: deliveryDate,
             is_urgent: isUrgent,
-            items,
+            // PoItem[] is structurally form-convertible; the inferred literal type
+            // is not, so widen at the boundary rather than loosening PoItem.
+            items: items as unknown as FormDataConvertible,
         }, {
             onSuccess: () => localStorage.removeItem(DRAFT_KEY),
             onFinish: () => setSubmitting(false),
@@ -770,105 +785,165 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                 </div>
                             </div>
 
-                            {/* Row 2: Stage Templates */}
-                            <div style={{
-                                marginBottom: '22px',
-                                padding: '16px',
-                                backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                                border: '1px solid var(--color-pg-border)',
-                                borderRadius: '12px',
-                            }}>
-                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--color-pg-text-secondary)', marginBottom: '10px' }}>
-                                    ✨ {t.stage_templates}
-                                </label>
-                                <div style={{
-                                    display: 'flex', gap: '8px', flexWrap: 'wrap',
-                                }}>
-                                    {[...TEMPLATES, ...stage_templates.map(st => ({ key: `tenant-${st.id}`, labelEn: st.name, labelId: st.name, stages: st.stages }))].map(tmpl => {
-                                        const isActive = item.required_stages.length === tmpl.stages.length &&
-                                            tmpl.stages.every(s => item.required_stages.includes(s));
-                                        return (
-                                            <button
-                                                key={tmpl.key}
-                                                type="button"
-                                                onClick={() => updateItem(index, 'required_stages', [...tmpl.stages])}
-                                                style={{
-                                                    padding: '8px 14px',
+                            {/* Production Process: template picker + ordered stage pipeline */}
+                            {(() => {
+                                const allTemplates = [...TEMPLATES, ...stage_templates.map(st => ({ key: `tenant-${st.id}`, labelEn: st.name, labelId: st.name, stages: st.stages }))];
+                                const matchedKey = allTemplates.find(tmpl => sameStages(item.required_stages, tmpl.stages))?.key ?? null;
+                                const isCustomSelection = matchedKey === null;
+                                const isStageDisabled = (stage: string) =>
+                                    (item.item_type === 'BUY_OUT' && (stage === 'Machining' || stage === 'Fabrication')) ||
+                                    (item.item_type === 'MANUFACTURE' && stage === 'Vendor');
+                                const stageLabel = (stage: string) =>
+                                    stage === 'Machining' ? t.cnc : stage === 'Fabrication' ? t.fabrication : stage === 'Design' ? t.design : stage === 'Material' ? t.material : stage === 'Assembly' ? t.assembly : stage === 'Surface Treatment' ? t.surface : stage === 'QC' ? t.qc : stage === 'Delivery' ? t.delivery : t.vendor;
+                                const toggleStage = (stage: string) => {
+                                    if (isStageDisabled(stage)) return;
+                                    const stages = item.required_stages.includes(stage)
+                                        ? item.required_stages.filter(s => s !== stage)
+                                        : [...item.required_stages, stage].sort((a, b) => ALL_STAGES.indexOf(a) - ALL_STAGES.indexOf(b));
+                                    updateItem(index, 'required_stages', stages);
+                                };
+
+                                return (
+                                    <div style={{
+                                        marginBottom: item.required_stages.includes('Vendor') ? '22px' : 0,
+                                        padding: '16px',
+                                        backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                                        border: '1px solid var(--color-pg-border)',
+                                        borderRadius: '12px',
+                                    }}>
+                                        {/* Header */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                                            <label style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--color-pg-text-secondary)' }}>
+                                                {t.process_title}
+                                            </label>
+                                            <span style={{ fontSize: '12px', fontWeight: 600, color: item.required_stages.length > 0 ? 'var(--color-pg-accent)' : 'var(--color-pg-danger)' }}>
+                                                {t.stages_selected.replace('{count}', String(item.required_stages.length))}
+                                            </span>
+                                        </div>
+                                        <p style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', margin: '0 0 14px 0', lineHeight: 1.5 }}>
+                                            {t.process_hint}
+                                        </p>
+
+                                        {/* Step 1: Templates */}
+                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                                            {allTemplates.map(tmpl => {
+                                                const isActive = matchedKey === tmpl.key;
+                                                const isDefault = 'isDefault' in tmpl && tmpl.isDefault;
+                                                return (
+                                                    <button
+                                                        key={tmpl.key}
+                                                        type="button"
+                                                        onClick={() => updateItem(index, 'required_stages', [...tmpl.stages])}
+                                                        style={{
+                                                            padding: '7px 12px',
+                                                            fontSize: '12px',
+                                                            fontWeight: 600,
+                                                            border: isActive ? '1px solid #3b82f6' : '1px solid var(--color-pg-border)',
+                                                            borderRadius: '999px',
+                                                            backgroundColor: isActive ? 'rgba(59, 130, 246, 0.2)' : 'var(--color-pg-surface)',
+                                                            color: isActive ? '#60a5fa' : 'var(--color-pg-text-secondary)',
+                                                            boxShadow: isActive ? '0 0 12px rgba(59, 130, 246, 0.25)' : 'none',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.15s ease',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '6px',
+                                                        }}
+                                                    >
+                                                        {language === 'en' ? tmpl.labelEn : tmpl.labelId}
+                                                        {isDefault && (
+                                                            <span style={{
+                                                                fontSize: '10px',
+                                                                fontWeight: 700,
+                                                                textTransform: 'uppercase',
+                                                                letterSpacing: '0.4px',
+                                                                padding: '2px 6px',
+                                                                borderRadius: '999px',
+                                                                backgroundColor: isActive ? 'rgba(96, 165, 250, 0.25)' : 'rgba(52, 211, 153, 0.15)',
+                                                                color: isActive ? '#93c5fd' : 'var(--color-pg-success)',
+                                                            }}>
+                                                                {t.default_badge}
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                            {isCustomSelection && (
+                                                <span style={{
+                                                    padding: '7px 12px',
                                                     fontSize: '12px',
                                                     fontWeight: 600,
-                                                    border: isActive ? '1px solid #3b82f6' : '1px solid var(--color-pg-border)',
-                                                    borderRadius: '8px',
-                                                    backgroundColor: isActive ? 'rgba(59, 130, 246, 0.2)' : 'var(--color-pg-surface)',
-                                                    color: isActive ? '#60a5fa' : 'var(--color-pg-text-secondary)',
-                                                    boxShadow: isActive ? '0 0 12px rgba(59, 130, 246, 0.25)' : 'none',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.15s ease',
-                                                }}
-                                            >
-                                                {language === 'en' ? tmpl.labelEn : tmpl.labelId}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
+                                                    border: '1px dashed var(--color-pg-accent)',
+                                                    borderRadius: '999px',
+                                                    color: 'var(--color-pg-accent)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                }}>
+                                                    {t.custom_badge}
+                                                </span>
+                                            )}
+                                        </div>
 
-                            {/* Row 3: Tahapan Produksi (Stages Selection) */}
-                            <div>
-                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--color-pg-text-secondary)', marginBottom: '10px' }}>
-                                    {t.stages}
-                                </label>
-                                <div style={{ 
-                                    display: 'grid', 
-                                    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', 
-                                    gap: '10px' 
-                                }}>
-                                    {ALL_STAGES.map(stage => {
-                                        const isStageDisabled = 
-                                            (item.item_type === 'BUY_OUT' && (stage === 'Machining' || stage === 'Fabrication')) ||
-                                            (item.item_type === 'MANUFACTURE' && stage === 'Vendor');
-                                        const isSelected = item.required_stages.includes(stage);
+                                        {/* Step 2: Ordered pipeline */}
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+                                            {ALL_STAGES.map((stage, i) => {
+                                                const disabled = isStageDisabled(stage);
+                                                const selected = item.required_stages.includes(stage);
+                                                return (
+                                                    <React.Fragment key={stage}>
+                                                        {i > 0 && (
+                                                            <span style={{ color: 'var(--color-pg-text-muted)', fontSize: '12px', opacity: 0.6, userSelect: 'none' }}>→</span>
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            disabled={disabled}
+                                                            onClick={() => toggleStage(stage)}
+                                                            title={disabled ? t.stage_disabled_hint : undefined}
+                                                            style={{
+                                                                padding: '8px 12px',
+                                                                fontSize: '12px',
+                                                                fontWeight: selected ? 700 : 500,
+                                                                border: selected ? '1px solid rgba(59, 130, 246, 0.6)' : '1px solid var(--color-pg-border)',
+                                                                borderRadius: '8px',
+                                                                backgroundColor: selected ? 'rgba(59, 130, 246, 0.18)' : 'rgba(255, 255, 255, 0.02)',
+                                                                color: disabled ? 'var(--color-pg-text-muted)' : selected ? '#ffffff' : 'var(--color-pg-text-muted)',
+                                                                cursor: disabled ? 'not-allowed' : 'pointer',
+                                                                opacity: disabled ? 0.35 : selected ? 1 : 0.7,
+                                                                transition: 'all 0.15s ease',
+                                                                boxShadow: selected ? '0 2px 8px rgba(59, 130, 246, 0.15)' : 'none',
+                                                                textDecoration: disabled ? 'line-through' : 'none',
+                                                            }}
+                                                        >
+                                                            {stageLabel(stage)}
+                                                        </button>
+                                                    </React.Fragment>
+                                                );
+                                            })}
+                                        </div>
 
-                                        return (
-                                            <label key={stage} style={{ 
-                                                display: 'flex', 
-                                                alignItems: 'center', 
-                                                gap: '10px', 
-                                                padding: '10px 14px',
-                                                backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.12)' : 'rgba(255, 255, 255, 0.02)',
-                                                border: isSelected ? '1px solid rgba(59, 130, 246, 0.5)' : '1px solid var(--color-pg-border)',
-                                                borderRadius: '10px',
-                                                fontSize: '13px', 
-                                                fontWeight: isSelected ? 600 : 500,
-                                                color: isStageDisabled ? 'var(--color-pg-text-muted)' : isSelected ? '#ffffff' : '#cbd5e1', 
-                                                cursor: isStageDisabled ? 'not-allowed' : 'pointer',
-                                                opacity: isStageDisabled ? 0.4 : 1,
-                                                transition: 'all 0.15s ease',
-                                                boxShadow: isSelected ? '0 2px 8px rgba(59, 130, 246, 0.15)' : 'none',
-                                            }}>
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={isSelected} 
-                                                    disabled={isStageDisabled}
-                                                    onChange={() => {
-                                                        if (isStageDisabled) return;
-                                                        const stages = isSelected
-                                                            ? item.required_stages.filter(s => s !== stage)
-                                                            : [...item.required_stages, stage];
-                                                        updateItem(index, 'required_stages', stages);
-                                                    }} 
+                                        {/* Footer: reset */}
+                                        {!sameStages(item.required_stages, FULL_PRODUCTION_STAGES) && (
+                                            <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--color-pg-border)' }}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateItem(index, 'required_stages', FULL_PRODUCTION_STAGES.filter(s => !isStageDisabled(s)))}
                                                     style={{
-                                                        width: '16px',
-                                                        height: '16px',
-                                                        accentColor: '#3b82f6',
-                                                        cursor: isStageDisabled ? 'not-allowed' : 'pointer',
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        padding: 0,
+                                                        fontSize: '12px',
+                                                        fontWeight: 600,
+                                                        color: 'var(--color-pg-accent)',
+                                                        cursor: 'pointer',
                                                     }}
-                                                />
-                                                <span>{stage === 'Machining' ? t.cnc : stage === 'Fabrication' ? t.fabrication : stage === 'Design' ? t.design : stage === 'Material' ? t.material : stage === 'Assembly' ? t.assembly : stage === 'Surface Treatment' ? t.surface : stage === 'QC' ? t.qc : stage === 'Delivery' ? t.delivery : t.vendor}</span>
-                                            </label>
-                                        );
-                                    })}
-                                </div>
-                            </div>
+                                                >
+                                                    ↺ {t.reset_default}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()}
 
                             {item.required_stages.includes('Vendor') && (
                                 <div style={{

@@ -76,7 +76,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
  * @param {import('puppeteer').Page} page
  * @param {{ username: string; password: string }} user
  */
-async function loginAsOfficeUser(page, user) {
+async function loginAsOfficeUser(page, user, isRetry = false) {
   await page.goto(URLS.login, { waitUntil: 'networkidle0' });
   await page.waitForSelector(SELECTORS.login.usernameInput, { visible: true });
 
@@ -90,6 +90,18 @@ async function loginAsOfficeUser(page, user) {
   await page.click(SELECTORS.login.submitButton);
   await waitForInertia(page);
   await sleep(500);
+
+  // Login is rate-limited (5/min per username+IP). When the whole E2E suite
+  // runs back-to-back this can trip; wait out the window and retry once.
+  if (!isRetry) {
+    const throttled = await page.evaluate(() =>
+      document.body.innerText.toLowerCase().includes('too many')
+    );
+    if (throttled) {
+      await sleep(62000);
+      return loginAsOfficeUser(page, user, true);
+    }
+  }
 }
 
 /**

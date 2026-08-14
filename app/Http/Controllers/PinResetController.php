@@ -7,6 +7,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 
 class PinResetController extends Controller
@@ -40,10 +41,10 @@ class PinResetController extends Controller
         // Mark user as having requested PIN reset
         $user->update(['pin_reset_requested' => true]);
 
-        // Create a BLUE alert visible to admin
+        // Create a BLUE alert visible to admin (system alert: no item attached)
         Alert::create([
             'tenant_id' => TenantManager::getTenantId(),
-            'item_id' => 0,
+            'item_id' => null,
             'severity' => 'BLUE',
             'message' => "PIN Reset Requested for {$user->name} (ID:{$user->id}) by worker.",
             'is_resolved' => false,
@@ -55,6 +56,8 @@ class PinResetController extends Controller
     public function approvePinReset(Request $request, int $alertId)
     {
         $alert = Alert::findOrFail($alertId);
+
+        Gate::authorize('approve-pin-reset');
 
         if ($alert->is_resolved) {
             return back()->with('error', 'This PIN reset request has already been resolved.');
@@ -77,10 +80,11 @@ class PinResetController extends Controller
             'pin_reset_requested' => false,
         ]);
 
-        // Mark alert as resolved
+        // Mark alert as resolved. The new PIN is only shown once via the flash
+        // message below — it must never be persisted in the alert record.
         $alert->update([
             'is_resolved' => true,
-            'message' => "PIN Reset Approved for {$user->name}. New PIN: {$newPin}",
+            'message' => "PIN Reset Approved for {$user->name}.",
         ]);
 
         return back()->with('success', "PIN reset approved. New PIN for {$user->name}: {$newPin}");

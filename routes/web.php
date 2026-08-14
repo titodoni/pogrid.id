@@ -25,17 +25,17 @@ Route::get('/', function () {
 // Guard A: Standard Web Auth
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login-office');
 
     // Forgot Password
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
-    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->middleware('throttle:6,1')->name('password.email');
     Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
+    Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->middleware('throttle:6,1')->name('password.update');
 
     // Onboarding / Registration
     Route::get('/register', [RegistrationController::class, 'showRegister'])->name('register');
-    Route::post('/register', [RegistrationController::class, 'register']);
+    Route::post('/register', [RegistrationController::class, 'register'])->middleware('throttle:5,1');
 });
 
 Route::middleware('auth')->group(function () {
@@ -56,7 +56,7 @@ Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 've
     ->middleware(['auth', 'signed'])
     ->name('verification.verify');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'can:access-office', 'verified'])->group(function () {
     // Owner Dashboard & Control routes
     Route::get('/dashboard', [OwnerDashboardController::class, 'index'])->name('dashboard');
     Route::get('/selamat-datang', [OwnerDashboardController::class, 'welcome'])->name('onboarding');

@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "typecheck:ci": "node scripts/check-typecheck.mjs",
     "test:e2e": "cd e2e-tests && npm test",
-    "test:e2e:debug": "cd e2e-tests && HEADLESS=false SLOWMO=100 npm test"
+    "test:e2e:debug": "cd e2e-tests && HEADLESS=false SLOWMO=100 npm test",
+    "deploy": "npm run build && rsync -avz -e 'ssh -p 65002 -i ~/.ssh/id_ed25519' --exclude 'storage' --exclude 'bootstrap/cache/*.php' --exclude '.env' --exclude 'node_modules' --exclude '.git' --exclude 'public/hot' --exclude 'deploy' --exclude 'database/*.sqlite' ./ u173210759@153.92.8.145:/home/u173210759/domains/pogrid.id/public_html/app/ && ssh -p 65002 -i ~/.ssh/id_ed25519 u173210759@153.92.8.145 'cd domains/pogrid.id/public_html/app && rm -f public/hot && /opt/alt/php83/usr/bin/php artisan optimize:clear && /opt/alt/php83/usr/bin/php artisan view:cache && /opt/alt/php83/usr/bin/php artisan config:cache && /opt/alt/php83/usr/bin/php artisan route:cache'"
   },
   "dependencies": {
     "@inertiajs/react": "^2.0.0",
@@ -17,18 +20,13 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@astryxdesign/cli": "^0.1.1",
     "@astryxdesign/core": "^0.1.1",
-    "@astryxdesign/theme-neutral": "^0.1.1",
     "@tailwindcss/vite": "^4.0.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^6.0.3",
-    "concurrently": "^9.0.1",
     "laravel-vite-plugin": "^3.1.0",
-    "puppeteer-core": "^25.3.0",
     "tailwindcss": "^4.0.0",
-    "ts-morph": "^28.0.0",
     "typescript": "^5.4.5",
     "vite": "^8.0.0"
   }

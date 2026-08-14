@@ -25,18 +25,24 @@ class AuthController extends Controller
 
         $field = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-        // Check user exists first for better error messaging
+        // Guard A login resolves users across tenants by design (username/email
+        // is globally unique). Explicit, tightly-scoped bypass for both the
+        // lookup and Auth::attempt's provider query.
         TenantManager::bypass();
         $user = User::where($field, $request->username)->first();
-        TenantManager::enableScope();
 
         if (! $user) {
+            TenantManager::enableScope();
+
             return back()->withErrors([
                 'username' => 'user_not_found',
             ])->onlyInput('username');
         }
 
-        if (Auth::attempt([$field => $request->username, 'password' => $request->password])) {
+        $attempted = Auth::attempt([$field => $request->username, 'password' => $request->password]);
+        TenantManager::enableScope();
+
+        if ($attempted) {
             $request->session()->regenerate();
             $user = Auth::user();
             $slug = Tenant::find($user->tenant_id)?->slug;

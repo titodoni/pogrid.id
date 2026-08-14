@@ -12,29 +12,6 @@ use Inertia\Inertia;
 
 class WorkerAuthController extends Controller
 {
-    public function showLogin($slug)
-    {
-        TenantManager::bypass();
-        $tenant = Tenant::where('slug', $slug)->firstOrFail();
-        TenantManager::enableScope();
-
-        $workers = User::where('tenant_id', $tenant->id)
-            ->whereNotNull('pin')
-            ->with('roleRelation:id,name,display_name,display_name_id', 'postRelation:id,name,display_name,display_name_id')
-            ->get(['id', 'name', 'role_id', 'post_id']);
-
-        return Inertia::render('Worker/Login', [
-            'tenant' => [
-                'id' => $tenant->id,
-                'company_name' => $tenant->company_name,
-                'slug' => $tenant->slug,
-                'logo_path' => $tenant->logo_path,
-                'theme' => $tenant->theme ?? 'theme-default',
-            ],
-            'workers' => $workers,
-        ]);
-    }
-
     public function login(Request $request, $slug)
     {
         $request->validate([

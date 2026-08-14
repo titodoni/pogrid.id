@@ -10,6 +10,7 @@ use App\Models\Tenant;
 use App\Services\TenantManager;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class PpicDashboardController extends Controller
@@ -25,7 +26,7 @@ class PpicDashboardController extends Controller
         TenantManager::setTenantId($tenant->id);
 
         $user = auth()->user()->load('roleRelation', 'postRelation');
-        \Illuminate\Support\Facades\Gate::authorize('view-tenant', $tenant->id);
+        Gate::authorize('view-tenant', $tenant->id);
 
         $schedule = $this->getProductionSchedule();
         $workCenterLoad = $this->getWorkCenterLoad();
@@ -368,6 +369,9 @@ class PpicDashboardController extends Controller
         TenantManager::enableScope();
         TenantManager::setTenantId($tenant->id);
 
+        Gate::authorize('view-tenant', $tenant->id);
+        Gate::authorize('manage-ppic');
+
         $po->update([
             'global_deadline' => Carbon::parse($request->global_deadline),
             'is_urgent' => (bool) $request->is_urgent,
@@ -388,6 +392,9 @@ class PpicDashboardController extends Controller
         $tenant = Tenant::where('slug', $slug)->firstOrFail();
         TenantManager::enableScope();
         TenantManager::setTenantId($tenant->id);
+
+        Gate::authorize('view-tenant', $tenant->id);
+        Gate::authorize('manage-ppic');
 
         $item = Item::where('id', $itemId)->firstOrFail();
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { usePage } from '@inertiajs/react';
+import { setWorkflowConfig, WorkflowConfig } from '../Utils/workflow';
 
 const errorTranslations: Record<string, { en: string; id: string }> = {
     auth_failed: {
@@ -46,9 +47,9 @@ const errorTranslations: Record<string, { en: string; id: string }> = {
 
 function getLang(): 'en' | 'id' {
     if (typeof window !== 'undefined') {
-        return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'en';
+        return (localStorage.getItem('pogrid_lang') as 'en' | 'id') || 'id';
     }
-    return 'en';
+    return 'id';
 }
 
 function resolveErrorMessages(errors: Record<string, string>): string[] {
@@ -136,9 +137,16 @@ interface Toast {
 let toastId = 0;
 
 export default function FlashMessages() {
-    const { flash, errors } = usePage<{ flash: Record<string, string>; errors: Record<string, string> }>().props;
+    const { flash, errors, workflow } = usePage<{ flash: Record<string, string>; errors: Record<string, string>; workflow?: WorkflowConfig }>().props;
     const [toasts, setToasts] = useState<Toast[]>([]);
     const [dismissed, setDismissed] = useState<Set<number>>(new Set());
+
+    // Bridge server-owned workflow config into the utility layer (see Utils/workflow.ts).
+    // Assigned during render — FlashMessages is mounted before the page component in
+    // the default layout, so the config is always available for the page's first render.
+    if (workflow) {
+        setWorkflowConfig(workflow);
+    }
 
     useEffect(() => {
         const newToasts: Toast[] = [];

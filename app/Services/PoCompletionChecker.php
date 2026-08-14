@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\Po;
+use App\Enums\ItemStatus;
+use App\Enums\PoStatus;
 use App\Models\DoItem;
+use App\Models\Po;
 
 class PoCompletionChecker
 {
@@ -12,7 +14,7 @@ class PoCompletionChecker
      */
     public static function checkCompletion(Po $po): void
     {
-        if ($po->status === 'CANCELLED' || $po->status === 'CLOSED' || $po->status === 'DELIVERED') {
+        if (in_array($po->status, PoStatus::terminalValues(), true)) {
             return;
         }
 
@@ -21,18 +23,18 @@ class PoCompletionChecker
         $anyInProgress = false;
 
         foreach ($poItems as $poItem) {
-            if ($poItem->status !== 'COMPLETED' && $poItem->status !== 'CANCELLED' && $poItem->status !== 'TERMINATED') {
+            if (! in_array($poItem->status, [ItemStatus::Completed->value, ItemStatus::Cancelled->value, ItemStatus::Terminated->value], true)) {
                 $allCompleted = false;
             }
-            if ($poItem->status === 'IN_PROGRESS') {
+            if (in_array($poItem->status, ItemStatus::startedValues(), true)) {
                 $anyInProgress = true;
             }
         }
 
-        if ($allCompleted && in_array($po->status, ['PENDING', 'IN_PROGRESS'])) {
-            $po->update(['status' => 'COMPLETED']);
-        } elseif ($anyInProgress && $po->status === 'PENDING') {
-            $po->update(['status' => 'IN_PROGRESS']);
+        if ($allCompleted && in_array($po->status, [PoStatus::Pending->value, PoStatus::InProgress->value], true)) {
+            $po->update(['status' => PoStatus::Completed->value]);
+        } elseif ($anyInProgress && $po->status === PoStatus::Pending->value) {
+            $po->update(['status' => PoStatus::InProgress->value]);
         }
     }
 
@@ -41,13 +43,13 @@ class PoCompletionChecker
      */
     public static function checkDelivery(Po $po): void
     {
-        if ($po->status === 'DELIVERED' || $po->status === 'CLOSED' || $po->status === 'CANCELLED') {
+        if (in_array($po->status, PoStatus::terminalValues(), true)) {
             return;
         }
 
         $allDelivered = true;
         foreach ($po->items()->get() as $poItem) {
-            if ($poItem->status === 'CANCELLED' || $poItem->status === 'TERMINATED') {
+            if ($poItem->status === ItemStatus::Cancelled->value || $poItem->status === ItemStatus::Terminated->value) {
                 continue;
             }
             $deliveredSum = DoItem::where('item_id', $poItem->id)->sum('delivered_qty');
@@ -58,7 +60,7 @@ class PoCompletionChecker
         }
 
         if ($allDelivered) {
-            $po->update(['status' => 'DELIVERED']);
+            $po->update(['status' => PoStatus::Delivered->value]);
         }
     }
 }
