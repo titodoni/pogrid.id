@@ -124,11 +124,15 @@ export const Hero: React.FC<HeroProps> = ({ t, lang }) => {
                         </Reveal>
 
                         <Reveal delay={420} className="w-full">
-                            <div className="grid grid-cols-2 md:grid-cols-4 w-full border-t border-slate-200">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-x-6 gap-y-5 w-full border-t border-slate-200 pt-6">
                                 {t.hero_stats.map((s, i) => (
-                                    <div key={i} className={`pt-6 pr-4 ${i > 0 ? 'md:border-l md:border-slate-200 md:pl-5' : ''}`}>
-                                        <div className="mono text-2xl md:text-[28px] font-semibold text-slate-900 tracking-tight">{s.v}</div>
-                                        <div className="text-[12px] text-slate-500 mt-1.5 leading-snug">{s.l}</div>
+                                    <div key={i} className="min-w-0 flex flex-col">
+                                        <div className="landing-display text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight">
+                                            {s.v}
+                                        </div>
+                                        <div className="text-[12px] sm:text-[13px] text-slate-500 mt-1 leading-snug">
+                                            {s.l}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
