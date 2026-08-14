@@ -41,6 +41,9 @@ jobs:
       - name: Install NPM Dependencies
         run: npm install --legacy-peer-deps --ignore-scripts
 
+      - name: TypeScript Gate
+        run: npm run typecheck:ci
+
       - name: Build Frontend
         run: |
           chmod +x node_modules/.bin/* || true
@@ -57,7 +60,6 @@ jobs:
           name: build-artifacts
           path: |
             public/build/
-            public/hot
           retention-days: 1
 
   deploy:
