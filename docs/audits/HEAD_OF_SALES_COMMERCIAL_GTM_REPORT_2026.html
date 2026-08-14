@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POgrid.id — Head of Sales Commercial, GTM, Cash Flow & Retention Report (August 2026)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #eff6ff;
+      --primary-border: #bfdbfe;
+      --navy: #0f172a;
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-600: #475569;
+      --slate-500: #64748b;
+      --slate-400: #94a3b8;
+      --slate-300: #cbd5e1;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --slate-50: #f8fafc;
+      --white: #ffffff;
+      
+      --emerald-700: #047857;
+      --emerald-600: #059669;
+      --emerald-500: #10b981;
+      --emerald-100: #d1fae5;
+      --emerald-50: #ecfdf5;
+      
+      --amber-600: #d97706;
+      --amber-500: #f59e0b;
+      --amber-100: #fef3c7;
+      --amber-50: #fffbeb;
+      
+      --rose-600: #e11d48;
+      --rose-500: #f43f5e;
+      --rose-100: #ffe4e6;
+      --rose-50: #fff1f2;
+      
+      --indigo-600: #4f46e5;
+      --indigo-50: #eef2ff;
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: #e9eef5;
+      color: var(--slate-800);
+      line-height: 1.65;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .report-container {
+      max-width: 1040px;
+      margin: 32px auto;
+      background: var(--white);
+      box-shadow: 0 10px 40px -10px rgba(0,0,0,0.12), 0 0 1px 1px rgba(0,0,0,0.05);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    /* ── COVER HEADER ── */
+    .report-header {
+      background: linear-gradient(135deg, #064e3b 0%, #0f172a 60%, #1e3a8a 100%);
+      color: var(--white);
+      padding: 56px 48px 48px;
+      position: relative;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #6ee7b7;
+    }
+
+    .logo-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .confidential-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: #fcd34d;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 4px 10px;
+      border-radius: 4px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .report-title {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      color: #ffffff;
+    }
+
+    .report-subtitle {
+      font-size: 16px;
+      color: #cbd5e1;
+      font-weight: 400;
+      max-width: 780px;
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 16px 20px;
+    }
+
+    .meta-item .meta-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94a3b8;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .meta-item .meta-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    /* ── NAVIGATION / TOC BAR ── */
+    .nav-bar {
+      background: var(--slate-50);
+      border-bottom: 1px solid var(--slate-200);
+      padding: 12px 48px;
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .nav-bar a {
+      color: var(--slate-600);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: color 0.15s;
+    }
+
+    .nav-bar a:hover {
+      color: var(--primary);
+    }
+
+    /* ── CONTENT BODY ── */
+    .content-body {
+      padding: 48px;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--slate-200);
+      padding-bottom: 10px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-number {
+      font-size: 13px;
+      background: var(--emerald-50);
+      color: var(--emerald-700);
+      border: 1px solid #a7f3d0;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+
+    /* ── KPI HIGHLIGHT CARDS ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      padding: 18px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--primary);
+    }
+
+    .kpi-card.success::before { background: var(--emerald-500); }
+    .kpi-card.warning::before { background: var(--amber-500); }
+    .kpi-card.indigo::before { background: var(--indigo-600); }
+
+    .kpi-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--slate-500);
+      margin-bottom: 6px;
+    }
+
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--slate-900);
+      line-height: 1.1;
+      font-family: var(--font-mono);
+      margin-bottom: 6px;
+    }
+
+    .kpi-delta {
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .kpi-delta.pos { color: var(--emerald-600); }
+    .kpi-delta.neg { color: var(--rose-600); }
+    .kpi-delta.neutral { color: var(--slate-600); }
+
+    /* ── CALLOUT BOXES ── */
+    .callout {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 18px 0;
+      font-size: 13.5px;
+      line-height: 1.6;
+      border-left: 4px solid;
+    }
+
+    .callout-green {
+      background: var(--emerald-50);
+      border-color: var(--emerald-500);
+      color: #065f46;
+    }
+
+    .callout-blue {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: #1e3a8a;
+    }
+
+    .callout-amber {
+      background: var(--amber-50);
+      border-color: var(--amber-500);
+      color: #92400e;
+    }
+
+    .callout-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── TABLES ── */
+    .table-wrap {
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 18px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    thead th {
+      background: #f8fafc;
+      color: var(--slate-700);
+      font-weight: 700;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--slate-200);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    tbody td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--slate-200);
+      color: var(--slate-700);
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover td {
+      background: #f8fafc;
+    }
+
+    /* ── BADGES & STATUS ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-pass { background: var(--emerald-100); color: var(--emerald-700); }
+    .badge-warn { background: var(--amber-100); color: var(--amber-600); }
+    .badge-crit { background: var(--rose-100); color: var(--rose-600); }
+    .badge-blue { background: var(--primary-light); color: var(--primary-dark); }
+    .badge-gray { background: var(--slate-100); color: var(--slate-600); }
+
+    /* ── GRID 2 COLUMNS ── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin: 20px 0;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--slate-900);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ── STEP BOXES ── */
+    .step-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin: 20px 0;
+    }
+
+    .step-card {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      padding: 16px;
+      position: relative;
+    }
+
+    .step-num {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .step-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--slate-900);
+      margin-bottom: 4px;
+    }
+
+    .step-desc {
+      font-size: 12px;
+      color: var(--slate-600);
+      line-height: 1.45;
+    }
+
+    /* ── FOOTER & SIGN-OFF ── */
+    .report-footer {
+      background: var(--slate-50);
+      border-top: 1px solid var(--slate-200);
+      padding: 32px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--slate-500);
+    }
+
+    .signature-block {
+      display: flex;
+      gap: 40px;
+    }
+
+    .sig-person {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sig-role {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--slate-400);
+      margin-bottom: 4px;
+    }
+
+    .sig-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .sig-company {
+      font-size: 11px;
+      color: var(--slate-500);
+    }
+
+    .print-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-print {
+      background: var(--emerald-600);
+      color: var(--white);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+
+    .btn-print:hover {
+      background: var(--emerald-700);
+    }
+
+    /* ── PRINT MEDIA QUERY ── */
+    @media print {
+      body {
+        background: #ffffff;
+      }
+      .report-container {
+        box-shadow: none;
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
+      }
+      .nav-bar, .print-actions {
+        display: none !important;
+      }
+      .section {
+        page-break-inside: avoid;
+        margin-bottom: 32px;
+      }
+      .report-header {
+        padding: 32px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .content-body {
+        padding: 24px 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="report-container">
+
+  <!-- HEADER -->
+  <header class="report-header">
+    <div class="header-top">
+      <div class="logo-badge">
+        <span class="logo-dot"></span>
+        POgrid Commercial &amp; Sales
+      </div>
+      <div class="confidential-tag">Executive Strategy · Commercial Confidential</div>
+    </div>
+    <h1 class="report-title">POgrid.id — Commercial Strategy, Sales Planning, Cash Flow &amp; Retention Report</h1>
+    <p class="report-subtitle">
+      A comprehensive commercial go-to-market report for the CEO covering SME customer acquisition, 15-minute shop floor onboarding, upfront annual cash flow architecture, unit economics, and habit-driven anti-churn retention.
+    </p>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="meta-label">Prepared By</div>
+        <div class="meta-val">Head of Sales &amp; Growth</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Presented To</div>
+        <div class="meta-val">Chief Executive Officer (CEO)</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Target ARR (12M)</div>
+        <div class="meta-val" style="color: #6ee7b7;">Rp750.000.000 (250 Tenants)</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">LTV / CAC Ratio</div>
+        <div class="meta-val" style="color: #6ee7b7;">18.7x (Blended)</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION -->
+  <nav class="nav-bar">
+    <a href="#s1">1. Commercial Overview</a>
+    <a href="#s2">2. Ideal Customer Profile</a>
+    <a href="#s3">3. Pricing &amp; Cash Flow</a>
+    <a href="#s4">4. Grassroots Marketing</a>
+    <a href="#s5">5. 15-Min Onboarding</a>
+    <a href="#s6">6. Unit Economics &amp; Projections</a>
+    <a href="#s7">7. Retention &amp; Anti-Churn</a>
+    <a href="#s8">8. 90-Day Sales Roadmap</a>
+  </nav>
+
+  <!-- BODY CONTENT -->
+  <div class="content-body">
+
+    <!-- 1. COMMERCIAL OVERVIEW -->
+    <section id="s1" class="section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="section-number">01</span> Commercial Executive Summary</h2>
+        <span class="badge badge-pass">High Capital Leverage</span>
+      </div>
+
+      <p style="margin-bottom: 20px; font-size: 14.5px; color: var(--slate-700);">
+        With the technical core hardened and audited, POgrid is now poised for rapid commercial execution. Our commercial strategy is designed around the reality of Indonesian manufacturing SMEs: <strong>Indonesian workshop owners do not want bloated enterprise software; they want an instant end to late delivery penalties, lost parts, and chaos between the office and the shop floor.</strong>
+      </p>
+
+      <!-- KPI METRICS -->
+      <div class="kpi-grid">
+        <div class="kpi-card success">
+          <div class="kpi-label">Annual Price (Paket Pabrik)</div>
+          <div class="kpi-value">Rp3.0M<span style="font-size:14px; font-weight:500;">/yr</span></div>
+          <div class="kpi-delta pos">★ Rp250.000/mo upfront</div>
+        </div>
+        <div class="kpi-card success">
+          <div class="kpi-label">Gross Margin</div>
+          <div class="kpi-value">98.8%</div>
+          <div class="kpi-delta pos">▲ Pure SaaS leverage</div>
+        </div>
+        <div class="kpi-card indigo">
+          <div class="kpi-label">CAC Payback Time</div>
+          <div class="kpi-value">1.5<span style="font-size:14px; font-weight:500;"> Mo</span></div>
+          <div class="kpi-delta pos">✓ Day 1 Cash Positive</div>
+        </div>
+        <div class="kpi-card success">
+          <div class="kpi-label">Target 12-Month ARR</div>
+          <div class="kpi-value">Rp750M</div>
+          <div class="kpi-delta pos">▲ 250 SME Workshop Tenants</div>
+        </div>
+      </div>
+
+      <div class="callout callout-green">
+        <div class="callout-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Head of Sales Commercial Verdict
+        </div>
+        By enforcing <strong>upfront annual billing (Rp3.000.000/year)</strong> and leveraging ultra-lean field sales in dense industrial clusters (Cikarang, Karawang, Surabaya), POgrid operates with zero accounts-receivable default risk and instant positive cash flow from every signed workshop.
+      </div>
+    </section>
+
+    <!-- 2. ICP & MARKET SEGMENTATION -->
+    <section id="s2" class="section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="section-number">02</span> Target Market &amp; Ideal Customer Profile (ICP)</h2>
+        <span class="badge badge-blue">SME Precision Niche</span>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="border-left: 4px solid var(--primary);">
+          <div class="card-title">
+            <span>Target Workshop Profile</span>
+            <span class="badge badge-blue">ICP Definition</span>
+          </div>
+          <ul style="padding-left: 18px; line-height: 1.7; font-size: 13px;">
+            <li><strong>Sector:</strong> Precision Machining (Bubut, Milling, CNC), Sheet Metal &amp; Steel Fabrication, Custom Tooling, Jigs &amp; Fixtures.</li>
+            <li><strong>Headcount:</strong> 5 to 50 shop-floor workers, 1–3 office staff (Owner, Admin, PPIC/Sales).</li>
+            <li><strong>Machinery:</strong> 3 to 25 production machines (Lathe, Milling, CNC, Welder, Surface Grinder).</li>
+            <li><strong>Current Pain:</strong> Whiteboards get wiped, workers forget scrap, endless customer calls asking <em>"Barang saya sudah sampai mana?"</em>.</li>
+          </ul>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--emerald-500);">
+          <div class="card-title">
+            <span>Target Industrial Belts</span>
+            <span class="badge badge-pass">Dense Clusters</span>
+          </div>
+          <ul style="padding-left: 18px; line-height: 1.7; font-size: 13px;">
+            <li><strong>West Java:</strong> Cikarang (Jababeka, MM2100, Delta Silicon, EJIP), Karawang (KIIC, Suryacipta), Bekasi, Tangerang, Bogor, Bandung.</li>
+            <li><strong>East &amp; Central Java:</strong> Surabaya (SIER, Margomulyo, Rungkut), Sidoarjo, Gresik, Semarang (KIK, Terboyo), Tegal (Logam SMEs).</li>
+            <li><strong>Riau Islands:</strong> Batam (Mukakuning, Batu Ampar, Kabil Tooling).</li>
+            <li><strong>Market Size:</strong> >18,000 registered precision &amp; fabrication workshops in Indonesia.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. PRICING & CASH FLOW STRATEGY -->
+    <section id="s3" class="section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="section-number">03</span> Pricing, Packaging &amp; Cash Flow Architecture</h2>
+        <span class="badge badge-pass">Upfront Cash Positive</span>
+      </div>
+
+      <p style="margin-bottom: 16px;">
+        We reject seat-based charging. Telling an owner <em>"tambah operator bayar lagi"</em> kills adoption on the workshop floor. We offer <strong>unlimited workers</strong> on a single, straightforward plan:
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 25%;">Subscription Tier</th>
+              <th style="width: 20%;">Price &amp; Term</th>
+              <th style="width: 30%;">Inclusions</th>
+              <th style="width: 25%;">Cash Flow Dynamics</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Paket Pabrik (Tahunan)</strong><br><small style="color:var(--emerald-600); font-weight:700;">★ 85% Target Plan</small></td>
+              <td><strong>Rp3.000.000 / year</strong><br><small>Rp250.000/mo equivalent</small></td>
+              <td>All Features, Unlimited PINs, TV Presentation Mode, Delay Alerts, Unlimited POs &amp; DOs.</td>
+              <td><span class="badge badge-pass">100% Upfront Cash</span><br><small>Zero bad-debt collection risk</small></td>
+            </tr>
+            <tr>
+              <td><strong>Paket Pabrik (Kuartalan)</strong><br><small style="color:var(--slate-500);">15% Secondary Plan</small></td>
+              <td><strong>Rp1.050.000 / 3 months</strong><br><small>Rp350.000/mo equivalent</small></td>
+              <td>Identical Full Access, 3-Month Renewable Commitment.</td>
+              <td><span class="badge badge-blue">+40% Margin Premium</span><br><small>Converts to Annual at Year 1</small></td>
+            </tr>
+            <tr>
+              <td><strong>30-Day Free Trial</strong></td>
+              <td><strong>Rp0</strong><br><small>No credit card required</small></td>
+              <td>Full Production Platform Access for 30 days with dedicated WhatsApp onboarding.</td>
+              <td><span class="badge badge-gray">Frictionless Entry</span><br><small>Auto-converts on Day 25</small></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. GRASSROOTS MARKETING -->
+    <section id="s4" class="section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="section-number">04</span> Grassroots Marketing &amp; Field Lead Generation</h2>
+        <span class="badge badge-blue">High-ROI Channels</span>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>Direct Field Sales Blitz</span>
+            <span class="badge badge-pass">Highest Conversion</span>
+          </div>
+          <div style="font-size: 13px; color: var(--slate-600); line-height: 1.6;">
+            Sales reps systematically walk through industrial clusters (8–10 workshops/day).<br>
+            <strong>The 3-Minute iPad Pitch:</strong> Walk into the owner's office, pull up the live TV Dashboard, and demonstrate how tapping a PIN logs progress immediately. <em>"Pak, gak perlu teriak-teriak ke lantai bengkel lagi untuk cek PO."</em>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Machining WhatsApp Communities</span>
+            <span class="badge badge-blue">Organic Reach</span>
+          </div>
+          <div style="font-size: 13px; color: var(--slate-600); line-height: 1.6;">
+            Active engagement in Indonesian metalworking Facebook/WhatsApp groups (>120,000 members).<br>
+            <strong>Lead Magnet:</strong> Free downloadable <em>"Kalkulator Estimasi Jam Bubut &amp; Lead-Time PO"</em> with embedded 1-click POgrid trial link.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. 15-MIN ONBOARDING PLAYBOOK -->
+    <section id="s5" class="section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="section-number">05</span> Rapid User Onboarding: The 15-Minute Playbook</h2>
+        <span class="badge badge-pass">Instant Time-To-Value</span>
+      </div>
+
+      <p style="margin-bottom: 16px;">
+        If software setup takes more than 30 minutes, workshop owners abandon it. Our 4-step onboarding gets the entire workshop running in under 15 minutes:
+      </p>
+
+      <div class="step-grid">
+        <div class="step-card">
+          <div class="step-num">Step 1 · Min 0–3</div>
+          <div class="step-title">Mobile Signup</div>
+          <div class="step-desc">Owner signs up in 60s. Tenant slug (e.g. <code>teknik-mandiri</code>) is created automatically.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">Step 2 · Min 4–7</div>
+          <div class="step-title">Select Template</div>
+          <div class="step-desc">Pick standard workflow (e.g. Design → Material → Machining → QC → Delivery).</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">Step 3 · Min 8–11</div>
+          <div class="step-title">Add Worker PINs</div>
+          <div class="step-desc">Enter worker names and 4-digit PINs. Workers log in from phone browser without app install.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">Step 4 · Min 12–15</div>
+          <div class="step-title">Launch TV Board</div>
+          <div class="step-desc">Input first active PO and turn on Presentation Mode on office laptop or shop TV. Done!</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. UNIT ECONOMICS & 12M PROJECTIONS -->
+    <section id="s6" class="section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="section-number">06</span> Unit Economics &amp; Financial Projections</h2>
+        <span class="badge badge-pass">Rp750M ARR Target</span>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>SaaS Unit Economics</span>
+            <span class="badge badge-pass">High Margin</span>
+          </div>
+          <table style="font-size: 12.5px;">
+            <tr><td>Annual Contract Value (ACV)</td><td style="font-weight:700; text-align:right;">Rp3.000.000 / yr</td></tr>
+            <tr><td>Blended Customer Acquisition Cost (CAC)</td><td style="text-align:right;">Rp160.000</td></tr>
+            <tr><td>Estimated Lifetime (3.0 Years)</td><td style="text-align:right;">36 Months</td></tr>
+            <tr><td>Customer Lifetime Value (LTV)</td><td style="font-weight:700; text-align:right;">Rp9.000.000</td></tr>
+            <tr style="border-top: 2px solid var(--slate-300); font-weight:800; color:var(--emerald-700);">
+              <td>LTV / CAC Ratio</td>
+              <td style="text-align:right;">18.7x</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>12-Month Scale Milestones</span>
+            <span class="badge badge-blue">Growth Ramp</span>
+          </div>
+          <table style="font-size: 12.5px;">
+            <tr><td>Month 3 (Pilot Ramp)</td><td style="text-align:right;">25 Tenants · Rp75M ARR</td></tr>
+            <tr><td>Month 6 (Cluster Blitz)</td><td style="text-align:right;">75 Tenants · Rp225M ARR</td></tr>
+            <tr><td>Month 9 (Regional Expansion)</td><td style="text-align:right;">150 Tenants · Rp450M ARR</td></tr>
+            <tr style="border-top: 2px solid var(--slate-300); font-weight:800; color:var(--emerald-700);">
+              <td>Month 12 Target</td>
+              <td style="text-align:right;">250 Tenants · Rp750M ARR</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. RETENTION & ANTI-CHURN -->
+    <section id="s7" class="section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="section-number">07</span> User Retention &amp; Habit-Driven Anti-Churn Engine</h2>
+        <span class="badge badge-pass">&gt;92% Annual Retention</span>
+      </div>
+
+      <p style="margin-bottom: 16px;">
+        Retention in manufacturing software is determined by shop-floor habit formation. Once workers log deltas daily and owners rely on the live TV board, POgrid becomes irreplaceable:
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 25%;">Retention Layer</th>
+              <th style="width: 40%;">Mechanism &amp; Daily Habit</th>
+              <th style="width: 35%;">Anti-Churn Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. Daily Floor Habit</strong></td>
+              <td>Workers tap 4-digit PIN on shop tablet to log +3 pcs. Faster than hunting for a clipboard.</td>
+              <td>Eliminates manual reporting friction; builds instant daily worker habit.</td>
+            </tr>
+            <tr>
+              <td><strong>2. TV Dashboard Lock-In</strong></td>
+              <td>Office/Shop TV continuously streams live progress in Presentation Mode.</td>
+              <td>Turning off POgrid feels like turning off the lights in the workshop.</td>
+            </tr>
+            <tr>
+              <td><strong>3. Telemetry Inactivity Alert</strong></td>
+              <td>System detects 48 hours of zero progress updates during trial or active subscription.</td>
+              <td>Sales rep reaches out via WhatsApp within 2 hours to troubleshoot machine issues or new worker training.</td>
+            </tr>
+            <tr>
+              <td><strong>4. Monday Owner Digest</strong></td>
+              <td>Automated Monday 07:30 WIB WhatsApp digest to Owner: <em>"Minggu lalu 18 PO selesai, OTD 96%."</em></td>
+              <td>Constantly reinforces hard ROI to the decision-maker every week.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 8. 90-DAY SALES ROADMAP -->
+    <section id="s8" class="section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="section-number">08</span> Sales Department 90-Day Execution Plan</h2>
+        <span class="badge badge-blue">Immediate Action</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 15%;">Phase</th>
+              <th style="width: 25%;">Target Milestones</th>
+              <th style="width: 40%;">Core Operational Activities</th>
+              <th style="width: 20%;">Revenue Target</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Month 1</strong></td>
+              <td>20 Pilot Tenants Signed</td>
+              <td>Direct field outreach in Cikarang MM2100 &amp; Jababeka; refine 15-min onboarding SOP; validate WhatsApp owner digest.</td>
+              <td><strong>Rp45.000.000</strong><br><small>15 Annual + 5 Trials</small></td>
+            </tr>
+            <tr>
+              <td><strong>Month 2</strong></td>
+              <td>45 Active Tenants</td>
+              <td>Expand field blitz to Karawang &amp; Tangerang; launch machining community referral campaign (1 Month Free per referral).</td>
+              <td><strong>Rp115.000.000</strong><br><small>Cumulative Cash</small></td>
+            </tr>
+            <tr>
+              <td><strong>Month 3</strong></td>
+              <td>80 Active Tenants</td>
+              <td>Enter Surabaya &amp; Bandung machining clusters; partner with cutting tool / CNC insert suppliers for cross-promotions.</td>
+              <td><strong>Rp225.000.000</strong><br><small>Cumulative Cash</small></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-green">
+        <div class="callout-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Head of Sales Request for CEO Approval
+        </div>
+        Requesting formal executive sign-off on the <strong>Annual Upfront Pricing Model (Rp3.000.000/yr)</strong> and allocation for <strong>two field sales tablet demo units</strong> to begin the Cikarang industrial blitz next week.
+      </div>
+    </section>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="report-footer">
+    <div class="signature-block">
+      <div class="sig-person">
+        <span class="sig-role">Prepared By</span>
+        <span class="sig-name">Head of Sales &amp; Commercial Growth</span>
+        <span class="sig-company">POgrid.id Commercial Team</span>
+      </div>
+      <div class="sig-person">
+        <span class="sig-role">Presented To</span>
+        <span class="sig-name">Chief Executive Officer</span>
+        <span class="sig-company">POgrid.id Executive Board</span>
+      </div>
+    </div>
+    <div class="print-actions">
+      <button class="btn-print" onclick="window.print()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print / Save to PDF
+      </button>
+    </div>
+  </footer>
+
+</div>
+
+</body>
+</html>

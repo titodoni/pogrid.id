@@ -16,6 +16,8 @@
         "username_label": "Email",
         "username_placeholder": "Masukkan email",
         "password_label": "Password",
+        "show_password": "Tampilkan password",
+        "hide_password": "Sembunyikan password",
         "submit_btn": "Masuk",
         "logging_in": "Memproses...",
         "new_company": "Perusahaan baru?",
@@ -352,7 +354,7 @@
     "Owner_Profile": {
         "page_title": "Pengaturan Profil",
         "back": "Kembali ke Dasbor",
-        "greeting": "Halo,",
+        "greeting": "Halo",
         "change_password": "Ganti Password",
         "current_password": "Password Saat Ini",
         "new_password": "Password Baru",

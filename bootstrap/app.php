@@ -47,16 +47,27 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
         $exceptions->render(function (HttpException $e, Request $request) {
-            if ($request->inertia()) {
-                $status = $e->getStatusCode();
-                $component = match ($status) {
-                    403 => 'Errors/403',
-                    404 => 'Errors/404',
-                    419 => 'Errors/419',
-                    500 => 'Errors/500',
-                    default => null,
-                };
-                if ($component) {
+            $status = $e->getStatusCode();
+            $component = match ($status) {
+                403 => 'Errors/403',
+                404 => 'Errors/404',
+                419 => 'Errors/419',
+                500 => 'Errors/500',
+                default => null,
+            };
+
+            if ($component) {
+                // For Inertia XHR requests, send the component as expected
+                if ($request->inertia()) {
+                    return Inertia::render($component, ['status' => $status])
+                        ->toResponse($request)
+                        ->setStatusCode($status);
+                }
+
+                // For direct browser navigations (not API, not file downloads),
+                // render through Inertia so the branded error component is served
+                // instead of the default Tailwind-styled Blade fallback.
+                if (! $request->is('api/*')) {
                     return Inertia::render($component, ['status' => $status])
                         ->toResponse($request)
                         ->setStatusCode($status);

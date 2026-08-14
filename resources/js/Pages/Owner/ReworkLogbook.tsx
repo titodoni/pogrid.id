@@ -111,64 +111,9 @@ export default function ReworkLogbook({ rework_events, summary, selected_range, 
     const maxClientEvents = Math.max(...summary.client_breakdown.map(c => c.events), 1);
 
     return (
-        <AppLayout activeNav="rework" title={t.page_title} subtitle={t.subtitle}>
+        <AppLayout activeNav="rework" title={t.page_title} subtitle={t.subtitle} backUrl="/dashboard">
             <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-            <div className="dashboard-above-scroll">
-                <header className="responsive-header owner-dashboard-header" style={{
-                    padding: '10px 16px 8px',
-                    borderBottom: '1px solid var(--color-pg-border)',
-                }}>
-                    <div className="owner-header-title" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        {tenant?.logo_path && (
-                            <img src={tenant.logo_path} alt="Company Logo" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
-                        )}
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <Link href="/dashboard" style={{ color: 'var(--color-pg-text-secondary)', textDecoration: 'none', display: 'flex' }}>
-                                    <ChevronLeft size={18} />
-                                </Link>
-                                <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.page_title}</h1>
-                            </div>
-                            <span style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>{t.subtitle}</span>
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <button
-                            onClick={() => {
-                                const lang = language === 'en' ? 'id' : 'en';
-                                changeLanguage(lang);
-                            }}
-                            style={{
-                                padding: '6px 10px',
-                                backgroundColor: 'var(--color-pg-surface)',
-                                color: 'var(--color-pg-text-secondary)',
-                                border: '1px solid var(--color-pg-border)',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                fontWeight: 600,
-                            }}
-                        >
-                            {language === 'en' ? 'ID' : 'EN'}
-                        </button>
-                        <button
-                            onClick={() => router.post('/logout')}
-                            style={{
-                                padding: '6px 12px',
-                                backgroundColor: '#ef4444',
-                                color: 'var(--color-pg-text)',
-                                fontWeight: 600,
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                            }}
-                        >
-                            {language === 'en' ? 'Exit' : 'Keluar'}
-                        </button>
-                    </div>
-                </header>
-            </div>
+
 
             <div className="dashboard-scroll" style={{ padding: '16px' }}>
                 {errors && Object.keys(errors).length > 0 && (

@@ -56,3 +56,8 @@ testacc.txt
 /e2e-tests/screenshots
 
 .env.testing.*
+
+# Local scratch and report artifacts
+/scratch/
+/reports/
+/.hermes/

@@ -8,11 +8,20 @@ type Namespace = keyof typeof en;
 const dictionaries = { en, id };
 let currentLanguage: Language = 'id';
 
+// Keep the <html lang> attribute in sync with the active language so screen
+// readers, spellcheck, and SEO see the correct language on every page.
+const syncHtmlLang = (lang: Language) => {
+    if (typeof document !== 'undefined') {
+        document.documentElement.lang = lang;
+    }
+};
+
 if (typeof window !== 'undefined') {
     const savedLang = localStorage.getItem('pogrid_lang') as Language;
     if (savedLang === 'en' || savedLang === 'id') {
         currentLanguage = savedLang;
     }
+    syncHtmlLang(currentLanguage);
 }
 
 const listeners: Set<(lang: Language) => void> = new Set();
@@ -22,6 +31,7 @@ export const changeLanguage = (lang: Language) => {
     if (typeof window !== 'undefined') {
         localStorage.setItem('pogrid_lang', lang);
     }
+    syncHtmlLang(lang);
     listeners.forEach(listener => listener(lang));
 };
 

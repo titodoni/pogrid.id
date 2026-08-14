@@ -387,61 +387,25 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
     }
 
     return (
-        <AppLayout activeNav="create-po" title={t.page_title}>
-            <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-            {/* Header */}
-            <header className="responsive-header" style={{
-                padding: '12px 16px',
-                borderBottom: '1px solid var(--color-pg-border)',
-                backgroundColor: 'var(--color-pg-bg)',
-                zIndex: 40,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <button onClick={goBack} style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '8px 12px',
-                        backgroundColor: 'var(--color-pg-border-subtle)',
-                        border: '1px solid var(--color-pg-border)',
-                        color: 'var(--color-pg-text-secondary)',
-                        borderRadius: '10px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontSize: '13px',
-                    }}>
-                        <ChevronLeft size={16} />
-                        <span>{t.back}</span>
-                    </button>
-                    {tenant?.logo_path && (
-                        <img src={tenant.logo_path} alt="Company Logo" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
-                    )}
-                </div>
-                <button type="submit" form="po-form" disabled={submitting} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '10px 18px',
-                    background: submitting ? 'var(--color-pg-primary)' : 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)',
-                    border: 'none',
-                    color: 'var(--color-pg-text)',
-                    borderRadius: '10px',
-                    fontWeight: 600,
-                    cursor: submitting ? 'not-allowed' : 'pointer',
-                    fontSize: '14px',
-                    opacity: submitting ? 0.7 : 1,
-                    boxShadow: submitting ? 'none' : '0 4px 12px -2px rgba(99, 102, 241, 0.3)',
-                }}
-                    onMouseOver={(e) => { if (!submitting) e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-pg-primary) 0%, var(--color-pg-primary-hover) 100%)'; }}
-                    onMouseOut={(e) => { if (!submitting) e.currentTarget.style.background = 'linear-gradient(135deg, var(--color-pg-primary-hover) 0%, var(--color-pg-primary) 100%)'; }}
+        <AppLayout
+            activeNav="create-po"
+            title={t.page_title}
+            subtitle={t.subtitle}
+            backUrl="/dashboard"
+            actionButton={
+                <button
+                    type="submit"
+                    form="po-form"
+                    disabled={submitting}
+                    className="h-9 px-4 rounded-[2px] bg-[var(--color-pg-primary)] text-[var(--color-pg-primary-ink)] font-bold text-xs flex items-center gap-1.5 hover:brightness-110 transition-all disabled:opacity-50"
                 >
-                    <Broadcast size={16} />
-                    {submitting ? '...' : t.submit}
+                    <Broadcast size={15} />
+                    <span>{submitting ? '...' : t.submit}</span>
                 </button>
-            </header>
+            }
+        >
+            <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+
 
             {/* Form */}
             <form id="po-form" onSubmit={handleSubmit} style={{

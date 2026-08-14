@@ -22,6 +22,11 @@ export interface AppLayoutProps {
     slug?: string;
     onSearchClick?: () => void;
     actionButton?: React.ReactNode;
+    backUrl?: string;
+    showClock?: boolean;
+    onlineUsersCount?: number;
+    wsStatus?: string;
+    logoPath?: string | null;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
@@ -33,6 +38,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     slug: propSlug,
     onSearchClick,
     actionButton,
+    backUrl,
+    showClock,
+    onlineUsersCount,
+    wsStatus,
+    logoPath,
 }) => {
     const page = usePage();
     const { auth, tenant } = page.props as any;
@@ -71,6 +81,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             changeLanguage={changeLanguage}
             onSearchClick={onSearchClick}
             actionButton={actionButton}
+            backUrl={backUrl}
+            showClock={showClock}
+            onlineUsersCount={onlineUsersCount}
+            wsStatus={wsStatus}
+            logoPath={logoPath}
         >
             {children}
         </AppShell>

@@ -16,6 +16,8 @@
         "username_label": "Email",
         "username_placeholder": "Enter email",
         "password_label": "Password",
+        "show_password": "Show password",
+        "hide_password": "Hide password",
         "submit_btn": "Sign In",
         "logging_in": "Logging in...",
         "new_company": "New company?",

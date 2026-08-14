@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link, router } from '@inertiajs/react';
-import { ChevronLeft, Lock, Palette } from '../../Components/Icons';
+import React, { useState } from 'react';
+import { router } from '@inertiajs/react';
+import { Lock, Palette } from '../../Components/Icons';
 import { AppLayout } from '../../Components/AppLayout';
 import { localizedDisplay } from '../../Utils/locale';
 import { useTranslation } from "@/i18n/useTranslation";
@@ -43,12 +43,6 @@ export default function Profile({ tenant, auth_user }: Props) {
         return 'theme-default';
     });
 
-    const [currentTime, setCurrentTime] = useState(new Date());
-
-    useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date()), 30000);
-        return () => clearInterval(timer);
-    }, []);
     const changeTheme = (newTheme: string) => {
         setTheme(newTheme);
         localStorage.setItem('pogrid_theme', newTheme);
@@ -81,79 +75,9 @@ export default function Profile({ tenant, auth_user }: Props) {
     };
 
     return (
-        <AppLayout activeNav="profile" title={t.page_title}>
+        <AppLayout activeNav="profile" title={t.page_title} subtitle={language === 'en' ? `Hello, ${auth_user?.name || 'User'}` : `Halo, ${auth_user?.name || 'User'}`} backUrl={`/c/${tenant?.slug || ''}`}>
             <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
-            <header className="responsive-header" style={{
-                padding: '12px 16px',
-                borderBottom: '1px solid var(--color-pg-border)',
-                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                backdropFilter: 'blur(8px)',
-                flexShrink: 0,
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                    <Link
-                        href={`/c/${tenant?.slug || ''}`}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            color: 'var(--color-pg-primary-hover)',
-                            fontSize: '14px',
-                            fontWeight: 600,
-                            textDecoration: 'none',
-                            padding: '8px 14px',
-                            borderRadius: '10px',
-                            backgroundColor: 'var(--color-pg-primary-glow)',
-                            border: '1px solid var(--color-pg-primary-glow)',
-                        }}
-                    >
-                        <ChevronLeft size={16} /> {t.back}
-                    </Link>
-                    <div>
-                        <div className="greeting-name" style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 600, marginBottom: '2px' }}>
-                            {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
-                        </div>
-                        <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{t.page_title}</h1>
-                        <p style={{ fontSize: '11px', color: 'var(--color-pg-text-muted)', margin: '1px 0 0 0' }}>
-                            {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                            {' · '}
-                            {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                    </div>
-                </div>
-                <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '2px', borderRadius: '8px' }}>
-                    <button
-                        onClick={() => changeLanguage('en')}
-                        style={{
-                            padding: '6px 10px',
-                            backgroundColor: language === 'en' ? 'var(--color-pg-primary)' : 'transparent',
-                            border: 'none',
-                            borderRadius: '6px',
-                            color: '#fff',
-                            fontWeight: 600,
-                            fontSize: '11px',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        {t.lang_en}
-                    </button>
-                    <button
-                        onClick={() => changeLanguage('id')}
-                        style={{
-                            padding: '6px 10px',
-                            backgroundColor: language === 'id' ? 'var(--color-pg-primary)' : 'transparent',
-                            border: 'none',
-                            borderRadius: '6px',
-                            color: '#fff',
-                            fontWeight: 600,
-                            fontSize: '11px',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        {t.lang_id}
-                    </button>
-                </div>
-            </header>
+
 
             <div className="dashboard-scroll" style={{ padding: '20px' }}>
                 <div style={{ maxWidth: '520px', margin: '0 auto' }}>

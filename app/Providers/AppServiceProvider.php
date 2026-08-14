@@ -189,6 +189,30 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        Inertia::share('auth', function () {
+            $user = auth()->user();
+            if (! $user) {
+                return ['user' => null];
+            }
+
+            return [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'role_name' => $user->role_name,
+                    'role_level' => $user->role_level,
+                    'post_name' => $user->post_name,
+                    'post_display_name' => $user->post_display_name,
+                    'post_display_name_id' => $user->post_display_name_id,
+                    'is_owner' => (bool) $user->is_owner,
+                    'tenant_id' => $user->tenant_id,
+                    'tenant_slug' => $user->tenant?->slug,
+                ],
+            ];
+        });
+
         Inertia::share('tenant', function () {
             $tenantId = TenantManager::getTenantId();
             if (! $tenantId && auth()->check()) {

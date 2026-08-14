@@ -1332,7 +1332,27 @@ ${locationStr}
     const activeNav = activeTab === 'completed' ? 'archive' : activeTab === 'team' ? 'profile' : 'dashboard';
 
     return (
-        <AppLayout activeNav={activeNav} onSearchClick={() => setShowSearchModal(true)}>
+        <AppLayout
+            activeNav={activeNav}
+            title={tenant?.company_name ? `${tenant.company_name} · ${t.owner_command_center}` : t.owner_command_center}
+            subtitle={language === 'en' ? `Hello, ${auth_user?.name || 'Owner'}` : `Halo, ${auth_user?.name || 'Owner'}`}
+            onSearchClick={() => setShowSearchModal(true)}
+            showClock={true}
+            onlineUsersCount={onlineUsers.length}
+            wsStatus={wsStatus}
+            actionButton={
+                isOwner ? (
+                    <button
+                        onClick={openAddAdmin}
+                        className="h-9 px-3 rounded-[2px] border border-[var(--color-pg-border)] bg-[var(--color-pg-card-hover)] text-[var(--color-pg-text-secondary)] hover:text-[var(--color-pg-text)] flex items-center gap-1.5 text-xs font-semibold transition-colors"
+                        title={t.add_admin}
+                    >
+                        <Plus size={14} />
+                        <span className="hidden sm:inline">{t.add_admin}</span>
+                    </button>
+                ) : undefined
+            }
+        >
             <div className="dashboard-root px-3 sm:px-6 py-4">
             <BroadcastToasts
                 toasts={toastQueue}
@@ -1340,419 +1360,201 @@ ${locationStr}
                 onDismiss={(timestamp) => setToastQueue((prev) => prev.filter((x) => x.timestamp !== timestamp))}
             />
             <div className="dashboard-above-scroll">
-                <div className="flex items-center justify-between gap-4 py-2 border-b border-[var(--color-pg-border)] mb-4 flex-wrap">
-                    <div className="owner-header-title" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                        {tenant?.logo_path && (
-                            <img src={tenant.logo_path} alt={`${tenant.company_name} Logo`} style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
-                        )}
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
-                                    {tenant?.company_name ? `${tenant.company_name} · ${t.owner_command_center}` : t.owner_command_center}
-                                </h1>
-                                <span className="owner-header-datetime" style={{ fontSize: '11px', color: 'var(--color-pg-text-secondary)' }}>
-                                    {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                                    {' · '}
-                                    {currentTime.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                            </div>
-                            <div className="owner-greeting" style={{ fontSize: '11px', color: 'var(--color-pg-primary-hover)', fontWeight: 600, marginTop: '1px' }}>
-                                {language === 'en' ? `Hello, ${auth_user?.name}` : `Halo, ${auth_user?.name}`}
-                            </div>
+                <div style={{ padding: '0 0 6px' }}>
+                {/* Error Messages */}
+                {errors && Object.keys(errors).length > 0 && (
+                    <div style={{
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.25)',
+                        borderRadius: '12px',
+                        padding: '16px',
+                        marginBottom: '16px',
+                        color: '#ef4444'
+                    }}>
+                        <h4 style={{ margin: '0 0 8px 0', fontWeight: 700 }}>Validation Error</h4>
+                        <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                            {Object.entries(errors).map(([key, val]) => (
+                                <li key={key}>{val as string}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {/* Floor Terminal URL & Quick Connection Badge — compact row */}
+                {tenant && (
+                    <div className="floor-terminal-row" style={{
+                        marginBottom: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '11px',
+                        color: 'var(--color-pg-text-secondary)',
+                        flexWrap: 'nowrap',
+                        minWidth: 0,
+                    }}>
+                        <span style={{ fontWeight: 600, color: 'var(--color-pg-primary-hover)' }}>{t.floor_terminal_url}</span>
+                        <code className="floor-terminal-chip" style={{
+                            backgroundColor: 'rgba(37,99,235,0.08)',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            border: '1px solid rgba(37,99,235,0.15)',
+                            color: '#a5b4fc',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                        }}>
+                            {typeof window !== 'undefined' ? `${window.location.origin}/c/${tenant.slug}` : `/c/${tenant.slug}`}
+                        </code>
+                        <button
+                            className="floor-terminal-copy-btn"
+                            onClick={() => {
+                                const url = typeof window !== 'undefined' ? `${window.location.origin}/c/${tenant.slug}` : `/c/${tenant.slug}`;
+                                navigator.clipboard.writeText(url);
+                                alert('URL copied!');
+                            }}
+                            style={{
+                                padding: '1px 6px',
+                                backgroundColor: 'rgba(37,99,235,0.15)',
+                                color: 'var(--color-pg-primary-hover)',
+                                fontWeight: 600,
+                                border: '1px solid rgba(37,99,235,0.2)',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '10px',
+                                lineHeight: '20px',
+                            }}
+                        >
+                            Copy
+                        </button>
+
+                        {/* Online Users & Connection Status Badge */}
+                        <div style={{ position: 'relative', display: 'inline-block', marginLeft: 'auto' }}>
+                            <button
+                                onClick={() => setShowOnlineUsersPopover(prev => !prev)}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '2px 8px',
+                                    borderRadius: '4px',
+                                    backgroundColor: wsStatus === 'connected' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                                    border: `1px solid ${wsStatus === 'connected' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`,
+                                    color: wsStatus === 'connected' ? '#10b981' : '#f59e0b',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                }}
+                                title={language === 'en' ? 'Click to see online team members' : 'Klik untuk melihat anggota tim yang online'}
+                            >
+                                <span style={{
+                                    width: '6px',
+                                    height: '6px',
+                                    borderRadius: '50%',
+                                    backgroundColor: wsStatus === 'connected' ? '#10b981' : '#f59e0b',
+                                    boxShadow: wsStatus === 'connected' ? '0 0 6px #10b981' : 'none'
+                                }} />
+                                <span>{onlineUsers.length} {language === 'en' ? 'Online' : 'Online'}</span>
+                            </button>
+
+                            {showOnlineUsersPopover && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '100%',
+                                    right: 0,
+                                    marginTop: '6px',
+                                    backgroundColor: 'var(--color-pg-card-bg)',
+                                    border: '1px solid var(--color-pg-border)',
+                                    borderRadius: '8px',
+                                    padding: '10px 14px',
+                                    zIndex: 1000,
+                                    minWidth: '220px',
+                                    boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                                }}>
+                                    <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-pg-text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        {language === 'en' ? 'Active Team Members' : 'Tim yang Sedang Online'} ({onlineUsers.length})
+                                    </div>
+                                    {onlineUsers.length === 0 ? (
+                                        <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)' }}>
+                                            {language === 'en' ? 'No active users detected' : 'Belum ada pengguna lain'}
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '180px', overflowY: 'auto' }}>
+                                            {onlineUsers.map(u => (
+                                                <div key={u.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
+                                                    <span style={{ fontWeight: 600, color: 'var(--color-pg-text)' }}>{u.name}</span>
+                                                    <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', backgroundColor: 'var(--color-pg-surface)', padding: '2px 6px', borderRadius: '4px' }}>
+                                                        {u.post_name || u.role}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }} className="owner-header-actions">
-                    {canBroadcastPo && (
-                        <button
-                            className="new-po-btn animate-pulse"
-                            onClick={() => router.get('/pos/create')}
-                            style={{
-                                padding: '8px 16px',
-                                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                                color: '#fff',
-                                fontWeight: 800,
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                boxShadow: '0 4px 14px rgba(99, 102, 241, 0.45)',
-                                transition: 'all 0.2s',
-                                zIndex: 10,
-                            }}
-                            onMouseOver={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                            onMouseOut={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'; e.currentTarget.style.transform = 'none'; }}
-                            title="Buat PO Baru / Broadcast New PO"
-                        >
-                            <Broadcast size={16} /> {t.broadcast_new_po}
-                        </button>
-                    )}
-                    {/* Search Modal Button */}
-                    <button
-                        onClick={() => {
-                            setSearchQuery('');
-                            setShowSearchModal(true);
-                        }}
-                        style={{
-                            padding: '8px',
-                            backgroundColor: 'var(--color-pg-border-subtle)',
-                            color: 'var(--color-pg-text-secondary)',
-                            border: '1px solid var(--color-pg-border)',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            lineHeight: '1',
-                            display: 'flex',
-                        }}
-                        title={language === 'en' ? 'Search POs, Items, Clients...' : 'Cari PO, Barang, Klien...'}
-                        onMouseOver={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--color-pg-primary-glow)';
-                            e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.3)';
-                            e.currentTarget.style.color = 'var(--color-pg-primary-hover)';
-                        }}
-                        onMouseOut={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--color-pg-border-subtle)';
-                            e.currentTarget.style.borderColor = 'var(--color-pg-border)';
-                            e.currentTarget.style.color = 'var(--color-pg-text-secondary)';
-                        }}
-                    >
-                        <Search size={16} />
-                    </button>
-                    {/* Theme Picker */}
-                    <div style={{ position: 'relative' }}>
-                        <button
-                            onClick={() => setShowThemeDropdown(!showThemeDropdown)}
-                            style={{
-                                padding: '8px',
-                                backgroundColor: 'var(--color-pg-border-subtle)',
-                                color: 'var(--color-pg-text-secondary)',
-                                border: '1px solid var(--color-pg-border)',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '16px',
-                                lineHeight: '1',
-                                display: 'flex',
-                            }}
-                            title={language === 'en' ? 'Switch Theme' : 'Ganti Tema'}
-                        >
-                            <Palette size={16} />
-                        </button>
-                        {showThemeDropdown && (
-                            <div style={{
-                                position: 'absolute',
-                                top: '40px',
-                                right: '0',
-                                width: '160px',
-                                backgroundColor: 'var(--color-pg-card)',
-                                border: '1px solid var(--color-pg-border)',
-                                borderRadius: '10px',
-                                padding: '6px',
-                                zIndex: 100,
-                                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
-                                display: 'grid',
-                                gap: '4px',
-                            }}>
-                                {[
-                                    { id: 'theme-default', name: 'Titanium Slate (Dark)', color: 'var(--color-pg-primary)' },
-                                    { id: 'theme-light', name: 'Mint Cream (Light)', color: '#f4fff8' },
-                                    { id: 'theme-linear', name: 'Obsidian Graphite', color: 'var(--color-pg-primary)' },
-                                    { id: 'theme-vercel', name: 'Monochrome Void', color: 'var(--color-pg-primary)' },
-                                    { id: 'theme-stripe', name: 'Stripe Navy', color: 'var(--color-pg-primary)' },
-                                    { id: 'theme-github', name: 'GitHub Slate', color: 'var(--color-pg-primary)' },
-                                    { id: 'theme-nordic', name: 'Nordic Polar', color: 'var(--color-pg-primary)' },
-                                ].map((tOption) => (
-                                    <button
-                                        key={tOption.id}
-                                        onClick={() => changeTheme(tOption.id)}
-                                        style={{
-                                            padding: '6px 8px',
-                                            backgroundColor: 'transparent',
-                                            border: 'none',
-                                            borderRadius: '6px',
-                                            color: 'var(--color-pg-text)',
-                                            fontSize: '11px',
-                                            fontWeight: 600,
-                                            textAlign: 'left',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px',
-                                        }}
-                                        onMouseOver={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'var(--color-pg-card-hover)';
-                                        }}
-                                        onMouseOut={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'transparent';
-                                        }}
-                                    >
-                                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: tOption.color }} />
-                                        {tOption.name}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                )}
 
-                    {/* Profile - visible to all roles */}
-                    <Link
-                        href={'/c/' + (tenant?.slug || '') + '/profile'}
-                        onClick={() => setShowSettingsDropdown(false)}
-                        style={{
-                            padding: '8px',
-                            backgroundColor: 'var(--color-pg-border-subtle)',
-                            color: 'var(--color-pg-text-secondary)',
-                            border: '1px solid var(--color-pg-border)',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            lineHeight: '1',
-                            display: 'flex',
-                            textDecoration: 'none',
-                        }}
-                        title={language === 'en' ? 'Profile' : 'Profil'}
-                    >
-                        <Settings size={16} />
-                    </Link>
-
-                    {isOwner && (
-                        <button
-                            onClick={openAddAdmin}
-                            style={{
-                                padding: '8px 12px',
-                                backgroundColor: 'var(--color-pg-border-subtle)',
-                                color: 'var(--color-pg-text-secondary)',
-                                border: '1px solid var(--color-pg-border)',
-                                borderRadius: '8px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px'
-                            }}
-                        >
-                            <Plus size={14} /> {t.add_admin}
-                        </button>
-                    )}
-
-                    <button
-                        onClick={() => router.post('/logout')}
-                        style={{
-                            padding: '8px 14px',
-                            backgroundColor: '#ef4444',
-                            color: '#fff',
-                            fontWeight: 600,
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '13px',
-                            whiteSpace: 'nowrap'
-                        }}
-                    >
-                        {language === 'en' ? 'Exit' : 'Keluar'}
-                    </button>
-                </div>
-            </div>
-
-            <div style={{ padding: '0 16px 6px' }}>
-            {/* Error Messages */}
-            {errors && Object.keys(errors).length > 0 && (
-                <div style={{
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    border: '1px solid rgba(239, 68, 68, 0.25)',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    marginBottom: '24px',
-                    color: '#ef4444'
-                }}>
-                    <h4 style={{ margin: '0 0 8px 0', fontWeight: 700 }}>Validation Error</h4>
-                    <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                        {Object.entries(errors).map(([key, val]) => (
-                            <li key={key}>{val as string}</li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-
-            {/* Floor Terminal URL — compact chip */}
-            {tenant && (
-                <div className="floor-terminal-row" style={{
-                    marginBottom: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '11px',
-                    color: 'var(--color-pg-text-secondary)',
-                    flexWrap: 'nowrap',
-                    minWidth: 0,
-                }}>
-                    <span style={{ fontWeight: 600, color: 'var(--color-pg-primary-hover)' }}>{t.floor_terminal_url}</span>
-                    <code className="floor-terminal-chip" style={{
-                        backgroundColor: 'rgba(37,99,235,0.08)',
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        border: '1px solid rgba(37,99,235,0.15)',
-                        color: '#a5b4fc',
-                        fontSize: '11px',
+                {/* Connection Disconnected Warning Banner */}
+                {wsStatus === 'disconnected' && (
+                    <div style={{
+                        backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        borderRadius: '8px',
+                        padding: '8px 14px',
+                        marginBottom: '12px',
+                        fontSize: '12px',
+                        color: '#fbbf24',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
                         fontWeight: 600,
                     }}>
-                        {typeof window !== 'undefined' ? `${window.location.origin}/c/${tenant.slug}` : `/c/${tenant.slug}`}
-                    </code>
-                    <button
-                        className="floor-terminal-copy-btn"
-                        onClick={() => {
-                            const url = typeof window !== 'undefined' ? `${window.location.origin}/c/${tenant.slug}` : `/c/${tenant.slug}`;
-                            navigator.clipboard.writeText(url);
-                            alert('URL copied!');
-                        }}
-                        style={{
-                            padding: '1px 6px',
-                            backgroundColor: 'rgba(37,99,235,0.15)',
-                            color: 'var(--color-pg-primary-hover)',
-                            fontWeight: 600,
-                            border: '1px solid rgba(37,99,235,0.2)',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '10px',
-                            lineHeight: '20px',
-                        }}
-                    >
-                        Copy
-                    </button>
-
-                    {/* Online Users & Connection Status Badge */}
-                    <div style={{ position: 'relative', display: 'inline-block', marginLeft: 'auto' }}>
-                        <button
-                            onClick={() => setShowOnlineUsersPopover(prev => !prev)}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                padding: '2px 8px',
-                                borderRadius: '4px',
-                                backgroundColor: wsStatus === 'connected' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                                border: `1px solid ${wsStatus === 'connected' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`,
-                                color: wsStatus === 'connected' ? '#10b981' : '#f59e0b',
-                                fontSize: '11px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                            }}
-                            title={language === 'en' ? 'Click to see online team members' : 'Klik untuk melihat anggota tim yang online'}
-                        >
-                            <span style={{
-                                width: '6px',
-                                height: '6px',
-                                borderRadius: '50%',
-                                backgroundColor: wsStatus === 'connected' ? '#10b981' : '#f59e0b',
-                                boxShadow: wsStatus === 'connected' ? '0 0 6px #10b981' : 'none'
-                            }} />
-                            <span>{onlineUsers.length} {language === 'en' ? 'Online' : 'Online'}</span>
-                        </button>
-
-                        {showOnlineUsersPopover && (
-                            <div style={{
-                                position: 'absolute',
-                                top: '100%',
-                                right: 0,
-                                marginTop: '6px',
-                                backgroundColor: 'var(--color-pg-card-bg)',
-                                border: '1px solid var(--color-pg-border)',
-                                borderRadius: '8px',
-                                padding: '10px 14px',
-                                zIndex: 1000,
-                                minWidth: '220px',
-                                boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-                            }}>
-                                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-pg-text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    {language === 'en' ? 'Active Team Members' : 'Tim yang Sedang Online'} ({onlineUsers.length})
-                                </div>
-                                {onlineUsers.length === 0 ? (
-                                    <div style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)' }}>
-                                        {language === 'en' ? 'No active users detected' : 'Belum ada pengguna lain'}
-                                    </div>
-                                ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '180px', overflowY: 'auto' }}>
-                                        {onlineUsers.map(u => (
-                                            <div key={u.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
-                                                <span style={{ fontWeight: 600, color: 'var(--color-pg-text)' }}>{u.name}</span>
-                                                <span style={{ fontSize: '10px', color: 'var(--color-pg-text-secondary)', backgroundColor: 'var(--color-pg-surface)', padding: '2px 6px', borderRadius: '4px' }}>
-                                                    {u.post_name || u.role}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                        <span>⚠️</span>
+                        <span>{language === 'en' ? 'Connection lost — data may be stale. Retrying...' : 'Koneksi terputus — data mungkin tidak terbaru (mencoba ulang...)'}</span>
                     </div>
-                </div>
-            )}
-
-            {/* Connection Disconnected Warning Banner */}
-            {wsStatus === 'disconnected' && (
-                <div style={{
-                    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-                    border: '1px solid rgba(245, 158, 11, 0.3)',
-                    borderRadius: '8px',
-                    padding: '8px 14px',
-                    marginBottom: '12px',
-                    fontSize: '12px',
-                    color: '#fbbf24',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontWeight: 600,
-                }}>
-                    <span>⚠️</span>
-                    <span>{language === 'en' ? 'Connection lost — data may be stale. Retrying...' : 'Koneksi terputus — data mungkin tidak terbaru (mencoba ulang...)'}</span>
-                </div>
-            )}
-
-            {/* Tab Navigation */}
-            <div className="tab-bar">
-                <button className={`tab ${activeTab === 'alerts' ? 'tab-active' : ''}`} onClick={() => changeTab('alerts')}>
-                    <span className="tab-label-full">{t.unresolved_alerts}</span>
-                    <span className="tab-label-short">{t.tab_alerts}</span>
-                    {alerts.length > 0 && (
-                        <span style={{
-                            marginLeft: '4px',
-                            fontSize: '10px',
-                            backgroundColor: '#ef4444',
-                            color: '#fff',
-                            padding: '1px 5px',
-                            borderRadius: '8px'
-                        }}>
-                            {alerts.length}
-                        </span>
-                    )}
-                </button>
-                <button className={`tab ${activeTab === 'active' ? 'tab-active' : ''}`} onClick={() => changeTab('active')}>
-                    <span className="tab-label-full">Active POs</span>
-                    <span className="tab-label-short">{t.tab_active}</span>
-                </button>
-                <button className={`tab ${activeTab === 'completed' ? 'tab-active' : ''}`} onClick={() => changeTab('completed')}>
-                    <span className="tab-label-full">Completed</span>
-                    <span className="tab-label-short">{t.tab_completed}</span>
-                </button>
-                <button className={`tab ${activeTab === 'matrix' ? 'tab-active' : ''}`} onClick={() => changeTab('matrix')}>
-                    <span className="tab-label-full">{t.performance_matrix}</span>
-                    <span className="tab-label-short">{t.tab_matrix}</span>
-                </button>
-                {(!auth_user?.role_name || (!auth_user.role_name.toLowerCase().includes('manager') && !auth_user.role_name.toLowerCase().includes('sales'))) && (
-                    <button className={`tab ${activeTab === 'branding' ? 'tab-active' : ''}`} onClick={() => changeTab('branding')}>
-                        <span className="tab-label-full">{language === 'id' ? 'Branding & Logo' : 'Branding & Logo'}</span>
-                        <span className="tab-label-short">Branding</span>
-                    </button>
                 )}
+
+                {/* Tab Navigation */}
+                <div className="tab-bar overflow-x-auto scrollbar-none flex-nowrap">
+                    <button className={`tab whitespace-nowrap ${activeTab === 'alerts' ? 'tab-active' : ''}`} onClick={() => changeTab('alerts')}>
+                        <span className="tab-label-full">{t.unresolved_alerts}</span>
+                        <span className="tab-label-short">{t.tab_alerts}</span>
+                        {alerts.length > 0 && (
+                            <span style={{
+                                marginLeft: '4px',
+                                fontSize: '10px',
+                                backgroundColor: '#ef4444',
+                                color: '#fff',
+                                padding: '1px 5px',
+                                borderRadius: '8px'
+                            }}>
+                                {alerts.length}
+                            </span>
+                        )}
+                    </button>
+                    <button className={`tab whitespace-nowrap ${activeTab === 'active' ? 'tab-active' : ''}`} onClick={() => changeTab('active')}>
+                        <span className="tab-label-full">Active POs</span>
+                        <span className="tab-label-short">{t.tab_active}</span>
+                    </button>
+                    <button className={`tab whitespace-nowrap ${activeTab === 'completed' ? 'tab-active' : ''}`} onClick={() => changeTab('completed')}>
+                        <span className="tab-label-full">Completed</span>
+                        <span className="tab-label-short">{t.tab_completed}</span>
+                    </button>
+                    <button className={`tab whitespace-nowrap ${activeTab === 'matrix' ? 'tab-active' : ''}`} onClick={() => changeTab('matrix')}>
+                        <span className="tab-label-full">{t.performance_matrix}</span>
+                        <span className="tab-label-short">{t.tab_matrix}</span>
+                    </button>
+                    {(!auth_user?.role_name || (!auth_user.role_name.toLowerCase().includes('manager') && !auth_user.role_name.toLowerCase().includes('sales'))) && (
+                        <button className={`tab whitespace-nowrap ${activeTab === 'branding' ? 'tab-active' : ''}`} onClick={() => changeTab('branding')}>
+                            <span className="tab-label-full">{language === 'id' ? 'Branding & Logo' : 'Branding & Logo'}</span>
+                            <span className="tab-label-short">Branding</span>
+                        </button>
+                    )}
+                </div>
+                </div>
             </div>
 
-            {/* Removed State Summary Bar from sticky header */}
-            </div>
-            </div>
-
-            <div className="dashboard-scroll" style={{ padding: '16px' }}>
+            <div className="dashboard-scroll" style={{ padding: '16px 0' }}>
                 {renderOnboardingBanner()}
                 {/* Premium Card Summary Section based on prior web app layout */}
                 {(activeTab === 'alerts' || activeTab === 'active' || activeTab === 'completed') && (() => {
@@ -1900,8 +1702,11 @@ ${locationStr}
                                 </div>
                                 {telemetry && (
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: 800, color: telemetry.otdr == null ? 'var(--color-pg-text-muted)' : telemetry.otdr >= 80 ? 'var(--color-pg-success)' : telemetry.otdr >= 60 ? 'var(--color-pg-warning)' : '#ef4444' }}>
-                                            {telemetry.otdr != null ? `${telemetry.otdr}%` : (language === 'id' ? 'N/A' : 'N/A')}
+                                        <span className="mono" style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-pg-text-muted)', fontWeight: 600 }}>
+                                            {language === 'id' ? 'Ketepatan (OTDR)' : 'OTDR Rate'}
+                                        </span>
+                                        <div style={{ fontSize: '20px', fontWeight: 800, color: telemetry.otdr == null ? 'var(--color-pg-text-muted)' : telemetry.otdr >= 80 ? 'var(--color-pg-success)' : telemetry.otdr >= 60 ? 'var(--color-pg-warning)' : '#ef4444' }}>
+                                            {telemetry.otdr != null ? `${telemetry.otdr}%` : '—'}
                                         </div>
                                         {otdrDelta !== null && (
                                             <div style={{ fontSize: '11px', fontWeight: 700, color: otdrDelta >= 0 ? 'var(--color-pg-success)' : '#ef4444' }}>
@@ -2101,9 +1906,6 @@ ${locationStr}
                 />
             )}
 
-
-            </div>
-
             {/* ── Team / User Management Tab (extracted: features/owner/TeamTab) ── */}
             {activeTab === 'team' && (
                 <TeamTab
@@ -2302,6 +2104,7 @@ ${locationStr}
                 </div>
             )}
 
+            </div>
             </div>
         </AppLayout>
     );

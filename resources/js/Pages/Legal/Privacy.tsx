@@ -26,7 +26,7 @@ export default function Privacy() {
                 paddingBottom: '16px',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Link href="/" style={{ textDecoration: 'none' }}>
+                    <Link href="/" aria-label="POgrid.id — Home" style={{ textDecoration: 'none' }}>
                         <img src="/pogrid-logo.png" alt="POgrid.id Logo" style={{ height: '48px', width: 'auto' }} />
                     </Link>
                 </div>

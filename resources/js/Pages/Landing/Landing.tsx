@@ -25,9 +25,8 @@ export default function Landing() {
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
-    useEffect(() => {
-        document.documentElement.lang = lang === 'id' ? 'id' : 'en';
-    }, [lang]);
+    // <html lang> is kept in sync centrally by useTranslation (on mount and on
+    // every changeLanguage), so no per-page effect is needed here.
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 24);

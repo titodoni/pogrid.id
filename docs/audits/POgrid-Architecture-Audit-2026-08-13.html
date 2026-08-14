@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POgrid.id — Codebase Architecture &amp; Efficiency Audit (2026-08-13)</title>
+<style>
+  :root {
+    --ink: #1a2332; --muted: #5b6572; --line: #dfe4ea; --bg: #f6f7f9;
+    --card: #ffffff; --accent: #2563eb; --code-bg: #0f172a;
+    --p0: #dc2626; --p1: #ea580c; --p2: #d97706; --p3: #2563eb;
+    --good: #15803d; --warn: #b45309; --bad: #b91c1c;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.6; }
+  header { background: var(--code-bg); color: #fff; padding: 48px 24px; }
+  header .wrap { max-width: 1080px; margin: 0 auto; }
+  header h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.02em; }
+  header p { margin: 4px 0; color: #aab6c8; font-size: 14px; }
+  header .meta { margin-top: 16px; font-size: 13px; color: #7f8ea3; }
+  header .meta code { background: #1e293b; color: #93c5fd; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  nav { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; }
+  nav .wrap { max-width: 1080px; margin: 0 auto; padding: 10px 24px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  nav a { color: var(--muted); text-decoration: none; font-size: 12.5px; white-space: nowrap; }
+  nav a:hover { color: var(--accent); }
+  main { padding: 24px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 28px 32px; margin: 0 auto 24px; max-width: 1080px; }
+  h2 { font-size: 20px; margin: 0 0 12px; letter-spacing: -0.01em; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+  h2 .num { color: var(--accent); margin-right: 8px; }
+  h3 { font-size: 15.5px; margin: 26px 0 8px; }
+  h4 { font-size: 14px; margin: 18px 0 6px; }
+  p, li { font-size: 14.5px; }
+  ul, ol { padding-left: 22px; }
+  li { margin-bottom: 5px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 13.5px; }
+  th { background: #eef1f5; text-align: left; padding: 8px 10px; border: 1px solid var(--line); font-weight: 600; }
+  td { padding: 8px 10px; border: 1px solid var(--line); vertical-align: top; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  code { background: #eef1f5; padding: 1.5px 5px; border-radius: 4px; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; color: #9d174d; word-break: break-word; }
+  pre { background: var(--code-bg); color: #e2e8f0; padding: 14px 16px; border-radius: 8px; overflow-x: auto; font-size: 12.5px; line-height: 1.55; }
+  pre code { background: none; color: inherit; padding: 0; }
+  .sev { display: inline-block; padding: 1px 8px; border-radius: 999px; color: #fff; font-size: 11.5px; font-weight: 700; vertical-align: middle; }
+  .p0 { background: var(--p0); } .p1 { background: var(--p1); } .p2 { background: var(--p2); } .p3 { background: var(--p3); }
+  .status-good { color: var(--good); font-weight: 700; } .status-warn { color: var(--warn); font-weight: 700; } .status-bad { color: var(--bad); font-weight: 700; }
+  .finding { border: 1px solid var(--line); border-left: 4px solid var(--p1); border-radius: 8px; padding: 16px 20px; margin: 14px 0; background: #fffdf8; }
+  .finding.crit { border-left-color: var(--p0); background: #fff8f8; }
+  .finding h4 { margin-top: 0; }
+  .small { font-size: 12.5px; color: var(--muted); }
+  .flow { background: #f8fafc; border: 1px dashed #b6c2d2; border-radius: 8px; padding: 16px; font-family: Menlo, Consolas, monospace; font-size: 12.5px; white-space: pre; overflow-x: auto; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 32px 16px 48px; }
+  @media print { nav { display: none; } section { break-inside: avoid-page; border: none; } body { background: #fff; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>POgrid.id — Codebase Architecture &amp; Efficiency Audit</h1>
+    <p>Formal engineering assessment for CTO &amp; engineering leadership</p>
+    <div class="meta">
+      Date: 2026-08-13 &nbsp;·&nbsp; Scope: full repository (<code>app/</code>, <code>resources/js/</code>, <code>database/</code>, <code>routes/</code>, <code>tests/</code>, <code>config/</code>, <code>deploy/</code>)
+      &nbsp;·&nbsp; Method: read-only inspection; every finding verified against source<br>
+      Codebase: 6,171 LOC PHP (58 files) · 22,558 LOC TS/TSX (58 files) · 31 migrations · 17 PHPUnit files (6,757 LOC) · separate Jest+Puppeteer E2E suite
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="wrap">
+    <a href="#s1">1 Executive</a><a href="#s2">2 Stack</a><a href="#s3">3 Architecture</a>
+    <a href="#s4">4 Structure</a><a href="#s5">5 Backend</a><a href="#s6">6 Frontend</a>
+    <a href="#s7">7 Database</a><a href="#s8">8 Multi-tenancy</a><a href="#s9">9 Quality</a>
+    <a href="#s10">10 Framework</a><a href="#s11">11 Dependencies</a><a href="#s12">12 Tests</a>
+    <a href="#s13">13 Performance</a><a href="#s14">14 Scalability</a><a href="#s15">15 Debt</a>
+    <a href="#s16">16 Anti-patterns</a><a href="#s17">17 Efficiency</a><a href="#s18">18 Scorecard</a>
+    <a href="#s19">19 Priorities</a><a href="#s20">20 Recommendation</a><a href="#s21">21 Target</a>
+    <a href="#s22">22 Summary</a>
+  </div>
+</nav>
+
+<main>
+<!-- ============ 1 ============ -->
+<section id="s1">
+<h2><span class="num">1.</span>Executive Assessment</h2>
+
+<table>
+  <tr><th style="width:40%">Metric</th><th>Verdict</th></tr>
+  <tr><td>Overall architecture health</td><td><strong>62 / 100</strong></td></tr>
+  <tr><td>Stack efficiency</td><td><strong>80 / 100</strong></td></tr>
+  <tr><td>Code maintainability</td><td><strong>48 / 100</strong></td></tr>
+  <tr><td>Architecture complexity</td><td><span class="status-warn">Moderate</span> — appropriate in shape; concentrated in hotspots</td></tr>
+  <tr><td>Technical debt</td><td><span class="status-bad">High</span> — concentrated, not systemic</td></tr>
+  <tr><td>Overall recommendation</td><td><strong>Keep with targeted improvements</strong></td></tr>
+</table>
+
+<p class="small">Context: two prior internal audits exist in-repo (<code>TECHNICAL_AUDIT_REPORT.html</code>, <code>POgrid-Audit-2026-08-12.pdf</code>, <code>EXECUTIVE_POST_MITIGATION_REPORT.html</code>). This assessment is independent; some earlier mitigations have verifiably landed (e.g. <code>tests/Feature/RoleSecurityRemediationTest.php</code>, <code>tests/Feature/TenantScopeAuditTest.php</code>).</p>
+
+<h3>The 5 most important findings</h3>
+
+<div class="finding crit">
+<h4>Finding 1 — Email verification is a dead gate: the <code>verified</code> middleware protecting every office route is a no-op <span class="sev p0">P0</span></h4>
+<p><strong>Evidence:</strong> <code>app/Models/User.php:11</code> — <code>class User extends Authenticatable</code> does <em>not</em> implement <code>MustVerifyEmail</code>. <code>app/Http/Middleware/EnsureEmailIsVerified.php:21-23</code> checks <code>$user instanceof MustVerifyEmail</code>, which is always false, so every request passes. The middleware also returns early in the <code>testing</code> environment (:17-19), making the gap undetectable by the test suite. All office routes sit behind <code>auth, verified</code> (<code>routes/web.php:59-101</code>).</p>
+<p><strong>Impact:</strong> The email-verification infrastructure (controller, signed routes, notifications) is decorative. Any registered account reaches the office dashboard regardless of verification. A security control that looks present in the routing table but never fires is worse than none — it suppresses scrutiny.</p>
+<p><strong>Recommendation:</strong> Add <code>MustVerifyEmail</code> to <code>User</code>, remove the testing-env bypass, add a feature test proving unverified users are redirected.</p>
+</div>
+
+<div class="finding crit">
+<h4>Finding 2 — Authorization is opt-in per controller method and several mutating endpoints have none; credentials leak into alert messages and a plaintext email log <span class="sev p0">P0</span></h4>
+<p><strong>Evidence:</strong> No role middleware exists (<code>bootstrap/app.php:28-30</code> registers only <code>verified</code>). Authorization is a scattered set of <code>Gate::authorize()</code> calls; any method missing a call is open to every authenticated user:</p>
+<ul>
+<li><code>PpicDashboardController::updatePo</code> (:358) and <code>::updateItemPriority</code> (:381) — no authz: any floor worker can rewrite PO deadlines, urgency and item priority.</li>
+<li><code>PinResetController::approvePinReset</code> (:55) — no authz: any authenticated user can approve PIN resets; the new PIN is stored <strong>plaintext in the alert message</strong> (<code>PinResetController.php:83</code>: <code>"PIN Reset Approved for {name}. New PIN: {pin}"</code>), persisting credentials in the <code>alerts</code> table.</li>
+<li><code>OwnerDashboardController::changePassword</code> (:602), <code>::billing</code> (:838), <code>::reworkLogbook</code> (:623), <code>::listStageTemplates</code> (:525) — no authz calls (read paths mitigated only by tenant scoping).</li>
+<li><code>app/Providers/AppServiceProvider.php:133-163</code> — a <code>MessageSending</code> listener appends <strong>every outgoing email body (temporary passwords, reset links) to <code>logs/verification-emails.log</code></strong> in plaintext, outside <code>storage/</code>.</li>
+</ul>
+<p><strong>Impact:</strong> Post-login privilege escalation paths for floor workers; live credentials at rest in two locations. Guard B's "office roles blocked from PIN login" is undermined once any session exists.</p>
+<p><strong>Recommendation:</strong> Introduce a role middleware (e.g. <code>role:office</code>) on the office route group and per-route gates on PPIC mutations; never persist PINs in alert rows (flash once, done); remove the email-body file logger.</p>
+</div>
+
+<div class="finding">
+<h4>Finding 3 — Two god files concentrate the majority of change risk: <code>WorkerDashboardController.php</code> (1,946 LOC) and <code>Pages/Owner/Dashboard.tsx</code> (4,203 LOC) <span class="sev p1">P1</span></h4>
+<p><strong>Evidence:</strong> Three controllers hold 61% of all backend LOC (Worker 1,946 + Owner 878 + PPIC 402 = 3,226 of 6,171). <code>WorkerDashboardController::getTelemetryData</code> (:451-941) is a ~490-line KPI method; <code>::updateProgress</code> (:1178-1324) performs five model writes (ItemProgress, Item, DeliveryOrder, DoItem, Alert) with <strong>no <code>DB::transaction</code></strong>. <code>Owner/Dashboard.tsx</code> contains <strong>71 <code>useState</code> calls, 46 <code>any</code> annotations, 220 inline-style blocks</strong>, and mixes a search engine (:557-602), ETA estimation (<code>calculateDynamicETA</code> :359-417), a piece-location algorithm (:280-357), user CRUD, stage-template CRUD (including the app's only raw <code>fetch('/stage-templates')</code> at :1112/:4080), Echo presence handling, and ~2,700 lines of JSX.</p>
+<p><strong>Impact:</strong> Nearly every dashboard feature touches the same two files: merge conflicts, wide regression blast radius, slow reviews, high onboarding cost. This is the primary scaling bottleneck for the team.</p>
+<p><strong>Recommendation:</strong> Extract analytics into plain PHP query/service classes and page tabs into feature components. No new framework or pattern is required.</p>
+</div>
+
+<div class="finding">
+<h4>Finding 4 — Core business rules exist in 2–4 divergent copies across PHP and JS <span class="sev p1">P1</span></h4>
+<p><strong>Evidence:</strong></p>
+<ul>
+<li><code>STAGE_ROLE_MAP</code>: <code>WorkerDashboardController.php:29</code>; <code>resources/js/Utils/permissions.ts:50-62</code>; and a third inline redefinition in <code>Worker/Dashboard.tsx:99-224</code> that shadows its own imports from <code>permissions.ts</code> — the local copy has already diverged (missing <code>STAFF</code> in <code>officeRoles</code>, :129).</li>
+<li>Deadline-risk rule: cron requires <code>daysRemaining &lt;= 3 &amp;&amp; progress &lt; 70</code> (<code>app/Console/Commands/EvaluateTimelines.php:56</code>); the Owner Dashboard renders risk pills at <code>diffDays &lt;= 3</code> only (<code>Owner/Dashboard.tsx:846</code> and :2639) — the UI shows risks the backend never raises, and vice versa.</li>
+<li>Status vocabulary drift: <code>ItemProgressObserver.php:88</code> sets items to <code>IN_PRODUCTION</code>, but <code>PoCompletionChecker.php:27</code> only recognizes <code>IN_PROGRESS</code> — a PO never transitions PENDING → IN_PROGRESS through the completion checker (only → COMPLETED). AGENTS.md documents yet another lifecycle (<code>PENDING → IN_PROGRESS → COMPLETED</code>).</li>
+<li>Finance-complete rule copy-pasted 4× in <code>Worker/Dashboard.tsx</code> (:107, :196, :266, :331) plus <code>permissions.ts:203</code>. PO progress computed client-side as an unweighted average (<code>Owner/Dashboard.tsx:2467-2469</code>) does not match the server-side weighted formula (<code>ItemProgressObserver.php:63-67</code>).</li>
+</ul>
+<p><strong>Impact:</strong> UI and backend disagree about ground truth; every rule change is multi-file surgery and copies are measurably drifting apart.</p>
+<p><strong>Recommendation:</strong> Server becomes the single source of truth; ship the stage-role map and status vocabulary to the client as Inertia props or a config endpoint. Delete the JS copies.</p>
+</div>
+
+<div class="finding crit">
+<h4>Finding 5 — Known runtime crashes shipped on the floor-worker UI because TypeScript checking is not enforced <span class="sev p0">P0</span></h4>
+<p><strong>Evidence:</strong></p>
+<ul>
+<li><code>Worker/Dashboard.tsx:1858</code> passes <code>translations={translations}</code> to <code>ItemCard</code>, but no <code>translations</code> binding exists in page scope (all occurrences: :85, :93, :95, :122, :1858 — none define it) → <code>ReferenceError</code> whenever items render.</li>
+<li><code>Worker/Login.tsx:496</code> calls <code>setSelectedWorker(null)</code>; only <code>setSelectedWorkerId</code> exists (:60) → <code>ReferenceError</code> on a successful PIN-reset request.</li>
+<li><code>Worker/Dashboard.tsx:915</code> ships malformed JSX (<code>&lt; label ...</code> with a stray <code>&lt;</code>) rendering literal text on the Finance panel.</li>
+<li>A <code>tsconfig.json</code> now exists (added 2026-08-12) but with <code>"strict": false</code>, and <code>package.json</code> has <strong>no typecheck script</strong> — Vite compiles TS without type-checking. All three bugs are statically detectable.</li>
+</ul>
+<p><strong>Impact:</strong> The users least tolerant of UI failure — floor workers on shared devices — are the ones hitting crashes on core flows.</p>
+<p><strong>Recommendation:</strong> Fix the three bugs immediately; add <code>tsc --noEmit</code> to CI and to the build; ratchet <code>strict</code> up over time.</p>
+</div>
+</section>
+<!-- ============ 2 ============ -->
+<section id="s2">
+<h2><span class="num">2.</span>Technology Stack Audit</h2>
+
+<table>
+  <tr><th style="width:22%">Concern</th><th>Actual</th></tr>
+  <tr><td>Backend framework</td><td>Laravel 11 (<code>laravel/framework ^11.0</code>)</td></tr>
+  <tr><td>Frontend framework</td><td>React 18 + Inertia.js v2 (<code>@inertiajs/react ^2.0</code>) — server-rendered, no API layer</td></tr>
+  <tr><td>Language</td><td>PHP 8.2/8.3 (platform pinned 8.3.31); TypeScript 5.4 with <code>strict:false</code>, checking not enforced</td></tr>
+  <tr><td>Database</td><td>SQLite (dev/test), PostgreSQL via Neon (prod)</td></tr>
+  <tr><td>ORM</td><td>Eloquent</td></tr>
+  <tr><td>Authentication</td><td>Session auth; dual scheme by convention — Guard A (email/username + password, <code>AuthController</code>) and Guard B (worker PIN at <code>/c/{slug}</code>, <code>WorkerAuthController</code>) against the same <code>users</code> table</td></tr>
+  <tr><td>Authorization</td><td>11 Gate definitions + 3 non-empty Policies; no middleware layer; client mirrors some rules in <code>Utils/permissions.ts</code></td></tr>
+  <tr><td>State management</td><td>None — Inertia page props + component <code>useState</code> + localStorage (22 usages across 11 files)</td></tr>
+  <tr><td>CSS/UI</td><td>Tailwind v4 (<code>@tailwindcss/vite</code>, CSS-first config in <code>app.css</code>) + <code>@astryxdesign/core</code> reset; theme system via semantic CSS custom properties + <code>theme-*</code> classes</td></tr>
+  <tr><td>Build</td><td>Vite 8 + laravel-vite-plugin</td></tr>
+  <tr><td>Testing</td><td>PHPUnit 10.5 (Feature + Unit); Jest + Puppeteer E2E in <code>e2e-tests/</code> (not wired into CI)</td></tr>
+  <tr><td>Queue</td><td>Database driver; <code>queue:work --stop-when-empty</code> on 1-minute cron (no daemon)</td></tr>
+  <tr><td>Cache / Session</td><td>Database driver (both)</td></tr>
+  <tr><td>Storage</td><td>Local disk (tenant logos)</td></tr>
+  <tr><td>External services</td><td>Pusher (broadcast), Hostinger SMTP (prod mail)</td></tr>
+  <tr><td>Deployment</td><td>Hostinger shared hosting (PHP 8.3), rsync deploys, CI via GitHub Actions, no containers in prod</td></tr>
+  <tr><td>Major third-party packages</td><td><code>barryvdh/laravel-dompdf</code>, <code>openspout/openspout</code>, <code>pusher/pusher-php-server</code>, <code>laravel-echo</code> + <code>pusher-js</code>, <code>inertiajs/inertia-laravel</code></td></tr>
+</table>
+
+<h3>Assessment of major choices</h3>
+<ol>
+<li><strong>Laravel 11 + Inertia + React</strong> — One team shipping a server-driven app with rich client interactivity, without maintaining an API. <span class="status-good">Fits the product.</span> Plumbing is idiomatic (Inertia share, <code>HandleInertiaRequests</code>, Vite plugin). No evidence justifies an API/SPA split or microservices at this size.</li>
+<li><strong>Custom dual auth instead of Laravel guards</strong> — Guard B is a controller-level PIN check on the shared <code>users</code> table, not a real guard. It works, but bypasses the framework's guard system; the visible cost is tenant/role context being re-derived manually in ~8 controller methods (<code>WorkerDashboardController.php:72-78, 185-191, 279-285, 428-436</code>, …). A project-specific decision with contained but real complexity cost.</li>
+<li><strong>Eloquent observers as the business-logic home</strong> — Documented doctrine ("business logic lives in observers, NOT controllers" — AGENTS.md). Reality: observers own recalculation/cascades; controllers still own write orchestration, stage gates, thresholds, and KPI math. Workable, currently strained (see §5).</li>
+<li><strong>Database queue + 1-minute cron</strong> — <code>routes/console.php:11-12</code> schedules <code>queue:work --stop-when-empty</code> and <code>pogrid:evaluate-timelines</code> with <code>withoutOverlapping</code>. <span class="status-good">Correct fit</span> for daemon-less shared hosting. Do not add Redis/Horizon.</li>
+<li><strong>DomPDF + OpenSpout</strong> — Both genuinely used (<code>app/Services/ExportService.php:5-8</code>). Justified.</li>
+<li><strong>Pusher</strong> — Real-time dashboard refresh. Fits. The 3-broadcasts-per-progress-write amplification (§13) is a usage issue, not a stack issue.</li>
+<li><strong>Tailwind v4 + Astryx</strong> — Tailwind usage is idiomatic. <code>@astryxdesign/core</code> is imported (<code>app.tsx:1-2</code>); <code>@astryxdesign/cli</code> and <code>@astryxdesign/theme-neutral</code> have <strong>zero references</strong> — dead devDependencies.</li>
+<li><strong>TypeScript present but unenforced</strong> — <code>tsconfig.json</code> exists with <code>strict:false</code>; no <code>typecheck</code> script; Vite does not type-check. The one case where using an already-adopted tool as intended would have prevented shipped production bugs (Finding 5).</li>
+</ol>
+<p><strong>Stack as a system:</strong> lean (4 production Composer packages beyond the framework, 5 production npm packages), coherent, no exotic infrastructure. <strong>The stack is right; discipline inside it is the gap.</strong> No technology replacement is recommended.</p>
+</section>
+
+<!-- ============ 3 ============ -->
+<section id="s3">
+<h2><span class="num">3.</span>Architecture Assessment</h2>
+
+<p><strong>Actual architectural style:</strong> server-rendered <strong>monolith</strong> with Inertia.js (no API layer), Eloquent-observer-driven domain logic, cron-based async work (queue + timeline evaluation), and Pusher broadcast fan-out. Two entry surfaces — office (<code>/login</code>, <code>/dashboard</code>) and floor (<code>/c/{slug}</code>) — served by one application.</p>
+
+<h3>Actual request/data flow (representative: worker progress update)</h3>
+<div class="flow">POST /c/{slug}/progress/{id}/update
+→ web middleware group (RedirectToAppDomain, HandleInertiaRequests, SetTenant)
+→ auth
+→ WorkerDashboardController::updateProgress
+   → inline $request-&gt;validate()            (no FormRequests exist anywhere)
+   → manual tenant re-resolution             (TenantManager::bypass → Tenant::where(slug)
+                                               → enableScope → setTenantId — repeated ~8×)
+   → validateStageAccess()                   (STAGE_ROLE_MAP gate, in-controller)
+   → write ItemProgress
+      → ItemProgressObserver::saved          (DB::transaction + lockForUpdate)
+         → recalc item % → update Item
+            → ItemObserver (activity log) + DataSyncObserver → broadcast
+         → PoCompletionChecker → update Po   → another broadcast
+   → controller also writes DeliveryOrder / DoItem / Alert
+     (untransacted relative to the observer's transaction)
+→ Inertia redirect with flash</div>
+
+<h3>Responsibility separation</h3>
+<ul>
+<li><strong>Cohesion:</strong> poor in controllers (analytics + writes + exports + tenant plumbing in one class); good in models (thin, relations + accessors); good in <code>ExportService</code> / <code>ActivityLogger</code> (single-purpose).</li>
+<li><strong>Coupling:</strong> high between controllers and the static <code>TenantManager</code>; observers coupled to <code>ActivityLogger</code>, <code>PoCompletionChecker</code>, and broadcasting.</li>
+<li><strong>Dependency direction:</strong> mostly sane (controllers → models → observers → services). The real inversion is client-side: the frontend re-implements server rules (<code>Utils/permissions.ts</code>), so the browser depends on server policy it duplicates rather than consumes.</li>
+<li><strong>Business logic placement:</strong> split three ways — observers (progress recalc, cascades), controllers (stage gate, thresholds like 33/66 at <code>WorkerDashboardController.php:1219</code>, KPI math), and JS (Finding 4). The documented doctrine is only half-true.</li>
+<li><strong>Shared/global state:</strong> <code>TenantManager</code> is a <strong>static mutable singleton</strong> (<code>app/Services/TenantManager.php:7-9</code>). Safe only because PHP-FPM is per-request and cron uses <code>--stop-when-empty</code>; it would be a live bug under Octane or a queue daemon. <code>TenantScope</code> <strong>fails open</strong> — when no tenant id is set, queries run unscoped (<code>app/Models/Scopes/TenantScope.php:12-22</code>).</li>
+<li><strong>Domain/module boundaries:</strong> none beyond controllers — acceptable at this size. Cross-layer leakage exists: <code>Item::getItemNameAttribute</code> rewrites display names on read (<code>app/Models/Item.php:78-81</code>); alert <em>message strings</em> are used as data keys (§9).</li>
+<li><strong>Circular dependencies:</strong> none detected.</li>
+</ul>
+</section>
+
+<!-- ============ 4 ============ -->
+<section id="s4">
+<h2><span class="num">4.</span>Codebase Structure Audit</h2>
+
+<ul>
+<li><strong>Organization:</strong> backend is technical-layer (<code>Controllers/Observers/Services/Models</code>) — standard Laravel, appropriate; no need for feature modules yet. Frontend is organized by audience (<code>Pages/{Auth,Owner,Worker,Ppic,Landing,Legal}</code>) which reflects the domain well. <code>Pages/Ppic</code> exists but is absent from AGENTS.md.</li>
+<li><strong>Naming:</strong> consistent in PHP. Frontend has a case-collision hazard: <code>resources/js/Types/</code> is an <strong>empty dead directory</strong> shadowing the real <code>resources/js/types/</code> (breaks checkouts on macOS case-insensitive filesystems).</li>
+<li><strong>Dead / legacy code:</strong>
+  <ul>
+  <li><code>WorkerAuthController::showLogin</code> (:15) — unreachable; no route references it.</li>
+  <li><code>Components/Modal/FullscreenOverlay.tsx</code> — zero imports.</li>
+  <li><code>app/Console/Commands/BackfillItemStages.php</code> — one-off data migration left as a permanent command; re-running it corrupts progress math (:59, :70 hardcode 33%/50% into live stages).</li>
+  <li>Unused imports in <code>WorkerDashboardController.php:19,23-25</code> (DomPDF/OpenSpout after extraction to <code>ExportService</code>).</li>
+  <li><code>handleWorkerSelect</code> dead in <code>Worker/Login.tsx:146-153</code>; <code>getFilteredMatrix</code> stub returning <code>[]</code> passed to a child component (<code>Owner/Dashboard.tsx:632</code>); unused <code>useMemo</code> import in <code>Ppic/Dashboard.tsx:1</code>.</li>
+  </ul></li>
+<li><strong>Root clutter:</strong> ~18 planning/audit documents at root (PRD, SPEC, MAIN-IDEA, NEXT_TODO, TODO, LAUNCH_PLAN, LAUNCH_TODO, DEPLOYMENT, DEPLOYMENT_PLAN, SMOKE_TEST_CHECKLIST, 3 audit PDFs, 2 HTML reports…), <code>create-child-issues.py</code>, <code>scripts/gen_refactor_pdf.py</code>, an untracked <code>.env.testing.temp</code> containing a real base64 <code>APP_KEY</code>, and a <code>POGRID ID/</code> wiki directory with a space in its name. Not harmful at runtime; harmful to orientation. Overlapping docs (DEPLOYMENT vs DEPLOYMENT_PLAN vs <code>docs/DEPLOY_APP_POGRID_ID.md</code>) invite drift.</li>
+<li><strong>Unnecessary abstraction:</strong> minimal — this codebase under-abstracts rather than over-abstracts (see §17).</li>
+<li><strong>Documentation drift (AGENTS.md):</strong> claims "no tsconfig.json" (exists since 2026-08-12), omits <code>Pages/Ppic</code>, describes i18n as per-component objects (a real <code>i18n/locales/*.json</code> system with 21 namespaces / 629 keys now exists), and the <code>Tenant.php</code> duplicate-namespace quirk it documents has been fixed. The doc agents read first is measurably stale.</li>
+</ul>
+</section>
+<!-- ============ 5 ============ -->
+<section id="s5">
+<h2><span class="num">5.</span>Backend Architecture Audit</h2>
+
+<p><strong>Layers present:</strong> Routes → Controllers (inline validation) → Observers → Services (4) → Models. <strong>Absent:</strong> FormRequests, Actions, API Resources, middleware-based authorization. Repositories: none — the correct call at this scale.</p>
+
+<h3>File-size concentration (<code>find app -name '*.php' | xargs wc -l</code>)</h3>
+<table>
+<tr><th>File</th><th>LOC</th><th>Assessment</th></tr>
+<tr><td><code>Http/Controllers/WorkerDashboardController.php</code></td><td>1,946</td><td><span class="status-bad">God controller</span> — 16 public methods: dashboards, 3 exports, progress writes, QC rework, finance, alerts, KPI engine</td></tr>
+<tr><td><code>Http/Controllers/OwnerDashboardController.php</code></td><td>878</td><td><span class="status-bad">God controller</span> — PO creation, user CRUD, templates, billing, logs, rework logbook, company settings</td></tr>
+<tr><td><code>Http/Controllers/PpicDashboardController.php</code></td><td>402</td><td><span class="status-warn">Large</span> — 6 private analytics methods + 2 unguarded mutations</td></tr>
+<tr><td><code>Services/ExportService.php</code></td><td>242</td><td><span class="status-good">Healthy</span> — single-purpose</td></tr>
+<tr><td><code>Providers/AppServiceProvider.php</code></td><td>207</td><td><span class="status-warn">Overloaded</span> — 11 gates, 5 observer registrations, Inertia shares, email logger</td></tr>
+<tr><td>Everything else (52 files)</td><td>≤119 each</td><td><span class="status-good">Healthy</span></td></tr>
+</table>
+
+<h3>Where business logic lives</h3>
+<ul>
+<li><strong>Observers (recalc &amp; cascades):</strong> <code>ItemObserver::created</code> (:21-39) spawns one <code>ItemProgress</code> per required stage. <code>ItemProgressObserver::saved</code> (:34-110) does the weighted recalc inside <code>DB::transaction</code> + <code>lockForUpdate</code> (:37), updates item status, cascades to the PO. <code>DoItemObserver::saved</code> recomputes delivery status. This chain is the best-structured part of the backend.</li>
+<li><strong>Controllers (everything else):</strong> stage-gate rules (<code>validateStageAccess</code> :1805-1945), KPI/analytics engine (<code>getTelemetryData</code> :451-941 — OTDR, delays, trends, bottleneck, client health), purchasing thresholds (:1219), finance transitions, rework orchestration.</li>
+<li><strong>Client JS:</strong> stage-role map, deadline-risk rule, finance rule, progress aggregation — all duplicated (Finding 4).</li>
+</ul>
+
+<h3>Specific backend findings</h3>
+<ul>
+<li><strong>Services are meaningful, not CRUD wrappers:</strong> <code>TenantManager</code>, <code>ActivityLogger</code>, <code>PoCompletionChecker</code>, <code>ExportService</code> each have a real responsibility. <span class="status-good">No service-layer bloat.</span></li>
+<li><strong>Duplicated business rules:</strong> cancel rule <code>progress &gt; 0</code> inline at <code>OwnerDashboardController.php:500</code> duplicating <code>ItemPolicy::cancel</code> (<code>ItemPolicy.php:20-22</code>); purchasing thresholds 33/66 at <code>WorkerDashboardController.php:1219,1389</code> and again in <code>BackfillItemStages.php:59,70</code>; tenant-resolution boilerplate copy-pasted in ~8 methods; <code>$stageGroups</code> verbatim twice in <code>PpicDashboardController.php:125-134</code> and :318-327.</li>
+<li><strong>Transactions:</strong> <code>createPo</code> (<code>OwnerDashboardController.php:228-252</code>) is the <strong>only</strong> transacted controller path. <code>updateProgress</code>, <code>logQcRework</code> (:1523-1560), and <code>RegistrationController::register</code> (:53-96, creates Tenant+User) are multi-write and un-transacted — partial states are persistable.</li>
+<li><strong>Registration slug bug:</strong> slug validated <code>unique:tenants,slug</code> on raw input (<code>RegistrationController.php:30</code>) then lowercased at :44 → <code>ABC</code> vs existing <code>abc</code> passes validation, then violates the DB unique index → 500. Username-collision <code>while</code> loop (:81-83) is a race condition.</li>
+<li><strong>Authorization layer:</strong> wrong layer, patchy coverage (Finding 2). <code>AlertPolicy.php</code> and <code>TenantPolicy.php</code> are <strong>0-byte files</strong>. Gates string-match on role/post names (<code>AppServiceProvider.php:35-111</code>) and are asymmetric — <code>manage-company-settings</code> denies only Manager+Sales (:40-56), so floor roles technically pass it.</li>
+<li><strong>Broadcast amplification:</strong> one progress write can emit up to 3 Pusher events (ItemProgress save → Item update → PO update, each firing <code>DataSyncObserver</code>). Cost and client noise.</li>
+<li><strong>Cascade note:</strong> <code>ItemProgressObserver::saved</code> also fires on progress-row <em>creation</em> — creating an item with N stages triggers N full recalcs (each taking a row lock and reloading all stages). Correct results, wasteful execution.</li>
+<li><strong>Cron logic:</strong> <code>EvaluateTimelines</code> (98 LOC) bypasses scope globally (:22), loops all tenants and all active items; alert dedup keys on the <strong>full message string containing the item name</strong> (:44-52, :57-65) — renaming an item duplicates its alerts. Magic values: 3 days, 70% (:56), 24h escalation (:81).</li>
+<li><strong>Job:</strong> <code>GenerateSunkCostInvoiceJob</code> — hardcoded pricing heuristic <code>max(150000, qty * 150000)</code> (:43), <code>uniqid()</code> invoice numbers (:41), and a <code>finally</code> that calls <code>enableScope()</code> (:55) even when bypass was set by the caller — a state-restore bug in nested-bypass contexts.</li>
+</ul>
+</section>
+
+<!-- ============ 6 ============ -->
+<section id="s6">
+<h2><span class="num">6.</span>Frontend Architecture Audit</h2>
+
+<h3>Largest files (<code>find resources/js -type f | xargs wc -l</code>)</h3>
+<table>
+<tr><th>File</th><th>LOC</th><th>Assessment</th></tr>
+<tr><td><code>Pages/Owner/Dashboard.tsx</code></td><td>4,203</td><td><span class="status-bad">God component</span> — 71 useState, 46 any, 220 inline styles, 6 tabs + CRUD + Echo + search + ETA math</td></tr>
+<tr><td><code>Pages/Worker/Dashboard.tsx</code></td><td>1,879</td><td><span class="status-bad">God component</span> — <code>ItemCard</code> alone ~1,540 LOC; redefines its own imported permission utils</td></tr>
+<tr><td><code>Pages/Landing/Landing.tsx</code></td><td>1,399</td><td><span class="status-warn">Large but cohesive</span> (marketing page)</td></tr>
+<tr><td><code>Pages/Owner/CreatePo.tsx</code></td><td>1,082</td><td><span class="status-warn">Manual form state</span> (no <code>useForm</code>), localStorage drafts, hardcoded demo client list (:203-209)</td></tr>
+<tr><td><code>Pages/Ppic/Dashboard.tsx</code></td><td>1,002</td><td><span class="status-warn">Third copy of Echo presence block</span> (:206-287); custom header instead of AppShell</td></tr>
+<tr><td><code>i18n/locales/{en,id}.json</code></td><td>886 ×2</td><td><span class="status-good">Real i18n system</span> — 21 namespaces, 629 keys, clean en/id parity (2 key exceptions)</td></tr>
+<tr><td><code>Components/AppShell.tsx</code></td><td>660</td><td><span class="status-good">Shared chrome</span> for both audiences — but embeds authorization policy client-side (<code>getRoleConfig</code> :64-154)</td></tr>
+</table>
+
+<h3>Key findings</h3>
+<ul>
+<li><strong>State management:</strong> no Redux/Zustand/Context — Inertia props + <code>useState</code> + localStorage. Appropriate for the app's size. Two different language keys exist (<code>pogrid_lang</code> vs <code>pogrid_landing_lang</code>) so Landing and app don't sync language.</li>
+<li><strong>Prop drilling:</strong> heavy in <code>Components/OwnerDashboard/*</code> — <code>DashboardMetrics</code> receives 16 props; 5 matrix components receive the same <code>matrixFilter</code>/<code>setMatrixFilter</code> pair; all 9 components are single-consumer (used only by Owner/Dashboard) — extraction without reuse.</li>
+<li><strong>Duplication:</strong> Echo presence/connection block ×3 (Owner :662-756, Worker :1679-1763, Ppic :206-287); progress bars — no shared component, ~8 inline implementations; pill-filter buttons near-verbatim in two components; <code>changeTheme</code> + theme-class list ×6 with the Worker copy already stale (missing <code>theme-light</code>/<code>theme-brand</code>); <code>router.post('/logout')</code> ×7; 362 inline <code>language === 'en' ?</code> ternaries bypassing the i18n JSON; auth-error strings exist in 3 places (<code>FlashMessages.tsx:4-45</code>, <code>en.json</code>, inline ternaries).</li>
+<li><strong>Type safety:</strong> shared domain types exist at <code>types/index.d.ts</code> — <strong>no page imports them</strong>; each page re-declares <code>Item/Po/Stage/Alert</code> locally with divergent fields. 193 <code>any</code>-family occurrences (worst: Owner/Dashboard 46). <code>useTranslation</code> uses <code>@ts-ignore</code> (:39).</li>
+<li><strong>Routing:</strong> no Ziggy; zero <code>route()</code> calls; 51 hardcoded template-literal URLs (<code>`/c/${slug}…`</code>); slug re-parsed from the URL string (<code>usePage().url.split('/')[2]</code>); host-sniffing in <code>Auth/Login.tsx:6</code> and <code>Landing.tsx:28</code>. Any route rename is multi-file grep surgery.</li>
+<li><strong>Global side effects:</strong> <code>bootstrap.ts:69-129</code> monkey-patches <code>window.fetch</code> and <code>XMLHttpRequest</code> to inject <code>X-Socket-ID</code>; <code>AppShell.tsx:216</code> sets <code>document.documentElement.className = theme</code>, clobbering any other html classes.</li>
+<li><strong>Business logic in UI:</strong> <code>calculateDynamicETA</code>, <code>getPieceLocations</code>, client-side search engine, and the permission map all live in page components (Finding 4).</li>
+<li><strong>Dead code:</strong> <code>FullscreenOverlay.tsx</code>, <code>Types/</code> empty dir, <code>handleWorkerSelect</code>, <code>getFilteredMatrix</code> stub, unused <code>useMemo</code> import.</li>
+</ul>
+</section>
+
+<!-- ============ 7 ============ -->
+<section id="s7">
+<h2><span class="num">7.</span>Database Architecture Audit</h2>
+
+<p>31 migrations in three clusters (Laravel baseline, 2026-06 core build, 2026-07→08 feature churn). Core domain tables created in <code>2026_06_27_000000_create_pogrid_tables.php</code>; <code>items</code> alone has been modified by 9 later migrations — the highest-churn table, consistent with it being the domain center of gravity.</p>
+
+<h3>Schema summary</h3>
+<table>
+<tr><th>Table</th><th>tenant_id</th><th>Scoped model</th><th>Indexes (beyond PK)</th><th>Cascade</th><th>Soft deletes</th></tr>
+<tr><td><code>tenants</code></td><td>— (root)</td><td>—</td><td>unique(slug)</td><td>—</td><td>no</td></tr>
+<tr><td><code>users</code></td><td>yes (nullable)</td><td>yes</td><td>unique(email), unique(username); <strong>none on tenant_id/role_id/post_id</strong></td><td>tenant→cascade</td><td>no</td></tr>
+<tr><td><code>roles</code>/<code>posts</code></td><td>no (global lookup, by design)</td><td>no</td><td>unique(name); <code>level</code> is the schema's only real enum</td><td>restrict</td><td>no</td></tr>
+<tr><td><code>pos</code></td><td>yes</td><td>yes</td><td>tenant_id only; <strong>no unique on po_number</strong></td><td>tenant→cascade</td><td><strong>no</strong></td></tr>
+<tr><td><code>items</code></td><td>yes</td><td>yes</td><td>tenant_id, po_id, deleted_at, status, invoice_status, payment_status + 2 overlapping composites (6 total)</td><td>po→cascade</td><td><strong>yes</strong> (only soft-deleted table)</td></tr>
+<tr><td><code>item_progress</code></td><td>yes</td><td>yes</td><td>tenant_id, item_id; <strong>none on (item_id,status)/(item_id,stage_name)</strong></td><td>item→cascade</td><td>no</td></tr>
+<tr><td><code>alerts</code></td><td>yes</td><td>yes</td><td>tenant_id, item_id; <strong>none on (tenant_id,is_resolved)</strong> — the hottest dashboard filter</td><td>item→cascade</td><td>no</td></tr>
+<tr><td><code>delivery_orders</code></td><td>yes</td><td>yes</td><td>tenant_id, po_id; do_number not unique</td><td>po→cascade</td><td>no</td></tr>
+<tr><td><code>do_items</code></td><td><strong>NO</strong></td><td><strong>NO — only unscoped business table</strong></td><td><strong>zero indexes</strong> (FK columns unindexed)</td><td>do/item→cascade</td><td>no</td></tr>
+<tr><td><code>invoices</code></td><td>yes</td><td>yes</td><td>tenant_id only; invoice_number not unique; money correctly <code>decimal(15,2)</code></td><td>tenant→cascade</td><td>no</td></tr>
+<tr><td><code>activity_logs</code></td><td>yes</td><td>yes</td><td><span class="status-good">best-indexed table</span>: action, (tenant,created), (project,created), (item,created)</td><td>nullOnDelete on links</td><td>no</td></tr>
+<tr><td><code>tenant_stage_templates</code></td><td>yes</td><td>yes</td><td>tenant_id</td><td>tenant→cascade</td><td>no</td></tr>
+</table>
+
+<h3>Integrity risks (ranked)</h3>
+<ol>
+<li><strong>Missing unique constraints with race windows</strong> <span class="sev p1">P1</span> — <code>pos.po_number</code> uniqueness enforced only by form validation (<code>OwnerDashboardController.php:192</code>); <code>delivery_orders.do_number</code> and <code>invoices.invoice_number</code> have no DB backstop. Concurrent creates can duplicate business identifiers.</li>
+<li><strong>Alert dedup without a unique key</strong> <span class="sev p1">P1</span> — <code>EvaluateTimelines.php:44-65</code> uses <code>updateOrCreate</code> keyed on tenant+item+severity+<em>message text</em>; concurrent cron runs can duplicate rows, and renames fork the key.</li>
+<li><strong>Missing indexes on proven hot paths</strong> <span class="sev p2">P2</span> — <code>alerts(tenant_id,is_resolved)</code> (filtered at <code>WorkerDashboardController.php:117,506,594,603,1474</code> and <code>EvaluateTimelines.php:82-87</code>); <code>do_items</code> FK columns (summed per item at <code>DoItemObserver.php:20</code>, <code>PoCompletionChecker.php:53</code>, <code>Item.php:55</code>); <code>users.tenant_id/role_id/post_id</code> (worker lists, role joins). PostgreSQL does not auto-index FK columns.</li>
+<li><strong>Unindexable LIKE scans</strong> <span class="sev p2">P2</span> — stage-name queries use leading wildcards (<code>stage_name LIKE '%Design%'</code>-style at <code>WorkerDashboardController.php:211-263, 1885, 1899</code>) inside <code>whereHas</code> per dashboard load. Root cause: stages are free-text strings, not a relation.</li>
+<li><strong>Redundant indexes on a hot write table</strong> <span class="sev p3">P3</span> — <code>items</code> carries 6 indexes; single-column status/invoice_status/payment_status indexes are subsumed by the two composites. Write amplification on every observer recalc.</li>
+<li><strong>Hard delete on pos with DB cascade, audit-link erosion</strong> <span class="sev p2">P2</span> — <code>Po::delete()</code> hard-deletes and DB-cascades into items/progress; <code>activity_logs.item_id/project_id</code> use <code>nullOnDelete</code>, so audit rows silently lose linkage when a PO is removed.</li>
+<li><strong>Status columns are unconstrained strings</strong> <span class="sev p2">P2</span> — every lifecycle column (<code>pos.status</code>, <code>items.status</code>, <code>invoice_status</code>, …) is a free-text string; the <code>IN_PRODUCTION</code> vs <code>IN_PROGRESS</code> drift (Finding 4c) is exactly the failure mode a DB/PHP enum would prevent. <code>roles.level</code> shows the pattern is known.</li>
+<li><strong>Denormalized <code>is_urgent</code></strong> <span class="sev p3">P3</span> — exists on both <code>pos</code> (2026_06_28) and <code>items</code> (2026_07_17) with no sync rule; drift risk.</li>
+</ol>
+<p><strong>Data types:</strong> money is <code>decimal(15,2)</code> everywhere (no floats) — correct. JSON used for <code>required_stages</code>, <code>workflow_settings</code>, <code>stages</code>, <code>metadata</code> — portable across SQLite/PostgreSQL. No raw SQL detected; SQLite/PostgreSQL portability is otherwise fine.</p>
+</section>
+<!-- ============ 8 ============ -->
+<section id="s8">
+<h2><span class="num">8.</span>Multi-Tenancy Audit</h2>
+
+<h3>Mechanism inventory</h3>
+<table>
+<tr><th style="width:26%">Concern</th><th>Implementation</th><th>Verdict</th></tr>
+<tr><td>Tenant identification</td><td>Slug route param (<code>/c/{slug}</code>) → <code>SetTenant</code> middleware (:16-31); auth user's <code>tenant_id</code> overrides slug (:37-38); session fallback (:39-41)</td><td><span class="status-warn">Works, but resolution is duplicated</span> in ~8 controller methods</td></tr>
+<tr><td>Context propagation</td><td>Static singleton <code>TenantManager</code> (<code>TenantManager.php:7-9</code>)</td><td><span class="status-warn">Global mutable state</span> — safe only under per-request PHP + <code>--stop-when-empty</code> cron</td></tr>
+<tr><td>Query scoping</td><td><code>BelongsToTenant</code> trait + <code>TenantScope</code> global scope on 10 models</td><td><span class="status-bad">Fails open</span> — no tenant id set → queries run <em>unscoped</em> (<code>TenantScope.php:12-22</code>)</td></tr>
+<tr><td>Route binding</td><td>Implicit — cross-tenant record access returns 404 via scope (tenant taken from auth user, not slug)</td><td><span class="status-good">Safe but implicit</span>; no code compares <code>{slug}</code> to the user's tenant on write paths</td></tr>
+<tr><td>Authorization</td><td>Channels check <code>$user-&gt;tenant_id === $tenantId</code> (<code>routes/channels.php:7,15,23</code>); <code>dashboard</code> channel restricted to office roles (:11)</td><td><span class="status-good">Tenant-checked</span>, covered by tests</td></tr>
+<tr><td>Background jobs</td><td><code>GenerateSunkCostInvoiceJob</code> bypasses scope; <code>finally</code> re-enables even if bypass pre-existed (:55)</td><td><span class="status-warn">State-restore bug</span> in nested-bypass contexts</td></tr>
+<tr><td>Scheduled tasks</td><td><code>EvaluateTimelines</code> bypasses scope globally (:22) then loops all tenants</td><td><span class="status-warn">Depends on per-iteration discipline</span>; cross-tenant cron leak is tested (CoreLogicTest:688)</td></tr>
+<tr><td>Exports</td><td>PDF/CSV/XLSX via <code>ExportService</code>; tenant data via scoped queries; office-gate at caller</td><td><span class="status-good">Tenant isolation tested</span> (BacklogFeatureRegressionTest:172)</td></tr>
+<tr><td>Notifications</td><td>Mail only; recipient is the scoped user</td><td><span class="status-good">OK</span></td></tr>
+<tr><td>File storage</td><td>Per-tenant <code>logo_path</code> on local disk</td><td><span class="status-good">OK</span> at current usage</td></tr>
+<tr><td>Cache keys</td><td>Database cache driver; no app-level cache usage found</td><td>Insufficient evidence of risk — no tenant-keyed cache reads/writes observed</td></tr>
+<tr><td>Search / API</td><td>None (no API layer, no search index)</td><td>n/a</td></tr>
+</table>
+
+<h3>Tenant-boundary risks (architectural, no exploit demonstrated)</h3>
+<ol>
+<li><strong>Fail-open scope</strong> <span class="sev p1">P1</span> — every controller/command/job must remember to set tenant context; a single missed path reads cross-tenant. The system relies on convention, not construction. Fail-closed (throw when no tenant is set outside an explicit bypass) would remove the class of bug.</li>
+<li><strong><code>do_items</code> is the only business table outside the tenant scope</strong> <span class="sev p2">P2</span> — no <code>tenant_id</code> column, no trait (<code>app/Models/DoItem.php:9-12</code>). Safe today only because all access arrives via scoped parents and item PKs are globally unique. Zero defense-in-depth; the first direct <code>DoItem::find($id)</code> in a new feature is a cross-tenant read.</li>
+<li><strong>Global unique <code>username</code>/<code>email</code></strong> <span class="sev p2">P2</span> — by design (login resolves users across tenants, <code>AuthController.php:29-31</code>), but it makes cross-tenant account enumeration possible by probing duplicate usernames, and prevents per-tenant username reuse. Accepted tradeoff, worth recording as a decision.</li>
+<li><strong><code>users.tenant_id</code> nullable</strong> <span class="sev p3">P3</span> — a null-tenant user passes <code>BelongsToTenant</code> creation rules and lives outside every scope; verify no registration path can produce one unintentionally.</li>
+</ol>
+<p class="small">Positive evidence: <code>tests/Feature/TenantScopeAuditTest.php</code> (300 LOC) explicitly attacks cross-tenant reads/writes, WebSocket channels, and dashboard access — tenant isolation is the best-tested boundary in the system.</p>
+</section>
+
+<!-- ============ 9 ============ -->
+<section id="s9">
+<h2><span class="num">9.</span>Code Quality &amp; Maintainability</h2>
+
+<ul>
+<li><strong>Duplication (structural, measured):</strong> tenant-resolution boilerplate ×8; Echo presence block ×3; finance-complete rule ×5; theme-class list ×6; logout ×7; <code>$stageGroups</code> ×2; auth-error strings ×3; progress-bar implementations ~8; stage-name→X keyword maps ×4 (PHP controller, observer pre-production list at <code>ItemProgressObserver.php:20-22</code>, <code>permissions.ts</code>, <code>Ppic/Dashboard.tsx:135-148</code>). This is the dominant maintainability cost.</li>
+<li><strong>Magic values:</strong> pricing heuristic 150,000 IDR (<code>GenerateSunkCostInvoiceJob.php:43</code>); 70% / 3-day risk (<code>EvaluateTimelines.php:56</code>); 24h escalation (:81); 33/66 purchasing thresholds; trial length 30 days (<code>RegistrationController.php:57</code>); status strings (<code>'IN_PRODUCTION'</code> etc.) throughout. None centralized; several diverged (Finding 4).</li>
+<li><strong>Message-strings-as-data coupling:</strong> rework logbook parses quantities out of alert text via regex (<code>OwnerDashboardController.php:655</code>: <code>preg_match('/QC Rework: (\d+)/', ...)</code>); cron dedup and auto-resolve key on message content; PIN reset approval persists credentials in a message (Finding 2). Presentation text is functioning as a data schema — any wording change silently breaks parsing, dedup, and resolution.</li>
+<li><strong>Hidden dependencies / side effects:</strong> <code>bootstrap.ts</code> monkey-patches global fetch/XHR; <code>Item::getItemNameAttribute</code> mutates names on read; <code>AppShell</code> clobbers <code>documentElement.className</code>; <code>ItemObserver</code> uses a static <code>$priorStatus</code> array (:12) — request-scoped state that would leak under Octane.</li>
+<li><strong>Error handling:</strong> consistent flash-key convention with localized toasts — but <code>HandleInertiaRequests::share()</code> (<code>:15-25</code>) shares only <code>success</code>/<code>error</code> and <strong>overrides</strong> the 4-key share in <code>AppServiceProvider.php:165-172</code>, so <code>warning</code>/<code>info</code> toasts never reach the UI despite FlashMessages supporting them. Confirmed by reading both sources.</li>
+<li><strong>Type safety:</strong> PHP is type-hinted reasonably; TS side is effectively untyped at boundaries (193 <code>any</code>, divergent local interfaces, <code>@ts-ignore</code> in the i18n hook).</li>
+<li><strong>Naming/consistency:</strong> good in PHP; route naming inconsistent (<code>/items/{id}/update</code> style POST-suffix routes instead of PATCH — a project convention, consistently applied); <code>Types/</code> vs <code>types/</code> casing hazard.</li>
+<li><strong>Comment/documentation quality:</strong> observers and complex recalc code are well-commented (accurate stage-exclusion rationale at <code>ItemProgressObserver.php:20-22</code>). AGENTS.md is unusually thorough — and currently drifting from reality (§4), which erodes its authority precisely because it is otherwise good.</li>
+</ul>
+</section>
+
+<!-- ============ 10 ============ -->
+<section id="s10">
+<h2><span class="num">10.</span>Framework Usage Efficiency</h2>
+
+<table>
+<tr><th style="width:30%">Area</th><th>Framework provides</th><th>Project does</th><th>Verdict</th></tr>
+<tr><td>Validation</td><td>FormRequests</td><td>100% inline <code>$request-&gt;validate()</code>; <code>app/Http/Requests</code> does not exist</td><td><span class="status-warn">Reinvention at low volume</span> — tolerable now, painful per new endpoint</td></tr>
+<tr><td>Authorization</td><td>Middleware + policies + gates</td><td>Gates/policies called manually inside methods; no role middleware; 2 policies are 0-byte files</td><td><span class="status-bad">Under-used</span> — root cause of Finding 2</td></tr>
+<tr><td>Email verification</td><td><code>MustVerifyEmail</code> contract</td><td>Custom middleware duplicating the contract check; contract never implemented</td><td><span class="status-bad">Circumvented</span> — Finding 1</td></tr>
+<tr><td>Route model binding</td><td>Scoped bindings</td><td>Manual <code>findOrFail</code> relying on global scope</td><td><span class="status-warn">Serviceable</span>, but binding would remove boilerplate</td></tr>
+<tr><td>Flash sharing</td><td><code>HandleInertiaRequests::share</code></td><td>Shares in two places that conflict (middleware wins, drops warning/info)</td><td><span class="status-warn">Duplicate functionality</span>, causes a real UI bug</td></tr>
+<tr><td>Routes on client</td><td>Ziggy (optional)</td><td>51 hardcoded template URLs</td><td><span class="status-warn">Fragile</span> — adopt Ziggy or a small <code>routes.ts</code></td></tr>
+<tr><td>Broadcasting</td><td>Events + private channels</td><td>Idiomatic: 7 <code>ShouldBroadcast</code> events, tenant-checked channels, <code>toOthers</code> socket exclusion (tested)</td><td><span class="status-good">Idiomatic</span></td></tr>
+<tr><td>Scheduling</td><td>Laravel 11 <code>withSchedule</code></td><td><code>routes/console.php:11-12</code>, <code>withoutOverlapping</code></td><td><span class="status-good">Idiomatic</span></td></tr>
+<tr><td>Observers vs listeners</td><td>Both</td><td>Observers chosen as the logic home</td><td><span class="status-good">Legitimate choice</span>; overloaded in practice (§5)</td></tr>
+<tr><td>Migrations</td><td>Migrations</td><td>Data seeding inside migrations (roles/posts inserts, user re-map)</td><td><span class="status-warn">Convention breach</span> — env-dependent data state</td></tr>
+</table>
+<p><strong>Net:</strong> the project is not fighting its framework — no framework-hostile infrastructure found. The gaps are <em>omissions</em> (FormRequests, role middleware, the email-verification contract) rather than reinventions.</p>
+</section>
+<!-- ============ 11 ============ -->
+<section id="s11">
+<h2><span class="num">11.</span>Dependency Audit</h2>
+
+<h3>Composer (4 production packages beyond the framework — lean)</h3>
+<table>
+<tr><th>Package</th><th>Used?</th><th>Evidence</th><th>Verdict</th></tr>
+<tr><td><code>inertiajs/inertia-laravel</code></td><td>yes</td><td>all controllers; <code>bootstrap/app.php:12</code></td><td><span class="status-good">Keep</span></td></tr>
+<tr><td><code>barryvdh/laravel-dompdf</code></td><td>yes</td><td><code>ExportService.php:5</code></td><td><span class="status-good">Keep</span></td></tr>
+<tr><td><code>openspout/openspout</code></td><td>yes</td><td><code>ExportService.php:6-8</code> (XLSX)</td><td><span class="status-good">Keep</span></td></tr>
+<tr><td><code>pusher/pusher-php-server</code></td><td>yes (indirect)</td><td>Laravel broadcaster wraps it; <code>BroadcastTest</code> mocks <code>PusherBroadcaster</code></td><td><span class="status-good">Keep</span></td></tr>
+<tr><td><code>laravel/tinker</code></td><td>dev tool in prod <code>require</code></td><td>—</td><td>Standard Laravel practice; low risk</td></tr>
+</table>
+
+<h3>npm (5 production deps — lean; devDeps have dead weight)</h3>
+<table>
+<tr><th>Package</th><th>Verdict</th><th>Evidence</th></tr>
+<tr><td><code>@inertiajs/react</code>, <code>react</code>, <code>react-dom</code>, <code>laravel-echo</code>, <code>pusher-js</code></td><td><span class="status-good">Used</span></td><td><code>bootstrap.ts:1-2</code> etc.</td></tr>
+<tr><td><code>@astryxdesign/core</code></td><td><span class="status-good">Used</span></td><td><code>app.tsx:1-2</code>, <code>Owner/Dashboard.tsx:16</code></td></tr>
+<tr><td><code>@astryxdesign/cli</code></td><td><span class="status-bad">Unused</span></td><td>no import or reference anywhere</td></tr>
+<tr><td><code>@astryxdesign/theme-neutral</code></td><td><span class="status-bad">Unused</span></td><td>themes are CSS classes in <code>app.css</code></td></tr>
+<tr><td><code>ts-morph</code></td><td><span class="status-bad">Unused</span></td><td>no script or source references it (leftover AST tooling)</td></tr>
+<tr><td><code>puppeteer-core</code> (root)</td><td><span class="status-bad">Unused</span></td><td><code>e2e-tests/</code> uses full <code>puppeteer</code> from its own package.json — two puppeteer installs, root one dead</td></tr>
+<tr><td><code>concurrently</code></td><td><span class="status-bad">Unused</span></td><td>no npm script uses it (<code>composer dev</code> uses shell <code>&amp;</code>)</td></tr>
+</table>
+<p><strong>Assessment:</strong> no excessive dependency count, no trivial-functionality packages, no architectural coupling introduced by dependencies. Note: <code>composer.json</code> sets <code>policy.advisories.block: false</code> (:87) — security advisories do not block installs; acceptable if Dependabot/CI covers it, but worth a conscious decision. Action: delete the 5 dead devDependencies; otherwise leave the manifest alone.</p>
+</section>
+
+<!-- ============ 12 ============ -->
+<section id="s12">
+<h2><span class="num">12.</span>Test Architecture</h2>
+
+<p>17 PHPUnit files, 6,757 LOC. Organization: Feature-heavy (correct for this architecture), almost no Unit suite (2 skeleton <code>ExampleTest</code> files). Base <code>TestCase</code> resets <code>TenantManager</code> — tests manage tenant state explicitly, matching the architecture's biggest risk.</p>
+
+<h3>Coverage map (risk-weighted)</h3>
+<table>
+<tr><th>Business path</th><th>Covered?</th><th>Evidence</th></tr>
+<tr><td>Progress calculation (weighted multi-qty / single-piece)</td><td><span class="status-good">Yes</span></td><td>CoreLogicTest:87,155</td></tr>
+<tr><td>QC rework (spawn REWORK stage, math, revert)</td><td><span class="status-good">Yes</span></td><td>CoreLogicTest:301,541</td></tr>
+<tr><td>Tenant isolation (models, cancel, users, WS channels, dashboards)</td><td><span class="status-good">Yes — strongest area</span></td><td>TenantScopeAuditTest (all 8 tests)</td></tr>
+<tr><td>DO → PO DELIVERED cascade</td><td><span class="status-good">Yes</span></td><td>CoreLogicTest:227,1717,1775</td></tr>
+<tr><td>Alerts + timeline cron incl. escalation, cross-tenant leak</td><td><span class="status-good">Yes</span></td><td>CoreLogicTest:357,416,626,688</td></tr>
+<tr><td>Stage access gate (role map, QC ordering, custom stages)</td><td><span class="status-good">Yes</span></td><td>CoreLogicTest (8 tests) + StageFlowE2ETest</td></tr>
+<tr><td>Owner protections / RBAC hardening</td><td><span class="status-good">Yes</span></td><td>RoleSecurityRemediationTest (449 LOC)</td></tr>
+<tr><td>Broadcasting (config, payload, channel auth)</td><td><span class="status-good">Yes</span></td><td>BroadcastTest (671 LOC), PusherRealtimeE2ETest (392)</td></tr>
+<tr><td>Exports PDF/CSV/XLSX incl. tenant isolation + role blocks</td><td><span class="status-good">Yes</span></td><td>PerformanceMatrixTest:396-461; BacklogFeatureRegressionTest:100-172</td></tr>
+<tr><td>Auth Guard A + Guard B (errors, office block, rate limit)</td><td><span class="status-good">Yes</span></td><td>AdminManagementTest:48,236,261,516</td></tr>
+<tr><td><strong>PIN reset happy path</strong> (request → BLUE alert → approve → new PIN works)</td><td><span class="status-bad">No</span></td><td>only cross-tenant approval block (TenantScopeAuditTest:183)</td></tr>
+<tr><td><strong>Email verification flow</strong></td><td><span class="status-bad">No — untestable</span></td><td>middleware hard-bypassed in testing (<code>EnsureEmailIsVerified.php:17-19</code>)</td></tr>
+<tr><td><strong>Forgot password</strong></td><td><span class="status-bad">No</span></td><td>no test references <code>ForgotPasswordController</code></td></tr>
+<tr><td><strong>Batch actions</strong> (<code>POST /items/batch-action</code>)</td><td><span class="status-bad">No</span></td><td>zero references</td></tr>
+<tr><td><strong>Change password / company settings / workflow settings</strong></td><td><span class="status-warn">Indirect only</span></td><td>workflow modes via CoreLogicTest:1414</td></tr>
+</table>
+
+<h3>Test infrastructure quality</h3>
+<ul>
+<li><strong>Factories:</strong> only <code>UserFactory</code> exists. Everything else is manual <code>::create()</code> — 122 raw creates in CoreLogicTest alone. High setup duplication, brittle to schema changes.</li>
+<li><strong>Fakes/mocking:</strong> sparse — <code>BroadcastTest</code> mocks the broadcaster; no <code>Mail::fake</code>/<code>Notification::fake</code>/<code>Bus::fake</code> anywhere, which is exactly why the PIN-reset and forgot-password flows are untested.</li>
+<li><strong>Duplicates:</strong> <code>test_cancel_last_update_on_custom_stages</code> exists in both CoreLogicTest:1332 and StageFlowE2ETest:302.</li>
+<li><strong>E2E:</strong> Jest + Puppeteer suite (<code>e2e-tests/</code>, 6 test files + helpers) covers auth, dashboards, PO management, navigation, multi-tenancy against a live server — <strong>not wired into CI</strong>. CI runs PHPUnit but also uploads <code>public/hot</code> as an artifact (sloppy, though deploy rsync excludes it).</li>
+</ul>
+<p><strong>Verdict:</strong> quantity is not masking poor coverage — core domain logic is genuinely well protected. The gaps cluster exactly around the P0 security flows (PIN reset, email verification, password reset), which is the worst possible distribution.</p>
+</section>
+
+<!-- ============ 13 ============ -->
+<section id="s13">
+<h2><span class="num">13.</span>Performance &amp; Efficiency (structural)</h2>
+
+<table>
+<tr><th style="width:32%">Risk</th><th>Evidence</th><th>Likely impact</th></tr>
+<tr><td>N+1 in trend/analytics builders</td><td><code>buildTrendData</code> (<code>WorkerDashboardController.php:1040-1095</code>): 2 queries × up to 12 loop iterations; <code>PpicDashboardController::getMaterialReadiness</code> (:175) queries inside a per-item loop; <code>getCapacityView</code> (:341-344) lazy-loads <code>itemProgresses</code> per item; <code>PoCompletionChecker::checkDelivery</code> sums per item inside a PO loop (:53)</td><td><span class="status-warn">Moderate</span> — bounded by items-per-tenant; dashboards are the hot path</td></tr>
+<tr><td>Heavy per-request hydration</td><td><code>getTelemetryData</code> runs ~20 queries incl. two full-table <code>Item::get()</code> hydrations with 4 eager relations each (:639-642, :717-726) per dashboard load</td><td><span class="status-warn">Moderate</span> — fine at current tenant sizes, degrades linearly</td></tr>
+<tr><td>Broadcast amplification</td><td>1 progress write → up to 3 Pusher events (ItemProgress→Item→PO, each firing <code>DataSyncObserver</code>)</td><td><span class="status-warn">Pusher cost + client refetch noise</span></td></tr>
+<tr><td>Observer cascade cost</td><td>Item creation with N stages → N full recalcs (lock + reload + possible broadcasts) via <code>saved</code> firing on create</td><td><span class="status-warn">POs with many items feel it</span></td></tr>
+<tr><td>Per-model accessor queries</td><td><code>Item::getDeliveredQtyAttribute</code> SUM fallback (<code>Item.php:49-56</code>); <code>User</code> role/post accessors in <code>$appends</code> (:33-41) lazy-load on every serialization</td><td><span class="status-warn">Mitigated at most call sites</span>; latent</td></tr>
+<tr><td>Unindexable LIKE scans</td><td>leading-wildcard stage-name searches in <code>whereHas</code> per dashboard load (§7 risk 4)</td><td><span class="status-warn">Seq scans on item_progress</span></td></tr>
+<tr><td>Missing indexes on hot filters</td><td><code>alerts(tenant_id,is_resolved)</code>, <code>do_items</code> FKs, <code>users.tenant_id</code> (§7 risk 3)</td><td><span class="status-warn">Grows with data</span></td></tr>
+<tr><td>Synchronous exports</td><td>DomPDF generation on the request thread (<code>ExportService</code>)</td><td><span class="status-good">Acceptable now</span> — queue if PO counts grow 10×</td></tr>
+<tr><td>Frontend rendering</td><td>God component with 71 useState re-rendering the whole dashboard on Echo events; 220 inline-style objects recreated per render</td><td>Insufficient evidence of user-visible impact — flag as monitor-only</td></tr>
+</table>
+<p>No evidence of oversized bundles or pathological payloads; Inertia payloads per page are proportional. Performance structure is acceptable for current scale with the N+1 patterns above as the first things to fix when telemetry shows pain.</p>
+</section>
+<!-- ============ 14 ============ -->
+<section id="s14">
+<h2><span class="num">14.</span>Scalability of the Codebase</h2>
+
+<table>
+<tr><th style="width:24%">Scaling axis</th><th>Assessment</th></tr>
+<tr><td>More developers</td><td><span class="status-bad">Blocked by god files.</span> Two engineers cannot touch owner-dashboard or worker-dashboard work in parallel without colliding in the same 2 files. This is the binding constraint today.</td></tr>
+<tr><td>More features</td><td><span class="status-warn">Degrading.</span> The established pattern is "add a method to WorkerDashboardController / a tab to Owner Dashboard" — each addition worsens the two hotspots. The next 20 features materially damage the architecture if the pattern holds.</td></tr>
+<tr><td>More modules</td><td><span class="status-good">OK.</span> New surfaces (PPIC was added cleanly as controller + page) prove the monolith absorbs new modules. Module boundaries will be wanted only after controllers are decomposed.</td></tr>
+<tr><td>More tenants</td><td><span class="status-warn">Watch the cron.</span> <code>EvaluateTimelines</code> is O(all tenants × all active items) every minute. Fine at tens of tenants; needs batching/queue fan-out at hundreds. Row-level tenancy itself scales fine.</td></tr>
+<tr><td>More data</td><td><span class="status-warn">Index gaps and LIKE scans (§7) are the first walls</span>, then full-table hydration in telemetry (§13).</td></tr>
+<tr><td>More integrations</td><td>No API layer exists — correct for now. When a mobile app or third-party integration arrives, extract controllers' write paths into actions <em>then</em>, not preemptively.</td></tr>
+</table>
+<p><strong>Architectural bottlenecks, in order:</strong> (1) god files; (2) rule duplication across PHP/JS (every rule change is a multi-codebase migration); (3) fail-open tenant scope + static TenantManager (blocks Octane/queue-daemon adoption); (4) every-minute full-table cron.</p>
+</section>
+
+<!-- ============ 15 ============ -->
+<section id="s15">
+<h2><span class="num">15.</span>Technical Debt Register</h2>
+
+<table>
+<tr><th>Category</th><th>Item</th><th>Why it exists</th><th>Current impact</th><th>Future impact</th><th>Remediation</th><th>Priority</th></tr>
+<tr><td>Architectural</td><td>Dead email-verification gate</td><td>Custom middleware written, contract never added to User</td><td>Security illusion</td><td>Compliance/audit failure; account-abuse surface</td><td>Low (days)</td><td><span class="sev p0">P0</span></td></tr>
+<tr><td>Architectural</td><td>Opt-in authorization</td><td>Gates added per-method as features grew</td><td>Unguarded mutations live in prod</td><td>Every new endpoint is a new authz dice-roll</td><td>Low-Med (role middleware + sweep)</td><td><span class="sev p0">P0</span></td></tr>
+<tr><td>Structural</td><td>God controller ×2 + god component ×1</td><td>Feature accretion without extraction</td><td>Slow reviews, merge collisions, 3 shipped UI bugs</td><td>Team scaling blocked (§14)</td><td>Med-High (incremental extraction)</td><td><span class="sev p1">P1</span></td></tr>
+<tr><td>Structural</td><td>Rule duplication across PHP/JS</td><td>Client needed rules; no config channel existed</td><td>UI/backend disagree (deadline pills, stage locks)</td><td>Every rule change risks silent drift</td><td>Med (server-owned config + delete copies)</td><td><span class="sev p1">P1</span></td></tr>
+<tr><td>Structural</td><td>Message-strings-as-data</td><td>Fastest path for alert dedup/logbook</td><td>Rename-item duplicates alerts; regex parsing</td><td>Localization or wording change breaks logic</td><td>Med (add structured columns, migrate keys)</td><td><span class="sev p1">P1</span></td></tr>
+<tr><td>Database</td><td>Missing uniques/indexes; unconstrained status strings; unscoped do_items</td><td>Schema grown organically across 31 migrations</td><td>Race-window duplicates; seq scans</td><td>Data-integrity incidents as concurrency grows</td><td>Low-Med (one hardening migration + enum vocab)</td><td><span class="sev p1">P1</span></td></tr>
+<tr><td>Structural</td><td>No transactions on multi-write paths</td><td>Observer has one; controllers never added theirs</td><td>Partial progress/rework/registration states possible</td><td>Corrupt progress math under failure</td><td>Low</td><td><span class="sev p1">P1</span></td></tr>
+<tr><td>Testing</td><td>PIN-reset / forgot-password / batch-action untested; no factories; no fakes</td><td>Fakes never set up, so flows were skipped</td><td>P0 flows unprotected</td><td>Regression risk exactly where severity is highest</td><td>Low-Med</td><td><span class="sev p1">P1</span></td></tr>
+<tr><td>Operational</td><td>3 divergent deploy paths; <code>deploy/deploy.sh</code> lacks the <code>public/hot</code> exclusion</td><td>npm script, CI workflow, and shell script evolved separately</td><td>Known blank-page incident class still reachable via deploy.sh</td><td>Repeat prod outage</td><td>Low (keep one path)</td><td><span class="sev p1">P1</span></td></tr>
+<tr><td>Operational</td><td>Plaintext credential logging (<code>logs/verification-emails.log</code>) + PINs in alert messages</td><td>Dev convenience became permanent</td><td>Credentials at rest</td><td>Breach severity amplifier</td><td>Low</td><td><span class="sev p0">P0</span></td></tr>
+<tr><td>Dependency</td><td>5 dead devDependencies</td><td>Tooling experiments</td><td>Install time, audit noise</td><td>Minimal</td><td>Low</td><td><span class="sev p3">P3</span></td></tr>
+<tr><td>Documentation</td><td>AGENTS.md drift (tsconfig, Ppic, i18n, Tenant quirk)</td><td>Code moved; doc didn't</td><td>Agents/new devs misled</td><td>Trust erosion in the doc</td><td>Low</td><td><span class="sev p2">P2</span></td></tr>
+<tr><td>Documentation</td><td>~18 root planning docs, overlapping</td><td>Planning habit, no consolidation</td><td>Orientation cost</td><td>Contradictory sources of truth</td><td>Low</td><td><span class="sev p3">P3</span></td></tr>
+</table>
+</section>
+
+<!-- ============ 16 ============ -->
+<section id="s16">
+<h2><span class="num">16.</span>Anti-Pattern Detection</h2>
+
+<table>
+<tr><th style="width:26%">Anti-pattern</th><th>Present?</th><th>Evidence / actual problem</th></tr>
+<tr><td>God class (controller)</td><td><span class="status-bad">Yes</span></td><td><code>WorkerDashboardController</code> (1,946 LOC, 16 public methods). Problem: unrelated change categories (analytics, exports, writes, finance) share one file and one review surface.</td></tr>
+<tr><td>God component</td><td><span class="status-bad">Yes</span></td><td><code>Owner/Dashboard.tsx</code> (4,203 LOC, 71 useState). Problem: any state change re-renders/re-touches everything; bugs (Finding 5) hide in the mass.</td></tr>
+<tr><td>Fat controllers (beyond the two gods)</td><td>No</td><td>Remaining controllers ≤116 LOC and single-purpose.</td></tr>
+<tr><td>Service-layer bloat / anemic services</td><td>No</td><td>4 services, all with real responsibilities. No CRUD wrappers.</td></tr>
+<tr><td>Repository-pattern overuse</td><td>No</td><td>Zero repositories. Correct at this scale.</td></tr>
+<tr><td>Utility dumping ground</td><td>Partial</td><td><code>Utils/permissions.ts</code> is a rulebook masquerading as a utility — its contents are server policy, not utils.</td></tr>
+<tr><td>Copy/paste architecture</td><td><span class="status-bad">Yes</span></td><td>Tenant boilerplate ×8, Echo block ×3, theme list ×6, finance rule ×5, stage map ×3-4. Copies have measurably diverged (STAFF missing, theme-light missing, deadline rule mismatched).</td></tr>
+<tr><td>Framework circumvention</td><td><span class="status-warn">Yes (targeted)</span></td><td>Custom verified-middleware without the contract; manual tenant re-resolution instead of binding; client-side authz policy mirror in <code>getRoleConfig</code>.</td></tr>
+<tr><td>Global state abuse</td><td><span class="status-warn">Yes (server)</span></td><td>Static <code>TenantManager</code> + static <code>ItemObserver::$priorStatus</code> + fail-open scope. Contained today, blocking tomorrow (Octane).</td></tr>
+<tr><td>Message-as-data coupling</td><td><span class="status-bad">Yes</span></td><td>Alert dedup keyed on message text; logbook regex-parses messages; PIN persisted in message. Presentation strings functioning as schema.</td></tr>
+<tr><td>Premature abstraction</td><td>No</td><td>No speculative layers found; if anything the reverse (§17).</td></tr>
+<tr><td>Dead abstractions</td><td><span class="status-warn">Yes (minor)</span></td><td>0-byte <code>AlertPolicy</code>/<code>TenantPolicy</code>; empty <code>Types/</code> dir; <code>showLogin</code> without a route.</td></tr>
+<tr><td>Circular dependencies</td><td>No</td><td>None detected.</td></tr>
+</table>
+</section>
+
+<!-- ============ 17 ============ -->
+<section id="s17">
+<h2><span class="num">17.</span>Architectural Efficiency</h2>
+
+<p><strong>Question: is this codebase doing too much, too little, or about the right amount of architecture?</strong></p>
+<p><strong>Verdict: appropriately engineered in shape; under-engineered in enforcement.</strong></p>
+
+<ul>
+<li><strong>Abstraction layers:</strong> Routes → Controller → Observer → Model, plus 4 services. That is the <em>right number</em> for this product. No repository/event-sourcing/DDD cargo cult anywhere.</li>
+<li><strong>Dependencies:</strong> lean on both manifests (§11). Nothing to unwind.</li>
+<li><strong>Concepts a developer must learn:</strong> dual auth-by-convention, static TenantManager + scope lifecycle, observer cascade chain, stage-role map, dual-language mechanism, theme system. ≈6 project-specific concepts — moderate, but two of them (auth-by-convention, static tenant state) are concepts <em>created by under-using the framework</em>, not by product complexity.</li>
+<li><strong>Duplicated infrastructure:</strong> the real excess is here — 3 i18n mechanisms (JSON locales, inline ternaries, FlashMessages' own map), 6 theme-list copies, 3 Echo blocks, 4 stage-keyword maps. The codebase pays "over-engineering" prices through duplication, not through layers.</li>
+<li><strong>Framework functionality bypassed:</strong> FormRequests, role middleware, <code>MustVerifyEmail</code>, route model binding, Ziggy — all omitted, each omission now carrying interest.</li>
+<li><strong>Cost of an ordinary feature:</strong> currently: add controller method in a god file + add gate call (remember!) + add JS copy of any rule + add translations in 2-3 places + add route + hardcode URL on client. That is 5-6 touchpoints where 2-3 would do — the clearest quantitative signal of under-enforcement, not over-design.</li>
+</ul>
+</section>
+<!-- ============ 18 ============ -->
+<section id="s18">
+<h2><span class="num">18.</span>CTO Scorecard</h2>
+<p class="small">Scores are health scores (100 = no issues found), tied to the findings cited. Precision is indicative, not manufactured.</p>
+<table class="score-grid">
+<tr><th>Category</th><th>Score</th><th>Status</th><th>Key finding</th></tr>
+<tr><td>Stack Efficiency</td><td>80</td><td><span class="status-good">Good</span></td><td>Lean, coherent Laravel+Inertia+React stack; 5 dead npm devDeps are the only waste (§11)</td></tr>
+<tr><td>Architecture</td><td>65</td><td><span class="status-warn">Fair</span></td><td>Right shape (monolith, observers, cron); fail-open tenant scope + static state + split rule ownership drag it (§3, §8)</td></tr>
+<tr><td>Backend Structure</td><td>50</td><td><span class="status-bad">Weak</span></td><td>3 controllers = 61% of backend LOC; opt-in authz with live gaps; 1 transacted write path total (§5)</td></tr>
+<tr><td>Frontend Structure</td><td>45</td><td><span class="status-bad">Weak</span></td><td>4.2k-LOC god component, 193 <code>any</code>, shared types unused, 3 shipped runtime bugs (§6)</td></tr>
+<tr><td>Database Design</td><td>66</td><td><span class="status-warn">Fair</span></td><td>Sound core model + correct money types; missing uniques/indexes, unconstrained statuses, unscoped do_items (§7)</td></tr>
+<tr><td>Maintainability</td><td>48</td><td><span class="status-bad">Weak</span></td><td>Rule duplication across PHP/JS is the dominant cost; message-as-data coupling; doc drift (§9)</td></tr>
+<tr><td>Test Architecture</td><td>72</td><td><span class="status-good">Good</span></td><td>Core domain genuinely well covered incl. tenant-attack tests; gaps cluster on P0 auth flows; no factories/fakes (§12)</td></tr>
+<tr><td>Performance Structure</td><td>60</td><td><span class="status-warn">Fair</span></td><td>Bounded N+1s in analytics, 3× broadcast amplification, unindexable LIKE scans — none critical today (§13)</td></tr>
+<tr><td>Scalability</td><td>58</td><td><span class="status-warn">Fair</span></td><td>Team scaling blocked by god files; tenant scaling watch-item = every-minute full-loop cron (§14)</td></tr>
+<tr><td>Technical Debt</td><td>45</td><td><span class="status-bad">High</span></td><td>Concentrated and fixable; 4 P0 items are days-of-work each (§15)</td></tr>
+</table>
+</section>
+
+<!-- ============ 19 ============ -->
+<section id="s19">
+<h2><span class="num">19.</span>Priority Matrix</h2>
+
+<h3><span class="sev p0">P0</span> — Immediate architectural/business risk</h3>
+<table>
+<tr><th>Finding</th><th>Evidence</th><th>Impact</th><th>Recommendation</th></tr>
+<tr><td>Email verification dead gate</td><td><code>User.php:11</code>; <code>EnsureEmailIsVerified.php:17-23</code></td><td>Security-control illusion on all office routes</td><td>Implement <code>MustVerifyEmail</code>; remove testing bypass; add regression test</td></tr>
+<tr><td>Unguarded mutating endpoints</td><td><code>PpicDashboardController.php:358,381</code>; <code>PinResetController.php:55</code>; <code>OwnerDashboardController.php:602,838,623,525</code></td><td>Floor workers can alter POs, approve PIN resets</td><td>Role middleware on route groups + per-route gates; sweep for missing <code>authorize</code></td></tr>
+<tr><td>Plaintext credentials at rest</td><td><code>PinResetController.php:83</code>; <code>AppServiceProvider.php:133-163</code></td><td>PINs in alerts table; passwords/reset links in <code>logs/verification-emails.log</code></td><td>Flash PIN once, never persist; delete email-body logger; scrub existing rows/file</td></tr>
+<tr><td>Shipped worker-UI crashes</td><td><code>Worker/Dashboard.tsx:1858,915</code>; <code>Worker/Login.tsx:496</code></td><td>Floor UI ReferenceErrors + visible glitch on core flows</td><td>Fix 3 bugs; add <code>tsc --noEmit</code> to CI/build</td></tr>
+</table>
+
+<h3><span class="sev p1">P1</span> — High priority</h3>
+<table>
+<tr><th>Finding</th><th>Evidence</th><th>Impact</th><th>Recommendation</th></tr>
+<tr><td>God files</td><td>WorkerDashboardController 1,946 LOC; Owner/Dashboard.tsx 4,203 LOC</td><td>Team scaling bottleneck; regression blast radius</td><td>Incremental extraction (telemetry service; tab components)</td></tr>
+<tr><td>Rule duplication/divergence PHP↔JS</td><td>STAGE_ROLE_MAP ×3; deadline rule mismatch (<code>EvaluateTimelines.php:56</code> vs <code>Owner/Dashboard.tsx:846</code>); IN_PRODUCTION vs IN_PROGRESS (<code>ItemProgressObserver.php:88</code> vs <code>PoCompletionChecker.php:27</code>)</td><td>UI/backend disagree; status lifecycle broken for PO IN_PROGRESS</td><td>Server-owned config consumed by client; unify status vocabulary</td></tr>
+<tr><td>No transactions on multi-write paths</td><td><code>updateProgress</code> :1178-1324; <code>logQcRework</code> :1523-1560; <code>RegistrationController</code> :53-96</td><td>Partial states persistable</td><td>Wrap writes in <code>DB::transaction</code></td></tr>
+<tr><td>Fail-open tenant scope</td><td><code>TenantScope.php:12-22</code></td><td>One missed context-set = cross-tenant read</td><td>Fail-closed by default; explicit bypass only</td></tr>
+<tr><td>Message-strings-as-data</td><td><code>OwnerDashboardController.php:655</code>; <code>EvaluateTimelines.php:44-65</code></td><td>Rename breaks dedup; wording change breaks logbook</td><td>Structured columns (<code>reason_type</code>/<code>qty</code>) as keys</td></tr>
+<tr><td>Registration slug case bug + race</td><td><code>RegistrationController.php:30,44,81-83</code></td><td>500s on signup; duplicate username window</td><td>Normalize before validate; unique-then-retry</td></tr>
+<tr><td>Unthrottled login/registration/forgot-password</td><td><code>routes/web.php:28,31-38</code> (only PIN login throttled)</td><td>Enumeration/credential-stuffing surface</td><td>Add <code>throttle</code> to all auth endpoints</td></tr>
+<tr><td>Deploy path drift</td><td><code>deploy/deploy.sh</code> lacks <code>public/hot</code> exclusion; npm script + CI have it</td><td>Known blank-page incident class still reachable</td><td>Keep one deploy path (<code>npm run deploy</code>); retire or fix deploy.sh</td></tr>
+<tr><td>P0 flows untested</td><td>§12 gaps</td><td>Regressions invisible where severity is highest</td><td>Add Mail/Notification fakes + PIN-reset/forgot/batch tests</td></tr>
+</table>
+
+<h3><span class="sev p2">P2</span> — Should improve</h3>
+<table>
+<tr><th>Finding</th><th>Evidence</th><th>Impact</th><th>Recommendation</th></tr>
+<tr><td>Missing indexes / uniques</td><td>§7 risks 1-4</td><td>Seq scans grow with data; race-window duplicates</td><td>One hardening migration (uniques on po_number/do_number/invoice_number per tenant; hot-path indexes)</td></tr>
+<tr><td>N+1 analytics</td><td>§13</td><td>Dashboard latency growth</td><td>Eager-load/aggregate; add query-count assertions to dashboard tests</td></tr>
+<tr><td>Flash share conflict</td><td><code>HandleInertiaRequests.php:15-25</code> overrides <code>AppServiceProvider.php:165-172</code></td><td>warning/info toasts never render</td><td>Share once, in the middleware, with all 4 keys</td></tr>
+<tr><td>do_items unscoped</td><td><code>DoItem.php:9-12</code></td><td>No defense-in-depth</td><td>Add tenant_id + trait (backfill from parent)</td></tr>
+<tr><td>No factories / fakes; e2e not in CI</td><td>§12</td><td>Brittle setups; e2e value unrealized</td><td>Factories for Po/Item/Tenant; run e2e on staging in CI</td></tr>
+<tr><td>i18n/theme/route duplication</td><td>362 ternaries; 6 theme lists; 51 hardcoded URLs</td><td>Drift on every change</td><td>Consolidate into i18n JSON, one theme util, Ziggy or routes.ts</td></tr>
+<tr><td>BackfillItemStages live command</td><td><code>BackfillItemStages.php:59,70</code></td><td>Re-run corrupts progress math</td><td>Delete or guard behind env check</td></tr>
+</table>
+
+<h3><span class="sev p3">P3</span> — Nice to improve</h3>
+<table>
+<tr><th>Finding</th><th>Evidence</th><th>Impact</th><th>Recommendation</th></tr>
+<tr><td>Dead code &amp; deps</td><td>§4, §11</td><td>Noise</td><td>Delete: FullscreenOverlay, Types/, showLogin, dead imports, 5 npm devDeps</td></tr>
+<tr><td>Root doc sprawl + AGENTS.md drift</td><td>§4</td><td>Orientation cost</td><td>Consolidate planning docs; refresh AGENTS.md</td></tr>
+<tr><td>Redundant item indexes; denormalized is_urgent</td><td>§7 risks 5, 8</td><td>Write amplification; drift</td><td>Drop subsumed indexes; pick one urgency owner</td></tr>
+<tr><td><code>.env.testing.temp</code> with live APP_KEY on disk</td><td>repo root (untracked)</td><td>Hygiene</td><td>Delete or gitignore</td></tr>
+</table>
+</section>
+<!-- ============ 20 ============ -->
+<section id="s20">
+<h2><span class="num">20.</span>Recommendation</h2>
+
+<h3>Keep — working well, do not change</h3>
+<ul>
+<li><strong>The monolith + Inertia architecture.</strong> No API split, no microservices — right-sized for team and product.</li>
+<li><strong>The stack itself.</strong> Laravel 11, React 18, Tailwind v4, SQLite→PostgreSQL, database queue via cron, Pusher. Lean and coherent (§2, §11).</li>
+<li><strong>The observer cascade concept.</strong> ItemProgress→Item→PO recalculation with transaction + row lock (<code>ItemProgressObserver.php:34-110</code>) is the best-engineered part of the system. Keep the pattern; fix its status vocabulary.</li>
+<li><strong><code>ExportService</code>, <code>ActivityLogger</code>, <code>AppShell</code></strong> — single-purpose, shared, healthy.</li>
+<li><strong>The test suite's core</strong> — tenant-isolation attack tests and stage-flow coverage are genuinely good (§12).</li>
+<li><strong>Broadcast channel design</strong> — tenant-checked, role-split, tested (§8).</li>
+<li><strong>Design-token theme system + <code>Utils/date.ts</code></strong> — good ideas; just centralize the copies.</li>
+</ul>
+
+<h3>Improve — same architecture, better discipline</h3>
+<ul>
+<li>Close the P0 security gaps (email verification contract, role middleware, credential logging, throttles).</li>
+<li>Enforce the TypeScript already in the repo: <code>tsc --noEmit</code> in CI, strictness ratchet.</li>
+<li>Wrap multi-write controller paths in <code>DB::transaction</code>.</li>
+<li>One hardening migration: per-tenant unique constraints, hot-path indexes, drop redundant item indexes, scope <code>do_items</code>.</li>
+<li>Make the tenant scope fail-closed; keep <code>bypass()</code> explicit.</li>
+<li>Replace message-string keys with structured alert columns.</li>
+<li>Server-own the stage-role map and status vocabulary; client consumes as props/config.</li>
+<li>Factories for Tenant/Po/Item/ItemProgress; Mail/Notification fakes; tests for PIN-reset, forgot-password, batch actions.</li>
+<li>One deploy path; CI stops uploading <code>public/hot</code>; e2e wired in.</li>
+<li>Refresh AGENTS.md; consolidate root docs; delete dead code/deps.</li>
+</ul>
+
+<h3>Change — structural, but incremental (no rewrite)</h3>
+<ul>
+<li><strong>Authorization architecture:</strong> from opt-in per-method gates to enforced route-group middleware + policies as the second layer. This is a structural change in how safety is guaranteed, not a rewrite.</li>
+<li><strong>Decompose the two god controllers into feature services</strong> (plain PHP classes: <code>TelemetryService</code>, <code>ProgressService</code>, <code>StageGate</code>) and the god page into tab-level feature components. Controllers become thin; the frontend gets feature boundaries. Trigger: do it <em>before</em> the next 5 dashboard features land.</li>
+<li><strong>Unify the status lifecycle vocabulary</strong> (one enum-like constant set shared by observer, checker, and client) — currently three documents disagree about what an in-progress item is called.</li>
+</ul>
+<p><strong>Explicitly not recommended:</strong> microservices, repository pattern, an API layer, event sourcing, Redis/Horizon, a state-management library, or an i18n framework. Nothing in the evidence justifies them at this size.</p>
+</section>
+
+<!-- ============ 21 ============ -->
+<section id="s21">
+<h2><span class="num">21.</span>Target Architecture (next stage)</h2>
+
+<h3>Current → Problems → Evolution</h3>
+<div class="flow">CURRENT                                    PROBLEM
+─────────────────────────────────────────  ──────────────────────────────────
+Routes (auth, verified*)                   *verified is a no-op; no role layer
+  → God controllers (3 files = 61% LOC)    logic + plumbing + analytics mixed
+    → manual tenant re-resolution ×8       fail-open static scope
+    → inline validation                    no FormRequests
+    → Observers (good core)                cascade amplification; status drift
+    → client re-implements rules           2-4 divergent copies of each rule</div>
+
+<h3>Recommended evolution — same monolith, three phases</h3>
+
+<h4>Phase 1 — Safety (days, no structural change)</h4>
+<div class="flow">Routes: auth + verified(REAL) + role:office / role:floor middleware
+  → gates remain as second layer (policies filled in)
+  → MustVerifyEmail on User · throttles on all auth endpoints
+  → tsc --noEmit in CI · DB::transaction on multi-write paths
+  → delete credential logging · fix 3 shipped UI bugs
+  → one deploy path</div>
+
+<h4>Phase 2 — Deconcentration (weeks, file-by-file)</h4>
+<div class="flow">WorkerDashboardController (1,946)
+  → TelemetryService      (getTelemetryData, trends, client health)
+  → ProgressService       (updateProgress, cancelLastUpdate — transacted)
+  → StageGate             (validateStageAccess — single rule owner)
+  controller keeps: request validation → call service → redirect
+
+Owner/Dashboard.tsx (4,203)
+  → features/owner/{Alerts,Active,Completed,Matrix,Team,Branding} tabs
+  → hooks/useEchoPresence (shared by all 3 dashboards)
+  → shared ProgressBar / StatusBadge / PillFilter components
+  → types/index.d.ts adopted everywhere; any banned in new code</div>
+
+<h4>Phase 3 — Hardening (as data/tenants grow)</h4>
+<div class="flow">DB: per-tenant uniques · hot-path indexes · status vocabulary enum
+      · do_items tenant-scoped · structured alert keys (no message parsing)
+Cron: per-tenant batching when tenant count justifies it
+Scope: fail-closed TenantScope · instance-based TenantManager (DI)
+      — unblocks Octane/queue daemon later, if ever needed</div>
+
+<p><strong>What the target is not:</strong> not a new system, not new frameworks, not new layers. The end state is the same monolith with enforced boundaries — middleware that actually guards, rules that live in one place, and files small enough to review.</p>
+</section>
+
+<!-- ============ 22 ============ -->
+<section id="s22">
+<h2><span class="num">22.</span>CTO Executive Summary</h2>
+
+<ol>
+<li><strong>Is the stack appropriate?</strong> Yes, unambiguously. Laravel 11 + Inertia + React + PostgreSQL is lean, coherent, and right-sized. 80/100; the only waste is 5 dead npm devDependencies.</li>
+<li><strong>Is the architecture appropriate for the current product?</strong> In shape, yes — monolith, observer cascades, cron-based async are all correct calls. In execution, it is under-enforced: authorization, transactions, type checking, and tenant scoping all rely on developers remembering to do the right thing.</li>
+<li><strong>Is the codebase unnecessarily complex?</strong> No. It has the right number of layers and no speculative abstraction. Its complexity is accidental, not designed: duplication (3 i18n mechanisms, 6 theme lists, 4 stage maps) and two god files.</li>
+<li><strong>Is it under-engineered anywhere?</strong> Yes — precisely at the enforcement points: a verified-middleware that never verifies, authorization that is opt-in per method, TypeScript that is never checked, multi-write paths without transactions, a tenant scope that fails open, and status strings without a controlled vocabulary.</li>
+<li><strong>Three largest architectural risks:</strong> (1) security controls that appear present but don't fire (email verification) plus unguarded mutations and plaintext credential leakage; (2) rule duplication across PHP and JS with measured divergence — UI and backend already disagree about deadlines, stage locks, and what "in progress" is called; (3) the two god files that block team scaling and concentrate regression risk.</li>
+<li><strong>What should NOT be changed?</strong> The monolith, the stack, the observer-cascade pattern, the queue-via-cron design, the broadcast design, the export/activity-log services, and the core test suite.</li>
+<li><strong>What should be fixed first?</strong> The four P0 items — all are days of work, not weeks: implement <code>MustVerifyEmail</code> and remove the testing bypass; add role middleware and sweep unguarded endpoints; stop persisting PINs and email bodies; fix the three worker-UI crashes and switch on <code>tsc --noEmit</code> in CI.</li>
+<li><strong>Would you approve continued development on this architecture?</strong> <strong>Yes — conditionally.</strong> Approve feature development to continue in parallel with a 1-2 sprint P0/P1 hardening track. Do not approve adding new dashboard features into the two god files; new work lands in extracted services/components from day one.</li>
+</ol>
+
+<p style="margin-top:18px; padding:14px 18px; background:#f2f6ff; border-left:4px solid var(--accent); border-radius:0 8px 8px 0;">
+<strong>Final recommendation, plain language:</strong> This is a competently-architected, right-sized SaaS monolith with a disciplined core and an undisciplined perimeter. The bones — tenancy model, observer cascades, exports, tests — are good and should be kept. The problems are concentrated and cheap to fix: security controls that don't actually fire, two oversized files, and business rules copied between PHP and JavaScript until they drifted apart. Fix the P0 list immediately, enforce the tools already in the repo (TypeScript, middleware, transactions), extract the god files incrementally, and this codebase comfortably supports the next stage of the product without any architectural redesign.
+</p>
+</section>
+</main>
+
+<footer>
+POgrid.id codebase audit · 2026-08-13 · Evidence-verified, read-only inspection · No repository code was modified.
+</footer>
+</body>
+</html>

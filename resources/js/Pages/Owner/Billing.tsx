@@ -24,72 +24,9 @@ export default function Billing({ tenant, is_expired }: Props) {
     const isPaid = statusStr === 'ACTIVE' || statusStr === 'PAID' || statusStr === 'SUBSCRIBED';
 
     return (
-        <AppLayout activeNav="billing" title={t.title} subtitle={t.subtitle}>
+        <AppLayout activeNav="billing" title={t.title} subtitle={`${t.subtitle} — ${tenant?.company_name || 'Tenant Account'}`} backUrl="/dashboard">
             <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
-                {/* Header Navigation */}
-                <header style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '32px',
-                    paddingBottom: '20px',
-                    borderBottom: '1px solid var(--color-pg-border, rgba(255, 255, 255, 0.1))'
-                }}>
-                    <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                            <Link href="/dashboard" style={{ color: 'var(--color-pg-text-muted)', display: 'inline-flex', alignItems: 'center', textDecoration: 'none', fontSize: '13px', fontWeight: 600 }}>
-                                <ChevronLeft size={16} /> {t.back}
-                            </Link>
-                        </div>
-                        <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--color-pg-text)', margin: '0', letterSpacing: '-0.025em' }}>
-                            {t.title}
-                        </h1>
-                        <p style={{ fontSize: '14px', color: 'var(--color-pg-text-secondary, #a1a1aa)', margin: '4px 0 0 0' }}>
-                            {t.subtitle} &mdash; <strong>{tenant?.company_name || 'Tenant Account'}</strong>
-                        </p>
-                    </div>
 
-                    <div style={{
-                        display: 'inline-flex',
-                        backgroundColor: 'var(--color-pg-surface)',
-                        padding: '4px',
-                        borderRadius: '10px',
-                        border: '1px solid var(--color-pg-border)',
-                    }}>
-                        <button
-                            onClick={() => changeLanguage('en')}
-                            style={{
-                                padding: '6px 14px',
-                                borderRadius: '7px',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                border: 'none',
-                                cursor: 'pointer',
-                                backgroundColor: language === 'en' ? 'var(--color-pg-primary, #3b82f6)' : 'transparent',
-                                color: language === 'en' ? '#fff' : 'var(--color-pg-text-secondary, #a1a1aa)',
-                                transition: 'all 0.2s',
-                            }}
-                        >
-                            {t.lang_en}
-                        </button>
-                        <button
-                            onClick={() => changeLanguage('id')}
-                            style={{
-                                padding: '6px 14px',
-                                borderRadius: '7px',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                border: 'none',
-                                cursor: 'pointer',
-                                backgroundColor: language === 'id' ? 'var(--color-pg-primary, #3b82f6)' : 'transparent',
-                                color: language === 'id' ? '#fff' : 'var(--color-pg-text-secondary, #a1a1aa)',
-                                transition: 'all 0.2s',
-                            }}
-                        >
-                            {t.lang_id}
-                        </button>
-                    </div>
-                </header>
 
                 {/* Trial Expiry Alert Banner */}
                 {is_expired && !isPaid && (

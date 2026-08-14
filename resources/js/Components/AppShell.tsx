@@ -240,12 +240,24 @@ export const AppShell: React.FC<AppShellProps> = ({
         setShowThemeDropdown(false);
     };
 
-    const config = getRoleConfig(variant, user, slug);
+    const sharedAuthUser = (page.props as any).auth?.user;
+    const effectiveUser: AppShellUser = {
+        name: user.name || sharedAuthUser?.name,
+        role: user.role || sharedAuthUser?.role || sharedAuthUser?.role_name,
+        role_name: user.role_name || sharedAuthUser?.role_name,
+        role_level: user.role_level || sharedAuthUser?.role_level,
+        post_name: user.post_name || sharedAuthUser?.post_name,
+        post_display_name: user.post_display_name || sharedAuthUser?.post_display_name,
+        post_display_name_id: user.post_display_name_id || sharedAuthUser?.post_display_name_id,
+        is_owner: user.is_owner ?? sharedAuthUser?.is_owner,
+    };
+
+    const config = getRoleConfig(variant, effectiveUser, slug);
     const homeHref = isOffice ? '/dashboard' : `/c/${slug}`;
     const settingsHref = isOffice ? '/profile' : `/c/${slug}/profile`;
     const roleLabel = language === 'id'
-        ? (user.post_display_name_id || user.post_name || user.role_name || user.role || 'Member')
-        : (user.post_display_name || user.post_name || user.role_name || user.role || 'Member');
+        ? (effectiveUser.post_display_name_id || effectiveUser.post_name || effectiveUser.role_name || effectiveUser.role || 'Member')
+        : (effectiveUser.post_display_name || effectiveUser.post_name || effectiveUser.role_name || effectiveUser.role || 'Member');
 
     // Collapse only applies to office variant; worker sidebar is always w-64 expanded.
     const collapsed = isOffice && sidebarCollapsed;
@@ -388,11 +400,11 @@ export const AppShell: React.FC<AppShellProps> = ({
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-2.5 p-2 rounded-[2px] border border-[var(--color-pg-nav-border)] bg-[var(--color-pg-nav-hover)]">
                             <div className="mono w-7 h-7 rounded-[2px] bg-[var(--color-pg-accent)]/15 text-[var(--color-pg-accent)] border border-[var(--color-pg-accent)]/30 flex items-center justify-center font-bold text-[11px] flex-shrink-0 relative">
-                                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                                {effectiveUser.name ? effectiveUser.name.charAt(0).toUpperCase() : 'U'}
                                 <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-[var(--color-pg-success)] ring-2 ring-[var(--color-pg-nav)]" />
                             </div>
                             <div className="flex flex-col min-w-0 flex-1">
-                                <span className="text-xs font-bold text-[var(--color-pg-nav-text)] truncate">{user.name || 'User'}</span>
+                                <span className="text-xs font-bold text-[var(--color-pg-nav-text)] truncate">{effectiveUser.name || 'User'}</span>
                                 <span className="mono text-[10px] text-[var(--color-pg-nav-muted)] truncate uppercase tracking-[0.1em]">{roleLabel}</span>
                             </div>
                         </div>
@@ -421,8 +433,8 @@ export const AppShell: React.FC<AppShellProps> = ({
                     </div>
                 ) : (
                     <div className="flex flex-col items-center gap-2">
-                        <div className="mono w-9 h-9 rounded-[2px] bg-[var(--color-pg-accent)]/15 text-[var(--color-pg-accent)] border border-[var(--color-pg-accent)]/30 flex items-center justify-center font-bold text-xs" title={user.name || 'User'}>
-                            {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                        <div className="mono w-9 h-9 rounded-[2px] bg-[var(--color-pg-accent)]/15 text-[var(--color-pg-accent)] border border-[var(--color-pg-accent)]/30 flex items-center justify-center font-bold text-xs" title={effectiveUser.name || 'User'}>
+                            {effectiveUser.name ? effectiveUser.name.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <ThemeMenu collapsed />
                         <button
