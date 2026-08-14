@@ -9,6 +9,7 @@ import BroadcastToasts from '../../Components/BroadcastToasts';
 import { useEchoPresence } from '../../Hooks/useEchoPresence';
 import ProgressBar from '../../Components/ProgressBar';
 import { useTranslation } from "@/i18n/useTranslation";
+import DrafterRoutingModal from '../../features/worker/DrafterRoutingModal';
 
 interface ScheduleItem {
     id: number;
@@ -24,6 +25,7 @@ interface ScheduleItem {
     has_alert: boolean;
     severity: string | null;
     is_urgent?: boolean;
+    required_stages?: string[];
 }
 
 interface ScheduleEntry {
@@ -160,6 +162,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
     const [activeTab, setActiveTab] = useState<TabKey>('schedule');
 
     const [editingPo, setEditingPo] = useState<ScheduleEntry | null>(null);
+    const [routingItem, setRoutingItem] = useState<ScheduleItem | null>(null);
     const [deadlineVal, setDeadlineVal] = useState<string>('');
     const [isUrgentVal, setIsUrgentVal] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -383,6 +386,7 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                             setDeadlineVal(po.global_deadline);
                             setIsUrgentVal(po.is_urgent);
                         }}
+                        onEditRouting={(item) => setRoutingItem(item)}
                     />
                 )}
                 {activeTab === 'load' && <LoadTab workCenterLoad={work_center_load} language={language} t={t as any} />}
@@ -411,60 +415,74 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                         border: '1px solid var(--color-pg-border)',
                         borderRadius: '12px',
                         width: '100%',
-                        maxWidth: '450px',
+                        maxWidth: '420px',
                         padding: '20px',
-                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
                     }}>
-                        <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-pg-text)', margin: '0 0 4px 0' }}>
-                            {language === 'en' ? 'Reschedule PO' : 'Jadwal Ulang PO'}
-                        </h3>
-                        <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-pg-text-secondary)', margin: '0 0 16px 0' }}>
-                            {editingPo.po_number} · {editingPo.client_name}
-                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0 }}>
+                                {language === 'en' ? 'Reschedule PO' : 'Jadwal Ulang PO'}
+                            </h3>
+                            <button 
+                                onClick={() => setEditingPo(null)}
+                                style={{
+                                    border: 'none', background: 'none', color: 'var(--color-pg-text-muted)',
+                                    cursor: 'pointer', fontSize: '18px', padding: '2px',
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
 
                         <form onSubmit={handleSavePo}>
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--color-pg-text-secondary)', textTransform: 'uppercase', marginBottom: '6px' }}>
-                                    {language === 'en' ? 'Global Deadline' : 'Batas Waktu Global'}
+                                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-pg-text)', marginBottom: '2px' }}>
+                                    {editingPo.client_name}
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--color-pg-text-muted)' }}>
+                                    {editingPo.po_number}
+                                </div>
+                            </div>
+
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-pg-text-secondary)' }}>
+                                    {language === 'en' ? 'Target Delivery Deadline' : 'Target Tenggat Pengiriman'}
                                 </label>
                                 <input 
-                                    type="date" 
-                                    value={deadlineVal} 
+                                    type="date"
+                                    value={deadlineVal}
                                     onChange={(e) => setDeadlineVal(e.target.value)}
                                     required
                                     style={{
                                         width: '100%',
-                                        backgroundColor: 'var(--color-pg-bg)',
-                                        border: '1px solid var(--color-pg-border)',
+                                        padding: '8px 12px',
                                         borderRadius: '8px',
+                                        border: '1px solid var(--color-pg-border)',
+                                        backgroundColor: 'var(--color-pg-input)',
                                         color: 'var(--color-pg-text)',
-                                        padding: '10px 12px',
-                                        fontSize: '14px',
+                                        fontSize: '13px',
                                         outline: 'none',
                                     }}
                                 />
                             </div>
 
-                            <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <input 
-                                    type="checkbox" 
-                                    id="is_urgent_checkbox"
-                                    checked={isUrgentVal}
-                                    onChange={(e) => setIsUrgentVal(e.target.checked)}
-                                    style={{
-                                        width: '18px',
-                                        height: '18px',
-                                        cursor: 'pointer',
-                                    }}
-                                />
-                                <label htmlFor="is_urgent_checkbox" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-pg-text)', cursor: 'pointer', userSelect: 'none' }}>
-                                    {language === 'en' ? 'Mark PO as Urgent' : 'Tandai PO Urgen'}
+                            <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                    <input 
+                                        type="checkbox"
+                                        checked={isUrgentVal}
+                                        onChange={(e) => setIsUrgentVal(e.target.checked)}
+                                        style={{ accentColor: '#fb923c', width: '16px', height: '16px' }}
+                                    />
+                                    <span style={{ fontSize: '13px', fontWeight: 600, color: isUrgentVal ? '#fb923c' : 'var(--color-pg-text)' }}>
+                                        {language === 'en' ? 'Mark PO as Urgent Priority' : 'Tandai PO sebagai Prioritas Mendesak (Urgent)'}
+                                    </span>
                                 </label>
                             </div>
 
-                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                                 <button 
-                                    type="button" 
+                                    type="button"
                                     onClick={() => setEditingPo(null)}
                                     style={{
                                         padding: '8px 16px',
@@ -502,6 +520,20 @@ export default function PpicDashboard({ auth_user, tenant, schedule, work_center
                     </div>
                 </div>
             )}
+
+            {/* Modal for PPIC Routing Management */}
+            {routingItem && (
+                <DrafterRoutingModal
+                    isOpen={!!routingItem}
+                    onClose={() => setRoutingItem(null)}
+                    item={routingItem}
+                    slug={slug}
+                    language={language}
+                    submitUrl={`/c/${slug}/ppic/items/${routingItem.id}/routing`}
+                    title={language === 'en' ? '⚙️ PPIC: Set Production Line Routing' : '⚙️ PPIC: Atur Alur Produksi'}
+                    actionLabel={language === 'en' ? 'Save Production Routing' : 'Simpan Alur Produksi'}
+                />
+            )}
         </div>
     );
 }
@@ -515,7 +547,7 @@ function KpiCard({ value, label, color, bgColor, borderColor }: { value: number;
     );
 }
 
-function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: ScheduleEntry[]; language: 'en' | 'id'; t: Record<string, string>; onEditPo: (po: ScheduleEntry) => void; slug: string }) {
+function ScheduleTab({ schedule, language, t, onEditPo, onEditRouting, slug }: { schedule: ScheduleEntry[]; language: 'en' | 'id'; t: Record<string, string>; onEditPo: (po: ScheduleEntry) => void; onEditRouting: (item: ScheduleItem) => void; slug: string }) {
     const [viewMode, setViewMode] = useState<'table' | 'gantt'>('table');
 
     if (schedule.length === 0) {
@@ -701,6 +733,28 @@ function ScheduleTab({ schedule, language, t, onEditPo, slug }: { schedule: Sche
                                 )}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                                <button
+                                    type="button"
+                                    onClick={() => onEditRouting(item)}
+                                    title={language === 'en' ? 'Edit Production Routing' : 'Atur Alur Produksi'}
+                                    style={{
+                                        border: '1px solid var(--color-pg-border)',
+                                        backgroundColor: 'var(--color-pg-surface)',
+                                        color: 'var(--color-pg-text-secondary)',
+                                        padding: '2px 8px',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '11px',
+                                        fontWeight: 600,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                    }}
+                                    onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.15)'; e.currentTarget.style.color = '#818cf8'; }}
+                                    onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-pg-surface)'; e.currentTarget.style.color = 'var(--color-pg-text-secondary)'; }}
+                                >
+                                    ⚙️ {language === 'en' ? 'Route' : 'Alur'}
+                                </button>
                                 <span style={{ color: 'var(--color-pg-text-muted)' }}>{item.target_qty} pcs</span>
                                 <span style={{
                                     fontWeight: 700,

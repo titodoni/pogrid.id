@@ -13,6 +13,8 @@ use App\Models\Tenant;
 use App\Models\TenantStageTemplate;
 use App\Models\User;
 use App\Services\ActivityLogger;
+use App\Services\DrafterRoutingService;
+use App\Services\PartCatalogService;
 use App\Services\ReportingService;
 use App\Services\StageTemplateService;
 use App\Services\TenantManager;
@@ -91,7 +93,7 @@ class OwnerDashboardController extends Controller
         return back()->with('success', 'Workflow settings updated successfully.');
     }
 
-    public function create()
+    public function create(PartCatalogService $partCatalog)
     {
         $user = auth()->user();
 
@@ -135,11 +137,32 @@ class OwnerDashboardController extends Controller
                 'stages' => $t->stages,
             ]);
 
+        $historicalItems = Item::where('tenant_id', TenantManager::getTenantId())
+            ->whereNotIn('status', ['CANCELLED', 'TERMINATED'])
+            ->with('po:id,client_name')
+            ->latest('id')
+            ->take(100)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'client_name' => $item->po?->client_name ?? '',
+                    'item_name' => $item->item_name,
+                    'item_type' => $item->item_type,
+                    'target_qty' => (int) $item->target_qty,
+                    'required_stages' => is_array($item->required_stages) ? $item->required_stages : [],
+                    'vendor_name' => $item->vendor_name,
+                    'vendor_phone' => $item->vendor_phone,
+                ];
+            })
+            ->filter(fn ($i) => ! empty($i['client_name']) && ! empty($i['item_name']))
+            ->values();
+
         return Inertia::render('Owner/CreatePo', [
             'tenant' => $user->tenant,
             'auth_user' => $user,
             'recent_pos' => $recentPos,
             'stage_templates' => $stageTemplates,
+            'historical_items' => $historicalItems,
         ]);
     }
 
@@ -174,7 +197,7 @@ class OwnerDashboardController extends Controller
             'items.*.item_name' => ['required', 'string', 'max:255'],
             'items.*.item_type' => ['required', 'in:MANUFACTURE,BUY_OUT,SERVICE'],
             'items.*.target_qty' => ['required', 'integer', 'min:1'],
-            'items.*.required_stages' => ['required', 'array', 'min:1'],
+            'items.*.required_stages' => ['nullable', 'array'],
             'items.*.required_stages.*' => ['required', 'string'],
             'items.*.vendor_name' => ['nullable', 'string', 'max:255'],
             'items.*.vendor_phone' => ['nullable', 'string', 'max:255'],
@@ -207,13 +230,24 @@ class OwnerDashboardController extends Controller
             ]);
 
             foreach ($request->items as $itemData) {
+                $stages = $itemData['required_stages'] ?? null;
+                if (empty($stages) || ! is_array($stages)) {
+                    if ($itemData['item_type'] === 'BUY_OUT') {
+                        $stages = ['Material', 'Vendor', 'QC', 'Delivery'];
+                    } elseif ($itemData['item_type'] === 'SERVICE') {
+                        $stages = ['Design'];
+                    } else {
+                        $stages = ['Design', 'Material', 'QC', 'Delivery'];
+                    }
+                }
+
                 Item::create([
                     'tenant_id' => TenantManager::getTenantId(),
                     'po_id' => $po->id,
                     'item_name' => $itemData['item_name'],
                     'item_type' => $itemData['item_type'],
                     'target_qty' => $itemData['target_qty'],
-                    'required_stages' => $itemData['required_stages'],
+                    'required_stages' => $stages,
                     'status' => 'PENDING',
                     'vendor_name' => $itemData['vendor_name'] ?? null,
                     'vendor_phone' => $itemData['vendor_phone'] ?? null,
@@ -386,6 +420,21 @@ class OwnerDashboardController extends Controller
         $item->update(['status' => 'CANCELLED']);
 
         return back()->with('success', 'Item cancelled successfully.');
+    }
+
+    public function updateItemRouting(Request $request, $itemId, DrafterRoutingService $routingService)
+    {
+        $request->validate([
+            'required_stages' => ['required', 'array', 'min:1'],
+            'required_stages.*' => ['required', 'string'],
+        ]);
+
+        $item = Item::findOrFail($itemId);
+        $this->authorize('update', $item);
+
+        $routingService->updateRoutingOnly($item, $request->required_stages, auth()->user());
+
+        return back()->with('success', 'Production routing updated successfully.');
     }
 
     public function terminateMidway(Request $request, $itemId)

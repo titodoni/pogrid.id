@@ -87,6 +87,9 @@ Route::middleware(['auth', 'can:access-office', 'verified'])->group(function () 
     // Change Password
     Route::post('/change-password', [OwnerDashboardController::class, 'changePassword']);
 
+    // Production Item Routing Update (Admin/Owner)
+    Route::post('/items/{itemId}/routing', [OwnerDashboardController::class, 'updateItemRouting']);
+
     // PIN Reset Approval (admin only)
     Route::post('/pin-reset/{alertId}/approve', [PinResetController::class, 'approvePinReset']);
 
@@ -125,6 +128,7 @@ Route::prefix('c/{slug}')->group(function () {
         Route::post('/items/{itemId}/finance', [WorkerDashboardController::class, 'updateFinanceStatus']);
         Route::post('/ppic/pos/{poId}/update', [PpicDashboardController::class, 'updatePo']);
         Route::post('/ppic/items/{itemId}/priority', [PpicDashboardController::class, 'updateItemPriority']);
+        Route::post('/ppic/items/{itemId}/routing', [PpicDashboardController::class, 'updateItemRouting']);
     });
 });
 

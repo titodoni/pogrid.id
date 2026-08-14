@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Item;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Auth\Access\Response;
 
@@ -19,6 +19,15 @@ class ItemPolicy
 
         if ((float) $item->progress_percent > 0.00) {
             return Response::deny('Sunk-Cost Cancel Protection: Items with progress > 0% cannot be cancelled. You must terminate midway instead.');
+        }
+
+        return Response::allow();
+    }
+
+    public function update(User $user, Item $item)
+    {
+        if ($user->isSales()) {
+            return Response::deny('Sales accounts are strictly read-only and cannot modify production items.');
         }
 
         return Response::allow();

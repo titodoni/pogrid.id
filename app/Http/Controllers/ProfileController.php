@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tenant;
 use App\Services\TenantManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class ProfileController extends Controller
@@ -25,7 +26,7 @@ class ProfileController extends Controller
             TenantManager::enableScope();
             TenantManager::setTenantId($tenant->id);
 
-            \Illuminate\Support\Facades\Gate::authorize('view-tenant', $tenant->id);
+            Gate::authorize('view-tenant', $tenant->id);
         } else {
             $tenant = Tenant::find($user->tenant_id);
             if (! $tenant) {

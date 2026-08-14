@@ -3,8 +3,8 @@
 namespace App\Observers;
 
 use App\Models\DoItem;
-use Illuminate\Support\Facades\DB;
 use App\Services\PoCompletionChecker;
+use Illuminate\Support\Facades\DB;
 
 class DoItemObserver
 {

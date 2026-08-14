@@ -14,6 +14,7 @@ import FinancePanel from '../../features/worker/FinancePanel';
 import KendalaForm from '../../features/worker/KendalaForm';
 import ProgressControls from '../../features/worker/ProgressControls';
 import QcReworkForm from '../../features/worker/QcReworkForm';
+import DrafterRoutingModal from '../../features/worker/DrafterRoutingModal';
 
 interface Stage {
     id: number;
@@ -87,6 +88,7 @@ interface ItemCardProps {
     userRole: string;
     slug: string;
     language: 'en' | 'id';
+    onOpenDrafterModal?: (item: Item) => void;
 }
 
 function ItemCard({
@@ -94,6 +96,7 @@ function ItemCard({
     userRole,
     slug,
     language,
+    onOpenDrafterModal,
 }: ItemCardProps) {
     const { t } = useTranslation('Worker_Dashboard');
     const [isHovered, setIsHovered] = useState(false);
@@ -583,6 +586,10 @@ function ItemCard({
                                                                         key={status}
                                                                         onClick={() => {
                                                                             if (isActive || loading) return;
+                                                                            if (status === 'APPROVED') {
+                                                                                onOpenDrafterModal?.(item);
+                                                                                return;
+                                                                            }
                                                                             router.post(`/c/${slug}/items/${item.id}/drafter-status`, {
                                                                                 drafter_status: status,
                                                                             }, {
@@ -904,6 +911,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id, tenant }:
     const [currentTime, setCurrentTime] = useState(new Date());
     const [frozen, setFrozen] = useState<{ itemName: string } | null>(null);
     const [showThemeDropdown, setShowThemeDropdown] = useState(false);
+    const [drafterRoutingItem, setDrafterRoutingItem] = useState<Item | null>(null);
     const reloadTimeoutRef = useRef<any>(null);
 
     const triggerScopedReload = useCallback((onlyKeys: string[] = ['items']) => {
@@ -1057,6 +1065,7 @@ export default function WorkerDashboard({ items, auth_user, tenant_id, tenant }:
                                 userRole={userRole}
                                 slug={slug}
                                 language={language}
+                                onOpenDrafterModal={(it) => setDrafterRoutingItem(it)}
                             />
                         ))}
                     </div>
@@ -1075,6 +1084,16 @@ export default function WorkerDashboard({ items, auth_user, tenant_id, tenant }:
                     beta1 (2026-07-17)
                 </div>
             </div>
+
+            {drafterRoutingItem && (
+                <DrafterRoutingModal
+                    isOpen={!!drafterRoutingItem}
+                    onClose={() => setDrafterRoutingItem(null)}
+                    item={drafterRoutingItem}
+                    slug={slug}
+                    language={language}
+                />
+            )}
         </div>
     );
 }

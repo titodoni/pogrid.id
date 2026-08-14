@@ -7,6 +7,16 @@ import { useUnsavedChanges } from '../../Hooks/useUnsavedChanges';
 import { formatDDMMYYYY } from '../../Utils/date';
 import { useTranslation } from "@/i18n/useTranslation";
 
+export interface HistoricalItem {
+    client_name: string;
+    item_name: string;
+    item_type: ItemType;
+    target_qty: number;
+    required_stages: string[];
+    vendor_name?: string | null;
+    vendor_phone?: string | null;
+}
+
 interface Props {
     tenant?: {
         company_name: string;
@@ -23,6 +33,7 @@ interface Props {
     };
     recent_pos?: RecentPo[];
     stage_templates?: { id: number; name: string; description: string | null; stages: string[] }[];
+    historical_items?: HistoricalItem[];
 }
 
 interface RecentPo {
@@ -36,8 +47,8 @@ interface RecentPo {
 
 const FULL_PRODUCTION_STAGES = ['Design', 'Material', 'Machining', 'Fabrication', 'Assembly', 'QC', 'Delivery'];
 
-const TEMPLATES: { key: string; labelEn: string; labelId: string; stages: string[]; isDefault?: boolean }[] = [
-    { key: 'full-prod', labelEn: 'Full Production', labelId: 'Teknik Lengkap', stages: FULL_PRODUCTION_STAGES, isDefault: true },
+const TEMPLATES: { key: string; labelEn: string; labelId: string; stages: string[] }[] = [
+    { key: 'full-prod', labelEn: 'Full Production', labelId: 'Teknik Lengkap', stages: FULL_PRODUCTION_STAGES },
     { key: 'cnc', labelEn: 'CNC Workshop', labelId: 'Bubut/CNC', stages: ['Machining'] },
     { key: 'fab', labelEn: 'Fabrication Workshop', labelId: 'Fabrikasi', stages: ['Fabrication'] },
     { key: 'eng', labelEn: 'Engineering Workshop', labelId: 'Teknik', stages: ['Design', 'Machining'] },
@@ -45,7 +56,6 @@ const TEMPLATES: { key: string; labelEn: string; labelId: string; stages: string
     { key: 'finishing', labelEn: 'With Finishing', labelId: '+ Finishing', stages: ['Design', 'Material', 'Machining', 'Fabrication', 'Surface Treatment', 'QC', 'Delivery'] },
     { key: 'procure', labelEn: 'Procurement Only', labelId: 'Pembelian Saja', stages: ['Material', 'Vendor'] },
     { key: 'service', labelEn: 'Service / Design Only', labelId: 'Jasa / Desain Saja', stages: ['Design'] },
-    { key: 'custom', labelEn: 'Custom (Blank)', labelId: 'Kustom (Kosong)', stages: [] },
 ];
 
 const ALL_STAGES = ['Design', 'Material', 'Machining', 'Fabrication', 'Assembly', 'Surface Treatment', 'QC', 'Delivery', 'Vendor'];
@@ -87,7 +97,7 @@ const createDefaultItem = (): PoItem => ({
     item_name: '',
     item_type: 'MANUFACTURE',
     target_qty: 1,
-    required_stages: [...FULL_PRODUCTION_STAGES],
+    required_stages: [],
     vendor_name: '',
     vendor_phone: '',
 });
@@ -195,7 +205,133 @@ function DateInputDDMMYYYY({ value, onChange, style }: { value: string; onChange
     );
 }
 
-export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_templates = [] }: Props) {
+function ItemNameAutocomplete({
+    value,
+    clientName,
+    historicalItems = [],
+    onChange,
+    onSelectMemory,
+    placeholder = 'e.g. Shaft Arm',
+}: {
+    value: string;
+    clientName: string;
+    historicalItems?: HistoricalItem[];
+    onChange: (val: string) => void;
+    onSelectMemory: (item: HistoricalItem) => void;
+    placeholder?: string;
+}) {
+    const [open, setOpen] = useState(false);
+    const wrapperRef = React.useRef<HTMLDivElement>(null);
+
+    const filtered = React.useMemo(() => {
+        if (!open) return [];
+        const q = (value || '').toLowerCase().trim();
+        const clientMatches = historicalItems.filter(h =>
+            clientName && h.client_name && h.client_name.toLowerCase() === clientName.toLowerCase()
+        );
+        const pool = clientMatches.length > 0 ? clientMatches : historicalItems;
+        if (!q) return pool.slice(0, 4);
+        return pool.filter(h => h.item_name.toLowerCase().includes(q)).slice(0, 6);
+    }, [value, open, clientName, historicalItems]);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    return (
+        <div ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
+            <input
+                type="text"
+                value={value}
+                onFocus={() => setOpen(true)}
+                onChange={(e) => {
+                    onChange(e.target.value);
+                    setOpen(true);
+                }}
+                required
+                placeholder={placeholder}
+                style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    backgroundColor: 'var(--color-pg-input)',
+                    border: '1px solid var(--color-pg-border)',
+                    borderRadius: '10px',
+                    color: 'var(--color-pg-text)',
+                    fontSize: '13px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    minHeight: '42px',
+                }}
+            />
+            {open && filtered.length > 0 && (
+                <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    zIndex: 50,
+                    marginTop: '4px',
+                    backgroundColor: 'var(--color-pg-surface)',
+                    border: '1px solid var(--color-pg-border)',
+                    borderRadius: '10px',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+                    maxHeight: '220px',
+                    overflowY: 'auto',
+                    padding: '4px',
+                }}>
+                    <div style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 700, color: 'var(--color-pg-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        🧠 Riwayat Part Klien ({filtered.length})
+                    </div>
+                    {filtered.map((hist, i) => (
+                        <div
+                            key={i}
+                            onMouseDown={() => {
+                                onSelectMemory(hist);
+                                setOpen(false);
+                            }}
+                            style={{
+                                padding: '8px 10px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '2px',
+                                transition: 'background-color 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-pg-card-hover)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-pg-text)' }}>
+                                    {hist.item_name}
+                                </span>
+                                <span style={{ fontSize: '11px', color: 'var(--color-pg-accent)', fontWeight: 600 }}>
+                                    {hist.target_qty} pcs • {hist.item_type}
+                                </span>
+                            </div>
+                            {hist.required_stages && hist.required_stages.length > 0 && (
+                                <div style={{ fontSize: '11px', color: 'var(--color-pg-text-muted)', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                    <span>Alur:</span>
+                                    <span style={{ color: 'var(--color-pg-primary-hover)' }}>
+                                        {hist.required_stages.join(' ➔ ')}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_templates = [], historical_items = [] }: Props) {
     const { t, language, changeLanguage } = useTranslation('Owner_CreatePo');
     const { errors } = usePage().props;
 
@@ -220,6 +356,11 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
     const [isUrgent, setIsUrgent] = useState(false);
     const [items, setItems] = useState<PoItem[]>(() => [createDefaultItem()]);
     const [draftRestored, setDraftRestored] = useState(false);
+    const [customizingStages, setCustomizingStages] = useState<Record<number, boolean>>({});
+
+    const toggleCustomizingStages = (index: number) => {
+        setCustomizingStages(prev => ({ ...prev, [index]: !prev[index] }));
+    };
 
     const hasUnsavedData =
         poNumber.trim() !== '' ||
@@ -333,15 +474,24 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
             return;
         }
 
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
+        const sanitizedItems = items.map(item => {
+            let stages = item.required_stages;
+            if (!stages || stages.length === 0) {
+                if (item.item_type === 'BUY_OUT') {
+                    stages = ['Material', 'Vendor', 'QC', 'Delivery'];
+                } else if (item.item_type === 'SERVICE') {
+                    stages = ['Design'];
+                } else {
+                    stages = ['Design', 'Material', 'QC', 'Delivery'];
+                }
+            }
+            return { ...item, required_stages: stages };
+        });
+
+        for (let i = 0; i < sanitizedItems.length; i++) {
+            const item = sanitizedItems[i];
             if (!item.item_name.trim()) {
                 setLocalError(t.err_item_name.replace('{num}', String(i + 1)));
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                return;
-            }
-            if (item.required_stages.length === 0) {
-                setLocalError(t.err_select_stage.replace('{name}', item.item_name));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 return;
             }
@@ -363,7 +513,7 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
             is_urgent: isUrgent,
             // PoItem[] is structurally form-convertible; the inferred literal type
             // is not, so widen at the boundary rather than loosening PoItem.
-            items: items as unknown as FormDataConvertible,
+            items: sanitizedItems as unknown as FormDataConvertible,
         }, {
             onSuccess: () => localStorage.removeItem(DRAFT_KEY),
             onFinish: () => setSubmitting(false),
@@ -593,6 +743,32 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                         {isCustomClient && !showAddClient && (
                             <input type="text" value={clientName} onChange={(e) => setClientName(e.target.value)} required placeholder={t.enter_client_name} style={{ ...inputStyle, marginTop: '8px' }} />
                         )}
+                        {clientName && recent_pos.some(p => p.client_name.toLowerCase() === clientName.toLowerCase()) && (
+                            <div style={{ marginTop: '8px', padding: '8px 12px', borderRadius: '8px', backgroundColor: 'rgba(99, 102, 241, 0.12)', border: '1px solid var(--color-pg-primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                                <span style={{ fontSize: '12px', color: 'var(--color-pg-primary-hover)', fontWeight: 600 }}>
+                                    ⚡ {language === 'id' ? `Ditemukan PO sebelumnya untuk ${clientName}` : `Found previous POs for ${clientName}`}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const prev = recent_pos.find(p => p.client_name.toLowerCase() === clientName.toLowerCase());
+                                        if (prev) applyRepeatOrder(String(prev.id));
+                                    }}
+                                    style={{
+                                        padding: '4px 10px',
+                                        fontSize: '11px',
+                                        fontWeight: 700,
+                                        backgroundColor: 'var(--color-pg-primary)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    {language === 'id' ? 'Salin Item PO Terakhir' : 'Copy Last PO Items'}
+                                </button>
+                            </div>
+                        )}
                     </div>
                     <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
@@ -701,18 +877,22 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                             }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--color-pg-text-secondary)', marginBottom: '6px' }}>{t.item_name}</label>
-                                    <input type="text" value={item.item_name} onChange={(e) => updateItem(index, 'item_name', e.target.value)} required placeholder="e.g. Shaft Steel" style={{
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        backgroundColor: 'var(--color-pg-input)',
-                                        border: '1px solid var(--color-pg-border)',
-                                        borderRadius: '10px',
-                                        color: 'var(--color-pg-text)',
-                                        fontSize: '13px',
-                                        outline: 'none',
-                                        boxSizing: 'border-box',
-                                        minHeight: '42px',
-                                    }} />
+                                    <ItemNameAutocomplete
+                                        value={item.item_name}
+                                        clientName={clientName}
+                                        historicalItems={historical_items}
+                                        onChange={(val) => updateItem(index, 'item_name', val)}
+                                        onSelectMemory={(hist) => {
+                                            updateItem(index, 'item_name', hist.item_name);
+                                            if (hist.item_type) updateItem(index, 'item_type', hist.item_type);
+                                            if (hist.target_qty) updateItem(index, 'target_qty', hist.target_qty);
+                                            if (hist.required_stages && hist.required_stages.length > 0) {
+                                                updateItem(index, 'required_stages', hist.required_stages);
+                                            }
+                                            if (hist.vendor_name) updateItem(index, 'vendor_name', hist.vendor_name);
+                                            if (hist.vendor_phone) updateItem(index, 'vendor_phone', hist.vendor_phone);
+                                        }}
+                                    />
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--color-pg-text-secondary)', marginBottom: '6px' }}>{t.item_type}</label>
@@ -749,11 +929,20 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                 </div>
                             </div>
 
-                            {/* Production Process: template picker + ordered stage pipeline */}
+                            {/* Production Process: sleek compact bar by default, expandable drawer on demand */}
                             {(() => {
                                 const allTemplates = [...TEMPLATES, ...stage_templates.map(st => ({ key: `tenant-${st.id}`, labelEn: st.name, labelId: st.name, stages: st.stages }))];
-                                const matchedKey = allTemplates.find(tmpl => sameStages(item.required_stages, tmpl.stages))?.key ?? null;
-                                const isCustomSelection = matchedKey === null;
+                                const hasStages = item.required_stages && item.required_stages.length > 0;
+                                const matched = hasStages ? allTemplates.find(tmpl => sameStages(item.required_stages, tmpl.stages)) : null;
+                                const matchedKey = matched?.key ?? null;
+                                const matchedLabel = matched
+                                    ? (language === 'en' ? matched.labelEn : matched.labelId)
+                                    : hasStages
+                                        ? (language === 'en' ? 'Custom Route' : 'Rute Kustom')
+                                        : (language === 'en' ? 'Not Set (Drafter Setup)' : 'Belum Diatur (Drafter Setup)');
+                                const isCustomSelection = hasStages && matchedKey === null;
+                                const isExpanded = !!customizingStages[index];
+
                                 const isStageDisabled = (stage: string) =>
                                     (item.item_type === 'BUY_OUT' && (stage === 'Machining' || stage === 'Fabrication')) ||
                                     (item.item_type === 'MANUFACTURE' && stage === 'Vendor');
@@ -768,141 +957,208 @@ export default function CreatePo({ tenant, auth_user, recent_pos = [], stage_tem
                                 };
 
                                 return (
-                                    <div style={{
-                                        marginBottom: item.required_stages.includes('Vendor') ? '22px' : 0,
-                                        padding: '16px',
-                                        backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                                        border: '1px solid var(--color-pg-border)',
-                                        borderRadius: '12px',
-                                    }}>
-                                        {/* Header */}
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                                            <label style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--color-pg-text-secondary)' }}>
-                                                {t.process_title}
-                                            </label>
-                                            <span style={{ fontSize: '12px', fontWeight: 600, color: item.required_stages.length > 0 ? 'var(--color-pg-accent)' : 'var(--color-pg-danger)' }}>
-                                                {t.stages_selected.replace('{count}', String(item.required_stages.length))}
-                                            </span>
-                                        </div>
-                                        <p style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', margin: '0 0 14px 0', lineHeight: 1.5 }}>
-                                            {t.process_hint}
-                                        </p>
+                                    <div style={{ marginBottom: item.required_stages.includes('Vendor') ? '16px' : 0 }}>
+                                        {/* Compact Routing Summary Strip */}
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            flexWrap: 'wrap',
+                                            gap: '10px',
+                                            padding: '10px 14px',
+                                            backgroundColor: isExpanded ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.2)',
+                                            border: '1px solid var(--color-pg-border)',
+                                            borderRadius: isExpanded ? '12px 12px 0 0' : '10px',
+                                            transition: 'all 0.2s ease',
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-pg-text-secondary)' }}>
+                                                    ⚙️ {language === 'en' ? 'Production Routing:' : 'Alur Produksi:'}
+                                                </span>
+                                                <span style={{
+                                                    fontSize: '12px',
+                                                    fontWeight: 700,
+                                                    color: hasStages ? '#60a5fa' : 'var(--color-pg-text-muted)',
+                                                    backgroundColor: hasStages ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                                    padding: '3px 10px',
+                                                    borderRadius: '6px',
+                                                    border: hasStages ? '1px solid rgba(59, 130, 246, 0.3)' : '1px dashed var(--color-pg-border)',
+                                                }}>
+                                                    {matchedLabel} {hasStages && `(${item.required_stages.length} ${language === 'en' ? 'stages' : 'tahap'})`}
+                                                </span>
+                                                <span style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)' }}>
+                                                    {hasStages
+                                                        ? item.required_stages.map(s => stageLabel(s)).join(' ➔ ')
+                                                        : (language === 'en' ? '(Drafter will determine internal steps during drawing approval)' : '(Drafter akan menentukan alur tahapan saat gambar approved)')}
+                                                </span>
+                                            </div>
 
-                                        {/* Step 1: Templates */}
-                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                                            {allTemplates.map(tmpl => {
-                                                const isActive = matchedKey === tmpl.key;
-                                                const isDefault = 'isDefault' in tmpl && tmpl.isDefault;
-                                                return (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                {hasStages && (
                                                     <button
-                                                        key={tmpl.key}
                                                         type="button"
-                                                        onClick={() => updateItem(index, 'required_stages', [...tmpl.stages])}
+                                                        onClick={() => updateItem(index, 'required_stages', [])}
+                                                        title={language === 'en' ? 'Reset to empty (delegate to Drafter)' : 'Kosongkan (serahkan ke Drafter)'}
                                                         style={{
-                                                            padding: '7px 12px',
-                                                            fontSize: '12px',
-                                                            fontWeight: 600,
-                                                            border: isActive ? '1px solid #3b82f6' : '1px solid var(--color-pg-border)',
-                                                            borderRadius: '999px',
-                                                            backgroundColor: isActive ? 'rgba(59, 130, 246, 0.2)' : 'var(--color-pg-surface)',
-                                                            color: isActive ? '#60a5fa' : 'var(--color-pg-text-secondary)',
-                                                            boxShadow: isActive ? '0 0 12px rgba(59, 130, 246, 0.25)' : 'none',
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            color: 'var(--color-pg-text-muted)',
+                                                            fontSize: '11px',
                                                             cursor: 'pointer',
-                                                            transition: 'all 0.15s ease',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: '6px',
+                                                            padding: '4px 8px',
                                                         }}
                                                     >
-                                                        {language === 'en' ? tmpl.labelEn : tmpl.labelId}
-                                                        {isDefault && (
-                                                            <span style={{
-                                                                fontSize: '10px',
-                                                                fontWeight: 700,
-                                                                textTransform: 'uppercase',
-                                                                letterSpacing: '0.4px',
-                                                                padding: '2px 6px',
-                                                                borderRadius: '999px',
-                                                                backgroundColor: isActive ? 'rgba(96, 165, 250, 0.25)' : 'rgba(52, 211, 153, 0.15)',
-                                                                color: isActive ? '#93c5fd' : 'var(--color-pg-success)',
-                                                            }}>
-                                                                {t.default_badge}
-                                                            </span>
-                                                        )}
+                                                        ✕ {language === 'en' ? 'Clear' : 'Kosongkan'}
                                                     </button>
-                                                );
-                                            })}
-                                            {isCustomSelection && (
-                                                <span style={{
-                                                    padding: '7px 12px',
-                                                    fontSize: '12px',
-                                                    fontWeight: 600,
-                                                    border: '1px dashed var(--color-pg-accent)',
-                                                    borderRadius: '999px',
-                                                    color: 'var(--color-pg-accent)',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                }}>
-                                                    {t.custom_badge}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {/* Step 2: Ordered pipeline */}
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
-                                            {ALL_STAGES.map((stage, i) => {
-                                                const disabled = isStageDisabled(stage);
-                                                const selected = item.required_stages.includes(stage);
-                                                return (
-                                                    <React.Fragment key={stage}>
-                                                        {i > 0 && (
-                                                            <span style={{ color: 'var(--color-pg-text-muted)', fontSize: '12px', opacity: 0.6, userSelect: 'none' }}>→</span>
-                                                        )}
-                                                        <button
-                                                            type="button"
-                                                            disabled={disabled}
-                                                            onClick={() => toggleStage(stage)}
-                                                            title={disabled ? t.stage_disabled_hint : undefined}
-                                                            style={{
-                                                                padding: '8px 12px',
-                                                                fontSize: '12px',
-                                                                fontWeight: selected ? 700 : 500,
-                                                                border: selected ? '1px solid rgba(59, 130, 246, 0.6)' : '1px solid var(--color-pg-border)',
-                                                                borderRadius: '8px',
-                                                                backgroundColor: selected ? 'rgba(59, 130, 246, 0.18)' : 'rgba(255, 255, 255, 0.02)',
-                                                                color: disabled ? 'var(--color-pg-text-muted)' : selected ? '#ffffff' : 'var(--color-pg-text-muted)',
-                                                                cursor: disabled ? 'not-allowed' : 'pointer',
-                                                                opacity: disabled ? 0.35 : selected ? 1 : 0.7,
-                                                                transition: 'all 0.15s ease',
-                                                                boxShadow: selected ? '0 2px 8px rgba(59, 130, 246, 0.15)' : 'none',
-                                                                textDecoration: disabled ? 'line-through' : 'none',
-                                                            }}
-                                                        >
-                                                            {stageLabel(stage)}
-                                                        </button>
-                                                    </React.Fragment>
-                                                );
-                                            })}
-                                        </div>
-
-                                        {/* Footer: reset */}
-                                        {!sameStages(item.required_stages, FULL_PRODUCTION_STAGES) && (
-                                            <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--color-pg-border)' }}>
+                                                )}
                                                 <button
                                                     type="button"
-                                                    onClick={() => updateItem(index, 'required_stages', FULL_PRODUCTION_STAGES.filter(s => !isStageDisabled(s)))}
+                                                    onClick={() => toggleCustomizingStages(index)}
                                                     style={{
-                                                        background: 'none',
-                                                        border: 'none',
-                                                        padding: 0,
+                                                        background: isExpanded ? 'var(--color-pg-card-hover)' : 'transparent',
+                                                        border: '1px solid var(--color-pg-border)',
+                                                        borderRadius: '8px',
+                                                        padding: '6px 12px',
                                                         fontSize: '12px',
                                                         fontWeight: 600,
                                                         color: 'var(--color-pg-accent)',
                                                         cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        transition: 'all 0.15s ease',
                                                     }}
                                                 >
-                                                    ↺ {t.reset_default}
+                                                    {isExpanded
+                                                        ? (language === 'en' ? '▲ Hide Customizer' : '▲ Selesai / Tutup')
+                                                        : hasStages
+                                                            ? (language === 'en' ? '⚙️ Edit Stages ▾' : '⚙️ Ubah Tahapan ▾')
+                                                            : (language === 'en' ? '+ Set Routing (Optional) ▾' : '+ Atur Alur Produksi ▾')}
                                                 </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Expanded Customizer Panel */}
+                                        {isExpanded && (
+                                            <div style={{
+                                                padding: '16px',
+                                                backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                                                border: '1px solid var(--color-pg-border)',
+                                                borderTop: 'none',
+                                                borderRadius: '0 0 12px 12px',
+                                                animation: 'fadeIn 0.2s ease-in-out',
+                                            }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                                                    <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--color-pg-text-secondary)' }}>
+                                                        {t.process_title}
+                                                    </span>
+                                                    <span style={{ fontSize: '11px', color: 'var(--color-pg-text-muted)' }}>
+                                                        💡 {language === 'en' ? 'Optional setup. Drafter can adjust this sequence during technical drawing approval.' : 'Opsional. Drafter dapat menyesuaikan alur ini saat approval gambar teknis.'}
+                                                    </span>
+                                                </div>
+
+                                                {/* Step 1: Templates */}
+                                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                                                    {allTemplates.map(tmpl => {
+                                                        const isActive = matchedKey === tmpl.key;
+                                                        return (
+                                                            <button
+                                                                key={tmpl.key}
+                                                                type="button"
+                                                                onClick={() => updateItem(index, 'required_stages', [...tmpl.stages])}
+                                                                style={{
+                                                                    padding: '6px 12px',
+                                                                    fontSize: '12px',
+                                                                    fontWeight: 600,
+                                                                    border: isActive ? '1px solid #3b82f6' : '1px solid var(--color-pg-border)',
+                                                                    borderRadius: '999px',
+                                                                    backgroundColor: isActive ? 'rgba(59, 130, 246, 0.2)' : 'var(--color-pg-surface)',
+                                                                    color: isActive ? '#60a5fa' : 'var(--color-pg-text-secondary)',
+                                                                    boxShadow: isActive ? '0 0 12px rgba(59, 130, 246, 0.25)' : 'none',
+                                                                    cursor: 'pointer',
+                                                                    transition: 'all 0.15s ease',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '6px',
+                                                                }}
+                                                            >
+                                                                {language === 'en' ? tmpl.labelEn : tmpl.labelId}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                    {isCustomSelection && (
+                                                        <span style={{
+                                                            padding: '6px 12px',
+                                                            fontSize: '12px',
+                                                            fontWeight: 600,
+                                                            border: '1px dashed var(--color-pg-accent)',
+                                                            borderRadius: '999px',
+                                                            color: 'var(--color-pg-accent)',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                        }}>
+                                                            {t.custom_badge}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Step 2: Ordered pipeline */}
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+                                                    {ALL_STAGES.map((stage, i) => {
+                                                        const disabled = isStageDisabled(stage);
+                                                        const selected = item.required_stages.includes(stage);
+                                                        return (
+                                                            <React.Fragment key={stage}>
+                                                                {i > 0 && (
+                                                                    <span style={{ color: 'var(--color-pg-text-muted)', fontSize: '12px', opacity: 0.6, userSelect: 'none' }}>→</span>
+                                                                )}
+                                                                <button
+                                                                    type="button"
+                                                                    disabled={disabled}
+                                                                    onClick={() => toggleStage(stage)}
+                                                                    title={disabled ? t.stage_disabled_hint : undefined}
+                                                                    style={{
+                                                                        padding: '7px 12px',
+                                                                        fontSize: '12px',
+                                                                        fontWeight: selected ? 700 : 500,
+                                                                        border: selected ? '1px solid rgba(59, 130, 246, 0.6)' : '1px solid var(--color-pg-border)',
+                                                                        borderRadius: '8px',
+                                                                        backgroundColor: selected ? 'rgba(59, 130, 246, 0.18)' : 'rgba(255, 255, 255, 0.02)',
+                                                                        color: disabled ? 'var(--color-pg-text-muted)' : selected ? '#ffffff' : 'var(--color-pg-text-muted)',
+                                                                        cursor: disabled ? 'not-allowed' : 'pointer',
+                                                                        opacity: disabled ? 0.35 : selected ? 1 : 0.7,
+                                                                        transition: 'all 0.15s ease',
+                                                                        boxShadow: selected ? '0 2px 8px rgba(59, 130, 246, 0.15)' : 'none',
+                                                                        textDecoration: disabled ? 'line-through' : 'none',
+                                                                    }}
+                                                                >
+                                                                    {stageLabel(stage)}
+                                                                </button>
+                                                            </React.Fragment>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                {/* Footer: reset */}
+                                                {!sameStages(item.required_stages, FULL_PRODUCTION_STAGES) && (
+                                                    <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--color-pg-border)' }}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => updateItem(index, 'required_stages', FULL_PRODUCTION_STAGES.filter(s => !isStageDisabled(s)))}
+                                                            style={{
+                                                                background: 'none',
+                                                                border: 'none',
+                                                                padding: 0,
+                                                                fontSize: '12px',
+                                                                fontWeight: 600,
+                                                                color: 'var(--color-pg-accent)',
+                                                                cursor: 'pointer',
+                                                            }}
+                                                        >
+                                                            ↺ {t.reset_default}
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>

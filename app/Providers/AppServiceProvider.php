@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Auth\TenantSafeEloquentUserProvider;
 use App\Enums\ItemStatus;
 use App\Enums\PoStatus;
 use App\Models\Alert;
@@ -20,7 +21,10 @@ use App\Observers\ItemObserver;
 use App\Observers\ItemProgressObserver;
 use App\Services\TenantManager;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 
@@ -35,14 +39,14 @@ class AppServiceProvider extends ServiceProvider
     {
         // Identity resolution is pre-tenant (session layer runs before
         // SetTenant): use the tenant-safe provider for user retrieval.
-        \Illuminate\Support\Facades\Auth::provider('tenant-safe-eloquent', function ($app, array $config) {
-            return new \App\Auth\TenantSafeEloquentUserProvider($app['hash'], $config['model']);
+        Auth::provider('tenant-safe-eloquent', function ($app, array $config) {
+            return new TenantSafeEloquentUserProvider($app['hash'], $config['model']);
         });
 
         // Office login throttling keyed by credential+IP (not bare IP), so
         // office staff behind a shared NAT don't lock each other out.
-        \Illuminate\Support\Facades\RateLimiter::for('login-office', function ($request) {
-            return \Illuminate\Cache\RateLimiting\Limit::perMinute(5)
+        RateLimiter::for('login-office', function ($request) {
+            return Limit::perMinute(5)
                 ->by(strtolower((string) $request->input('username')).'|'.$request->ip());
         });
 

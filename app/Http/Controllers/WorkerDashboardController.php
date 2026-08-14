@@ -13,6 +13,7 @@ use App\Models\Post;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\DrafterRoutingService;
 use App\Services\ExportService;
 use App\Services\ProgressService;
 use App\Services\StageGate;
@@ -384,55 +385,24 @@ class WorkerDashboardController extends Controller
         return back()->with('success', 'QC Rework logged and Rework stage spawned.');
     }
 
-    public function updateDrafterStatus(Request $request, $slug, $itemId)
+    public function updateDrafterStatus(Request $request, $slug, $itemId, DrafterRoutingService $routingService)
     {
         $request->validate([
             'drafter_status' => ['required', 'string', 'in:DRAWING,APPROVED'],
+            'required_stages' => ['nullable', 'array'],
+            'required_stages.*' => ['required', 'string'],
         ]);
-
-        $user = auth()->user()->load('roleRelation');
-        $userRoleName = $user->role_name;
 
         Gate::authorize('update-drafter');
 
         $item = Item::findOrFail($itemId);
 
-        // Find the design stage to store previous values
-        $designProgress = ItemProgress::where('item_id', $item->id)
-            ->where(function ($q) {
-                $q->where('stage_name', 'like', '%Design%')
-                    ->orWhere('stage_name', 'like', '%DESIGN%')
-                    ->orWhere('stage_name', 'like', '%Gambar%')
-                    ->orWhere('stage_name', 'like', '%gambar%')
-                    ->orWhere('stage_name', 'like', '%Draft%')
-                    ->orWhere('stage_name', 'like', '%draft%');
-            })
-            ->first();
-
-        if ($designProgress) {
-            $previousCompletedQty = $designProgress->completed_qty;
-            $previousProgressPercent = $designProgress->progress_percent;
-        } else {
-            $previousCompletedQty = null;
-            $previousProgressPercent = null;
-        }
-
-        $item->update(['drafter_status' => $request->drafter_status]);
-
-        if ($designProgress) {
-            $pct = $request->drafter_status === 'APPROVED' ? 100.00 : 50.00;
-            $status = $pct >= 100.00 ? 'COMPLETED' : 'IN_PROGRESS';
-
-            $designProgress->update([
-                'completed_qty' => round($item->target_qty * ($pct / 100)),
-                'progress_percent' => $pct,
-                'status' => $status,
-                'previous_completed_qty' => $previousCompletedQty,
-                'previous_progress_percent' => $previousProgressPercent,
-            ]);
-        }
-
-        broadcast(new TaskUpdated($item->tenant_id, "Drafter status updated to '{$request->drafter_status}' for item '{$item->item_name}' (PO: {$item->po->po_number})."))->toOthers();
+        $routingService->updateStatusAndRouting(
+            $item,
+            $request->drafter_status,
+            $request->input('required_stages'),
+            auth()->user()
+        );
 
         return back()->with('success', 'Drafter status updated.');
     }

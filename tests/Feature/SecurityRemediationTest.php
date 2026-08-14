@@ -8,8 +8,10 @@ use App\Models\Po;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\ResetPasswordNotification;
 use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
@@ -320,16 +322,16 @@ class SecurityRemediationTest extends TestCase
 
     public function test_forgot_password_sends_reset_notification_via_explicit_tenant_bypass(): void
     {
-        \Illuminate\Support\Facades\Notification::fake();
+        Notification::fake();
 
         $user = $this->makeOfficeUser(['email' => 'reset-me@test.com']);
 
         $this->post('/forgot-password', ['email' => 'reset-me@test.com'])
             ->assertSessionHas('success');
 
-        \Illuminate\Support\Facades\Notification::assertSentTo(
+        Notification::assertSentTo(
             $user,
-            \App\Notifications\ResetPasswordNotification::class
+            ResetPasswordNotification::class
         );
     }
 }

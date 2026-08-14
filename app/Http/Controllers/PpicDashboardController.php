@@ -7,6 +7,7 @@ use App\Models\Item;
 use App\Models\ItemProgress;
 use App\Models\Po;
 use App\Models\Tenant;
+use App\Services\DrafterRoutingService;
 use App\Services\TenantManager;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -95,6 +96,7 @@ class PpicDashboardController extends Controller
                     'has_alert' => $hasAlert,
                     'severity' => $hasRed ? 'RED' : ($hasYellow ? 'YELLOW' : null),
                     'is_urgent' => (bool) $item->is_urgent,
+                    'required_stages' => $item->required_stages ?? [],
                 ];
             }
 
@@ -404,6 +406,30 @@ class PpicDashboardController extends Controller
 
         return back()->with('flash', [
             'success' => 'item_priority_updated_successfully',
+        ]);
+    }
+
+    public function updateItemRouting(Request $request, $slug, $itemId, DrafterRoutingService $routingService)
+    {
+        $request->validate([
+            'required_stages' => ['required', 'array', 'min:1'],
+            'required_stages.*' => ['required', 'string'],
+        ]);
+
+        TenantManager::bypass();
+        $tenant = Tenant::where('slug', $slug)->firstOrFail();
+        TenantManager::enableScope();
+        TenantManager::setTenantId($tenant->id);
+
+        Gate::authorize('view-tenant', $tenant->id);
+        Gate::authorize('manage-ppic');
+
+        $item = Item::where('id', $itemId)->firstOrFail();
+
+        $routingService->updateRoutingOnly($item, $request->required_stages, auth()->user());
+
+        return back()->with('flash', [
+            'success' => 'routing_updated_successfully',
         ]);
     }
 }

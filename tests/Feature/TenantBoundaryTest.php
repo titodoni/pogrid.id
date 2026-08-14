@@ -8,7 +8,9 @@ use App\Models\DeliveryOrder;
 use App\Models\DoItem;
 use App\Models\Item;
 use App\Models\Po;
+use App\Models\Role;
 use App\Models\Tenant;
+use App\Models\User;
 use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -110,14 +112,14 @@ class TenantBoundaryTest extends TestCase
     public function test_auth_user_provider_resolves_without_tenant_context(): void
     {
         [, , $item] = $this->makeTenantWithItem('iota-co');
-        $userId = \App\Models\User::create([
+        $userId = User::create([
             'email_verified_at' => now(),
             'tenant_id' => $item->tenant_id,
             'name' => 'Session User',
             'username' => 'session_user_iota',
             'email' => 'session@iota.test',
             'password' => bcrypt('password123'),
-            'role_id' => \App\Models\Role::firstOrCreate(['name' => 'STAFF'], ['level' => 'office', 'display_name' => 'Staff'])->id,
+            'role_id' => Role::firstOrCreate(['name' => 'STAFF'], ['level' => 'office', 'display_name' => 'Staff'])->id,
         ])->id;
 
         // Session layer resolves users before SetTenant runs (e.g. session GC
