@@ -213,6 +213,90 @@ export interface Plan {
     price: number;
 }
 
+export interface PaymentMethod extends TableRowShape {
+    id: number;
+    name: string;
+    type: 'bank_transfer' | 'payment_gateway';
+    provider: string;
+    account_number: string | null;
+    account_holder: string | null;
+    instructions: string | null;
+    config: {
+        api_key?: string;
+        webhook_token?: string;
+        merchant_id?: string;
+        client_key?: string;
+        server_key?: string;
+        is_production?: boolean;
+    } | null;
+    is_active: boolean;
+    sort_order: number;
+    created_at: string | null;
+}
+
+export interface SubscriptionInvoice extends TableRowShape {
+    id: number;
+    invoice_number: string;
+    tenant: {
+        id: number;
+        company_name: string;
+        slug: string;
+    } | null;
+    plan: {
+        id: number;
+        name: string;
+    } | null;
+    amount_cents: number;
+    status: 'UNPAID' | 'PENDING_VERIFICATION' | 'PAID' | 'EXPIRED' | 'CANCELLED' | string;
+    payment_method: {
+        id: number;
+        name: string;
+        provider: string;
+    } | null;
+    payment_proof_path: string | null;
+    payment_proof_uploaded_at: string | null;
+    due_date: string | null;
+    period_start: string | null;
+    period_end: string | null;
+    paid_at: string | null;
+    approved_by_admin_name: string | null;
+    notes: string | null;
+    created_at: string | null;
+}
+
+export interface TenantAnalytics {
+    engagement: {
+        dau: number;
+        mau: number;
+        last_active_at: string | null;
+        activity_count_30d: number;
+        floor_activity_30d: number;
+        office_activity_30d: number;
+        status: 'active' | 'idle' | 'dormant';
+    };
+    resources: {
+        total_records: number;
+        table_breakdown: Record<string, number>;
+        audit_logs_count: number;
+        users_count: number;
+    };
+    billing: {
+        subscription_status: string;
+        subscription_expires_at: string | null;
+        trial_ends_at: string | null;
+        recent_invoices: Array<{
+            id: number;
+            invoice_number: string;
+            amount_cents: number;
+            status: string;
+            payment_method_name: string | null;
+            due_date: string | null;
+            paid_at: string | null;
+            created_at: string | null;
+        }>;
+    };
+}
+
 export interface SuperpowersFlash {
     success?: string;
     error?: string;

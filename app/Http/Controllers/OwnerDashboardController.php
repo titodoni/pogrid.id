@@ -6,9 +6,13 @@ use App\Events\ProductionTerminated;
 use App\Events\TaskUpdated;
 use App\Jobs\GenerateSunkCostInvoiceJob;
 use App\Models\Item;
+use App\Models\PaymentMethod;
+use App\Models\Plan;
+use App\Models\PlatformActivityLog;
 use App\Models\Po;
 use App\Models\Post;
 use App\Models\Role;
+use App\Models\SubscriptionInvoice;
 use App\Models\Tenant;
 use App\Models\TenantStageTemplate;
 use App\Models\User;
@@ -618,12 +622,112 @@ class OwnerDashboardController extends Controller
         $user = auth()->user();
         TenantManager::setTenantId($user->tenant_id);
 
-        $tenant = Tenant::find($user->tenant_id);
+        $tenant = Tenant::with('plan')->find($user->tenant_id);
+
+        $paymentMethods = TenantManager::runWithoutScope(
+            fn () => PaymentMethod::active()->get(['id', 'name', 'type', 'provider', 'account_number', 'account_holder', 'instructions', 'config', 'sort_order'])
+        );
+
+        $openInvoice = TenantManager::runWithoutScope(
+            fn () => SubscriptionInvoice::with('paymentMethod')
+                ->where('tenant_id', $user->tenant_id)
+                ->whereIn('status', [SubscriptionInvoice::STATUS_UNPAID, SubscriptionInvoice::STATUS_PENDING_VERIFICATION])
+                ->latest('id')
+                ->first()
+        );
+
+        $recentInvoices = TenantManager::runWithoutScope(
+            fn () => SubscriptionInvoice::with('paymentMethod')
+                ->where('tenant_id', $user->tenant_id)
+                ->where('status', SubscriptionInvoice::STATUS_PAID)
+                ->latest('paid_at')
+                ->take(5)
+                ->get()
+        );
 
         return Inertia::render('Owner/Billing', [
             'tenant' => $tenant,
             'is_expired' => $tenant ? $tenant->isTrialExpired() : false,
+            'payment_methods' => $paymentMethods,
+            'open_invoice' => $openInvoice,
+            'recent_invoices' => $recentInvoices,
         ]);
+    }
+
+    public function uploadPaymentProof(Request $request)
+    {
+        $user = auth()->user();
+        TenantManager::setTenantId($user->tenant_id);
+
+        $request->validate([
+            'invoice_id' => ['nullable', 'exists:subscription_invoices,id'],
+            'payment_method_id' => ['nullable', 'exists:payment_methods,id'],
+            'proof' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'], // 5MB max
+        ]);
+
+        $tenant = Tenant::find($user->tenant_id);
+        if (! $tenant) {
+            abort(404);
+        }
+
+        $path = $request->file('proof')->store('payment_proofs', 'public');
+
+        $invoice = TenantManager::runWithoutScope(function () use ($request, $tenant, $path) {
+            $inv = null;
+            if ($request->filled('invoice_id')) {
+                $inv = SubscriptionInvoice::where('tenant_id', $tenant->id)->find($request->invoice_id);
+            }
+
+            if (! $inv) {
+                // Find existing open invoice or create one
+                $inv = SubscriptionInvoice::where('tenant_id', $tenant->id)
+                    ->whereIn('status', [SubscriptionInvoice::STATUS_UNPAID, SubscriptionInvoice::STATUS_PENDING_VERIFICATION])
+                    ->latest('id')
+                    ->first();
+            }
+
+            if (! $inv) {
+                $plan = $tenant->plan ?? Plan::first() ?? Plan::create(['name' => 'Langganan 1 Tahun', 'price' => 5_000_000_00]);
+                $start = ($tenant->subscription_expires_at && $tenant->subscription_expires_at->isFuture())
+                    ? $tenant->subscription_expires_at->copy()->addDay()->startOfDay()
+                    : now()->startOfDay();
+                $end = $start->copy()->addYear()->endOfDay();
+
+                $inv = SubscriptionInvoice::create([
+                    'invoice_number' => SubscriptionInvoice::generateInvoiceNumber(),
+                    'tenant_id' => $tenant->id,
+                    'plan_id' => $plan->id,
+                    'amount_cents' => $plan->price,
+                    'status' => SubscriptionInvoice::STATUS_PENDING_VERIFICATION,
+                    'due_date' => now()->addDays(7)->endOfDay(),
+                    'period_start' => $start,
+                    'period_end' => $end,
+                    'notes' => 'Langganan Tahunan POgrid (1 Tahun Akses Penuh)',
+                ]);
+            }
+
+            $inv->update([
+                'payment_method_id' => $request->payment_method_id ?: $inv->payment_method_id,
+                'payment_proof_path' => $path,
+                'payment_proof_uploaded_at' => now(),
+                'status' => SubscriptionInvoice::STATUS_PENDING_VERIFICATION,
+            ]);
+
+            return $inv;
+        });
+
+        PlatformActivityLog::create([
+            'platform_admin_id' => null,
+            'action' => 'invoice.proof_uploaded',
+            'target_type' => SubscriptionInvoice::class,
+            'target_id' => $invoice->id,
+            'metadata' => [
+                'tenant_slug' => $tenant->slug,
+                'invoice_number' => $invoice->invoice_number,
+            ],
+        ]);
+
+        return back()->with('success', 'Bukti transfer berhasil diunggah dan sedang menunggu verifikasi superadmin.');
     }
 
     public function logs(Request $request, ReportingService $reporting)

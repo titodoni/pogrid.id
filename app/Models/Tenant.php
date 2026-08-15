@@ -21,6 +21,7 @@ class Tenant extends Model
         'subscription_status',
         'plan_id',
         'trial_ends_at',
+        'subscription_expires_at',
         'workflow_settings',
         'attribution_source',
         'attribution_medium',
@@ -32,6 +33,7 @@ class Tenant extends Model
 
     protected $casts = [
         'trial_ends_at' => 'datetime',
+        'subscription_expires_at' => 'datetime',
         'attributed_at' => 'datetime',
         'workflow_settings' => 'array',
     ];
@@ -142,6 +144,11 @@ class Tenant extends Model
         return $this->belongsTo(Plan::class);
     }
 
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(SubscriptionInvoice::class);
+    }
+
     public function isTrialExpired(): bool
     {
         if ($this->hasActiveSubscription()) {
@@ -160,11 +167,21 @@ class Tenant extends Model
      */
     public function hasActiveSubscription(): bool
     {
-        return in_array(
+        $isActiveStatus = in_array(
             strtoupper($this->subscription_status ?? ''),
             self::ACTIVE_STATUSES,
             true,
         );
+
+        if (! $isActiveStatus) {
+            return false;
+        }
+
+        if ($this->subscription_expires_at && $this->subscription_expires_at->isPast()) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

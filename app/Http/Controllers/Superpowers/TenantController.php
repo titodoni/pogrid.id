@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Superpowers;
 use App\Http\Controllers\Controller;
 use App\Models\Plan;
 use App\Models\PlatformActivityLog;
-use App\Models\Po;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\TenantAnalyticsService;
 use App\Services\TenantManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -41,6 +42,7 @@ class TenantController extends Controller
                     'company_name' => $tenant->company_name,
                     'slug' => $tenant->slug,
                     'subscription_status' => $tenant->subscription_status,
+                    'subscription_expires_at' => $tenant->subscription_expires_at?->toIso8601String(),
                     'plan' => $tenant->plan ? [
                         'id' => $tenant->plan->id,
                         'name' => $tenant->plan->name,
@@ -74,16 +76,28 @@ class TenantController extends Controller
         $data = $request->validate([
             'company_name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9-]+$/', 'unique:tenants,slug'],
-            'plan_id' => ['required', 'exists:plans,id'],
+            'plan_id' => ['nullable', 'exists:plans,id'],
             'subscription_status' => ['required', 'string', Rule::in(Tenant::ASSIGNABLE_STATUSES)],
+            'subscription_expires_at' => ['nullable', 'string'],
         ]);
 
         $tenant = TenantManager::runWithoutScope(function () use ($data) {
+            $defaultPlan = Plan::first() ?? Plan::create(['name' => 'Langganan 1 Tahun', 'price' => 5_000_000_00]);
+            $planId = ! empty($data['plan_id']) ? (int) $data['plan_id'] : $defaultPlan->id;
+            $expiresAt = $this->parseDateInput($data['subscription_expires_at'] ?? null);
+
+            if (! $expiresAt) {
+                $expiresAt = $data['subscription_status'] === Tenant::STATUS_ACTIVE
+                    ? Carbon::now()->addYear()->endOfDay()
+                    : Carbon::now()->addDays(30)->endOfDay();
+            }
+
             return Tenant::create([
                 'company_name' => $data['company_name'],
                 'slug' => $data['slug'],
-                'plan_id' => (int) $data['plan_id'],
+                'plan_id' => $planId,
                 'subscription_status' => $data['subscription_status'],
+                'subscription_expires_at' => $expiresAt,
             ]);
         });
 
@@ -103,7 +117,7 @@ class TenantController extends Controller
             ->with('success', 'Tenant berhasil dibuat.');
     }
 
-    public function show(Request $request, Tenant $tenant)
+    public function show(Request $request, Tenant $tenant, TenantAnalyticsService $analyticsService)
     {
         $tenant->load('plan');
 
@@ -120,22 +134,7 @@ class TenantController extends Controller
                 ]);
         });
 
-        $poStats = TenantManager::runWithoutScope(function () use ($tenant) {
-            $counts = Po::where('tenant_id', $tenant->id)
-                ->selectRaw('status, COUNT(*) as total')
-                ->groupBy('status')
-                ->pluck('total', 'status');
-
-            return [
-                'total' => (int) $counts->sum(),
-                'pending' => (int) ($counts['PENDING'] ?? 0),
-                'in_progress' => (int) ($counts['IN_PROGRESS'] ?? 0),
-                'completed' => (int) ($counts['COMPLETED'] ?? 0),
-                'delivered' => (int) ($counts['DELIVERED'] ?? 0),
-                'closed' => (int) ($counts['CLOSED'] ?? 0),
-                'cancelled' => (int) ($counts['CANCELLED'] ?? 0),
-            ];
-        });
+        $analytics = $analyticsService->forTenant($tenant);
 
         return Inertia::render('Superpowers/Tenants/Show', [
             'tenant' => [
@@ -143,6 +142,7 @@ class TenantController extends Controller
                 'company_name' => $tenant->company_name,
                 'slug' => $tenant->slug,
                 'subscription_status' => $tenant->subscription_status,
+                'subscription_expires_at' => $tenant->subscription_expires_at?->toDateString(),
                 'plan' => $tenant->plan ? [
                     'id' => $tenant->plan->id,
                     'name' => $tenant->plan->name,
@@ -153,7 +153,7 @@ class TenantController extends Controller
                 'updated_at' => $tenant->updated_at?->toIso8601String(),
             ],
             'users' => $users,
-            'po_stats' => $poStats,
+            'analytics' => $analytics,
         ]);
     }
 
@@ -171,6 +171,7 @@ class TenantController extends Controller
                 'company_name' => $tenant->company_name,
                 'slug' => $tenant->slug,
                 'subscription_status' => $tenant->subscription_status,
+                'subscription_expires_at' => $tenant->subscription_expires_at?->format('d/m/Y'),
                 'plan_id' => $tenant->plan_id,
             ],
             'plans' => $plans,
@@ -182,16 +183,22 @@ class TenantController extends Controller
         $data = $request->validate([
             'company_name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9-]+$/', Rule::unique('tenants', 'slug')->ignore($tenant->id)],
-            'plan_id' => ['required', 'exists:plans,id'],
+            'plan_id' => ['nullable', 'exists:plans,id'],
             'subscription_status' => ['required', 'string', Rule::in(Tenant::ASSIGNABLE_STATUSES)],
+            'subscription_expires_at' => ['nullable', 'string'],
         ]);
 
         TenantManager::runWithoutScope(function () use ($tenant, $data) {
+            $defaultPlan = Plan::first() ?? Plan::create(['name' => 'Langganan 1 Tahun', 'price' => 5_000_000_00]);
+            $planId = ! empty($data['plan_id']) ? (int) $data['plan_id'] : ($tenant->plan_id ?: $defaultPlan->id);
+            $expiresAt = $this->parseDateInput($data['subscription_expires_at'] ?? null);
+
             $tenant->update([
                 'company_name' => $data['company_name'],
                 'slug' => $data['slug'],
-                'plan_id' => (int) $data['plan_id'],
+                'plan_id' => $planId,
                 'subscription_status' => $data['subscription_status'],
+                'subscription_expires_at' => $expiresAt ?? $tenant->subscription_expires_at,
             ]);
         });
 
@@ -293,5 +300,23 @@ class TenantController extends Controller
 
         return redirect()->route('superpowers.tenants.show', $tenant)
             ->with('success', 'Tenant berhasil dipulihkan.');
+    }
+
+    protected function parseDateInput(?string $value): ?Carbon
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+        if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $trimmed)) {
+            return Carbon::createFromFormat('d/m/Y', $trimmed)->endOfDay();
+        }
+
+        try {
+            return Carbon::parse($trimmed)->endOfDay();
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

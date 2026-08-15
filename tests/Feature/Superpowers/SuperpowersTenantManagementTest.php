@@ -118,7 +118,7 @@ class SuperpowersTenantManagementTest extends SuperpowersTestCase
         ])->assertSessionHasErrors('slug');
     }
 
-    public function test_show_reports_users_and_po_stats(): void
+    public function test_show_reports_users_and_analytics(): void
     {
         $tenant = $this->makeTenant();
 
@@ -146,8 +146,8 @@ class SuperpowersTenantManagementTest extends SuperpowersTestCase
             ->component('Superpowers/Tenants/Show')
             ->where('tenant.slug', 'teknik-mandiri')
             ->has('users.data', 1)
-            ->where('po_stats.total', 1)
-            ->where('po_stats.pending', 1)
+            ->where('analytics.resources.users_count', 1)
+            ->where('analytics.resources.table_breakdown.pos', 1)
         );
     }
 
@@ -244,7 +244,7 @@ class SuperpowersTenantManagementTest extends SuperpowersTestCase
         });
 
         $this->get("/superpowers/tenants/{$alpha->id}")->assertInertia(
-            fn ($page) => $page->where('po_stats.total', 1)
+            fn ($page) => $page->where('analytics.resources.table_breakdown.pos', 1)
         );
     }
 

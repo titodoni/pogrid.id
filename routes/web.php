@@ -101,6 +101,7 @@ Route::middleware(['auth', 'can:access-office', 'verified', 'tenant.maintenance'
     Route::get('/rework-logbook', [OwnerDashboardController::class, 'reworkLogbook']);
     Route::get('/dashboard/billing', [OwnerDashboardController::class, 'billing'])->name('dashboard.billing');
     Route::get('/billing', [OwnerDashboardController::class, 'billing']);
+    Route::post('/billing/upload-proof', [OwnerDashboardController::class, 'uploadPaymentProof'])->withoutMiddleware(['tenant.readonly'])->name('billing.upload-proof');
     Route::get('/logs', [OwnerDashboardController::class, 'logs'])->name('logs');
     // Profile & Settings
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');

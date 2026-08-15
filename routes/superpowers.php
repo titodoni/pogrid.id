@@ -6,8 +6,10 @@ use App\Http\Controllers\Superpowers\DashboardController;
 use App\Http\Controllers\Superpowers\EmailLogController;
 use App\Http\Controllers\Superpowers\HealthController;
 use App\Http\Controllers\Superpowers\LogController;
+use App\Http\Controllers\Superpowers\PaymentMethodController;
 use App\Http\Controllers\Superpowers\SettingsController;
 use App\Http\Controllers\Superpowers\SubscriptionController;
+use App\Http\Controllers\Superpowers\SubscriptionInvoiceController;
 use App\Http\Controllers\Superpowers\TenantController;
 use Illuminate\Support\Facades\Route;
 
@@ -38,8 +40,20 @@ Route::prefix('superpowers')->name('superpowers.')->group(function () {
         Route::post('tenants/{tenant}/activate', [TenantController::class, 'activate'])->name('tenants.activate');
         Route::post('tenants/{tenant}/restore', [TenantController::class, 'restore'])->name('tenants.restore')->withTrashed();
 
-        // Subscriptions / Revenue
+        // Subscriptions, Invoices & Payment Methods
         Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions');
+        Route::get('subscriptions/invoices', [SubscriptionInvoiceController::class, 'index'])->name('invoices.index');
+        Route::post('subscriptions/invoices', [SubscriptionInvoiceController::class, 'store'])->name('invoices.store');
+        Route::post('subscriptions/invoices/{invoice}/send-email', [SubscriptionInvoiceController::class, 'sendEmail'])->name('invoices.send-email');
+        Route::post('subscriptions/invoices/{invoice}/approve', [SubscriptionInvoiceController::class, 'approve'])->name('invoices.approve');
+        Route::post('subscriptions/invoices/{invoice}/quick-extend', [SubscriptionInvoiceController::class, 'quickExtend'])->name('invoices.quick-extend');
+        Route::post('subscriptions/invoices/{invoice}/cancel', [SubscriptionInvoiceController::class, 'cancel'])->name('invoices.cancel');
+        Route::post('tenants/{tenant}/direct-extend', [SubscriptionInvoiceController::class, 'directExtendTenant'])->name('tenants.direct-extend');
+
+        Route::get('subscriptions/payment-methods', [PaymentMethodController::class, 'index'])->name('payment-methods.index');
+        Route::post('subscriptions/payment-methods', [PaymentMethodController::class, 'store'])->name('payment-methods.store');
+        Route::put('subscriptions/payment-methods/{paymentMethod}', [PaymentMethodController::class, 'update'])->name('payment-methods.update');
+        Route::delete('subscriptions/payment-methods/{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('payment-methods.destroy');
 
         // System health
         Route::get('health', [HealthController::class, 'index'])->name('health');

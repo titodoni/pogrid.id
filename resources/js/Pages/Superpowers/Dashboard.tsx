@@ -27,9 +27,11 @@ interface DashboardStats {
     tenants_readonly: number;
     tenants_deleted: number;
     users_total: number;
-    pos_total: number;
-    items_total: number;
+    active_users_24h: number;
+    activity_24h: number;
+    total_db_records: number;
     mrr_cents: number;
+    pending_invoices_count: number;
 }
 
 interface RecentActivity extends TableRowShape {
@@ -72,9 +74,10 @@ export default function Dashboard({
         <SuperAdminShell>
             <Head title="Dashboard" />
             <PageLayout
-                title="Dashboard"
-                description="Ringkasan kesehatan platform POGrid dan aktivitas superadmin terbaru."
+                title="Dashboard Platform"
+                description="Metrik developer, kesehatan resource platform, dan aktivitas superadmin terbaru."
             >
+                {/* Row 1: SaaS & Platform Growth */}
                 <Grid columns={{ minWidth: 220, max: 4 }} gap={4}>
                     <MetricCard
                         label="MRR (perkiraan)"
@@ -90,23 +93,22 @@ export default function Dashboard({
                     <MetricCard
                         label="Total pengguna"
                         value={formatNumber(stats.users_total)}
+                        description={`${formatNumber(stats.active_users_24h)} aktif 24 jam`}
                     />
                     <MetricCard
-                        label="Purchase order"
-                        value={formatNumber(stats.pos_total)}
-                        description={`${formatNumber(stats.items_total)} item`}
+                        label="Aktivitas platform (24h)"
+                        value={formatNumber(stats.activity_24h)}
+                        description={`${formatNumber(stats.total_db_records)} total data records`}
                     />
                 </Grid>
 
+                {/* Row 2: Diagnostics, System & Invoices */}
                 <Grid columns={{ minWidth: 220, max: 4 }} gap={4}>
                     <MetricCard
-                        label="Email terkirim (24 jam)"
-                        value={formatNumber(emails.sent_24h)}
-                    />
-                    <MetricCard
-                        label="Email gagal (24 jam)"
-                        value={formatNumber(emails.failed_24h)}
-                        variant={emails.failed_24h > 0 ? 'red' : 'default'}
+                        label="Verifikasi tagihan"
+                        value={formatNumber(stats.pending_invoices_count)}
+                        description="Menunggu approval admin"
+                        variant={stats.pending_invoices_count > 0 ? 'orange' : 'default'}
                     />
                     <MetricCard
                         label="Antrean pekerjaan"
@@ -115,10 +117,17 @@ export default function Dashboard({
                     <MetricCard
                         label="Pekerjaan gagal"
                         value={formatNumber(failed_jobs)}
-                        variant={failed_jobs > 0 ? 'orange' : 'default'}
+                        variant={failed_jobs > 0 ? 'red' : 'default'}
+                    />
+                    <MetricCard
+                        label="Email terkirim (24h)"
+                        value={formatNumber(emails.sent_24h)}
+                        description={emails.failed_24h > 0 ? `${formatNumber(emails.failed_24h)} gagal` : '0 gagal'}
+                        variant={emails.failed_24h > 0 ? 'red' : 'default'}
                     />
                 </Grid>
 
+                {/* Row 3: Tables */}
                 <Grid columns={{ minWidth: 360, max: 2 }} gap={4}>
                     <Card padding={4}>
                         <Stack gap={3}>

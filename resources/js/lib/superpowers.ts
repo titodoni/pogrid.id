@@ -11,7 +11,7 @@ export function formatCents(cents: number | null | undefined): string {
     }).format(value);
 }
 
-/** Format an ISO timestamp into a compact local date-time. */
+/** Format an ISO timestamp into dd/mm/yyyy HH:mm. */
 export function formatDateTime(value: string | null | undefined): string {
     if (!value) {
         return '—';
@@ -22,13 +22,16 @@ export function formatDateTime(value: string | null | undefined): string {
         return value;
     }
 
-    return new Intl.DateTimeFormat('id-ID', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    }).format(date);
+    const d = String(date.getDate()).padStart(2, '0');
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const y = date.getFullYear();
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+
+    return `${d}/${m}/${y} ${hh}:${mm}`;
 }
 
-/** Format an ISO timestamp into a date only. */
+/** Format an ISO timestamp into dd/mm/yyyy. */
 export function formatDate(value: string | null | undefined): string {
     if (!value) {
         return '—';
@@ -39,7 +42,11 @@ export function formatDate(value: string | null | undefined): string {
         return value;
     }
 
-    return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(date);
+    const d = String(date.getDate()).padStart(2, '0');
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const y = date.getFullYear();
+
+    return `${d}/${m}/${y}`;
 }
 
 const ACTIVE_STATUSES = ['ACTIVE', 'PAID', 'SUBSCRIBED'];
@@ -62,14 +69,10 @@ export function statusBadgeVariant(
         return 'success';
     }
 
-    if (status === 'READONLY') {
-        return 'warning';
-    }
-
-    return 'error';
+    return 'warning';
 }
 
-/** Human label for a subscription status. */
+/** Human label for the 2 simple subscription statuses: Demo 30 Hari vs Langganan 1 Tahun. */
 export function statusLabel(
     status: SubscriptionStatus,
     deletedAt?: string | null,
@@ -78,7 +81,11 @@ export function statusLabel(
         return 'Terhapus';
     }
 
-    return status;
+    if (isActiveStatus(status)) {
+        return 'Langganan 1 Thn (Subscriber)';
+    }
+
+    return 'Demo 30 Hari (Trial)';
 }
 
 /** Number formatting for large counts. */

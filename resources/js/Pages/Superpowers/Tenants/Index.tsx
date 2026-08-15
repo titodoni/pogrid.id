@@ -15,6 +15,7 @@ import SuperAdminShell from '@/Components/SuperAdminShell';
 import PageLayout from '@/Components/PageLayout';
 import ServerPagination from '@/Components/ServerPagination';
 import {
+    formatDate,
     formatDateTime,
     statusBadgeVariant,
     statusLabel,
@@ -197,11 +198,58 @@ export default function TenantsIndex({ tenants, filters }: TenantsIndexProps) {
                                 {
                                     key: 'created_at',
                                     header: 'Dibuat',
-                                    width: proportional(1),
+                                    width: proportional(1.5),
                                     renderCell: (t) => (
                                         <Text type="supporting">
-                                            {formatDateTime(t.created_at)}
+                                            {formatDate(t.created_at)}
                                         </Text>
+                                    ),
+                                },
+                                {
+                                    key: 'actions',
+                                    header: 'Aksi',
+                                    width: proportional(2.5),
+                                    renderCell: (t) => (
+                                        <Stack direction="horizontal" gap={1} wrap="wrap" vAlign="center">
+                                            <Link href={`/superpowers/tenants/${t.id}/edit`}>
+                                                <Button label="Edit" variant="secondary" size="sm" />
+                                            </Link>
+                                            {!t.deleted_at && (
+                                                <Button
+                                                    label="⚡ +1 Thn"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        if (window.confirm(`Perpanjang langganan 1 tahun untuk ${t.company_name}?`)) {
+                                                            router.post(`/superpowers/tenants/${t.id}/direct-extend`);
+                                                        }
+                                                    }}
+                                                />
+                                            )}
+                                            {t.deleted_at ? (
+                                                <Button
+                                                    label="Pulihkan"
+                                                    variant="primary"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        if (window.confirm(`Pulihkan tenant ${t.company_name}?`)) {
+                                                            router.post(`/superpowers/tenants/${t.id}/restore`);
+                                                        }
+                                                    }}
+                                                />
+                                            ) : (
+                                                <Button
+                                                    label="Hapus"
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        if (window.confirm(`Hapus tenant ${t.company_name}?`)) {
+                                                            router.delete(`/superpowers/tenants/${t.id}`);
+                                                        }
+                                                    }}
+                                                />
+                                            )}
+                                        </Stack>
                                     ),
                                 },
                             ]}

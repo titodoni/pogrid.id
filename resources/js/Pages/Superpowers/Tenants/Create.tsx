@@ -9,32 +9,19 @@ import {
 } from '@astryxdesign/core';
 import SuperAdminShell from '@/Components/SuperAdminShell';
 import PageLayout from '@/Components/PageLayout';
-import { formatCents } from '@/lib/superpowers';
-import type { Plan } from '@/types';
 
 const STATUS_OPTIONS = [
-    { value: 'ACTIVE', label: 'ACTIVE' },
-    { value: 'PAID', label: 'PAID' },
-    { value: 'SUBSCRIBED', label: 'SUBSCRIBED' },
-    { value: 'READONLY', label: 'READONLY' },
+    { value: 'ACTIVE', label: 'Langganan 1 Tahun (Subscriber / Akses Penuh)' },
+    { value: 'READONLY', label: 'Demo 30 Hari (Trial / Demo)' },
 ];
 
-interface TenantCreateProps {
-    plans: Plan[];
-}
-
-export default function TenantCreate({ plans }: TenantCreateProps) {
+export default function TenantCreate() {
     const { data, setData, post, processing, errors } = useForm({
         company_name: '',
         slug: '',
-        plan_id: '',
         subscription_status: 'ACTIVE',
+        subscription_expires_at: '',
     });
-
-    const planOptions = plans.map((plan) => ({
-        value: String(plan.id),
-        label: `${plan.name} — ${formatCents(plan.price * 100)}`,
-    }));
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -43,10 +30,10 @@ export default function TenantCreate({ plans }: TenantCreateProps) {
 
     return (
         <SuperAdminShell>
-            <Head title="Tambah tenant" />
+            <Head title="Tambah Tenant" />
             <PageLayout
-                title="Tambah tenant"
-                description="Buat tenant baru beserta paket dan status langganan awalnya."
+                title="Tambah Tenant Baru"
+                description="Daftarkan pabrik / tenant baru dengan status Demo 30 Hari atau Langganan 1 Tahun."
                 actions={
                     <Link href="/superpowers/tenants">
                         <Button label="Kembali" variant="ghost" />
@@ -57,7 +44,8 @@ export default function TenantCreate({ plans }: TenantCreateProps) {
                     <form onSubmit={submit}>
                         <Stack gap={4}>
                             <TextInput
-                                label="Nama perusahaan"
+                                label="Nama Perusahaan / Pabrik"
+                                placeholder="Contoh: PT Teknik Mandiri Presisi"
                                 value={data.company_name}
                                 onChange={(value) =>
                                     setData('company_name', value)
@@ -74,8 +62,9 @@ export default function TenantCreate({ plans }: TenantCreateProps) {
                                 isRequired
                             />
                             <TextInput
-                                label="Slug"
-                                description="Huruf kecil, angka, dan tanda hubung saja."
+                                label="Slug URL Tenant"
+                                description="Alamat akses worker pabrik (misal /c/teknik-mandiri)."
+                                placeholder="teknik-mandiri"
                                 value={data.slug}
                                 onChange={(value) =>
                                     setData(
@@ -93,24 +82,25 @@ export default function TenantCreate({ plans }: TenantCreateProps) {
                                 width="100%"
                                 isRequired
                             />
+
+                            <div
+                                style={{
+                                    padding: '14px 16px',
+                                    borderRadius: '8px',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    border: '1px solid rgba(59, 130, 246, 0.3)',
+                                }}
+                            >
+                                <div style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 700, color: '#60a5fa', marginBottom: '2px' }}>
+                                    Paket Langganan
+                                </div>
+                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>
+                                    Langganan Tahunan POgrid (1 Tahun Akses Penuh)
+                                </div>
+                            </div>
+
                             <Selector
-                                label="Paket"
-                                options={planOptions}
-                                value={data.plan_id}
-                                onChange={(value) => setData('plan_id', value)}
-                                placeholder="Pilih paket"
-                                width="100%"
-                                status={
-                                    errors.plan_id
-                                        ? {
-                                              type: 'error',
-                                              message: errors.plan_id,
-                                          }
-                                        : undefined
-                                }
-                            />
-                            <Selector
-                                label="Status langganan"
+                                label="Pilih Status Tenant"
                                 options={STATUS_OPTIONS}
                                 value={data.subscription_status}
                                 onChange={(value) =>
@@ -126,9 +116,19 @@ export default function TenantCreate({ plans }: TenantCreateProps) {
                                         : undefined
                                 }
                             />
+
+                            <TextInput
+                                label="Masa Berlaku Hingga (Format: DD/MM/YYYY)"
+                                description="Tanggal batas aktif akun tenant pabrik (contoh: 15/08/2027). Jika kosong, sistem otomatis menghitung 1 Tahun (Subscriber) atau 30 Hari (Demo)."
+                                placeholder="DD/MM/YYYY"
+                                value={data.subscription_expires_at}
+                                onChange={(value) => setData('subscription_expires_at', value)}
+                                width="100%"
+                            />
+
                             <Stack direction="horizontal" gap={2}>
                                 <Button
-                                    label="Simpan tenant"
+                                    label="Simpan & Buat Tenant"
                                     variant="primary"
                                     type="submit"
                                     isLoading={processing}

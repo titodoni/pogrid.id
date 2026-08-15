@@ -67,23 +67,33 @@ export default function SubscriptionsIndex({
 
     return (
         <SuperAdminShell>
-            <Head title="Langganan" />
+            <Head title="Langganan & Billing" />
             <PageLayout
-                title="Langganan"
-                description="Pantau status akses tenant dan estimasi pendapatan berulang bulanan."
+                title="Langganan & Billing"
+                description="Pantau status akses tenant, estimasi pendapatan bulanan (MRR), dan kelola keuangan SaaS."
+                actions={
+                    <Stack direction="horizontal" gap={2} wrap="wrap">
+                        <Link href="/superpowers/subscriptions/invoices">
+                            <Button label="Tagihan & Invoice" variant="secondary" />
+                        </Link>
+                        <Link href="/superpowers/subscriptions/payment-methods">
+                            <Button label="Metode Pembayaran" variant="secondary" />
+                        </Link>
+                    </Stack>
+                }
             >
                 <Grid columns={{ minWidth: 220, max: 3 }} gap={4}>
                     <MetricCard
-                        label="MRR (perkiraan)"
+                        label="ARR / Pendapatan Tahunan"
                         value={formatCents(totals.mrr_cents)}
                         variant="green"
                     />
                     <MetricCard
-                        label="Langganan aktif"
+                        label="Langganan 1 Thn Aktif"
                         value={totals.active_count}
                     />
                     <MetricCard
-                        label="Mode readonly"
+                        label="Demo 30 Hari / Readonly"
                         value={totals.readonly_count}
                         variant={
                             totals.readonly_count > 0 ? 'orange' : 'default'
@@ -106,9 +116,9 @@ export default function SubscriptionsIndex({
                                         status === 'all'
                                             ? 'Semua'
                                             : status === 'active'
-                                              ? 'Aktif'
+                                              ? 'Langganan 1 Thn (Aktif)'
                                               : status === 'readonly'
-                                                ? 'Readonly'
+                                                ? 'Demo 30 Hari (Trial)'
                                                 : 'Terhapus'
                                     }
                                     variant={

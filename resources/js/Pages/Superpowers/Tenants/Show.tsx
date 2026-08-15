@@ -14,9 +14,12 @@ import {
 import SuperAdminShell from '@/Components/SuperAdminShell';
 import PageLayout from '@/Components/PageLayout';
 import ServerPagination from '@/Components/ServerPagination';
+import MetricCard from '@/Components/MetricCard';
 import {
+    formatCents,
     formatDate,
     formatDateTime,
+    formatNumber,
     isActiveStatus,
     statusBadgeVariant,
     statusLabel,
@@ -26,6 +29,7 @@ import type {
     PlanSummary,
     SubscriptionStatus,
     TableRowShape,
+    TenantAnalytics,
 } from '@/types';
 
 interface ShowTenant {
@@ -33,6 +37,7 @@ interface ShowTenant {
     company_name: string;
     slug: string;
     subscription_status: SubscriptionStatus;
+    subscription_expires_at: string | null;
     plan: PlanSummary | null;
     deleted_at: string | null;
     created_at: string | null;
@@ -47,26 +52,16 @@ interface TenantUser extends TableRowShape {
     created_at: string | null;
 }
 
-interface PoStats {
-    total: number;
-    pending: number;
-    in_progress: number;
-    completed: number;
-    delivered: number;
-    closed: number;
-    cancelled: number;
-}
-
 interface TenantShowProps {
     tenant: ShowTenant;
     users: Paginated<TenantUser>;
-    po_stats: PoStats;
+    analytics: TenantAnalytics;
 }
 
 export default function TenantShow({
     tenant,
     users,
-    po_stats,
+    analytics,
 }: TenantShowProps) {
     const del = useForm({});
     const isActive = isActiveStatus(tenant.subscription_status);
@@ -75,7 +70,7 @@ export default function TenantShow({
         event.preventDefault();
         if (
             window.confirm(
-                `Suspends tenant ${tenant.company_name} menjadi readonly? Penghuni masih bisa login dan membaca data, tapi semua mutasi diblokir.`,
+                `Suspend tenant ${tenant.company_name} menjadi readonly? Penghuni masih bisa login dan membaca data, tapi semua mutasi diblokir.`,
             )
         ) {
             router.post(`/superpowers/tenants/${tenant.id}/suspend`);
@@ -96,35 +91,51 @@ export default function TenantShow({
         event.preventDefault();
         if (
             window.confirm(
-                `Hapus (soft-delete) tenant ${tenant.company_name}? Tenant bisa dipulihkan kemudian.`,
+                `Hapus (soft-delete) tenant ${tenant.company_name}? Tenant bisa dipulihkan kemudian.`
             )
         ) {
-            del.submit('delete', `/superpowers/tenants/${tenant.id}`, {
-                preserveScroll: true,
-            });
+            router.delete(`/superpowers/tenants/${tenant.id}`);
+        }
+    };
+
+    const directExtend = (event: FormEvent) => {
+        event.preventDefault();
+        if (
+            window.confirm(
+                `Perpanjang masa aktif tenant ${tenant.company_name} selama 1 Tahun ke depan langsung?`
+            )
+        ) {
+            router.post(`/superpowers/tenants/${tenant.id}/direct-extend`);
         }
     };
 
     return (
         <SuperAdminShell>
-            <Head title={tenant.company_name} />
+            <Head title={`Tenant: ${tenant.company_name}`} />
             <PageLayout
                 title={tenant.company_name}
-                description={tenant.slug}
+                description={`Detail teknis & analitika tenant /c/${tenant.slug}`}
                 actions={
                     <Stack direction="horizontal" gap={2} wrap="wrap">
                         <Link href={`/superpowers/tenants/${tenant.id}/edit`}>
-                            <Button label="Edit" variant="secondary" />
+                            <Button label="Edit Profil" variant="secondary" />
                         </Link>
+                        {!tenant.deleted_at && (
+                            <Button
+                                label="⚡ +1 Tahun Langganan"
+                                variant="primary"
+                                onClick={directExtend}
+                            />
+                        )}
                         {tenant.deleted_at ? (
                             <Button
-                                label="Pulihkan"
+                                label="Restore tenant"
                                 variant="primary"
                                 onClick={restore}
                             />
                         ) : isActive ? (
                             <Button
-                                label="Suspends ke readonly"
+                                label="Suspend ke readonly"
                                 variant="destructive"
                                 onClick={suspend}
                             />
@@ -145,13 +156,51 @@ export default function TenantShow({
                     </Stack>
                 }
             >
+                {/* Metric Summary Cards */}
+                <Grid columns={{ minWidth: 220, max: 4 }} gap={4}>
+                    <MetricCard
+                        label="Status Engagement"
+                        value={
+                            analytics.engagement.status === 'active'
+                                ? 'Aktif'
+                                : analytics.engagement.status === 'idle'
+                                  ? 'Idle'
+                                  : 'Dorman'
+                        }
+                        description={`Terakhir: ${formatDateTime(analytics.engagement.last_active_at)}`}
+                        variant={
+                            analytics.engagement.status === 'active'
+                                ? 'green'
+                                : analytics.engagement.status === 'idle'
+                                  ? 'orange'
+                                  : 'red'
+                        }
+                    />
+                    <MetricCard
+                        label="Pengguna Aktif (DAU / MAU)"
+                        value={`${analytics.engagement.dau} / ${analytics.engagement.mau}`}
+                        description="Aktif 24 jam / 30 hari"
+                    />
+                    <MetricCard
+                        label="Aktivitas 30 Hari"
+                        value={formatNumber(analytics.engagement.activity_count_30d)}
+                        description={`Floor: ${formatNumber(analytics.engagement.floor_activity_30d)} · Office: ${formatNumber(analytics.engagement.office_activity_30d)}`}
+                    />
+                    <MetricCard
+                        label="Total Data Records"
+                        value={formatNumber(analytics.resources.total_records)}
+                        description={`${formatNumber(analytics.resources.audit_logs_count)} logs tersimpan`}
+                    />
+                </Grid>
+
+                {/* Tenant Details & Subscription Lifecycle */}
                 <Grid columns={{ minWidth: 320, max: 2 }} gap={4}>
                     <Card padding={4}>
                         <Stack gap={3}>
-                            <Heading level={3}>Detail tenant</Heading>
+                            <Heading level={3}>Detail & Profil Tenant</Heading>
                             <Stack gap={2}>
                                 <DetailRow
-                                    label="Status"
+                                    label="Status Langganan"
                                     value={
                                         <Badge
                                             variant={statusBadgeVariant(
@@ -173,8 +222,16 @@ export default function TenantShow({
                                     label="Paket"
                                     value={
                                         tenant.plan
-                                            ? `${tenant.plan.name}`
-                                            : '—'
+                                            ? `${tenant.plan.name} (${formatCents(tenant.plan.price_cents)}/bln)`
+                                            : 'Tanpa paket'
+                                    }
+                                />
+                                <DetailRow
+                                    label="Berlaku Hingga"
+                                    value={
+                                        tenant.subscription_expires_at
+                                            ? formatDate(tenant.subscription_expires_at)
+                                            : 'N/A'
                                     }
                                 />
                                 <DetailRow
@@ -185,48 +242,35 @@ export default function TenantShow({
                                     label="Diperbarui"
                                     value={formatDateTime(tenant.updated_at)}
                                 />
-                                <DetailRow
-                                    label="Dihapus"
-                                    value={formatDate(tenant.deleted_at)}
-                                />
+                                {tenant.deleted_at && (
+                                    <DetailRow
+                                        label="Dihapus"
+                                        value={formatDate(tenant.deleted_at)}
+                                    />
+                                )}
                             </Stack>
                         </Stack>
                     </Card>
 
                     <Card padding={4}>
                         <Stack gap={3}>
-                            <Heading level={3}>Statistik PO</Heading>
-                            <Grid columns={{ minWidth: 140, max: 3 }} gap={3}>
-                                <StatTile label="Total" value={po_stats.total} />
-                                <StatTile
-                                    label="Menunggu"
-                                    value={po_stats.pending}
-                                />
-                                <StatTile
-                                    label="Berjalan"
-                                    value={po_stats.in_progress}
-                                />
-                                <StatTile
-                                    label="Selesai"
-                                    value={po_stats.completed}
-                                />
-                                <StatTile
-                                    label="Terkirim"
-                                    value={po_stats.delivered}
-                                />
-                                <StatTile label="Tutup" value={po_stats.closed} />
-                                <StatTile
-                                    label="Batal"
-                                    value={po_stats.cancelled}
-                                />
+                            <Heading level={3}>Konsumsi Resource Database</Heading>
+                            <Grid columns={{ minWidth: 120, max: 3 }} gap={3}>
+                                <StatTile label="Pengguna" value={analytics.resources.users_count} />
+                                <StatTile label="Purchase Orders" value={analytics.resources.table_breakdown.pos ?? 0} />
+                                <StatTile label="Item Produksi" value={analytics.resources.table_breakdown.items ?? 0} />
+                                <StatTile label="Tahapan Progress" value={analytics.resources.table_breakdown.item_progress ?? 0} />
+                                <StatTile label="Surat Jalan (DO)" value={analytics.resources.table_breakdown.do_items ?? 0} />
+                                <StatTile label="Audit Logs" value={analytics.resources.audit_logs_count} />
                             </Grid>
                         </Stack>
                     </Card>
                 </Grid>
 
+                {/* Users List */}
                 <Card padding={4}>
                     <Stack gap={3}>
-                        <Heading level={3}>Pengguna</Heading>
+                        <Heading level={3}>Daftar Pengguna Tenant</Heading>
                         <Table
                             data={users.data}
                             idKey="id"

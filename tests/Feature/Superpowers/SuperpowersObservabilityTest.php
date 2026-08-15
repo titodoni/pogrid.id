@@ -82,8 +82,9 @@ class SuperpowersObservabilityTest extends SuperpowersTestCase
             ->where('stats.tenants_readonly', 1)
             ->where('stats.tenants_deleted', 1)
             ->where('stats.users_total', 1)
-            ->where('stats.pos_total', 1)
-            ->where('stats.items_total', 1)
+            ->where('stats.active_users_24h', 0)
+            ->where('stats.activity_24h', 1)
+            ->where('stats.total_db_records', 5)
             ->where('stats.mrr_cents', 25_000_00)
         );
     }
