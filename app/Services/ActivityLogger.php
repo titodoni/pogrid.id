@@ -23,7 +23,7 @@ class ActivityLogger
         ?ItemProgress $itemProgress = null,
         ?int $tenantId = null
     ): ?ActivityLog {
-        $actor = $actor ?: Auth::user();
+        $actor = self::resolveActor($actor);
         $tenantId = $tenantId ?: (TenantManager::getTenantId() ?: ($project?->tenant_id ?? $item?->tenant_id));
 
         if (! $tenantId) {
@@ -39,6 +39,19 @@ class ActivityLogger
             'description' => mb_substr($description, 0, 500),
             'metadata' => $metadata,
         ]);
+    }
+
+    /**
+     * `activity_logs.user_id` is a FK to `users`, so only a tenant User may be
+     * recorded as the actor. A platform superadmin (separate `platform` guard,
+     * separate table) must never leak into the tenant audit trail — its actions
+     * are audited in `platform_activity_logs` instead.
+     */
+    protected static function resolveActor(?Model $actor): ?User
+    {
+        $actor ??= Auth::guard('web')->user();
+
+        return $actor instanceof User ? $actor : null;
     }
 
     public static function logProgress(ItemProgress $progress): ?ActivityLog

@@ -1,7 +1,12 @@
 <?php
 
+use App\Http\Middleware\AuthenticatePlatformAdmin;
+use App\Http\Middleware\CheckTenantMaintenance;
+use App\Http\Middleware\CheckTenantReadonly;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RedirectIfPlatformAdmin;
 use App\Http\Middleware\RedirectToAppDomain;
+use App\Http\Middleware\RequireTwoFactorChallenge;
 use App\Http\Middleware\SetTenant;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Foundation\Application;
@@ -9,6 +14,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -18,6 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         channels: __DIR__.'/../routes/channels.php',
         health: '/up',
+        then: function (): void {
+            Route::middleware('web')
+                ->group(__DIR__.'/../routes/superpowers.php');
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
@@ -27,6 +37,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'verified' => EnsureEmailIsVerified::class,
+            'platform.auth' => AuthenticatePlatformAdmin::class,
+            'platform.guest' => RedirectIfPlatformAdmin::class,
+            'platform.2fa' => RequireTwoFactorChallenge::class,
+            'tenant.readonly' => CheckTenantReadonly::class,
+            'tenant.maintenance' => CheckTenantMaintenance::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -53,25 +68,31 @@ return Application::configure(basePath: dirname(__DIR__))
                 404 => 'Errors/404',
                 419 => 'Errors/419',
                 500 => 'Errors/500',
+                503 => 'Errors/503',
                 default => null,
             };
 
-            if ($component) {
-                // For Inertia XHR requests, send the component as expected
-                if ($request->inertia()) {
-                    return Inertia::render($component, ['status' => $status])
-                        ->toResponse($request)
-                        ->setStatusCode($status);
-                }
-
-                // For direct browser navigations (not API, not file downloads),
-                // render through Inertia so the branded error component is served
-                // instead of the default Tailwind-styled Blade fallback.
-                if (! $request->is('api/*')) {
-                    return Inertia::render($component, ['status' => $status])
-                        ->toResponse($request)
-                        ->setStatusCode($status);
-                }
+            if (! $component) {
+                return null;
             }
+
+            if ($request->is('api/*')) {
+                return null;
+            }
+
+            $props = ['status' => $status];
+
+            // Maintenance mode carries an operator-authored message that the
+            // 503 page displays; other statuses use static copy.
+            if ($status === 503 && $e->getMessage() !== '') {
+                $props['message'] = $e->getMessage();
+            }
+
+            // Covers both Inertia XHR requests and direct browser navigations
+            // so the branded component is served instead of the Blade fallback.
+            return Inertia::render($component, $props)
+                ->toResponse($request)
+                ->setStatusCode($status)
+                ->withHeaders($e->getHeaders());
         });
     })->create();

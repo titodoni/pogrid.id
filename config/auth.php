@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\PlatformAdmin;
 use App\Models\User;
 
 return [
@@ -42,6 +43,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Platform-level superadmin guard. Separate from tenants entirely.
+        // Uses the plain eloquent provider because PlatformAdmin is NOT
+        // tenant-scoped (no BelongsToTenant trait, no TenantScope).
+        'platform' => [
+            'driver' => 'session',
+            'provider' => 'platform_admins',
+        ],
     ],
 
     /*
@@ -69,10 +78,11 @@ return [
             'model' => env('AUTH_MODEL', User::class),
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        // Superadmin provider — plain eloquent, PlatformAdmin has no scope.
+        'platform_admins' => [
+            'driver' => 'eloquent',
+            'model' => PlatformAdmin::class,
+        ],
     ],
 
     /*

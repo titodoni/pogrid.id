@@ -641,4 +641,29 @@ class OwnerDashboardController extends Controller
             'selected_project' => $projectFilter,
         ]);
     }
+
+    /**
+     * Soft-delete the tenant account (owner self-service).
+     */
+    public function deleteCompany(Request $request)
+    {
+        $user = auth()->user();
+
+        if (! $user->isOwner()) {
+            abort(403, 'Hanya owner yang dapat menghapus akun perusahaan.');
+        }
+
+        $tenant = Tenant::find($user->tenant_id);
+
+        if (! $tenant) {
+            abort(404, 'Tenant tidak ditemukan.');
+        }
+
+        $tenant->delete();
+
+        auth()->logout();
+
+        return redirect('/')
+            ->with('success', 'Akun perusahaan telah dihapus. Terima kasih telah menggunakan POGrid.');
+    }
 }

@@ -20,14 +20,15 @@ Design system: [Astryx](https://astryx.design) (`@astryxdesign/core` provides CS
 - `npm run test:e2e` / `npm run test:e2e:debug` — Puppeteer+Jest E2E suite in `e2e-tests/` (see `e2e-tests/README.md`). Needs Laravel server on `http://localhost:8000` + seeded DB.
 - `vendor/bin/pint` — formatting. `npm run typecheck` — `tsc --noEmit` (tsconfig exists, `strict:false`). `npm run typecheck:ci` — baseline gate (errors must not exceed `scripts/typecheck-baseline.txt`; lower it when fixing). CI enforces the gate before build.
 - `php artisan pogrid:evaluate-timelines` — cron for timeline alerts.
+- `php artisan superpowers:create-admin` — provision a platform superadmin (prints TOTP secret + recovery codes ONCE). No seeder, no self-registration.
 - `php artisan queue:work --stop-when-empty` — cron task (1-min interval, no daemon).
 - `git config core.hooksPath .githooks` — enable post-commit graphify auto-update (run once per clone).
 
 ## Routes & Auth
 
-Routes in `routes/web.php` (no API). Controllers return Inertia.
+Routes in `routes/web.php` (no API). Controllers return Inertia. Superadmin routes live in `routes/superpowers.php` (registered via `bootstrap/app.php` `then:`).
 
-**Guard A** (office): email/username + password at `/login`. **Guard B** (floor): PIN login at `/c/{slug}`, throttled 5 req/min. Privilege escalation blocks office roles from PIN login.
+**Guard A** (office): email/username + password at `/login`. **Guard B** (floor): PIN login at `/c/{slug}`, throttled 5 req/min. Privilege escalation blocks office roles from PIN login. **Guard C** (platform): `PlatformAdmin` on the `platform` guard at `/superpowers/login` + mandatory TOTP — see `docs/superpowers/README.md` and ADR-006.
 
 **Demo accounts** (seeded by `DatabaseSeeder`):
 - Tenant: `teknik-mandiri` (slug)
@@ -56,7 +57,7 @@ Routes in `routes/web.php` (no API). Controllers return Inertia.
 
 ## Pages
 
-`resources/js/Pages/` groups: `Auth/`, `Owner/`, `Worker/`, `Ppic/`, `Landing/`, `Legal/`. `FlashMessages.tsx` wraps pages via `app.tsx` `resolve` function. Flash shared via `Inertia::share('flash', ...)` in `AppServiceProvider`.
+`resources/js/Pages/` groups: `Auth/`, `Owner/`, `Worker/`, `Ppic/`, `Landing/`, `Legal/`, `Superpowers/`. `FlashMessages.tsx` wraps pages via `app.tsx` `resolve` function. Flash shared via `Inertia::share('flash', ...)` in `AppServiceProvider` — and re-declared in `HandleInertiaRequests::share()`, which overwrites the whole key, so both must list all four toast types.
 
 Owner Dashboard tabs live in `resources/js/features/owner/` (`AlertsTab`, `PoGridSection`, `MatrixTab`, `TeamTab`) — prop-fed, state stays in the page. Shared UI: `Components/ProgressBar.tsx`, `Components/PillFilter.tsx`. Realtime: `Hooks/useEchoPresence.ts` (presence + ws status + toast queue + fallback polling) shared by Owner/Worker/PPIC dashboards.
 
@@ -80,7 +81,8 @@ Controller error flow: `AuthController::login()` checks user existence first (by
 
 - **Multi-tenancy**: row-level `TenantScope` + `TenantManager` singleton. Models use `BelongsToTenant`. `TenantManager::bypass()`/`enableScope()` for tests and admin contexts.
 - **Observer chain** (registered in `AppServiceProvider::boot()`): `Item::created` auto-creates `ItemProgress` rows per `required_stages`. `ItemProgress::saved` recalculates weighted progress, cascades PO status. `DoItem::saved` marks PO DELIVERED when all non-cancelled items delivered. Business logic lives in observers and services (`ProgressService`, `StageGate`, `TelemetryService`), NOT controllers.
-- **Security architecture**: `User` implements `MustVerifyEmail` (framework `verified` middleware — do not re-add a custom one). Office route group requires `can:access-office` + `verified`. Session user resolution uses the `tenant-safe-eloquent` auth provider (`app/Auth/TenantSafeEloquentUserProvider`) because identity lookup runs before `SetTenant`. TenantScope is FAIL-CLOSED (`TenantContextMissingException`); cross-tenant reads only via `TenantManager::runWithoutScope()`. Throttles: `login-office` (5/min per username+IP), PIN login 5/min, register 5/min, password reset 6/min.
+- **Security architecture**: `User` implements `MustVerifyEmail` (framework `verified` middleware — do not re-add a custom one). Office route group requires `can:access-office` + `verified`. Session user resolution uses the `tenant-safe-eloquent` auth provider (`app/Auth/TenantSafeEloquentUserProvider`) because identity lookup runs before `SetTenant`. TenantScope is FAIL-CLOSED (`TenantContextMissingException`); cross-tenant reads only via `TenantManager::runWithoutScope()`. Throttles: `login-office` (5/min per username+IP), PIN login 5/min, register 5/min, password reset 6/min, `login-platform` 5/min.
+- **Platform plane (Superpowers)**: separate `platform` guard + `PlatformAdmin` (no `BelongsToTenant`), mandatory TOTP, own audit table `platform_activity_logs`, own Vite entry + Astryx design system. Subscription state is the single gate on tenant writes: `Tenant::ACTIVE_STATUSES` allows mutations, everything else (incl. unknown values) is read-only via `tenant.readonly`. Global maintenance via `tenant.maintenance` → `Errors/503`. Full guide: `docs/superpowers/README.md`; rationale: ADR-006.
 - **Progress system**: workers log *additive deltas* (+3 pcs), not absolute totals. Multi-piece (`target_qty > 1`): `Item % = Σ(completed_qty all stages) / (target_qty × stage_count) × 100`. Single-piece (`target_qty == 1`): `Item % = Σ(stage progress%) / stage_count`.
 - **Status transitions**: item `PENDING → IN_PROGRESS → COMPLETED → DELIVERED/PAID` (CANCELLED at 0% only; >0% becomes TERMINATED — sunk-cost protection). PO: `PENDING → IN_PROGRESS → COMPLETED → DELIVERED → CLOSED` (CLOSED when all invoiced/paid, set manually by Finance).
 - **Stage access gate** (`WorkerDashboardController::validateStageAccess()`): `config('workflow.stage_role_map')` (config/workflow.php) maps role keywords → stage names; all preceding stages must be COMPLETED before QC can update; unmatched stages fall to PRODUCTION role.
@@ -101,11 +103,12 @@ Controller error flow: `AuthController::login()` checks user existence first (by
 | Timeline cron | `app/Console/Commands/EvaluateTimelines.php` |
 | Auth | `app/Http/Controllers/{AuthController,WorkerAuthController,PinResetController}.php` |
 | Owner dashboard | `app/Http/Controllers/OwnerDashboardController.php` |
+| Superpowers (platform admin) | `routes/superpowers.php` + `app/Http/Controllers/Superpowers/` + `app/Models/{PlatformAdmin,PlatformActivityLog,PlatformSetting,Plan}.php`; guide in `docs/superpowers/README.md` |
 | Routes | `routes/web.php` |
 
 ## Architecture Guardrails (mandatory)
 
-Decisions are recorded in `docs/adr/` (ADR-001…005). When a change seems to contradict an ADR, stop and escalate instead of drifting.
+Decisions are recorded in `docs/adr/` (ADR-001…006). When a change seems to contradict an ADR, stop and escalate instead of drifting.
 
 **Backend shape:** Route → Middleware → Controller → FormRequest/Policy → Service/Action → Model/DB. Controllers accept requests, authorize, call an operation, return a response. They do NOT calculate KPIs, render exports, run workflows, or decide permissions inline.
 
@@ -161,6 +164,7 @@ Did this change: add business logic to a controller? grow a hotspot? duplicate a
 - `ItemObserver` creates `ItemProgress` on Item creation — account for this in progress assertions.
 - Core files: `tests/Feature/CoreLogicTest.php` (tenant isolation, progress, DO, QC rework, alerts, timeline) and `AdminManagementTest.php` (auth, CRUD, broadcast, PIN login).
 - Logging: `tests/Feature/ProjectLogsTest.php` (activity-log capture + `/logs` page). `activity_logs` rows are auto-written by observers for item/progress/alert actions; `project_created`/`user_created` only via HTTP controllers. Non-owner accounts cannot modify/delete owner accounts (`RoleSecurityRemediationTest`).
+- Superpowers: `tests/Feature/Superpowers/` (guard separation, 2FA/secret handling, tenant CRUD + soft-delete, readonly/maintenance enforcement, observability). Shared fixtures in `SuperpowersTestCase`.
 
 ## Quirks
 

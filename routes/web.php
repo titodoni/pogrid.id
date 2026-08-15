@@ -56,7 +56,7 @@ Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 've
     ->middleware(['auth', 'signed'])
     ->name('verification.verify');
 
-Route::middleware(['auth', 'can:access-office', 'verified'])->group(function () {
+Route::middleware(['auth', 'can:access-office', 'verified', 'tenant.maintenance', 'tenant.readonly'])->group(function () {
     // Owner Dashboard & Control routes
     Route::get('/dashboard', [OwnerDashboardController::class, 'index'])->name('dashboard');
     Route::get('/selamat-datang', [OwnerDashboardController::class, 'welcome'])->name('onboarding');
@@ -77,6 +77,9 @@ Route::middleware(['auth', 'can:access-office', 'verified'])->group(function () 
     // Company Settings Update
     Route::post('/company/update', [OwnerDashboardController::class, 'updateCompany']);
     Route::post('/company/workflow-settings', [OwnerDashboardController::class, 'updateWorkflowSettings']);
+
+    // Tenant self-service account deletion (owner only, soft-delete)
+    Route::post('/company/delete', [OwnerDashboardController::class, 'deleteCompany'])->name('company.delete');
 
     // Tenant Stage Templates
     Route::get('/stage-templates', [OwnerDashboardController::class, 'listStageTemplates']);
@@ -109,7 +112,7 @@ Route::prefix('c/{slug}')->group(function () {
     Route::post('/login', [WorkerAuthController::class, 'login'])->middleware('throttle:5,1');
     Route::post('/pin-reset/request', [PinResetController::class, 'requestPinReset']);
 
-    Route::middleware('auth')->group(function () {
+    Route::middleware(['auth', 'tenant.maintenance', 'tenant.readonly'])->group(function () {
         Route::get('/export-pdf', [WorkerDashboardController::class, 'exportPdf']);
         Route::get('/export-csv', [WorkerDashboardController::class, 'exportCsv']);
         Route::get('/export-xlsx', [WorkerDashboardController::class, 'exportXlsx']);

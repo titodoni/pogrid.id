@@ -5,11 +5,13 @@ namespace App\Providers;
 use App\Auth\TenantSafeEloquentUserProvider;
 use App\Enums\ItemStatus;
 use App\Enums\PoStatus;
+use App\Listeners\LogSentEmail;
 use App\Models\Alert;
 use App\Models\DeliveryOrder;
 use App\Models\DoItem;
 use App\Models\Item;
 use App\Models\ItemProgress;
+use App\Models\PlatformSetting;
 use App\Models\Po;
 use App\Models\Tenant;
 use App\Models\TenantStageTemplate;
@@ -22,7 +24,10 @@ use App\Observers\ItemProgressObserver;
 use App\Services\TenantManager;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -48,6 +53,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('login-office', function ($request) {
             return Limit::perMinute(5)
                 ->by(strtolower((string) $request->input('username')).'|'.$request->ip());
+        });
+
+        // Superpowers platform admin login throttling (separate from office).
+        RateLimiter::for('login-platform', function ($request) {
+            return Limit::perMinute(5)
+                ->by(strtolower((string) $request->input('email')).'|'.$request->ip());
         });
 
         Gate::define('update-finance-status-lock', function ($user, $item) {
@@ -238,5 +249,24 @@ class AppServiceProvider extends ServiceProvider
 
             return null;
         });
+
+        // Superpowers maintenance context — the platform admin identity itself
+        // is shared by HandleInertiaRequests as `platformAdmin`.
+        Inertia::share('platform_maintenance', function () {
+            if (! auth('platform')->check()) {
+                return null;
+            }
+
+            return [
+                'enabled' => PlatformSetting::isMaintenanceMode(),
+                'message' => PlatformSetting::getMaintenanceMessage(),
+            ];
+        });
+
+        // Email delivery logging — capture outbound mail into email_logs.
+        // Method names avoid the `handle*` prefix so Laravel's listener
+        // auto-discovery does not register them a second time.
+        Event::listen(MessageSending::class, [LogSentEmail::class, 'recordSending']);
+        Event::listen(MessageSent::class, [LogSentEmail::class, 'recordSent']);
     }
 }

@@ -145,3 +145,84 @@ export interface PageProps {
     };
     lang?: 'en' | 'id';
 }
+
+// ─────────────────────────────────────────────────────────────
+// Superpowers (platform admin panel) types
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Astryx `Table` constrains its row generic to `Record<string, unknown>`.
+ * Row shapes fed to `<Table data={...} />` must extend this so generic
+ * inference keeps the concrete row type inside `renderCell`.
+ */
+export type TableRowShape = { [key: string]: unknown };
+
+/** Laravel length-aware paginator payload as serialized by Inertia. */
+export interface Paginated<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+    links: { url: string | null; label: string; active: boolean }[];
+}
+
+export interface PlatformAdmin {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url: string | null;
+    has_two_factor: boolean;
+}
+
+export interface PlatformMaintenance {
+    enabled: boolean;
+    message: string | null;
+}
+
+/** Subscription status values treated as "active" by the backend. */
+export type SubscriptionStatus =
+    | 'ACTIVE'
+    | 'PAID'
+    | 'SUBSCRIBED'
+    | 'READONLY'
+    | string;
+
+export interface PlanSummary {
+    id: number;
+    name: string;
+    price_cents: number;
+}
+
+export interface TenantRow extends TableRowShape {
+    id: number;
+    company_name: string;
+    slug: string;
+    subscription_status: SubscriptionStatus;
+    plan: PlanSummary | null;
+    users_count: number;
+    deleted_at: string | null;
+    created_at: string | null;
+}
+
+export interface Plan {
+    id: number;
+    name: string;
+    price: number;
+}
+
+export interface SuperpowersFlash {
+    success?: string;
+    error?: string;
+    warning?: string;
+    info?: string;
+}
+
+export interface SuperpowersPageProps {
+    platformAdmin: PlatformAdmin | null;
+    platform_maintenance: PlatformMaintenance | null;
+    flash?: SuperpowersFlash;
+    [key: string]: unknown;
+}
