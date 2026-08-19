@@ -18,6 +18,9 @@ class DuitkuIntegrationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config()->set('services.duitku.merchant_code', 'DS_TEST');
+        config()->set('services.duitku.api_key', 'TEST_API_KEY_12345');
+        config()->set('services.duitku.sandbox_mode', true);
         $this->seed();
     }
 
