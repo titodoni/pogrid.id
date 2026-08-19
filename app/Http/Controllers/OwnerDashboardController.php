@@ -793,14 +793,16 @@ class OwnerDashboardController extends Controller
                 return redirect()->back()->with('error', 'Paket langganan tidak ditemukan.');
             }
 
+            $priceCents = (int) ($plan->price ?? 50000000);
+
             $invoice = SubscriptionInvoice::create([
                 'invoice_number' => SubscriptionInvoice::generateInvoiceNumber(),
                 'tenant_id' => $user->tenant_id,
                 'plan_id' => $plan->id,
-                'amount_cents' => $plan->price_cents,
+                'amount_cents' => $priceCents,
                 'status' => SubscriptionInvoice::STATUS_UNPAID,
                 'period_start' => now(),
-                'period_end' => now()->addDays($plan->billing_interval === 'yearly' ? 365 : 30),
+                'period_end' => now()->addDays(30),
                 'due_date' => now()->addDays(7),
             ]);
         }

@@ -47,7 +47,7 @@ class DuitkuService
         $timestamp = (int) round(microtime(true) * 1000);
         $signature = hash('sha256', $this->merchantCode.$timestamp.$this->apiKey);
 
-        $productDetails = 'Langganan POgrid - '.($invoice->plan->name ?? 'Paket Standard');
+        $productDetails = 'Langganan POgrid - '.($invoice->plan?->name ?? 'Paket Standard');
 
         $nameParts = explode(' ', trim($user->name), 2);
         $firstName = $nameParts[0];
