@@ -35,6 +35,27 @@ class DuitkuIntegrationTest extends TestCase
         $this->assertAuthenticated();
     }
 
+    public function test_duitku_demo_user_login_without_email_verification(): void
+    {
+        $response = $this->post('/login', [
+            'username' => 'Duitku',
+            'password' => 'demo',
+        ]);
+
+        $response->assertRedirect('/c/teknik-mandiri');
+        $this->assertAuthenticated();
+
+        // Verify that user is marked verified and can access office routes directly
+        $user = auth()->user();
+        $this->assertNotNull($user->email_verified_at);
+        $this->assertTrue($user->hasVerifiedEmail());
+        $this->assertTrue($user->is_owner);
+
+        // Can access billing page
+        $billingResponse = $this->get('/dashboard/billing');
+        $billingResponse->assertStatus(200);
+    }
+
     public function test_demo_floor_pin_login_works(): void
     {
         $tenant = Tenant::where('slug', 'teknik-mandiri')->first();

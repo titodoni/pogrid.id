@@ -29,7 +29,9 @@ class AuthController extends Controller
         // is globally unique). Explicit, tightly-scoped bypass for both the
         // lookup and Auth::attempt's provider query.
         TenantManager::bypass();
-        $user = User::where($field, $request->username)->first();
+        $user = User::where($field, $request->username)
+            ->orWhereRaw("LOWER({$field}) = ?", [strtolower($request->username)])
+            ->first();
 
         if (! $user) {
             TenantManager::enableScope();
@@ -39,7 +41,7 @@ class AuthController extends Controller
             ])->onlyInput('username');
         }
 
-        $attempted = Auth::attempt([$field => $request->username, 'password' => $request->password]);
+        $attempted = Auth::attempt([$field => $user->{$field}, 'password' => $request->password]);
         TenantManager::enableScope();
 
         if ($attempted) {

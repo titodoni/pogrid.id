@@ -151,6 +151,18 @@ class DatabaseSeeder extends Seeder
             'post_id' => $posts['Manager']->id,
         ]);
 
+        User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Duitku Tester',
+            'username' => 'Duitku',
+            'email' => 'duitku@pogrid.id',
+            'password' => Hash::make('demo'),
+            'email_verified_at' => now(),  // demo office accounts are pre-verified (green verification)
+            'role_id' => $roles['STAFF']->id,
+            'post_id' => $posts['Manager']->id,
+            'is_owner' => true,
+        ]);
+
         // 5. Create Floor Staff (PIN Login: 0000)
         User::create([
             'tenant_id' => $tenant->id,
