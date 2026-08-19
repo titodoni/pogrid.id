@@ -54,6 +54,12 @@ class PaymentProofUploaded extends Mailable
      */
     public function attachments(): array
     {
+        if ($this->invoice && $this->invoice->payment_proof_path) {
+            return [
+                \Illuminate\Mail\Mailables\Attachment::fromStorageDisk('public', $this->invoice->payment_proof_path)
+            ];
+        }
+
         return [];
     }
 }
