@@ -17,7 +17,7 @@ export function waUrl(lang: Lang): string {
         lang === 'id'
             ? 'Halo, saya berminat dengan POgrid. Saya ingin meminta demo.'
             : 'Hello, I am interested in POgrid. I would like to request a demo.';
-    return `https://wa.me/628151678101?text=${encodeURIComponent(text)}`;
+    return `https://wa.me/628154198101?text=${encodeURIComponent(text)}`;
 }
 
 export function hrefFor(i: number): string {

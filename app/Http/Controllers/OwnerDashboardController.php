@@ -814,7 +814,7 @@ class OwnerDashboardController extends Controller
         $result = $duitkuService->createInvoice($invoice, $user);
 
         if ($result['success'] && ! empty($result['paymentUrl'])) {
-            return redirect()->away($result['paymentUrl']);
+            return \Inertia\Inertia::location($result['paymentUrl']);
         }
 
         return redirect()->back()->with('error', $result['message'] ?? 'Gagal memproses pembayaran dengan Duitku.');

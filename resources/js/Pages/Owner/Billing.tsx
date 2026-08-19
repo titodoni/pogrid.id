@@ -458,32 +458,27 @@ export default function Billing({
                         </p>
 
                         <form onSubmit={handleUploadProof} style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '480px' }}>
-                            {payment_methods.length > 0 && (
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--color-pg-text)', marginBottom: '6px' }}>
-                                        Metode / Bank Tujuan Transfer
-                                    </label>
-                                    <select
-                                        value={selectedMethodId}
-                                        onChange={(e) => setSelectedMethodId(Number(e.target.value))}
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px 12px',
-                                            borderRadius: '8px',
-                                            border: '1px solid var(--color-pg-border)',
-                                            backgroundColor: 'rgba(0,0,0,0.3)',
-                                            color: '#fff',
-                                            fontSize: '14px',
-                                        }}
-                                    >
-                                        {payment_methods.map((pm) => (
-                                            <option key={pm.id} value={pm.id}>
-                                                {pm.name} ({pm.account_number ?? pm.provider})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
+                            <div>
+                                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--color-pg-text)', marginBottom: '6px' }}>
+                                    Bank Tujuan Transfer
+                                </label>
+                                <select
+                                    value={selectedMethodId}
+                                    onChange={(e) => setSelectedMethodId(Number(e.target.value))}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid var(--color-pg-border)',
+                                        backgroundColor: 'rgba(0,0,0,0.3)',
+                                        color: '#fff',
+                                        fontSize: '14px',
+                                    }}
+                                >
+                                    <option value={1}>BCA — 8905463965 (Tito Doni Asmoro)</option>
+                                    <option value={2}>Mandiri — 1140024129135 (Tito Doni Asmoro)</option>
+                                </select>
+                            </div>
 
                             <div>
                                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--color-pg-text)', marginBottom: '6px' }}>
@@ -534,6 +529,50 @@ export default function Billing({
                                 {uploadForm.processing ? 'Mengunggah...' : 'Kirim Bukti Pembayaran'}
                             </button>
                         </form>
+
+                        {/* WhatsApp Quick Contact */}
+                        <div
+                            style={{
+                                marginTop: '20px',
+                                padding: '16px 20px',
+                                borderRadius: '10px',
+                                border: '1px solid rgba(37, 211, 102, 0.3)',
+                                backgroundColor: 'rgba(37, 211, 102, 0.08)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '14px',
+                                flexWrap: 'wrap',
+                            }}
+                        >
+                            <div style={{ flex: 1, minWidth: '200px' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#25d366', marginBottom: '4px' }}>
+                                    💬 Butuh Bantuan?
+                                </div>
+                                <div style={{ fontSize: '13px', color: 'var(--color-pg-text-muted)', lineHeight: 1.5 }}>
+                                    Hubungi kami langsung via WhatsApp untuk konfirmasi pembayaran atau pertanyaan lainnya.
+                                </div>
+                            </div>
+                            <a
+                                href="https://wa.me/628154198101?text=Halo%20admin%20POgrid%2C%20saya%20ingin%20konfirmasi%20pembayaran%20langganan."
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '10px 20px',
+                                    borderRadius: '8px',
+                                    backgroundColor: '#25d366',
+                                    color: '#fff',
+                                    fontSize: '13px',
+                                    fontWeight: 700,
+                                    textDecoration: 'none',
+                                    whiteSpace: 'nowrap',
+                                }}
+                            >
+                                <span style={{ fontSize: '16px' }}>📱</span> Chat WhatsApp
+                            </a>
+                        </div>
                     </div>
                 </div>
 
