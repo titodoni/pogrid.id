@@ -728,6 +728,14 @@ class OwnerDashboardController extends Controller
             ],
         ]);
 
+        try {
+            \Illuminate\Support\Facades\Mail::to('admin@pogrid.id')->send(
+                new \App\Mail\PaymentProofUploaded($invoice, $tenant)
+            );
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send payment proof email to admin: ' . $e->getMessage());
+        }
+
         return back()->with('success', 'Bukti transfer berhasil diunggah dan sedang menunggu verifikasi superadmin.');
     }
 
