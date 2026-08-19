@@ -335,69 +335,91 @@ export default function Billing({
                         Silakan lakukan pembayaran langganan ke salah satu rekening resmi platform POgrid berikut:
                     </p>
 
-                    {/* Dynamic Payment Methods Grid */}
+                    {/* Bank Transfer Accounts */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '28px' }}>
-                        {payment_methods.length > 0 ? (
-                            payment_methods.map((pm, idx) => (
-                                <div
-                                    key={pm.id}
-                                    style={{
-                                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                                        padding: '20px',
-                                        borderRadius: '10px',
-                                        border: '1px solid var(--color-pg-border)',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        justifyContent: 'space-between',
-                                        gap: '12px',
-                                    }}
-                                >
-                                    <div>
-                                        <div style={{ fontSize: '13px', textTransform: 'uppercase', fontWeight: 700, color: '#60a5fa', marginBottom: '4px' }}>
-                                            🏦 {pm.name}
-                                        </div>
-                                        {pm.type === 'bank_transfer' && (
-                                            <>
-                                                <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.05em', fontFamily: 'monospace' }}>
-                                                    {pm.account_number}
-                                                </div>
-                                                <div style={{ fontSize: '13px', color: 'var(--color-pg-text-muted)', marginTop: '2px' }}>
-                                                    a/n {pm.account_holder}
-                                                </div>
-                                            </>
-                                        )}
-                                        {pm.instructions && (
-                                            <p style={{ fontSize: '12px', color: 'var(--color-pg-text-muted)', marginTop: '8px', lineHeight: 1.4 }}>
-                                                {pm.instructions}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {pm.account_number && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleCopy(pm.account_number!, idx)}
-                                            style={{
-                                                padding: '8px 12px',
-                                                borderRadius: '6px',
-                                                border: '1px solid rgba(255,255,255,0.15)',
-                                                background: 'rgba(255,255,255,0.05)',
-                                                color: '#fff',
-                                                fontSize: '12px',
-                                                fontWeight: 600,
-                                                cursor: 'pointer',
-                                            }}
-                                        >
-                                            {copiedIndex === idx ? '✓ Berhasil Disalin' : 'Salin No. Rekening'}
-                                        </button>
-                                    )}
+                        {/* BCA */}
+                        <div
+                            style={{
+                                backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                                padding: '20px',
+                                borderRadius: '10px',
+                                border: '1px solid var(--color-pg-border)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                gap: '12px',
+                            }}
+                        >
+                            <div>
+                                <div style={{ fontSize: '13px', textTransform: 'uppercase', fontWeight: 700, color: '#60a5fa', marginBottom: '4px' }}>
+                                    🏦 Bank BCA
                                 </div>
-                            ))
-                        ) : (
-                            <div style={{ color: 'var(--color-pg-text-muted)', fontSize: '14px' }}>
-                                Belum ada metode pembayaran yang diaktifkan oleh platform admin. Silakan hubungi tim support POgrid.
+                                <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.05em', fontFamily: 'monospace' }}>
+                                    8905463965
+                                </div>
+                                <div style={{ fontSize: '13px', color: 'var(--color-pg-text-muted)', marginTop: '2px' }}>
+                                    a/n Tito Doni Asmoro
+                                </div>
                             </div>
-                        )}
+                            <button
+                                type="button"
+                                onClick={() => handleCopy('8905463965', 100)}
+                                style={{
+                                    padding: '8px 12px',
+                                    borderRadius: '6px',
+                                    border: '1px solid rgba(255,255,255,0.15)',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    color: '#fff',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                {copiedIndex === 100 ? '✓ Berhasil Disalin' : 'Salin No. Rekening'}
+                            </button>
+                        </div>
+
+                        {/* Mandiri */}
+                        <div
+                            style={{
+                                backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                                padding: '20px',
+                                borderRadius: '10px',
+                                border: '1px solid var(--color-pg-border)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                gap: '12px',
+                            }}
+                        >
+                            <div>
+                                <div style={{ fontSize: '13px', textTransform: 'uppercase', fontWeight: 700, color: '#fbbf24', marginBottom: '4px' }}>
+                                    🏦 Bank Mandiri
+                                </div>
+                                <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.05em', fontFamily: 'monospace' }}>
+                                    1140024129135
+                                </div>
+                                <div style={{ fontSize: '13px', color: 'var(--color-pg-text-muted)', marginTop: '2px' }}>
+                                    a/n Tito Doni Asmoro
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => handleCopy('1140024129135', 101)}
+                                style={{
+                                    padding: '8px 12px',
+                                    borderRadius: '6px',
+                                    border: '1px solid rgba(255,255,255,0.15)',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    color: '#fff',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                {copiedIndex === 101 ? '✓ Berhasil Disalin' : 'Salin No. Rekening'}
+                            </button>
+                        </div>
                     </div>
 
                     <div style={{ marginBottom: '24px' }}>
