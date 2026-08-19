@@ -793,7 +793,7 @@ class OwnerDashboardController extends Controller
                 return redirect()->back()->with('error', 'Paket langganan tidak ditemukan.');
             }
 
-            $priceCents = (int) ($plan->price ?? 50000000);
+            $priceCents = (int) ($plan->price > 0 ? $plan->price : 50000000);
 
             $invoice = SubscriptionInvoice::create([
                 'invoice_number' => SubscriptionInvoice::generateInvoiceNumber(),
@@ -805,6 +805,10 @@ class OwnerDashboardController extends Controller
                 'period_end' => now()->addDays(30),
                 'due_date' => now()->addDays(7),
             ]);
+        } elseif ($invoice->amount_cents <= 0) {
+            $priceCents = (int) ($invoice->plan?->price > 0 ? $invoice->plan->price : 50000000);
+            $invoice->amount_cents = $priceCents;
+            $invoice->save();
         }
 
         $result = $duitkuService->createInvoice($invoice, $user);

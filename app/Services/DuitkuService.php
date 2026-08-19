@@ -43,6 +43,9 @@ class DuitkuService
         }
 
         $paymentAmount = (int) ($invoice->amount_cents / 100);
+        if ($paymentAmount <= 0) {
+            $paymentAmount = 500000; // Default Rp 500.000 for standard plan
+        }
         $merchantOrderId = $invoice->invoice_number;
         $timestamp = (int) round(microtime(true) * 1000);
         $signature = hash('sha256', $this->merchantCode.$timestamp.$this->apiKey);
