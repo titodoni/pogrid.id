@@ -18,6 +18,7 @@ use App\Models\TenantStageTemplate;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\DrafterRoutingService;
+use App\Services\DuitkuService;
 use App\Services\PartCatalogService;
 use App\Services\ReportingService;
 use App\Services\StageTemplateService;
@@ -769,5 +770,47 @@ class OwnerDashboardController extends Controller
 
         return redirect('/')
             ->with('success', 'Akun perusahaan telah dihapus. Terima kasih telah menggunakan POGrid.');
+    }
+
+    public function checkoutDuitku(Request $request, DuitkuService $duitkuService)
+    {
+        $user = auth()->user();
+        TenantManager::setTenantId($user->tenant_id);
+
+        $invoice = TenantManager::runWithoutScope(
+            fn () => SubscriptionInvoice::with('plan')
+                ->where('tenant_id', $user->tenant_id)
+                ->where('status', SubscriptionInvoice::STATUS_UNPAID)
+                ->latest('id')
+                ->first()
+        );
+
+        if (! $invoice) {
+            $tenant = Tenant::with('plan')->find($user->tenant_id);
+            $plan = $tenant?->plan ?? Plan::first();
+
+            if (! $plan) {
+                return redirect()->back()->with('error', 'Paket langganan tidak ditemukan.');
+            }
+
+            $invoice = SubscriptionInvoice::create([
+                'invoice_number' => SubscriptionInvoice::generateInvoiceNumber(),
+                'tenant_id' => $user->tenant_id,
+                'plan_id' => $plan->id,
+                'amount_cents' => $plan->price_cents,
+                'status' => SubscriptionInvoice::STATUS_UNPAID,
+                'period_start' => now(),
+                'period_end' => now()->addDays($plan->billing_interval === 'yearly' ? 365 : 30),
+                'due_date' => now()->addDays(7),
+            ]);
+        }
+
+        $result = $duitkuService->createInvoice($invoice, $user);
+
+        if ($result['success'] && ! empty($result['paymentUrl'])) {
+            return redirect()->away($result['paymentUrl']);
+        }
+
+        return redirect()->back()->with('error', $result['message'] ?? 'Gagal memproses pembayaran dengan Duitku.');
     }
 }

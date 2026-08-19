@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'duitku' => [
+        'merchant_code' => env('DUITKU_MERCHANT_CODE', 'D12345'),
+        'api_key' => env('DUITKU_API_KEY', 'sandbox_key'),
+        'sandbox_mode' => env('DUITKU_SANDBOX_MODE', true),
+    ],
+
 ];

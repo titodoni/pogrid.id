@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import { AppLayout } from '../../Components/AppLayout';
 import { AlertTriangle } from '../../Components/Icons';
 import { formatDDMMYYYY } from '../../Utils/date';
@@ -81,6 +81,15 @@ export default function Billing({
         payment_method_id: selectedMethodId,
         proof: null,
     });
+
+    const [isDuitkuLoading, setIsDuitkuLoading] = useState(false);
+
+    const handleDuitkuCheckout = () => {
+        setIsDuitkuLoading(true);
+        router.post('/billing/duitku-checkout', {}, {
+            onFinish: () => setIsDuitkuLoading(false),
+        });
+    };
 
     const handleCopy = (text: string, index: number) => {
         navigator.clipboard.writeText(text);
@@ -189,6 +198,75 @@ export default function Billing({
                     </div>
                 </div>
 
+                {/* Instant Online Payment (Duitku Gateway Card) */}
+                <div
+                    style={{
+                        background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(30, 64, 175, 0.05) 100%)',
+                        border: '1px solid rgba(59, 130, 246, 0.35)',
+                        borderRadius: '12px',
+                        padding: '28px',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+                    }}
+                >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+                        <div style={{ maxWidth: '640px' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '20px', backgroundColor: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '10px' }}>
+                                ⚡ Pembayaran Otomatis Instan
+                            </div>
+                            <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-pg-text)', margin: '0 0 8px 0' }}>
+                                Bayar & Perpanjang Langganan via Duitku
+                            </h3>
+                            <p style={{ fontSize: '13px', color: 'var(--color-pg-text-muted)', margin: '0 0 16px 0', lineHeight: 1.6 }}>
+                                Transaksi diproses seketika 24/7 tanpa perlu upload bukti transfer manual. Mendukung berbagai metode pembayaran resmi:
+                            </p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {['QRIS', 'BCA Virtual Account', 'Mandiri VA', 'BNI VA', 'BRI VA', 'Permata VA', 'E-Wallet', 'Kartu Kredit', 'Indomaret / Alfamart'].map((badge, bIdx) => (
+                                    <span
+                                        key={bIdx}
+                                        style={{
+                                            padding: '4px 10px',
+                                            borderRadius: '6px',
+                                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            color: '#cbd5e1',
+                                            fontSize: '11px',
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        {badge}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <button
+                                type="button"
+                                onClick={handleDuitkuCheckout}
+                                disabled={isDuitkuLoading}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    padding: '14px 28px',
+                                    borderRadius: '10px',
+                                    backgroundColor: isDuitkuLoading ? '#2563eb' : '#3b82f6',
+                                    color: '#fff',
+                                    border: 'none',
+                                    fontSize: '15px',
+                                    fontWeight: 800,
+                                    cursor: isDuitkuLoading ? 'not-allowed' : 'pointer',
+                                    opacity: isDuitkuLoading ? 0.7 : 1,
+                                    boxShadow: '0 6px 20px rgba(59, 130, 246, 0.45)',
+                                    transition: 'all 0.15s ease',
+                                }}
+                            >
+                                {isDuitkuLoading ? '⏳ Mengarahkan ke Duitku...' : '💳 Bayar Sekarang dengan Duitku'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Open Invoice / Verification Pending Banner */}
                 {open_invoice && (
                     <div
@@ -213,6 +291,28 @@ export default function Billing({
                                         : `Jatuh tempo pembayaran: ${open_invoice.due_date ? formatDDMMYYYY(open_invoice.due_date) : 'Segera'}`}
                                 </p>
                             </div>
+                            {open_invoice.status === 'UNPAID' && (
+                                <div>
+                                    <button
+                                        type="button"
+                                        onClick={handleDuitkuCheckout}
+                                        disabled={isDuitkuLoading}
+                                        style={{
+                                            padding: '10px 20px',
+                                            borderRadius: '8px',
+                                            backgroundColor: '#3b82f6',
+                                            color: '#fff',
+                                            border: 'none',
+                                            fontSize: '14px',
+                                            fontWeight: 700,
+                                            cursor: isDuitkuLoading ? 'not-allowed' : 'pointer',
+                                            boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
+                                        }}
+                                    >
+                                        {isDuitkuLoading ? '⏳ Memproses...' : '🚀 Bayar Otomatis dengan Duitku'}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

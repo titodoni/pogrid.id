@@ -21,10 +21,16 @@ export const Footer: React.FC<FooterProps> = ({ t, lang }) => (
                     loading="lazy"
                 />
                 <p className="text-xs md:text-sm text-slate-500 leading-relaxed max-w-[320px] mb-6">{t.footer_tag}</p>
-                <div className="flex gap-2.5">
+                <div className="flex gap-2.5 mb-6">
                     <a href={waUrl(lang)} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="w-9 h-9 border border-slate-200 bg-white text-slate-500 hover:text-emerald-700 hover:border-emerald-300 transition-colors duration-150 flex items-center justify-center">
                         <WhatsAppIcon size={16} />
                     </a>
+                </div>
+                <div className="text-xs md:text-sm text-slate-500 space-y-2">
+                    <p className="font-semibold text-slate-700">Contact Support</p>
+                    <p>Email: <a href="mailto:admin@pogrid.id" className="hover:text-slate-900 transition-colors">admin@pogrid.id</a></p>
+                    <p>Phone: <a href="tel:+628156198101" className="hover:text-slate-900 transition-colors">+62 815-6198-101</a></p>
+                    <p>Address: Jalan Sakura, Rajabasa,<br/>Bandar Lampung, Indonesia</p>
                 </div>
             </div>
 

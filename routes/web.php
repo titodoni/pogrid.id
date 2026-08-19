@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DuitkuController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\OwnerDashboardController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\WorkerAuthController;
 use App\Http\Controllers\WorkerDashboardController;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 // Redirect app subdomain to login page, but serve React Landing page on main domain
@@ -102,10 +104,14 @@ Route::middleware(['auth', 'can:access-office', 'verified', 'tenant.maintenance'
     Route::get('/dashboard/billing', [OwnerDashboardController::class, 'billing'])->name('dashboard.billing');
     Route::get('/billing', [OwnerDashboardController::class, 'billing']);
     Route::post('/billing/upload-proof', [OwnerDashboardController::class, 'uploadPaymentProof'])->withoutMiddleware(['tenant.readonly'])->name('billing.upload-proof');
+    Route::post('/billing/duitku-checkout', [OwnerDashboardController::class, 'checkoutDuitku'])->withoutMiddleware(['tenant.readonly'])->name('billing.duitku-checkout');
     Route::get('/logs', [OwnerDashboardController::class, 'logs'])->name('logs');
     // Profile & Settings
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
 });
+
+// Duitku Webhook (Public)
+Route::post('/duitku/callback', [DuitkuController::class, 'handleCallback'])->name('duitku.callback')->withoutMiddleware([VerifyCsrfToken::class]);
 
 // Guard B: Unified Tenant Gateway at c/{slug}
 Route::prefix('c/{slug}')->group(function () {
