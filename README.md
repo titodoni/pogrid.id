@@ -29,7 +29,7 @@ POgrid.id lets every worker log progress from their phone. The system instantly:
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | Laravel 11 (PHP 8.3) |
+| Backend | Laravel 12 (PHP 8.3/8.4) |
 | Frontend | React 18 + TypeScript |
 | SSR Bridge | Inertia.js v2 |
 | Styling | Tailwind CSS v4 + Astryx design system |

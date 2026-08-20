@@ -2,20 +2,21 @@
 
 namespace App\Mail;
 
+use App\Models\SubscriptionInvoice;
+use App\Models\Tenant;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Models\SubscriptionInvoice;
-use App\Models\Tenant;
 
 class PaymentProofUploaded extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $invoice;
+
     public $tenant;
 
     /**
@@ -33,7 +34,7 @@ class PaymentProofUploaded extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Bukti Pembayaran Baru: ' . $this->tenant->name,
+            subject: 'Bukti Pembayaran Baru: '.$this->tenant->name,
         );
     }
 
@@ -50,13 +51,13 @@ class PaymentProofUploaded extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {
         if ($this->invoice && $this->invoice->payment_proof_path) {
             return [
-                \Illuminate\Mail\Mailables\Attachment::fromStorageDisk('public', $this->invoice->payment_proof_path)
+                Attachment::fromStorageDisk('public', $this->invoice->payment_proof_path),
             ];
         }
 

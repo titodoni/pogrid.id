@@ -1,6 +1,6 @@
 # POgrid — Deployment Plan: app.pogrid.id
 > Target: **Hostinger Shared Hosting** · Domain: **app.pogrid.id**
-> Laravel 11 · Inertia v2 · React 18 · Tailwind v4 · PostgreSQL (Neon.tech) · Pusher
+> Laravel 12 · Inertia v2 · React 18 · Tailwind v4 · PostgreSQL (Neon.tech) · Pusher
 
 ---
 
@@ -13,7 +13,7 @@ Browser
 Hostinger Shared Hosting (app.pogrid.id)
   │   Document root → /home/uXXXXXX/pogrid/public/
   │
-  ├── PHP 8.3 + Laravel 11
+  ├── PHP 8.3 + Laravel 12
   │     ├── App data ──────────────► Neon.tech PostgreSQL (remote)
   │     ├── Session/Cache/Queue ──► database.sqlite (local, high-write)
   │     └── Broadcast ─────────────► Pusher Channels (WebSocket)
@@ -154,9 +154,9 @@ DB_QUEUE_CONNECTION=sqlite
 # Events use ShouldBroadcastNow — fires directly to Pusher API inline,
 # no queue worker dependency. Latency: <50ms per broadcast.
 BROADCAST_CONNECTION=pusher
-PUSHER_APP_ID=2133996
-PUSHER_APP_KEY=9e4d4195377f01ded1bb
-PUSHER_APP_SECRET=598a184ff213d8568631
+PUSHER_APP_ID=your_pusher_app_id
+PUSHER_APP_KEY=your_pusher_app_key
+PUSHER_APP_SECRET=your_pusher_app_secret
 PUSHER_APP_CLUSTER=ap1
 VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
 VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"

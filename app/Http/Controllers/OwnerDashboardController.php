@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\ProductionTerminated;
 use App\Events\TaskUpdated;
 use App\Jobs\GenerateSunkCostInvoiceJob;
+use App\Mail\PaymentProofUploaded;
 use App\Models\Item;
 use App\Models\PaymentMethod;
 use App\Models\Plan;
@@ -30,6 +31,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -729,11 +732,11 @@ class OwnerDashboardController extends Controller
         ]);
 
         try {
-            \Illuminate\Support\Facades\Mail::to('admin@pogrid.id')->send(
-                new \App\Mail\PaymentProofUploaded($invoice, $tenant)
+            Mail::to('admin@pogrid.id')->send(
+                new PaymentProofUploaded($invoice, $tenant)
             );
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send payment proof email to admin: ' . $e->getMessage());
+            Log::error('Failed to send payment proof email to admin: '.$e->getMessage());
         }
 
         return back()->with('success', 'Bukti transfer berhasil diunggah dan sedang menunggu verifikasi superadmin.');
@@ -822,7 +825,7 @@ class OwnerDashboardController extends Controller
         $result = $duitkuService->createInvoice($invoice, $user);
 
         if ($result['success'] && ! empty($result['paymentUrl'])) {
-            return \Inertia\Inertia::location($result['paymentUrl']);
+            return Inertia::location($result['paymentUrl']);
         }
 
         return redirect()->back()->with('error', $result['message'] ?? 'Gagal memproses pembayaran dengan Duitku.');

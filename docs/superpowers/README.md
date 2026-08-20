@@ -15,11 +15,10 @@ a factory user, and has no `tenant_id`, no role, and no post.
 ```bash
 php artisan superpowers:create-admin \
   --name="Your Name" \
-  --email=you@pogrid.id \
-  --password='a-long-password'
+  --email=you@pogrid.id
 ```
 
-Omit any flag to be prompted. The command prints, **once**:
+The command will securely prompt for the password interactively. It then prints, **once**:
 
 - the TOTP secret,
 - an `otpauth://` URL to paste into Google Authenticator / Authy / 1Password,
@@ -167,11 +166,10 @@ Plan prices are stored as **integer cents** (`plans.price`); format with
 
 | Package | Version | Used by |
 |---|---|---|
-| `pragmarx/google2fa` | 8.0.3 (pinned) | TOTP generation + verification |
-| `spatie/laravel-backup` | 8.8.2 (pinned) | `backup:run`, backup listing on the Health page |
+| `pragmarx/google2fa` | ^8.0.3 | TOTP generation + verification |
+| `spatie/laravel-backup` | ^9.0 | `backup:run`, backup listing on the Health page |
 
-`spatie/laravel-backup` 9.x/10.x require Laravel 12; 8.8.2 is the last line
-compatible with Laravel 11. `config/backup.php` is published and defaults to the
+`spatie/laravel-backup` 9.x requires Laravel 12. `config/backup.php` is published and defaults to the
 `local` disk.
 
 ---

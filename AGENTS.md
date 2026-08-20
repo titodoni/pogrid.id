@@ -6,7 +6,7 @@ For codebase questions, first run `graphify query "<question>"` when `graphify-o
 
 God nodes: TenantManager, Item, User, Po, Alert, ItemProgress, Role, Post.
 
-Laravel 11 + Inertia.js v2 + React 18 + TypeScript + Tailwind v4 + Vite 8.
+Laravel 12 + Inertia.js v2 + React 18 + TypeScript + Tailwind v4 + Vite 8.
 
 Design system: [Astryx](https://astryx.design) (`@astryxdesign/core` provides CSS reset/base, imported in `resources/js/app.tsx`). Vite alias `@/` → `resources/js`.
 

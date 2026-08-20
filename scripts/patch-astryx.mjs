@@ -1,28 +1,38 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+const targetDir = 'node_modules/@astryxdesign/core/dist';
+const resolvedBaseDir = path.resolve(process.cwd(), targetDir);
+
 function walk(dir) {
     let results = [];
-    if (!fs.existsSync(dir)) return results;
-    const list = fs.readdirSync(dir);
+    const resolvedDir = path.resolve(dir);
+    if (!fs.existsSync(resolvedDir) || !resolvedDir.startsWith(resolvedBaseDir)) return results;
+    const list = fs.readdirSync(resolvedDir);
     list.forEach(file => {
-        const fullPath = path.join(dir, file);
+        const fullPath = path.resolve(resolvedDir, file);
+        if (!fullPath.startsWith(resolvedBaseDir + path.sep) && fullPath !== resolvedBaseDir) {
+            return;
+        }
         const stat = fs.statSync(fullPath);
         if (stat && stat.isDirectory()) {
             results = results.concat(walk(fullPath));
-        } else if (file.endsWith('.js')) {
+        } else if (stat && stat.isFile() && file.endsWith('.js')) {
             results.push(fullPath);
         }
     });
     return results;
 }
 
-const targetDir = 'node_modules/@astryxdesign/core/dist';
-if (fs.existsSync(targetDir)) {
-    const files = walk(targetDir);
+if (fs.existsSync(resolvedBaseDir)) {
+    const files = walk(resolvedBaseDir);
     let count = 0;
     files.forEach(f => {
-        let content = fs.readFileSync(f, 'utf8');
+        const resolvedFilePath = path.resolve(f);
+        if (!resolvedFilePath.startsWith(resolvedBaseDir + path.sep)) {
+            return;
+        }
+        let content = fs.readFileSync(resolvedFilePath, 'utf8');
         let changed = false;
 
         if (content.includes("from 'react'") && (content.includes('use') || content.includes('useOptimistic'))) {
